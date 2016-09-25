@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
+using System.Linq;
 
 public class Map {
-
-    public Coord
 
     public int SizeX
     { get; private set; }
 
     public int SizeY
     { get; private set; }
+
+    bool _isBoolMask = true;
 
     int[,] _map;
 
@@ -41,10 +43,109 @@ public class Map {
         _map = new int[SizeX, SizeY];
     }
 
+    // Accessors
+
+    public int this[int indexA, int indexB]
+    {
+        get { return _map[indexA, indexB]; }
+        set { _map[indexA, indexB] = value; }
+    }
+
+    // Static Functions
+
     public static Map CloneMap(Map map)
     {
         return BlankMap(map).OverwriteMapWith(map);
     }
+
+    public static Map BlankMap(Map template)
+    {
+        return new Map(template.SizeX, template.SizeY);
+    }
+
+    public static Map BlankMap(int sizeX, int sizeY)
+    {
+        return new Map(sizeX, sizeY);
+    }
+
+    public static Map ApplyMask(Map mapA, Map mapB, Map mask)
+    {
+        return CloneMap(mapA).ApplyMask(mask, mapB);
+    }
+
+    public static bool MapsAreSameDimensions(Map mapA, Map mapB)
+    {
+        return mapA.SizeX == mapB.SizeX && mapA.SizeY == mapB.SizeY;
+
+    }
+
+    public static Map BooleanUnion(Map mapA, Map mapB)
+    {
+        //Need a check here to avoid failure
+
+        if (!MapsAreSameDimensions(mapA, mapB))
+        {
+            Debug.Log("Maps are not the same size!");
+            return null;
+        }
+
+        var outputMap = new Map(mapA);
+
+        for (int x = 0; x < mapA.SizeX; x++)
+        {
+            for (int y = 0; y < mapA.SizeY; y++)
+            {
+                outputMap[x, y] = (mapA[x, y] == 0 | mapB[x, y] == 0) ? 0 : 1;
+            }
+        }
+        return outputMap;
+    }
+
+    public static Map BooleanIntersection(Map mapA, Map mapB)
+    {
+        //Need a check here to avoid failure
+
+        if (!MapsAreSameDimensions(mapA, mapB))
+        {
+            Debug.Log("Maps are not the same size!");
+            return null;
+        }
+
+        var outputMap = new Map(mapA);
+
+        for (int x = 0; x < mapA.SizeX; x++)
+        {
+            for (int y = 0; y < mapA.SizeY; y++)
+            {
+                outputMap[x, y] = (mapA[x, y] == 0 && mapB[x, y] == 0) ? 0 : 1;
+            }
+        }
+        return outputMap;
+    }
+
+    public static Map BooleanDifference(Map mapA, Map mapB)
+    {
+        //Need a check here to avoid failure
+
+        if (!MapsAreSameDimensions(mapA, mapB))
+        {
+            Debug.Log("Maps are not the same size!");
+            return null;
+        }
+
+        var outputMap = new Map(mapA);
+
+        for (int x = 0; x < mapA.SizeX; x++)
+        {
+            for (int y = 0; y < mapA.SizeY; y++)
+            {
+                outputMap[x, y] = (mapA[x, y] == 0) ? 1 : mapB[x, y];
+            }
+        }
+        return outputMap;
+    }
+
+    // General Functions
 
     public Map OverwriteMapWith(Map map)
     {
@@ -59,20 +160,26 @@ public class Map {
         return this;
     }
 
-    public static Map BlankMap(Map template)
+    public Map ApplyMask(Map maskToApply, Map overlayMap)
     {
-        return new Map(template.SizeX, template.SizeY);
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                if (maskToApply[x, y] == 1)
+                    _map[x, y] = overlayMap[x, y];
+            }
+        }
+
+        return this;
     }
 
-    public static Map BlankMap(int sizeX, int sizeY)
+    public Map ApplyMask(Map maskToApply)
     {
-        return new Map(sizeX, sizeY);
+        return ApplyMask(maskToApply, maskToApply);
     }
 
-    public int this[int indexA, int indexB]
-    {
-        get { return _map[indexA, indexB]; }
-    }
+    // Boolean Fill Functions
 
     public Map RandomFillMap()
     {
@@ -81,11 +188,12 @@ public class Map {
 
     public Map RandomFillMap(float randomFillPercent)
     {
-        return RandomFillMap(randomFillPercent, 0, 0, 1);
+        return RandomFillMap(randomFillPercent, 0, 1);
     }
 
     public Map RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
     {
+        _isBoolMask = true;
         var perlinSeed = RNG.NextFloat(0, 10000f);
 
 
@@ -117,6 +225,7 @@ public class Map {
 
     public Map CreateCircularFalloff()
     {
+        _isBoolMask = true;
         var centreX = (int)(SizeX * 0.5f);
         var centreY = (int)(SizeY * 0.5f);
         var radius = Mathf.Pow(SizeY * 0.5f, 2f);
@@ -139,8 +248,16 @@ public class Map {
         return this;
     }
 
+    // Iterative Functions that Require Bool
+
     public Map SmoothMap()
     {
+        if (!_isBoolMask)
+        {
+            Debug.Log("Only works with boolean Maps");
+            return this;
+        }
+
         for (int x = 0; x < SizeX; x++)
         {
             for (int y = 0; y < SizeY; y++)
@@ -168,52 +285,16 @@ public class Map {
         return this;
     }
 
-    int GetSurroundingWallCount(int[,] map, int gridX, int gridY)
+    public Map RemoveSmallRegions(int regionSizeCutoff)
     {
-        int wallCount = 0;
-        for (int x = gridX - 1; x <= gridX + 1; x++)
+        if (!_isBoolMask)
         {
-            for (int y = gridY - 1; y <= gridY + 1; y++)
-            {
-                if (IsInMapRange(map, x, y))
-                {
-                    if (x != gridX || y != gridY)
-                    {
-                        wallCount += map[x, y];
-                    }
-                }
-                else
-                {
-                    wallCount++;
-                }
-            }
-        }
-        return wallCount;
-    }
-
-    bool IsInMapRange(int[,] map, int x, int y)
-    {
-        return x >= 0 && x < map.GetLength(0) && y >= 0 && y < map.GetLength(1);
-    }
-
-    public Map ApplyMask(Map maskToApply, int maskValue)
-    {
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
-            {
-                if (maskToApply[x, y] == maskValue)
-                    _map[x, y] = maskValue;
-            }
+            Debug.Log("Only works with boolean Maps");
+            return this;
         }
 
-        return this;
-    }
-
-    int[,] AddRoomLogic(int[,] map)
-    {
-        var wallRegions = GetRegions(map, 1);
-        var wallThresholdSize = RegionSizeCutoff;
+        var wallRegions = GetRegions(_map, 1);
+        var wallThresholdSize = regionSizeCutoff;
 
         for (int i = 0; i < wallRegions.Count; i++)
         {
@@ -221,15 +302,14 @@ public class Map {
             {
                 for (int r = 0; r < wallRegions[i].Count; r++)
                 {
-                    map[wallRegions[i][r].TileX, wallRegions[i][r].TileY] = 0;
+                    _map[wallRegions[i][r].TileX, wallRegions[i][r].TileY] = 0;
                 }
             }
         }
 
-        var roomRegions = GetRegions(map, 0);
-        var roomThresholdSize = RegionSizeCutoff;
+        var roomRegions = GetRegions(_map, 0);
+        var roomThresholdSize = regionSizeCutoff;
 
-        var survivingRooms = new List<Room>();
 
         for (int i = 0; i < roomRegions.Count; i++)
         {
@@ -237,22 +317,88 @@ public class Map {
             {
                 for (int r = 0; r < roomRegions[i].Count; r++)
                 {
-                    map[roomRegions[i][r].TileX, roomRegions[i][r].TileY] = 1;
+                    _map[roomRegions[i][r].TileX, roomRegions[i][r].TileY] = 1;
                 }
             }
-            else
-            {
-                survivingRooms.Add(new Room(roomRegions[i], map));
-            }
+        }
+        return this;
+    }
+
+    public Map AddRoomLogic()
+    {
+        if (!_isBoolMask)
+        {
+            Debug.Log("Only works with boolean Maps");
+            return this;
+        }
+
+        var roomRegions = GetRegions(_map, 0);
+
+        var survivingRooms = new List<Room>();
+
+        for (int i = 0; i < roomRegions.Count; i++)
+        {
+                survivingRooms.Add(new Room(roomRegions[i],this));
         }
 
         survivingRooms.Sort();
         survivingRooms[0].IsMainRoom = true;
         survivingRooms[0].IsAccessibleFromMainRoom = true;
-        ConnectClosestRooms(survivingRooms, false, map);
+        ConnectClosestRooms(survivingRooms, false);
 
-        return map;
+        return this;
     }
+
+    public Map[] GenerateSubMaps(int divisions, float perlinScale)
+    {
+        if (!_isBoolMask)
+        {
+            Debug.Log("Only works with boolean Maps");
+            return this;
+        }
+
+
+        var perlinSeed = RNG.Next(0, 1000);
+
+        var outputList = new List<Map>();
+
+        for (int i = 0; i <= divisions; i++)
+        {
+            outputList.Add(new Map(this));
+        }
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                float perlinX = perlinSeed + ((x / (float)SizeX) * perlinScale);
+                float perlinY = perlinSeed + ((y / (float)SizeY) * perlinScale);
+
+                var perlin = Mathf.PerlinNoise(perlinX, perlinY);
+                perlin = perlin * divisions;
+
+                for (int i = 0; i <= divisions; i++)
+                {
+                    if (perlin > i - 1 && perlin <= i)
+                    {
+                        outputList[i][x, y] = _map[x, y];
+                    }
+                    else
+                    {
+                        outputList[i][x, y] = 1;
+                    }
+                }
+            }
+        }
+
+        return outputList.ToArray();
+    }
+
+    // Iterative Functions that Require Int
+
+
+
+    // Region Helper Functions
 
     List<List<Coord>> GetRegions(int[,] map, int tileType)
     {
@@ -322,7 +468,9 @@ public class Map {
         return tiles;
     }
 
-    void ConnectClosestRooms(List<Room> allRooms, bool forceAccessibilityFromMainRoom, int[,] map)
+    // Room Helper Functions
+
+    void ConnectClosestRooms(List<Room> allRooms, bool forceAccessibilityFromMainRoom)
     {
         var nonConnectedRooms = new List<Room>();
         var connectedRooms = new List<Room>();
@@ -396,34 +544,34 @@ public class Map {
             }
             if (possibleConnectionFound && !forceAccessibilityFromMainRoom)
             {
-                CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB, map);
+                CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
             }
         }
 
         if (possibleConnectionFound && forceAccessibilityFromMainRoom)
         {
-            CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB, map);
-            ConnectClosestRooms(allRooms, true, map);
+            CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
+            ConnectClosestRooms(allRooms, true);
         }
 
         if (!forceAccessibilityFromMainRoom)
         {
-            ConnectClosestRooms(allRooms, true, map);
+            ConnectClosestRooms(allRooms, true);
         }
-    }
+    }    
 
-    void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB, int[,] map)
+    void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB)
     {
         Room.ConnectRooms(roomA, roomB);
 
         //Debug.Log("----------- Start Line -----------");
 
-        Debug.DrawLine(CoordToWorldPoint(tileA, map), CoordToWorldPoint(tileB, map), Color.green, 100f);
+        //Debug.DrawLine(CoordToWorldPoint(tileA, _map), CoordToWorldPoint(tileB, _map), Color.green, 100f);
 
         //Debug.Log("Desired Start Point: " + tileA.TileX + " " + tileA.TileY);
 
-        var line = GetLine(tileA, tileB);
-        for (int i = 0; i < line.Count; i++)
+        var line = Coord.GetLine(tileA, tileB);
+        for (int i = 0; i < line.Length; i++)
         {
 
             //Debug.Log("Real Line Points " + i + " " + line[i].TileX + " " + line[i].TileY);
@@ -432,7 +580,7 @@ public class Map {
             if (weight == 3)
                 weight = RNG.Next(1, 9);
 
-            map = DrawCircle(line[i], RNG.Next(1, weight), map);
+            DrawCircle(line[i], RNG.Next(1, weight));
         }
 
         //Debug.Log("Desired End Point: " + tileB.TileX + " " + tileB.TileY);
@@ -440,7 +588,7 @@ public class Map {
         //Debug.Log("------------ End Line ------------");
     }
 
-    int[,] DrawCircle(Coord c, int r, int[,] map)
+    int[,] DrawCircle(Coord c, int r)
     {
         for (int x = -r; x <= r; x++)
         {
@@ -450,18 +598,140 @@ public class Map {
                 {
                     var drawX = c.TileX + x;
                     var drawY = c.TileY + y;
-                    if (IsInMapRange(map, drawX, drawY))
+                    if (IsInMapRange(_map, drawX, drawY))
                     {
-                        map[drawX, drawY] = 0;
+                        _map[drawX, drawY] = 0;
                     }
                 }
             }
         }
 
-        return map;
+        return _map;
     }
 
+    // Helper Functions
+
+    int GetSurroundingWallCount(int[,] map, int gridX, int gridY)
+    {
+        int wallCount = 0;
+        for (int x = gridX - 1; x <= gridX + 1; x++)
+        {
+            for (int y = gridY - 1; y <= gridY + 1; y++)
+            {
+                if (IsInMapRange(map, x, y))
+                {
+                    if (x != gridX || y != gridY)
+                    {
+                        wallCount += map[x, y];
+                    }
+                }
+                else
+                {
+                    wallCount++;
+                }
+            }
+        }
+        return wallCount;
+    }
+
+    bool IsInMapRange(int[,] map, int x, int y)
+    {
+        return x >= 0 && x < map.GetLength(0) && y >= 0 && y < map.GetLength(1);
+    }
+
+    Vector3 CoordToWorldPoint(Coord tile, int[,] map)
+    {
+        return new Vector3(-map.GetLength(0) / 2 + .5f + tile.TileX, 2, -map.GetLength(1) / 2 + .5f + tile.TileY);
+    }
+
+    // Room Class
+
+    class Room : IComparable<Room> {
+
+        public List<Coord> Tiles
+        { get; private set; }
+        public List<Coord> EdgeTiles
+        { get; private set; }
+        public List<Room> ConnectedRooms
+        { get; private set; }
+        public int RoomSize
+        { get; private set; }
+        public bool IsAccessibleFromMainRoom
+        { get; set; }
+        public bool IsMainRoom
+        { get; set; }
+
+        public Room()
+        {
+
+        }
+
+        public Room(List<Coord> roomTiles, Map map)
+        {
+            Tiles = roomTiles;
+            RoomSize = Tiles.Count;
+            ConnectedRooms = new List<Room>();
+
+            EdgeTiles = new List<Coord>();
+            for (int i = 0; i < Tiles.Count; i++)
+            {
+                var tile = Tiles[i];
+                for (int x = tile.TileX - 1; x < tile.TileX + 1; x++)
+                {
+                    for (int y = tile.TileY - 1; y < tile.TileY + 1; y++)
+                    {
+                        if (x == tile.TileX || y == tile.TileY)
+                        {
+                            if (map[x, y] == 1)
+                            {
+                                EdgeTiles.Add(tile);
+                            }
+                        }
+                    }
+                }
+            }
 
 
+        }
 
+        public void SetAccessibleFromMainRoom()
+        {
+            if (!IsAccessibleFromMainRoom)
+            {
+                IsAccessibleFromMainRoom = true;
+                for (int i = 0; i < ConnectedRooms.Count; i++)
+                {
+                    var room = ConnectedRooms[i];
+                    room.IsAccessibleFromMainRoom = true;
+                }
+            }
+        }
+
+        public static void ConnectRooms(Room roomA, Room roomB)
+        {
+            if (roomA.IsAccessibleFromMainRoom)
+            {
+                roomB.SetAccessibleFromMainRoom();
+            }
+            else if (roomB.IsAccessibleFromMainRoom)
+            {
+                roomA.SetAccessibleFromMainRoom();
+            }
+
+            roomA.ConnectedRooms.Add(roomB);
+            roomB.ConnectedRooms.Add(roomA);
+        }
+
+        public bool IsConnected(Room otherRoom)
+        {
+            return ConnectedRooms.Contains(otherRoom);
+        }
+
+        public int CompareTo(Room otherRoom)
+        {
+            return otherRoom.RoomSize.CompareTo(RoomSize);
+        }
+
+
+    }
 }

@@ -64,23 +64,21 @@ public class MapGenerator
         }
         RNG.ForceInit(Seed);
 
+        //Version 1
+
         var map = new Map(width, height);
 
         map.RandomFillMap(0.5f, NoiseIntensity, RandomMapPerlinScale);
         map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(), 1);
         map.SmoothMap(4);
-        var roomMap = Map.CloneMap(map).Add
-        map.AddRoomLogic();
+        map.RemoveSmallRegions(RegionSizeCutoff);
+
+        var roomMap = Map.CloneMap(map).AddRoomLogic();
+
+        var subMaps = roomMap.GenerateSubMaps(6, 5);
+
 
         var propHeights = new int[width, height];
-        RandomFillMap(map);
-        for (int i = 0; i < Iterations; i++)
-        {
-            SmoothMap(map);
-        }
-
-        AddRoomLogic(map);
-
 
         //var map2 = new int[width, height];
         //var propHeights2 = new int[width, height];
@@ -355,279 +353,9 @@ public class MapGenerator
         return map;
     }
 
-    class Room : IComparable<Room> {
-
-        public List<Coord> Tiles
-        { get; private set; }
-        public List<Coord> EdgeTiles
-        { get; private set; }
-        public List<Room> ConnectedRooms
-        { get; private set; }
-        public int RoomSize
-        { get; private set; }
-        public bool IsAccessibleFromMainRoom
-        { get; set; }
-        public bool IsMainRoom
-        { get; set; }
-
-        public Room()
-        {
-
-        }
-
-        public Room(List<Coord> roomTiles, int[,] map)
-        {
-            Tiles = roomTiles;
-            RoomSize = Tiles.Count;
-            ConnectedRooms = new List<Room>();
-
-            EdgeTiles = new List<Coord>();
-            for (int i = 0; i < Tiles.Count; i++)
-            {
-                var tile = Tiles[i];
-                for (int x = tile.TileX - 1; x < tile.TileX + 1; x++)
-                {
-                    for (int y = tile.TileY - 1; y < tile.TileY + 1; y++)
-                    {
-                        if (x == tile.TileX || y == tile.TileY)
-                        {
-                            if (map[x, y] == 1)
-                            {
-                                EdgeTiles.Add(tile);
-                            }
-                        }
-                    }
-                }
-            }
-
-
-        }
-
-        public void SetAccessibleFromMainRoom()
-        {
-            if (!IsAccessibleFromMainRoom)
-            {
-                IsAccessibleFromMainRoom = true;
-                for (int i = 0; i < ConnectedRooms.Count; i++)
-                {
-                    var room = ConnectedRooms[i];
-                    room.IsAccessibleFromMainRoom = true;
-                }
-            }
-        }
-
-        public static void ConnectRooms(Room roomA, Room roomB)
-        {
-            if (roomA.IsAccessibleFromMainRoom)
-            {
-                roomB.SetAccessibleFromMainRoom();
-            }
-            else if (roomB.IsAccessibleFromMainRoom)
-            {
-                roomA.SetAccessibleFromMainRoom();
-            }
-
-            roomA.ConnectedRooms.Add(roomB);
-            roomB.ConnectedRooms.Add(roomA);
-        }
-
-        public bool IsConnected(Room otherRoom)
-        {
-            return ConnectedRooms.Contains(otherRoom);
-        }
-
-        public int CompareTo(Room otherRoom)
-        {
-            return otherRoom.RoomSize.CompareTo(RoomSize);
-        }
-
-
-    }
-
-    //Helper Functions
-
-
-
-    int[,] BooleanUnion(int[,] mapA, int[,] mapB)
-    {
-        //Need a check here to avoid failure
-
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Maps are not the same size!");
-            return null;
-        }
-
-        var outputMap = new int[mapA.GetLength(0), mapA.GetLength(1)];
-
-        for (int x = 0; x < mapA.GetLength(0); x++)
-        {
-            for (int y = 0; y < mapA.GetLength(1); y++)
-            {
-                outputMap[x, y] = (mapA[x, y] == 0 | mapB[x, y] == 0) ? 0 : 1;
-            }
-        }
-        return outputMap;
-    }
-
-    int[,] BooleanIntersection(int[,] mapA, int[,] mapB)
-    {
-        //Need a check here to avoid failure
-
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Maps are not the same size!");
-            return null;
-        }
-
-        var outputMap = new int[mapA.GetLength(0), mapA.GetLength(1)];
-
-        for (int x = 0; x < mapA.GetLength(0); x++)
-        {
-            for (int y = 0; y < mapA.GetLength(1); y++)
-            {
-                outputMap[x, y] = (mapA[x, y] == 0 && mapB[x, y] == 0) ? 0 : 1;
-            }
-        }
-        return outputMap;
-    }
-
-    int[,] BooleanDifference(int[,] mapA, int[,] mapB)
-    {
-        //Need a check here to avoid failure
-
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Maps are not the same size!");
-            return null;
-        }
-
-        var outputMap = new int[mapA.GetLength(0), mapA.GetLength(1)];
-
-        for (int x = 0; x < mapA.GetLength(0); x++)
-        {
-            for (int y = 0; y < mapA.GetLength(1); y++)
-            {
-                outputMap[x, y] = (mapA[x, y] == 0) ? 1 : mapB[x, y];
-            }
-        }
-        return outputMap;
-    }
-
-    bool MapsAreSameDimensions(int[,] mapA, int[,] mapB)
-    {
-        return mapA.GetLength(0) == mapB.GetLength(0) && mapA.GetLength(1) == mapB.GetLength(1);
-        
-    }
-
-    List<Coord> GetLine(Coord from, Coord to)
-    {
-        var line = new List<Coord>();
-
-        var x = from.TileX;
-        var y = from.TileY;
-
-        var dx = to.TileX - x;
-        var dy = to.TileY - y;
-
-        var step = Math.Sign(dx);
-        var gradientStep = Math.Sign(dy);
-
-        var longest = Mathf.Abs(dx);
-        var shortest = Mathf.Abs(dy);
-
-        var inverted = false;
-        
-        if(longest < shortest)
-        {
-            inverted = true;
-            longest = Mathf.Abs(dy);
-            shortest = Mathf.Abs(dx);
-
-            step = Math.Sign(dy);
-            gradientStep = Math.Sign(dx);
-        }
-
-        var gradientAccumulation = longest / 2;
-        for (int i = 0; i < longest; i++)
-        {
-            line.Add(new Coord(x, y));
-
-            if (inverted)
-            {
-                y += step;
-            }
-            else
-            {
-                x += step;
-            }
-
-            gradientAccumulation += shortest;
-            if (gradientAccumulation >= longest)
-            {
-                if (inverted)
-                {
-                    x += gradientStep;
-                }
-                else
-                {
-                    y += gradientStep;
-                }
-                gradientAccumulation -= longest;
-            }
-        }
-        return line;
-    }
-
-    Vector3 CoordToWorldPoint(Coord tile, int[,] map)
-    {
-        return new Vector3(-map.GetLength(0) / 2 + .5f + tile.TileX, 2, -map.GetLength(1) / 2 + .5f + tile.TileY);
-    }
-
-
-
     //Subdividing Map
 
-    List<int[,]> GenerateSubMaps(int divisions, int[,] map)
-    {
-        var width = map.GetLength(0);
-        var length = map.GetLength(0);
-
-        var perlinSeed = RNG.Next(0, 1000);
-
-        var outputList = new List<int[,]>();
-
-        for (int i = 0; i <= divisions; i++)
-        {
-            outputList.Add(new int[width, length]);
-        }
     
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < length; y++)
-            {
-                float perlinX = perlinSeed + ((x / (float)width) * SubzoneGenerationPerlinScale);
-                float perlinY = perlinSeed + ((y / (float)length) * SubzoneGenerationPerlinScale);
-
-                var perlin = Mathf.PerlinNoise(perlinX, perlinY);
-                perlin = perlin * divisions;
-
-                for (int i = 0; i <= divisions; i++)
-                {
-                    if(perlin>i-1 && perlin <= i)
-                    {
-                        outputList[i][x, y] = map[x,y];
-                    }
-                    else
-                    {
-                        outputList[i][x, y] = 1;
-                    }
-                }
-            }
-        }
-
-        return outputList;
-    }
 
     void CreateMesh(int[,] subber, int height)
     {
