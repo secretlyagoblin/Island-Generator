@@ -69,16 +69,13 @@ public class MapGenerator
         var map = new Map(width, height);
 
         map.RandomFillMap(0.5f, NoiseIntensity, RandomMapPerlinScale);
-        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(), 1);
+        map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
         map.SmoothMap(4);
         map.RemoveSmallRegions(RegionSizeCutoff);
 
         var roomMap = Map.CloneMap(map).AddRoomLogic();
 
-        var subMaps = roomMap.GenerateSubMaps(6, 5);
-
-
-        var propHeights = new int[width, height];
+        var heightmap = Map.CreateHeightMap(roomMap.GenerateSubMaps(6, 5));
 
         //var map2 = new int[width, height];
         //var propHeights2 = new int[width, height];
@@ -266,50 +263,9 @@ public class MapGenerator
         return bestTileB;
     }
 
-    int CountDensity(int[,] map)
-    {
-        var count = 0;
-        for (int x = 0; x < map.GetLength(0); x++)
-        {
-            for (int y = 0; y < map.GetLength(1); y++)
-            {
-                if (map[x, y] == 0)
-                    count++;
-            }
-        }
-
-        return count;
-    }
-
-    void SetPropMapHeights(int[,] map, int[,] heightMap, int height)
-    {
-
-        for (int x = 0; x < map.GetLength(0); x++)
-        {
-            for (int y = 0; y < map.GetLength(1); y++)
-            {
-                if (map[x, y] == 0)
-                {
-                    heightMap[x, y] = height;
-                    //Debug.Log("successfully changed map cell height to " + height);
-                }
-            }
-        }
-    }
     
-    int[,] GetInvertedMap(int[,] map)
-    {
-        var returnMap = new int[map.GetLength(0), map.GetLength(1)];
+    
 
-        for (int x = 0; x < map.GetLength(0); x++)
-        {
-            for (int y = 0; y < map.GetLength(1); y++)
-            {
-                returnMap[x, y] = map[x, y] == 0 ? 1 : 0;
-            }
-        }
-        return returnMap;
-    }
 
     //Room Connection Functions
 
@@ -380,10 +336,10 @@ public class MapGenerator
 
     //Prop Placement
 
-    void CreateTrees(int[,] heightMap, float perlinScale, float treeCutoff)
+    void CreateTrees(Map heightMap, Map mask,float perlinScale, float treeCutoff)
     {
-        var width = heightMap.GetLength(0);
-        var length = heightMap.GetLength(1);
+        var width = heightMap.SizeX;
+        var length = heightMap.SizeY;
 
         var treePositions = new List<Vector3>();
 
@@ -399,7 +355,7 @@ public class MapGenerator
                 var perlin = Mathf.PerlinNoise(perlinX, perlinY);
                 //Debug.Log(perlinSample);
 
-                if (heightMap[x,y] != -1 && perlin > treeCutoff)
+                if (mask[x,y] != 1 && perlin > treeCutoff)
                 {
                     if(perlin > 0.8 && RNG.Next(0, 3) < 1)
                     {
@@ -407,7 +363,7 @@ public class MapGenerator
                     } else if(RNG.Next(0, 10) < 1)
                         treePositions.Add( new Vector3(x-(width*0.5f), heightMap[x,y], y- (length * 0.5f)));
                 }
-                else if (heightMap[x, y] != -1 && RNG.Next(0, 100) < 1)
+                else if (mask[x, y] != 1 && RNG.Next(0, 100) < 1)
                 {
                     treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
                 }

@@ -55,12 +55,17 @@ public class Map {
 
     public static Map CloneMap(Map map)
     {
-        return BlankMap(map).OverwriteMapWith(map);
+        return CreateBlankMap(map).OverwriteMapWith(map);
     }
 
-    public static Map BlankMap(Map template)
+    public static Map CreateBlankMap(Map template)
     {
         return new Map(template.SizeX, template.SizeY);
+    }
+
+    public static Map CreateHeightMap(Map[] heightData)
+    {
+        return CloneMap(heightData[0]).AddHeightmapLayers(heightData, 0);
     }
 
     public static Map BlankMap(int sizeX, int sizeY)
@@ -143,6 +148,11 @@ public class Map {
             }
         }
         return outputMap;
+    }
+
+    public static Map GetInvertedMap(Map map)
+    {
+        return CloneMap(map).InvertMap();
     }
 
     // General Functions
@@ -354,7 +364,7 @@ public class Map {
         if (!_isBoolMask)
         {
             Debug.Log("Only works with boolean Maps");
-            return this;
+            return new Map[] { this };
         }
 
 
@@ -394,9 +404,200 @@ public class Map {
         return outputList.ToArray();
     }
 
-    // Iterative Functions that Require Int
+    public Map InvertMap()
+    {
+        if (!_isBoolMask)
+        {
+            Debug.Log("Only works with boolean Maps... currently");
+            return this;
+        }
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = _map[x, y] == 0 ? 1 : 0;
+            }
+        }
+        return this;
+    }
+
+    // Int Fill Functions
+
+    public Map AddHeightmapLayers(Map[] subMaps, int offset)
+    {
+        _isBoolMask = false;
+
+        for (int i = 0; i < subMaps.Length; i++)
+        {
+            var map = subMaps[i];
+
+            for (int x = 0; x < map.SizeX; x++)
+            {
+                for (int y = 0; y < map.SizeY; y++)
+                {
+                    if (map[x, y] == 0)
+                    {
+                        _map[x, y] = i+offset;
+                        //Debug.Log("successfully changed map cell height to " + height);
+                    }
+                }
+            }
+        }
 
 
+
+        return this;
+    }
+
+    public Map GetLayersFromRegions(Map[][] regions)
+    {
+        return GetLayersFromRegions(regions, mapTemplate, regions[0][0]);
+    }
+
+    public Map GetLayersFromRegions(List<List<Coord>> regions, int[,] mapTemplate, Coord startPoint)
+    {
+        var sizeX = mapTemplate.GetLength(0);
+        var sizeY = mapTemplate.GetLength(1);
+        var mapFlags = new int[sizeX, sizeY];
+        var mapRegions = new int[sizeX, sizeY];
+        var mapHeights = new int[sizeX, sizeY];
+        var regionHeights = new int[regions.Count];
+
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeX; y++)
+            {
+                mapFlags[x, y] = 1;
+                mapRegions[x, y] = -1;
+                mapHeights[x, y] = -1;
+            }
+        }
+
+        for (int i = 0; i < regions.Count; i++)
+        {
+            regionHeights[i] = -1;
+            for (int u = 0; u < regions[i].Count; u++)
+            {
+                var coord = regions[i][u];
+                mapRegions[coord.TileX, coord.TileY] = i;
+                mapFlags[coord.TileX, coord.TileY] = 0;
+            }
+        }
+
+        var queue = new Queue<Coord>();
+        var startX = startPoint.TileX;
+        var startY = startPoint.TileY;
+
+        queue.Enqueue(new Coord(startX, startY));
+        mapFlags[startX, startY] = 1;
+
+        while (queue.Count > 0)
+        {
+            var tile = queue.Dequeue();
+            //tiles.Add(tile);
+
+            for (int x = tile.TileX - 1; x <= tile.TileX + 1; x++)
+            {
+                for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
+                {
+                    if (IsInMapRange(mapTemplate, x, y) && (y == tile.TileY || x == tile.TileX))
+                    {
+                        if (mapFlags[x, y] == 0)
+                        {
+                            if (mapRegions[x, y] != mapRegions[tile.TileX, tile.TileY] && regionHeights[mapRegions[x, y]] == -1)
+                            {
+                                regionHeights[mapRegions[x, y]] = regionHeights[mapRegions[tile.TileX, tile.TileY]] + 1;
+                            }
+
+                            mapFlags[x, y] = 1;
+                            mapHeights[x, y] = regionHeights[mapRegions[x, y]];
+                            queue.Enqueue(new Coord(x, y));
+                        }
+                    }
+                }
+            }
+        }
+
+        var parents = new List<GameObject>();
+
+        //for (int i = 0; i < regions.Count; i++)
+        //{
+        //    var parent = new GameObject();
+        //    parent.transform.parent = transform;
+        //    parent.transform.localPosition = Vector3.zero;
+        //    parents.Add(parent);
+        //}
+
+        var heights = regionHeights.Distinct().ToList();
+        heights.Sort();
+        var outputHeights = new List<int[,]>();
+
+
+        for (int i = 0; i < heights.Count; i++)
+        {
+            outputHeights.Add(CreateNewMapFromTemplate(mapTemplate, 1));
+        }
+
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                if (mapRegions[x, y] != -1 && mapHeights[x, y] != -1)
+                {
+
+
+                    var index = heights.IndexOf(mapHeights[x, y]);
+
+                    var ugh = outputHeights[index];
+
+                    ugh[x, y] = 0;
+                    //var gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    //gameObject.transform.parent = parents[mapRegions[x,y]].transform;
+                    //gameObject.transform.localPosition = new Vector3(x - (sizeX * 0.5f), mapHeights[x, y], y - (sizeY * 0.5f));
+                }
+            }
+        }
+
+        return outputHeights.ToArray();
+
+
+
+        //for (int x = 0; x < sizeX; x++)
+        //{
+        //    for (int y = 0; y < sizeY; y++)
+        //    {
+        //        var tile = mapFlags[x, y];
+        //
+        //        if (tile.Region == -1)
+        //        {
+        //
+        //        } else if (regionHeights[tile.Region] != -1)
+        //            tile.Height = regionHeights[tile.Region];
+        //        else
+        //        {
+        //            var lowestHeight = int.MaxValue;
+        //
+        //            for (int localX = tile.TileX - 1; localX <= tile.TileX + 1; localX++)
+        //            {
+        //                for (int localY = tile.TileY - 1; localY <= tile.TileY + 1; localY++)
+        //                {
+        //                    if (IsInMapRange(mapFlags, localX, localY) && (localY == tile.TileY || localX == tile.TileX))
+        //                    {
+        //                        var height = regionHeights[mapFlags[localX, localY].Region];
+        //                        if (height < lowestHeight && height != -1 && mapFlags[localX, localY].Region != tile.Region)
+        //                            lowestHeight = height;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+
+
+        //return null;
+    }
 
     // Region Helper Functions
 
@@ -643,6 +844,23 @@ public class Map {
     {
         return new Vector3(-map.GetLength(0) / 2 + .5f + tile.TileX, 2, -map.GetLength(1) / 2 + .5f + tile.TileY);
     }
+
+    int CountDensity()
+    {
+
+        var count = 0;
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                if (_map[x, y] == 0)
+                    count++;
+            }
+        }
+
+        return count;
+    }
+
 
     // Room Class
 
