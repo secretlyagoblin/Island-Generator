@@ -64,9 +64,14 @@ public class MapGenerator
         }
         RNG.ForceInit(Seed);
 
+        var map = new Map(width, height);
 
+        map.RandomFillMap(0.5f, NoiseIntensity, RandomMapPerlinScale);
+        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(), 1);
+        map.SmoothMap(4);
+        var roomMap = Map.CloneMap(map);
+        map.AddRoomLogic();
 
-        var map = new int[width, height];
         var propHeights = new int[width, height];
         RandomFillMap(map);
         for (int i = 0; i < Iterations; i++)
@@ -312,71 +317,7 @@ public class MapGenerator
             }
         }
     }
-
-    //TODO take out radius or do something to it
-
-    void RandomFillMap(int[,] map)
-    {
-        var width = map.GetLength(0);
-        var height = map.GetLength(1);
-
-        var centreX = (int)(width * 0.5f);
-        var centreY = (int)(height * 0.5f);
-        var radius = Mathf.Pow(height * 0.5f, 2f);   
-
-        var perlinSeed = RNG.NextFloat(0,1000);
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
-                {
-                    map[x, y] = 1;
-                }
-                else if (Mathf.Pow(x - centreX, 2) + Mathf.Pow(y - centreY, 2) < radius)
-                {
-                    float perlinX = perlinSeed + ((x / (float)width) * RandomMapPerlinScale);
-                    float perlinY = perlinSeed + ((y / (float)height) * RandomMapPerlinScale);
-
-                    var perlin = Mathf.PerlinNoise(perlinX, perlinY);
-                    //Debug.Log("Perlin Per Square: " + perlin);
-                    var randomValue = RNG.Next(0, 100 - NoiseIntensity);
-                    perlin = (perlin * NoiseIntensity);
-              
-                    randomValue += (int)perlin;
-
-                    map[x, y] = (randomValue < RandomFillPercent) ? 1 : 0;
-
-                } else {
-                    map[x, y] = 1;
-                }
-            }
-        }
-    }
-
-    void SmoothMap(int[,] map)
-    {
-        var width = map.GetLength(0);
-        var height = map.GetLength(1);
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int neighbourWallTiles = GetSurroundingWallCount(map, x, y);
-                if (neighbourWallTiles > 4)
-                {
-                    map[x, y] = 1;
-                }
-                else if (neighbourWallTiles < 4)
-                {
-                    map[x, y] = 0;
-                }
-            }
-        }
-    }
-
+    
     int[,] GetInvertedMap(int[,] map)
     {
         var returnMap = new int[map.GetLength(0), map.GetLength(1)];
@@ -435,29 +376,6 @@ public class MapGenerator
         ConnectClosestRooms(survivingRooms, false, map);
 
         return map;
-    }
-
-    int GetSurroundingWallCount(int[,] map, int gridX, int gridY)
-    {
-        int wallCount = 0;
-        for (int x = gridX - 1; x <= gridX + 1; x++)
-        {
-            for (int y = gridY - 1; y <= gridY + 1; y++)
-            {
-                if (IsInMapRange(map, x, y))
-                {
-                    if (x != gridX || y != gridY)
-                    {
-                        wallCount += map[x, y];
-                    }
-                }
-                else
-                {
-                    wallCount++;
-                }
-            }
-        }
-        return wallCount;
     }
 
     List<Coord> GetRegionTiles(int[,] map, int startX, int startY)
@@ -776,11 +694,6 @@ public class MapGenerator
     }
 
     //Helper Functions
-
-    bool IsInMapRange(int[,] map, int x, int y)
-    {
-        return x >= 0 && x < map.GetLength(0) && y >= 0 && y < map.GetLength(1);
-    }
 
     int[,] DrawCircle(Coord c, int r, int[,] map)
     {
