@@ -303,7 +303,7 @@ public class Map {
             return this;
         }
 
-        var wallRegions = GetRegions(_map, 1);
+        var wallRegions = GetRegions(this, 1);
         var wallThresholdSize = regionSizeCutoff;
 
         for (int i = 0; i < wallRegions.Count; i++)
@@ -317,7 +317,7 @@ public class Map {
             }
         }
 
-        var roomRegions = GetRegions(_map, 0);
+        var roomRegions = GetRegions(this, 0);
         var roomThresholdSize = regionSizeCutoff;
 
 
@@ -342,7 +342,7 @@ public class Map {
             return this;
         }
 
-        var roomRegions = GetRegions(_map, 0);
+        var roomRegions = GetRegions(this, 0);
 
         var survivingRooms = new List<Room>();
 
@@ -450,15 +450,15 @@ public class Map {
         return this;
     }
 
-    public Map GetLayersFromRegions(Map[][] regions)
-    {
-        return GetLayersFromRegions(regions, mapTemplate, regions[0][0]);
-    }
+    //public Map GetLayersFromRegions(Map[][] regions)
+    //{
+    //    return GetLayersFromRegions(regions, regions[0], regions[0][0]);
+    //}
 
-    public Map GetLayersFromRegions(List<List<Coord>> regions, int[,] mapTemplate, Coord startPoint)
+    public Map[] GetLayersFromRegions(List<List<Coord>> regions, Map mapTemplate, Coord startPoint)
     {
-        var sizeX = mapTemplate.GetLength(0);
-        var sizeY = mapTemplate.GetLength(1);
+        var sizeX = mapTemplate.SizeX;
+        var sizeY = mapTemplate.SizeY;
         var mapFlags = new int[sizeX, sizeY];
         var mapRegions = new int[sizeX, sizeY];
         var mapHeights = new int[sizeX, sizeY];
@@ -501,7 +501,7 @@ public class Map {
             {
                 for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
                 {
-                    if (IsInMapRange(mapTemplate, x, y) && (y == tile.TileY || x == tile.TileX))
+                    if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
                     {
                         if (mapFlags[x, y] == 0)
                         {
@@ -531,12 +531,12 @@ public class Map {
 
         var heights = regionHeights.Distinct().ToList();
         heights.Sort();
-        var outputHeights = new List<int[,]>();
+        var outputHeights = new List<Map>();
 
 
         for (int i = 0; i < heights.Count; i++)
         {
-            outputHeights.Add(CreateNewMapFromTemplate(mapTemplate, 1));
+            outputHeights.Add(new Map(mapTemplate, 1));
         }
 
         for (int x = 0; x < sizeX; x++)
@@ -558,6 +558,8 @@ public class Map {
                 }
             }
         }
+
+
 
         return outputHeights.ToArray();
 
@@ -601,10 +603,10 @@ public class Map {
 
     // Region Helper Functions
 
-    List<List<Coord>> GetRegions(int[,] map, int tileType)
+    List<List<Coord>> GetRegions(Map map, int tileType)
     {
-        var width = map.GetLength(0);
-        var length = map.GetLength(1);
+        var width = map.SizeX;
+        var length = map.SizeY;
 
         var regions = new List<List<Coord>>();
         var mapFlags = new int[width, length];
@@ -632,10 +634,10 @@ public class Map {
         return regions;
     }
 
-    List<Coord> GetRegionTiles(int[,] map, int startX, int startY)
+    List<Coord> GetRegionTiles(Map map, int startX, int startY)
     {
-        var width = map.GetLength(0);
-        var length = map.GetLength(1);
+        var width = map.SizeX;
+        var length = map.SizeY;
 
         var tiles = new List<Coord>();
         var mapFlags = new int[width, length];
@@ -654,7 +656,7 @@ public class Map {
             {
                 for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
                 {
-                    if (IsInMapRange(map, x, y) && (y == tile.TileY || x == tile.TileX))
+                    if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
                     {
                         if (mapFlags[x, y] == 0 && map[x, y] == tileType)
                         {
@@ -799,7 +801,7 @@ public class Map {
                 {
                     var drawX = c.TileX + x;
                     var drawY = c.TileY + y;
-                    if (IsInMapRange(_map, drawX, drawY))
+                    if (IsInMapRange(drawX, drawY))
                     {
                         _map[drawX, drawY] = 0;
                     }
@@ -819,7 +821,7 @@ public class Map {
         {
             for (int y = gridY - 1; y <= gridY + 1; y++)
             {
-                if (IsInMapRange(map, x, y))
+                if (IsInMapRange(x, y))
                 {
                     if (x != gridX || y != gridY)
                     {
@@ -835,14 +837,14 @@ public class Map {
         return wallCount;
     }
 
-    bool IsInMapRange(int[,] map, int x, int y)
+    public bool IsInMapRange(int x, int y)
     {
-        return x >= 0 && x < map.GetLength(0) && y >= 0 && y < map.GetLength(1);
+        return x >= 0 && x < SizeX && y >= 0 && y < SizeY;
     }
 
-    Vector3 CoordToWorldPoint(Coord tile, int[,] map)
+    Vector3 CoordToWorldPoint(Coord tile, Map map)
     {
-        return new Vector3(-map.GetLength(0) / 2 + .5f + tile.TileX, 2, -map.GetLength(1) / 2 + .5f + tile.TileY);
+        return new Vector3(-map.SizeX / 2 + .5f + tile.TileX, 2, -map.SizeY / 2 + .5f + tile.TileY);
     }
 
     int CountDensity()
