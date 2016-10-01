@@ -79,7 +79,7 @@ public class MapGenerator
         map.RemoveSmallRegions(RegionSizeCutoff);
         stack.AddMap(Map.CloneMap(map));
 
-        var roomMap = Map.CloneMap(map).AddRoomLogic();
+        var roomMap = Map.CloneMap(map).AddRoomLogic(2);
         stack.AddMap(Map.CloneMap(roomMap));
         var subMaps = roomMap.GenerateSubMaps(6, 12);
 
