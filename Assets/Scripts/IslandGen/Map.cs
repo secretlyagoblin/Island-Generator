@@ -334,7 +334,7 @@ public class Map {
         return this;
     }
 
-    public Map AddRoomLogic(int numberOfRooms)
+    public Map AddRoomLogic()
     {
         if (!_isBoolMask)
         {
@@ -354,7 +354,7 @@ public class Map {
         survivingRooms.Sort();
         survivingRooms[0].IsMainRoom = true;
         survivingRooms[0].IsAccessibleFromMainRoom = true;
-        ConnectClosestRooms(survivingRooms, false, numberOfRooms);
+        ConnectClosestRooms(survivingRooms, false);
 
         return this;
     }
@@ -668,7 +668,7 @@ public class Map {
 
     // Room Helper Functions
 
-    void ConnectClosestRooms(List<Room> allRooms, bool forceAccessibilityFromMainRoom, int numberOfClosestRooms)
+    void ConnectClosestRooms(List<Room> allRooms, bool forceAccessibilityFromMainRoom)
     {
         var nonConnectedRooms = new List<Room>();
         var connectedRooms = new List<Room>();
@@ -694,9 +694,11 @@ public class Map {
             connectedRooms = allRooms;
         }
 
-        var bestConnection = Connection.BlackConnection();
-        var connectionStack = new Queue<Connection>();
-
+        var bestDistance = 0;
+        var bestTileA = new Coord();
+        var bestTileB = new Coord();
+        var bestRoomA = new Room();
+        var bestRoomB = new Room();
         var possibleConnectionFound = false;
 
         for (int a = 0; a < nonConnectedRooms.Count; a++)
@@ -725,57 +727,36 @@ public class Map {
                         var tileB = roomB.EdgeTiles[tileIndexB];
                         var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
 
-                        if (distanceBetweenRooms < bestConnection.BestDistance || !possibleConnectionFound)
+                        if (distanceBetweenRooms < bestDistance || !possibleConnectionFound)
                         {
-                            if(bestConnection.BestRoomB != roomB && possibleConnectionFound)
-                            {
-                                connectionStack.Enqueue(bestConnection);
-                            }
-
-                            bestConnection = new Connection(distanceBetweenRooms, tileA, tileB, roomA, roomB);
+                            bestDistance = distanceBetweenRooms;
                             possibleConnectionFound = true;
-                            
-
+                            bestTileA = tileA;
+                            bestTileB = tileB;
+                            bestRoomA = roomA;
+                            bestRoomB = roomB;
                         }
 
                     }
                 }
             }
-
-            connectionStack.Enqueue(bestConnection);
             if (possibleConnectionFound && !forceAccessibilityFromMainRoom)
             {
-                CreatePassages(connectionStack,numberOfClosestRooms);
+                CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
             }
         }
 
         if (possibleConnectionFound && forceAccessibilityFromMainRoom)
         {
-            CreatePassages(connectionStack, numberOfClosestRooms);
-            ConnectClosestRooms(allRooms, true, 1);
+            CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
+            ConnectClosestRooms(allRooms, true);
         }
 
         if (!forceAccessibilityFromMainRoom)
         {
-            ConnectClosestRooms(allRooms, true, 1);
+            ConnectClosestRooms(allRooms, true);
         }
-    } 
-
-    void CreatePassages(Queue<Connection> connections, int numberOfConnections)
-    {
-        if (numberOfConnections > connections.Count)
-            numberOfConnections = connections.Count;
-
-        for (int i = 0; i < connections.Count; i++)
-        {
-            CreatePassage(connections.Dequeue());
-        }
-    }
-    
-    void CreatePassage(Connection connection)
-    {
-        CreatePassage(connection.BestRoomA, connection.BestRoomB, connection.BestTileA, connection.BestTileB);
-    }   
+    }    
 
     void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB)
     {
@@ -965,37 +946,6 @@ public class Map {
         {
             return otherRoom.RoomSize.CompareTo(RoomSize);
         }
-
-
-    }
-
-    struct Connection {
-
-        public int BestDistance
-        { get; private set; }
-        public Coord BestTileA
-        { get; private set; }
-        public Coord BestTileB
-        { get; private set; }
-        public Room BestRoomA
-        { get; private set; }
-        public Room BestRoomB
-        { get; private set; }
-
-        public Connection(int bestDistance, Coord bestTileA, Coord bestTileB, Room bestRoomA, Room bestRoomB)
-        {
-            BestDistance = bestDistance;
-            BestTileA = bestTileA;
-            BestTileB = bestTileB;
-            BestRoomA = bestRoomA;
-            BestRoomB = bestRoomB;
-        }
-
-        public static Connection BlackConnection()
-        {
-            return new Connection(0, new Coord(), new Coord(), new Room(), new Room());
-        }
-
 
 
     }
