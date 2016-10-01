@@ -265,13 +265,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4461f18bef8717749b7b51c01c2689cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RandomFillPercent: 47
+  RandomFillPercent: 0.545
   NoiseIntensity: 0
   RandomMapPerlinScale: 5
   SubzoneGenerationPerlinScale: 10
   Seed: 447546497
-  UseRandomSeed: 0
-  RegionSizeCutoff: 400
+  UseRandomSeed: 1
+  RegionSizeCutoff: 0
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   Size: 200
   Iterations: 4

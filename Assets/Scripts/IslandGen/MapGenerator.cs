@@ -9,8 +9,8 @@ public class MapGenerator
 
     //REMINDER: 1 = Cell on, 0 = Cell off
 
-    [Range(0, 100)]
-    public int RandomFillPercent;
+    [Range(0.4f, 0.6f)]
+    public float RandomFillPercent;
 
     [Range(0, 100)]
     public int NoiseIntensity;
@@ -70,7 +70,7 @@ public class MapGenerator
 
         var map = new Map(width, height);
 
-        map.RandomFillMap(0.5f, NoiseIntensity, RandomMapPerlinScale);
+        map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
         stack.AddMap(Map.CloneMap(map));
         map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
         stack.AddMap(Map.CloneMap(map));
@@ -96,7 +96,7 @@ public class MapGenerator
 
         for (int i = 0; i < subMaps.Length; i++)
         {
-            CreateMesh(subMaps[i].RemoveSmallRegions(2).InvertMap(),i);
+            CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i);
         }
 
         CreateTrees(heightmap, map, 7, 0.4f);
