@@ -22,7 +22,7 @@ public class MeshGenerator {
     int _wallHeightPerlinSeed;
 
 
-    public Mesh GenerateMesh(int[,] map, float squareSize, int seed)
+    public Mesh GenerateMesh(Map map, float squareSize, int seed)
     {
         _outlines.Clear();
         _checkedVerts.Clear();
@@ -38,8 +38,8 @@ public class MeshGenerator {
         _detailPerlinSeed = _pseudoRandom.Next(0, 1000);
         _wallHeightPerlinSeed = _pseudoRandom.Next(0, 1000);
 
-        _width = map.GetLength(0);
-        _height = map.GetLength(1);
+        _width = map.SizeX;
+        _height = map.SizeY;
 
 
 
@@ -63,8 +63,8 @@ public class MeshGenerator {
         int tileAmount = 10;
         for (int i = 0; i < verts.Count; i++)
         {
-            float percentX = Mathf.InverseLerp(-map.GetLength(0) * squareSize / 2, map.GetLength(0) * squareSize / 2,  verts[i].x) * tileAmount;
-            float percentY = Mathf.InverseLerp(-map.GetLength(0) * squareSize / 2, map.GetLength(1) * squareSize / 2, verts[i].z) * tileAmount;
+            float percentX = Mathf.InverseLerp(-map.SizeX * squareSize / 2, map.SizeX * squareSize / 2,  verts[i].x) * tileAmount;
+            float percentY = Mathf.InverseLerp(-map.SizeY * squareSize / 2, map.SizeY * squareSize / 2, verts[i].z) * tileAmount;
             uvs.Add(new Vector2(percentX, percentY));
         }
 
@@ -148,10 +148,10 @@ public class MeshGenerator {
         public Square[,] Squares
         { get; private set; }
 
-        public SquareGrid(int[,] map, float squareSize)
+        public SquareGrid(Map map, float squareSize)
         {
-            int nodeCountX = map.GetLength(0);
-            int nodeCountY = map.GetLength(1);
+            int nodeCountX = map.SizeX;
+            int nodeCountY = map.SizeY;
             float mapWidth = nodeCountX * squareSize;
             float mapHeight = nodeCountX * squareSize;
 

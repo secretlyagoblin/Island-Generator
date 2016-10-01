@@ -303,7 +303,7 @@ public class Map {
             return this;
         }
 
-        var wallRegions = GetRegions(this, 1);
+        var wallRegions = GetRegions(1);
         var wallThresholdSize = regionSizeCutoff;
 
         for (int i = 0; i < wallRegions.Count; i++)
@@ -317,7 +317,7 @@ public class Map {
             }
         }
 
-        var roomRegions = GetRegions(this, 0);
+        var roomRegions = GetRegions(0);
         var roomThresholdSize = regionSizeCutoff;
 
 
@@ -342,7 +342,7 @@ public class Map {
             return this;
         }
 
-        var roomRegions = GetRegions(this, 0);
+        var roomRegions = GetRegions(0);
 
         var survivingRooms = new List<Room>();
 
@@ -603,21 +603,18 @@ public class Map {
 
     // Region Helper Functions
 
-    List<List<Coord>> GetRegions(Map map, int tileType)
+    public List<List<Coord>> GetRegions(int tileType)
     {
-        var width = map.SizeX;
-        var length = map.SizeY;
-
         var regions = new List<List<Coord>>();
-        var mapFlags = new int[width, length];
+        var mapFlags = new int[SizeX, SizeY];
 
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < SizeX; x++)
         {
-            for (int y = 0; y < length; y++)
+            for (int y = 0; y < SizeY; y++)
             {
-                if (mapFlags[x, y] == 0 && map[x, y] == tileType)
+                if (mapFlags[x, y] == 0 && _map[x, y] == tileType)
                 {
-                    var newRegion = GetRegionTiles(map, x, y);
+                    var newRegion = GetRegionTiles( x, y);
                     regions.Add(newRegion);
 
                     for (int i = 0; i < newRegion.Count; i++)
@@ -634,14 +631,12 @@ public class Map {
         return regions;
     }
 
-    List<Coord> GetRegionTiles(Map map, int startX, int startY)
+    List<Coord> GetRegionTiles(int startX, int startY)
     {
-        var width = map.SizeX;
-        var length = map.SizeY;
 
         var tiles = new List<Coord>();
-        var mapFlags = new int[width, length];
-        int tileType = map[startX, startY];
+        var mapFlags = new int[SizeX, SizeY];
+        int tileType = _map[startX, startY];
 
         var queue = new Queue<Coord>();
         queue.Enqueue(new Coord(startX, startY));
@@ -658,7 +653,7 @@ public class Map {
                 {
                     if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
                     {
-                        if (mapFlags[x, y] == 0 && map[x, y] == tileType)
+                        if (mapFlags[x, y] == 0 && _map[x, y] == tileType)
                         {
                             mapFlags[x, y] = 1;
                             queue.Enqueue(new Coord(x, y));

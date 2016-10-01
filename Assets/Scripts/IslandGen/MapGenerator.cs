@@ -66,74 +66,45 @@ public class MapGenerator
 
         //Version 1
 
+        var stack = new MeshDebugStack(Material);
+
         var map = new Map(width, height);
 
         map.RandomFillMap(0.5f, NoiseIntensity, RandomMapPerlinScale);
+        stack.AddMap(Map.CloneMap(map));
         map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
+        stack.AddMap(Map.CloneMap(map));
         map.SmoothMap(4);
+        stack.AddMap(Map.CloneMap(map));
         map.RemoveSmallRegions(RegionSizeCutoff);
+        stack.AddMap(Map.CloneMap(map));
 
         var roomMap = Map.CloneMap(map).AddRoomLogic();
+        stack.AddMap(Map.CloneMap(roomMap));
+        var subMaps = roomMap.GenerateSubMaps(6, 12);
 
-        var heightmap = Map.CreateHeightMap(roomMap.GenerateSubMaps(6, 5));
 
-        //var map2 = new int[width, height];
-        //var propHeights2 = new int[width, height];
-        //RandomFillMap(map2);
-        //for (int i = 0; i < Iterations; i++)
-        //{
-        //    SmoothMap(map2);
+        var heightmap = Map.CreateHeightMap(subMaps);
+        stack.AddMap(Map.CloneMap(heightmap));
+
+
+        var gameObject = new GameObject();
+        gameObject.transform.Translate(Vector3.up * 15);
+        gameObject.name = "Debug Stack";
+
+        stack.CreateDebugStack(gameObject.transform);
+
+        for (int i = 0; i < subMaps.Length; i++)
+        {
+            CreateMesh(subMaps[i].RemoveSmallRegions(2).InvertMap(),i);
+        }
+
+        CreateTrees(heightmap, map, 7, 0.4f);
+
+
         //}
         //
-        //map2 = BooleanDifference(map, map2);
-
-        //AddRoomLogic(map2);
-
-        //CreateMesh(GetInvertedMap(map), 5);
-        //CreateMesh(GetInvertedMap(map2), 10);
-
-
-        var subMaps = GenerateSubMaps(6, map);
-        var heightMap = CreateNewMapFromTemplate(map);
-
-        var subRegions = new List<List<Coord>>();
-
-        for (int i = 0; i < subMaps.Count; i++)
-        {
-            SetPropMapHeights(subMaps[i], heightMap, (i));
-
-            subRegions.AddRange(GetRegions(subMaps[i], 0));
-        
-            //for (int u = 0; u < regions.Count; u++)
-            //{
-            //    CreateMesh(GetInvertedMap(ResizedMapFromRegion(regions[u])), i);
-            //}
-        
-            //CreateMesh(GetInvertedMap(subMaps[i]), i );
-        }
-
-
-
-        var layers = GetLayersFromRegions(subRegions, map);
-
-
-
-        for (int i = 0; i < layers.Length; i++)
-        {
-            SetPropMapHeights(layers[i], heightMap, i);
-            var count = CountDensity(layers[i]);
-            
-            //if (count > cellCount)
-            //{
-            //    cellCount = count;
-            //    keyLayer = layers[i];
-            //    keyHeight = i;
-            //}
-
-            CreateMesh(GetInvertedMap(layers[i]), i);
-        }
-
-        CreateTrees(heightMap, 7, 0.4f);
+        //CreateTrees(heightMap, 7, 0.4f);
 
         //MAP TWO ******************************************************
 
@@ -187,87 +158,89 @@ public class MapGenerator
         //    CreateMesh(GetInvertedMap(layers[i]), i + layerCountFinal);
         //}
         //
-        //CreateTrees(heightMap, 7, 0.4f);
+
 
 
     }
 
-    Coord FindClosestPointInB(int[,] mapA, int[,] mapB)
-    {
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Failed in FindClosestPoint because maps were not valid");
-            return new Coord(0, 0);
-        }
-
-        Debug.Log("Why are you using this it's blatantly not working properly");
-
-        var width = mapA.GetLength(0);
-        var length = mapA.GetLength(1);
-
-        var roomACoords = new List<Coord>();
-        var roomBCoords = new List<Coord>();
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < length; y++)
-            {
-                if (mapA[x, y] == 0)
-                {
-                    roomACoords.Add(new Coord(x, y));
-                }
-
-                if (mapB[x, y] == 0)
-                {
-                    roomBCoords.Add(new Coord(x, y));
-                }
-            }
-        }
-
-        var bestDistance = int.MaxValue;
-        var bestTileA = new Coord();
-        var bestTileB = new Coord();
-
-        Debug.Log("I get here");
-
-        var roomA = new Room(roomACoords, mapA);
-
-
-        var roomB = new Room(roomBCoords, mapB);
-
-        for (int tileIndexA = 0; tileIndexA < roomA.EdgeTiles.Count; tileIndexA++)
-        {
-            for (int tileIndexB = 0; tileIndexB < roomB.EdgeTiles.Count; tileIndexB++)
-            {
-                var tileA = roomA.EdgeTiles[tileIndexA];
-                var tileB = roomB.EdgeTiles[tileIndexB];
-                var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
-        
-                if (distanceBetweenRooms < bestDistance)
-                {
-                    bestDistance = distanceBetweenRooms;
-                    Debug.Log("Best Distance: " + bestDistance);
-                    bestTileA = tileA;
-                    bestTileB = tileB;
-                }
-        
-            }
-        }
-
-        Debug.DrawLine(CoordToWorldPoint(bestTileA,mapA), CoordToWorldPoint(bestTileB, mapB), Color.red, 100f);
-
-
-
-
-
-        return bestTileB;
-    }
+    //Coord FindClosestPointInB(Map mapA, Map mapB)
+    //{
+    //    if (!Map.MapsAreSameDimensions(mapA, mapB))
+    //    {
+    //        Debug.Log("Failed in FindClosestPoint because maps were not valid");
+    //        return new Coord(0, 0);
+    //    }
+    //
+    //    Debug.Log("Why are you using this it's blatantly not working properly");
+    //
+    //    var width = mapA.GetLength(0);
+    //    var length = mapA.GetLength(1);
+    //
+    //    var roomACoords = new List<Coord>();
+    //    var roomBCoords = new List<Coord>();
+    //
+    //    for (int x = 0; x < width; x++)
+    //    {
+    //        for (int y = 0; y < length; y++)
+    //        {
+    //            if (mapA[x, y] == 0)
+    //            {
+    //                roomACoords.Add(new Coord(x, y));
+    //            }
+    //
+    //            if (mapB[x, y] == 0)
+    //            {
+    //                roomBCoords.Add(new Coord(x, y));
+    //            }
+    //        }
+    //    }
+    //
+    //    var bestDistance = int.MaxValue;
+    //    var bestTileA = new Coord();
+    //    var bestTileB = new Coord();
+    //
+    //    Debug.Log("I get here");
+    //
+    //    var roomA = new Room(roomACoords, mapA);
+    //
+    //
+    //    var roomB = new Room(roomBCoords, mapB);
+    //
+    //    for (int tileIndexA = 0; tileIndexA < roomA.EdgeTiles.Count; tileIndexA++)
+    //    {
+    //        for (int tileIndexB = 0; tileIndexB < roomB.EdgeTiles.Count; tileIndexB++)
+    //        {
+    //            var tileA = roomA.EdgeTiles[tileIndexA];
+    //            var tileB = roomB.EdgeTiles[tileIndexB];
+    //            var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
+    //    
+    //            if (distanceBetweenRooms < bestDistance)
+    //            {
+    //                bestDistance = distanceBetweenRooms;
+    //                Debug.Log("Best Distance: " + bestDistance);
+    //                bestTileA = tileA;
+    //                bestTileB = tileB;
+    //            }
+    //    
+    //        }
+    //    }
+    //
+    //    Debug.DrawLine(CoordToWorldPoint(bestTileA,mapA), CoordToWorldPoint(bestTileB, mapB), Color.red, 100f);
+    //
+    //
+    //
+    //
+    //
+    //    return bestTileB;
+    //}
 
     
     
 
 
     //Room Connection Functions
+
+        /*
 
     int[,] ResizedMapFromRegion(List<Coord> regions)
     {
@@ -308,12 +281,13 @@ public class MapGenerator
 
         return map;
     }
+    */
 
     //Subdividing Map
 
     
 
-    void CreateMesh(int[,] subber, int height)
+    void CreateMesh(Map subber, int height)
     {
         var mesh = _meshGen.GenerateMesh(subber, 1f, RNG.Next());
 
