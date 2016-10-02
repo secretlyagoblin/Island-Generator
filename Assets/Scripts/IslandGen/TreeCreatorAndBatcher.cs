@@ -65,10 +65,10 @@ public static class TreeCreatorAndBatcher {
 
 
         _currentUvs.Add(new Vector2(0,0));
-        _currentUvs.Add(new Vector2(0, 1));
+        _currentUvs.Add(new Vector2(1, 0));
         _currentUvs.Add(new Vector2(0, 0));
-        _currentUvs.Add(new Vector2(0, 1));
-        _currentUvs.Add(new Vector2(1, 0.5f));
+        _currentUvs.Add(new Vector2(1, 0));
+        _currentUvs.Add(new Vector2(0.5f, 1));
 
         _currentTris.Add(currentCount+1);
         _currentTris.Add(currentCount+4);
@@ -117,6 +117,7 @@ public static class TreeCreatorAndBatcher {
 
         _currentVerts.Clear();
         _currentTris.Clear();
+        _currentUvs.Clear();
     }
 
     
