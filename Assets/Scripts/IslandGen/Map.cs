@@ -358,7 +358,14 @@ public class Map {
             return this;
         }
 
+        Profiler.BeginSample("Get Regions");
+
+
         var roomRegions = GetRegions(0);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Middler");
 
         var survivingRooms = new List<Room>();
 
@@ -370,7 +377,14 @@ public class Map {
         survivingRooms.Sort();
         survivingRooms[0].IsMainRoom = true;
         survivingRooms[0].IsAccessibleFromMainRoom = true;
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Connect Closest Rooms");
+
         ConnectClosestRooms(survivingRooms, false);
+
+        Profiler.EndSample();
 
         return this;
     }
@@ -600,49 +614,88 @@ public class Map {
     {
         var sizeX = SizeX;
         var sizeY = SizeY;
+        var mapFlags = new int[sizeX, sizeY];
+        var mapRegions = new int[sizeX, sizeY];
+        var mapHeights = new int[sizeX, sizeY];
+        var regionHeights = new int[regions.Count];
+
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeX; y++)
+            {
+                mapFlags[x, y] = 1;
+                mapRegions[x, y] = -1;
+                mapHeights[x, y] = -1;
+            }
+        }
 
         var rooms = new List<Room>();
 
         for (int i = 0; i < regions.Count; i++)
         {
-            rooms.Add(new Room(regions[i], this));
+            regionHeights[i] = -1;
+            for (int u = 0; u < regions[i].Count; u++)
+            {
+                var coord = regions[i][u];
+                mapRegions[coord.TileX, coord.TileY] = i;
+                mapFlags[coord.TileX, coord.TileY] = 0;
+                
+            }
+            var room = new Room(regions[i], this);
+            room.InitForDijkstra();
+            rooms.Add(room);
         }
 
-        var unsortedRooms = new List<Room>(rooms);
+        var startPoint = regions[0][0];
+        var queue = new Queue<Coord>();
+        var startX = startPoint.TileX;
+        var startY = startPoint.TileY;
 
-        for (int a = 0; a < rooms.Count; a++)
+        queue.Enqueue(new Coord(startX, startY));
+        mapFlags[startX, startY] = 1;
+
+        while (queue.Count > 0)
         {
-            var roomA = rooms[a];
-            roomA.InitForDijkstra();
+            var tile = queue.Dequeue();
 
-
-            for (int b = 0; b < unsortedRooms.Count; b++)
+            for (int x = tile.TileX - 1; x <= tile.TileX + 1; x++)
             {
-                var roomB = unsortedRooms[b];
-
-                if(roomA == roomB)
+                for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
                 {
+                    if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
+                    {
+                        if (mapFlags[x, y] == 0)
+                        {
+                            if (mapRegions[x, y] != mapRegions[tile.TileX, tile.TileY] && regionHeights[mapRegions[x, y]] == -1)
+                            {
+                                regionHeights[mapRegions[x, y]] = regionHeights[mapRegions[tile.TileX, tile.TileY]] + 1;
+                            }
+                            mapFlags[x, y] = 1;
+                            var roomA = rooms[mapRegions[tile.TileX, tile.TileY]];
+                            var roomB = rooms[mapRegions[x, y]];
+                            queue.Enqueue(new Coord(x, y));
 
-                } else if (roomA.IsAbstractlyConnected(roomB))
-                {
 
-                }
-                else if(roomA.IsLiterallyConnected(roomB))
-                {
-                    roomA.ConnectedRooms.Add(roomB);
-                    roomB.ConnectedRooms.Add(roomA);
+                            if (roomA == roomB)
+                            {
 
-                    Debug.DrawLine(roomA.GetCenter(SizeX, sizeY), roomA.GetCenter(SizeY, sizeY), Color.red, 100f);
+                            }
+                            else if (roomA.IsAbstractlyConnected(roomB))
+                            {
 
-
+                            }
+                            else
+                            {
+                                roomA.ConnectedRooms.Add(roomB);
+                                roomB.ConnectedRooms.Add(roomA);
+                            }
+                        }
+                    }
                 }
             }
-
-            unsortedRooms.Remove(roomA);
         }
 
-        var currentRoom = rooms[0];
-        currentRoom.DijkstraDistance = 0;
+        Room currentRoom = null;
 
         var unvistedSet = new List<Room>(rooms);
         //unvistedSet.RemoveAt(0);
@@ -650,12 +703,22 @@ public class Map {
         var firstIteration = true;
         var finished = false;
 
+        var failCount = 0;
+
         while (!finished)
         {
+            failCount++;
+            if(failCount > 1000)
+            {
+                return null;
+            }
             currentRoom = unvistedSet.Last();
 
             if (firstIteration)
+            {
+                firstIteration = false;
                 currentRoom.DijkstraDistance = 0;
+            }
             
             for (int i = 0; i < currentRoom.ConnectedRooms.Count; i++)
             {
@@ -679,7 +742,7 @@ public class Map {
             { finished = true; }
             else
             {
-                unvistedSet.OrderByDescending(x => x.DijkstraDistance).ToList();
+                unvistedSet = unvistedSet.OrderByDescending(x => x.DijkstraDistance).ToList();
 
                 if (unvistedSet.Last().DijkstraDistance == int.MaxValue)
                 {
@@ -692,14 +755,14 @@ public class Map {
             }
         }
 
-        var regionHeights = new List<int>();
+        var outputRegionHeights = new List<int>();
 
         for (int i = 0; i < rooms.Count; i++)
         {
-            regionHeights.Add(rooms[i].DijkstraDistance);
+            outputRegionHeights.Add(rooms[i].DijkstraDistance);
         }
 
-        var heights = regionHeights.Distinct().ToList();
+        var heights = outputRegionHeights.Distinct().ToList();
         heights.Sort();
         var outputHeights = new List<Map>();
         var heightsDict = new Dictionary<int, Map>();

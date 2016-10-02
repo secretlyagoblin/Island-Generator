@@ -66,24 +66,50 @@ public class MapGenerator
 
         //Version 1
 
+        Profiler.BeginSample("Creation and Random Fill");
+
         var stack = new MeshDebugStack(Material);
 
         var map = new Map(width, height);
 
         map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
         stack.RecordMapStateToStack(map);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Create Circular Falloff");
+
         map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
         stack.RecordMapStateToStack(map);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("SmoothMap");
+
+
         map.SmoothMap(4);
         stack.RecordMapStateToStack(map);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("RemoveSmallRegions");
+
+
         map.RemoveSmallRegions(RegionSizeCutoff);
         stack.RecordMapStateToStack(map);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Add Room Logic");
 
         var roomMap = Map.Clone(map).AddRoomLogic();
         stack.RecordMapStateToStack(roomMap);
 
+        Profiler.EndSample();
 
-        var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(2).InvertMap();
+        Profiler.BeginSample("Outlining");
+
+        var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(0).InvertMap();
         stack.RecordMapStateToStack(thickMap);
 
         var differenceMap = Map.BooleanDifference(roomMap, thickMap);
@@ -102,6 +128,16 @@ public class MapGenerator
         unionMap.RemoveSmallRegions(100);
         stack.RecordMapStateToStack(unionMap);
 
+
+
+        unionMap.AddRoomLogic();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Creating Submaps");
+
+        stack.RecordMapStateToStack(unionMap);
+
         var subMaps = unionMap.GenerateSubMaps(6, 12);
         var heightmap = Map.CreateHeightMap(subMaps);
         stack.RecordMapStateToStack(heightmap);
@@ -110,25 +146,34 @@ public class MapGenerator
 
         for (int i = 0; i < subMaps.Length; i++)
         {
-            var subMap = subMaps[i].RemoveSmallRegions(10);
+            var subMap = subMaps[i];
             //stack.RecordMapStateToStack(subMap);
             allRegions.AddRange(subMap.GetRegions(0));
             //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i);
         }
 
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Dijkstras Algorithm");
 
         var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
         heightmap = Map.CreateHeightMap(finalSubMaps);
         stack.RecordMapStateToStack(heightmap);
-        
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Mesh Generation");
+
         for (int i = 0; i < finalSubMaps.Length; i++)
         {
             //stack.RecordMapStateToStack(finalSubMaps[i]);
-            CreateMesh(finalSubMaps[i].InvertMap(),i);
+            CreateMesh(finalSubMaps[i].RemoveSmallRegions(3).InvertMap(),i);
         }
 
-        CreateTrees(heightmap, unionMap, 7, 0.4f);
+        Profiler.EndSample();
+
+        //CreateTrees(heightmap, unionMap, 7, 0.4f);
 
 
         var gameObject = new GameObject();
