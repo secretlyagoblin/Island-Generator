@@ -497,12 +497,12 @@ public class Map {
         return this;
     }
 
-    public Map[] CreateHeightSortedSubmapsFromRegions(List<List<Coord>> regions)
+    public Map[] CreateHeightSortedSubmapsFromFloodFill(List<List<Coord>> regions)
     {
-        return CreateHeightSortedSubmapsFromRegions(regions, regions[0][0]);
+        return CreateHeightSortedSubmapsFromFloodFill(regions, regions[0][0]);
     }
 
-    public Map[] CreateHeightSortedSubmapsFromRegions(List<List<Coord>> regions, Coord startPoint)
+    public Map[] CreateHeightSortedSubmapsFromFloodFill(List<List<Coord>> regions, Coord startPoint)
     {
         var sizeX = SizeX;
         var sizeY = SizeY;
@@ -589,10 +589,137 @@ public class Map {
                     var ugh = outputHeights[index];
 
                     ugh[x, y] = 0;
-                    //var gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    //gameObject.transform.parent = parents[mapRegions[x,y]].transform;
-                    //gameObject.transform.localPosition = new Vector3(x - (sizeX * 0.5f), mapHeights[x, y], y - (sizeY * 0.5f));
                 }
+            }
+        }
+        return outputHeights.ToArray();
+    }
+
+
+    public Map[] CreateHeightSortedSubmapsFromDijkstrasAlgorithm(List<List<Coord>> regions)
+    {
+        var sizeX = SizeX;
+        var sizeY = SizeY;
+
+        var rooms = new List<Room>();
+
+        for (int i = 0; i < regions.Count; i++)
+        {
+            rooms.Add(new Room(regions[i], this));
+        }
+
+        var unsortedRooms = new List<Room>(rooms);
+
+        for (int a = 0; a < rooms.Count; a++)
+        {
+            var roomA = rooms[a];
+            roomA.InitForDijkstra();
+
+
+            for (int b = 0; b < unsortedRooms.Count; b++)
+            {
+                var roomB = unsortedRooms[b];
+
+                if(roomA == roomB)
+                {
+
+                } else if (roomA.IsAbstractlyConnected(roomB))
+                {
+
+                }
+                else if(roomA.IsLiterallyConnected(roomB))
+                {
+                    roomA.ConnectedRooms.Add(roomB);
+                    roomB.ConnectedRooms.Add(roomA);
+
+                    Debug.DrawLine(roomA.GetCenter(SizeX, sizeY), roomA.GetCenter(SizeY, sizeY), Color.red, 100f);
+
+
+                }
+            }
+
+            unsortedRooms.Remove(roomA);
+        }
+
+        var currentRoom = rooms[0];
+        currentRoom.DijkstraDistance = 0;
+
+        var unvistedSet = new List<Room>(rooms);
+        //unvistedSet.RemoveAt(0);
+
+        var firstIteration = true;
+        var finished = false;
+
+        while (!finished)
+        {
+            currentRoom = unvistedSet.Last();
+
+            if (firstIteration)
+                currentRoom.DijkstraDistance = 0;
+            
+            for (int i = 0; i < currentRoom.ConnectedRooms.Count; i++)
+            {
+                var connectedRoom = currentRoom.ConnectedRooms[i];
+
+                if (connectedRoom.Visited)
+                { }
+                else
+                {
+                    var currentDistance = currentRoom.DijkstraDistance + 1;
+
+                    if (currentDistance < connectedRoom.DijkstraDistance)
+                        connectedRoom.DijkstraDistance = currentDistance;
+                }
+            }
+
+            currentRoom.Visited = true;
+            unvistedSet.Remove(currentRoom);
+
+            if (unvistedSet.Count == 0)
+            { finished = true; }
+            else
+            {
+                unvistedSet.OrderByDescending(x => x.DijkstraDistance).ToList();
+
+                if (unvistedSet.Last().DijkstraDistance == int.MaxValue)
+                {
+                    finished = true;
+                }
+                else
+                {
+                    currentRoom = unvistedSet.Last();
+                }
+            }
+        }
+
+        var regionHeights = new List<int>();
+
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            regionHeights.Add(rooms[i].DijkstraDistance);
+        }
+
+        var heights = regionHeights.Distinct().ToList();
+        heights.Sort();
+        var outputHeights = new List<Map>();
+        var heightsDict = new Dictionary<int, Map>();
+
+
+        for (int i = 0; i < heights.Count; i++)
+        {
+            var map = new Map(this, 1);
+            outputHeights.Add(map);
+            heightsDict.Add(heights[i], map);
+
+        }
+
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            var map = heightsDict[rooms[i].DijkstraDistance];
+            for (int u = 0; u < rooms[i].Tiles.Count; u++)
+            {
+                var coord = rooms[i].Tiles[u];
+                map[coord.TileX, coord.TileY] = 0;
             }
         }
 
@@ -600,42 +727,6 @@ public class Map {
 
         return outputHeights.ToArray();
 
-
-
-        //for (int x = 0; x < sizeX; x++)
-        //{
-        //    for (int y = 0; y < sizeY; y++)
-        //    {
-        //        var tile = mapFlags[x, y];
-        //
-        //        if (tile.Region == -1)
-        //        {
-        //
-        //        } else if (regionHeights[tile.Region] != -1)
-        //            tile.Height = regionHeights[tile.Region];
-        //        else
-        //        {
-        //            var lowestHeight = int.MaxValue;
-        //
-        //            for (int localX = tile.TileX - 1; localX <= tile.TileX + 1; localX++)
-        //            {
-        //                for (int localY = tile.TileY - 1; localY <= tile.TileY + 1; localY++)
-        //                {
-        //                    if (IsInMapRange(mapFlags, localX, localY) && (localY == tile.TileY || localX == tile.TileX))
-        //                    {
-        //                        var height = regionHeights[mapFlags[localX, localY].Region];
-        //                        if (height < lowestHeight && height != -1 && mapFlags[localX, localY].Region != tile.Region)
-        //                            lowestHeight = height;
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
-
-
-        //return null;
     }
 
     // Region Helper Functions
@@ -753,7 +844,7 @@ public class Map {
             for (int b = 0; b < connectedRooms.Count; b++)
             {
                 var roomB = connectedRooms[b];
-                if (roomA == roomB || roomA.IsConnected(roomB))
+                if (roomA == roomB || roomA.IsAbstractlyConnected(roomB))
                     continue;
 
                 for (int tileIndexA = 0; tileIndexA < roomA.EdgeTiles.Count; tileIndexA++)
@@ -913,6 +1004,12 @@ public class Map {
         public bool IsMainRoom
         { get; set; }
 
+        public int DijkstraDistance
+        { get; set; }
+
+        public bool Visited
+        { get; set; }
+
         public Room()
         {
 
@@ -959,6 +1056,12 @@ public class Map {
             }
         }
 
+        public void InitForDijkstra()
+        {
+            DijkstraDistance = int.MaxValue;
+            Visited = false;
+        }
+
         public static void ConnectRooms(Room roomA, Room roomB)
         {
             if (roomA.IsAccessibleFromMainRoom)
@@ -974,7 +1077,7 @@ public class Map {
             roomB.ConnectedRooms.Add(roomA);
         }
 
-        public bool IsConnected(Room otherRoom)
+        public bool IsAbstractlyConnected(Room otherRoom)
         {
             return ConnectedRooms.Contains(otherRoom);
         }
@@ -982,6 +1085,41 @@ public class Map {
         public int CompareTo(Room otherRoom)
         {
             return otherRoom.RoomSize.CompareTo(RoomSize);
+        }
+
+        public bool IsLiterallyConnected(Room otherRoom)
+        {
+            for (int a = 0; a < Tiles.Count; a++)
+            {
+                for (int b = 0; b < otherRoom.Tiles.Count; b++)
+                {
+                    var coordA = Tiles[a];
+                    var coordB = otherRoom.Tiles[b];
+
+                    var innerX = coordA.TileX - coordB.TileX;
+                    var innerY = coordA.TileY - coordB.TileY;
+
+                    innerX = Math.Abs(innerX);
+                    innerY = Math.Abs(innerY);
+
+                    if (innerX + innerY < 2)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        public Vector3 GetCenter(int SizeX, int SizeY)
+        {
+            var centerX = 0;
+            var centerY = 0;
+            for (int i = 0; i < Tiles.Count; i++)
+            {
+                centerX += Tiles[i].TileX;
+                centerY += Tiles[i].TileY;
+            }
+
+            return new Vector3(-SizeX / 2 + .5f + ((float)centerX/Tiles.Count), 50, -SizeY / 2 + .5f + ((float)centerY / Tiles.Count));
         }
 
 

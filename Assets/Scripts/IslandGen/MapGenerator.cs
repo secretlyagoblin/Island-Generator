@@ -118,7 +118,7 @@ public class MapGenerator
 
 
 
-        var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromRegions(allRegions);
+        var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
         heightmap = Map.CreateHeightMap(finalSubMaps);
         stack.RecordMapStateToStack(heightmap);
         
@@ -132,7 +132,7 @@ public class MapGenerator
 
 
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * (subMaps.Length+10));
+        gameObject.transform.Translate(Vector3.up * (finalSubMaps.Length+10));
         gameObject.name = "Debug Stack";
 
         stack.CreateDebugStack(gameObject.transform);
