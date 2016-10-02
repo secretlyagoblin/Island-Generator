@@ -79,9 +79,11 @@ public class MeshDebugStack {
         //Create Object
 
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        obj.GetComponent<MeshCollider>().enabled = false;
         obj.GetComponent<MeshRenderer>().sharedMaterial = material;
         obj.transform.parent = parent;
         obj.name = "Layer " + layer;
+        obj.layer = parent.gameObject.layer;
         obj.transform.localPosition =(Vector3.left * layer * heightMultiplier);
         
 

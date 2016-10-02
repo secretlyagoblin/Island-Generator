@@ -24,6 +24,8 @@ public class MapGenerator
     public bool UseRandomSeed;
     public int RegionSizeCutoff;
 
+    public GameObject ThirdPersonController;
+
     public Material Material;
 
     public int Size;
@@ -66,7 +68,6 @@ public class MapGenerator
 
         //Version 1
 
-        Profiler.BeginSample("Creation and Random Fill");
 
         var stack = new MeshDebugStack(Material);
 
@@ -75,41 +76,24 @@ public class MapGenerator
         map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
         stack.RecordMapStateToStack(map);
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Create Circular Falloff");
 
         map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
         stack.RecordMapStateToStack(map);
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("SmoothMap");
 
 
         map.SmoothMap(4);
         stack.RecordMapStateToStack(map);
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("RemoveSmallRegions");
-
 
         map.RemoveSmallRegions(RegionSizeCutoff);
         stack.RecordMapStateToStack(map);
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Add Room Logic");
 
         var roomMap = Map.Clone(map).AddRoomLogic();
         stack.RecordMapStateToStack(roomMap);
 
-        Profiler.EndSample();
 
-        Profiler.BeginSample("Outlining");
-
-        var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(0).InvertMap();
+        var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(1).InvertMap();
         stack.RecordMapStateToStack(thickMap);
 
         var differenceMap = Map.BooleanDifference(roomMap, thickMap);
@@ -132,9 +116,6 @@ public class MapGenerator
 
         unionMap.AddRoomLogic();
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Creating Submaps");
 
         stack.RecordMapStateToStack(unionMap);
 
@@ -153,17 +134,10 @@ public class MapGenerator
         }
 
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Dijkstras Algorithm");
 
         var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
         heightmap = Map.CreateHeightMap(finalSubMaps);
         stack.RecordMapStateToStack(heightmap);
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Mesh Generation");
 
         for (int i = 0; i < finalSubMaps.Length; i++)
         {
@@ -171,17 +145,16 @@ public class MapGenerator
             CreateMesh(finalSubMaps[i].RemoveSmallRegions(3).InvertMap(),i);
         }
 
-        Profiler.EndSample();
 
-        //CreateTrees(heightmap, unionMap, 7, 0.4f);
+        CreateTrees(heightmap, unionMap, 7, 0.4f);
 
 
         var gameObject = new GameObject();
         gameObject.transform.Translate(Vector3.up * (finalSubMaps.Length+10));
         gameObject.name = "Debug Stack";
+        gameObject.layer = 5;
 
         stack.CreateDebugStack(gameObject.transform);
-
 
 
     }
@@ -342,6 +315,8 @@ public class MapGenerator
 
         var perlinSeed = RNG.NextFloat(0,1000);
 
+        var thirdPersonPositionSet = false;
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < length; y++)
@@ -352,18 +327,22 @@ public class MapGenerator
                 var perlin = Mathf.PerlinNoise(perlinX, perlinY);
                 //Debug.Log(perlinSample);
 
-                if (mask[x,y] != 1 && perlin > treeCutoff)
+                if (mask[x, y] != 1 && perlin > treeCutoff)
                 {
-                    if(perlin > 0.8 && RNG.Next(0, 3) < 1)
+                    if (perlin > 0.8 && RNG.Next(0, 3) < 1)
                     {
                         treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
-                    } else if(RNG.Next(0, 10) < 1)
-                        treePositions.Add( new Vector3(x-(width*0.5f), heightMap[x,y], y- (length * 0.5f)));
+                    }
+                    else if (RNG.Next(0, 10) < 1)
+                    {
+                        treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
+                    }
                 }
                 else if (mask[x, y] != 1 && RNG.Next(0, 100) < 1)
                 {
                     treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
                 }
+
             }
         }
 
