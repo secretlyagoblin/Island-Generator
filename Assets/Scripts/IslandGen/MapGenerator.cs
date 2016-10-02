@@ -71,28 +71,40 @@ public class MapGenerator
         var map = new Map(width, height);
 
         map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
-        stack.AddMap(Map.CloneMap(map));
+        stack.RecordMapStateToStack(map);
         map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
-        stack.AddMap(Map.CloneMap(map));
+        stack.RecordMapStateToStack(map);
         map.SmoothMap(4);
-        stack.AddMap(Map.CloneMap(map));
+        stack.RecordMapStateToStack(map);
         map.RemoveSmallRegions(RegionSizeCutoff);
-        stack.AddMap(Map.CloneMap(map));
+        stack.RecordMapStateToStack(map);
 
-        var roomMap = Map.CloneMap(map).AddRoomLogic();
-        stack.AddMap(Map.CloneMap(roomMap));
-        var subMaps = roomMap.GenerateSubMaps(6, 12);
+        var roomMap = Map.Clone(map).AddRoomLogic();
+        stack.RecordMapStateToStack(roomMap);
 
 
+        var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(2).InvertMap();
+        stack.RecordMapStateToStack(thickMap);
+
+        var differenceMap = Map.BooleanDifference(roomMap, thickMap);
+        stack.RecordMapStateToStack(differenceMap);
+
+        var staticMap = new Map(width, height);
+        staticMap.RandomFillMap(0.4f);
+
+        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
+        stack.RecordMapStateToStack(differenceMap);
+
+        var unionMap = Map.BooleanUnion(roomMap, differenceMap);
+        stack.RecordMapStateToStack(unionMap);
+
+        unionMap.SmoothMap(4);
+        unionMap.RemoveSmallRegions(100);
+        stack.RecordMapStateToStack(unionMap);
+
+        var subMaps = unionMap.GenerateSubMaps(6, 12);
         var heightmap = Map.CreateHeightMap(subMaps);
-        stack.AddMap(Map.CloneMap(heightmap));
-
-
-        var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * 15);
-        gameObject.name = "Debug Stack";
-
-        stack.CreateDebugStack(gameObject.transform);
+        stack.RecordMapStateToStack(heightmap);
 
         for (int i = 0; i < subMaps.Length; i++)
         {
@@ -158,6 +170,13 @@ public class MapGenerator
         //    CreateMesh(GetInvertedMap(layers[i]), i + layerCountFinal);
         //}
         //
+
+
+        var gameObject = new GameObject();
+        gameObject.transform.Translate(Vector3.up * 15);
+        gameObject.name = "Debug Stack";
+
+        stack.CreateDebugStack(gameObject.transform);
 
 
 

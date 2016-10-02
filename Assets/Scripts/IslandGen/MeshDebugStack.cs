@@ -13,9 +13,9 @@ public class MeshDebugStack {
         _maps = new List<Map>();
     }
 
-    public void AddMap(Map map)
+    public void RecordMapStateToStack(Map map)
     {
-        _maps.Add(map);
+        _maps.Add(Map.Clone(map));
     }
 
     public void CreateDebugStack(Transform parent)

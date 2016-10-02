@@ -53,7 +53,7 @@ public class Map {
 
     // Static Functions
 
-    public static Map CloneMap(Map map)
+    public static Map Clone(Map map)
     {
         return CreateBlankMap(map).OverwriteMapWith(map);
     }
@@ -65,7 +65,7 @@ public class Map {
 
     public static Map CreateHeightMap(Map[] heightData)
     {
-        return CloneMap(heightData[0]).AddHeightmapLayers(heightData, 0);
+        return Clone(heightData[0]).AddHeightmapLayers(heightData, 0);
     }
 
     public static Map BlankMap(int sizeX, int sizeY)
@@ -75,7 +75,7 @@ public class Map {
 
     public static Map ApplyMask(Map mapA, Map mapB, Map mask)
     {
-        return CloneMap(mapA).ApplyMask(mask, mapB);
+        return Clone(mapA).ApplyMask(mask, mapB);
     }
 
     public static bool MapsAreSameDimensions(Map mapA, Map mapB)
@@ -152,7 +152,7 @@ public class Map {
 
     public static Map GetInvertedMap(Map map)
     {
-        return CloneMap(map).InvertMap();
+        return Clone(map).InvertMap();
     }
 
     // General Functions
@@ -419,6 +419,37 @@ public class Map {
                 _map[x, y] = _map[x, y] == 0 ? 1 : 0;
             }
         }
+        return this;
+    }
+
+    public Map ThickenOutline (int iterations)
+    {
+        for (int i = 0; i < iterations; i++)
+        {
+            ThickenOutline();
+        }
+        return this;
+    }
+
+    public Map ThickenOutline()
+    {
+        var currentSnapshot = Clone(this);
+
+        for (int x = 1; x < SizeX-1; x++)
+        {
+            for (int y = 1; y < SizeY-1; y++)
+            {
+                if (currentSnapshot[x, y] == 0)
+                {
+                    int neighbourWallTiles = GetSurroundingWallCount(currentSnapshot._map, x, y);
+                    if (neighbourWallTiles > 0)
+                    {
+                        _map[x, y] = 1;
+                    }
+                }
+            }
+        }
+
         return this;
     }
 
