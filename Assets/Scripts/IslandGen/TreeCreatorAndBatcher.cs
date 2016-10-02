@@ -6,6 +6,7 @@ public static class TreeCreatorAndBatcher {
     static List<Mesh> _MeshesToReturn;
 
     static List<Vector3> _currentVerts;
+    static List<Vector2> _currentUvs;
     static List<int> _currentTris;
 
     static float _baseWidth;
@@ -24,6 +25,7 @@ public static class TreeCreatorAndBatcher {
 
         _MeshesToReturn = new List<Mesh>();
         _currentVerts = new List<Vector3>();
+        _currentUvs = new List<Vector2>();
         _currentTris = new List<int>();
 
         for (int i = 0; i < positions.Length; i++)
@@ -59,6 +61,14 @@ public static class TreeCreatorAndBatcher {
         _currentVerts.Add(c);
         _currentVerts.Add(d);
         _currentVerts.Add(tip);
+
+
+
+        _currentUvs.Add(new Vector2(0,0));
+        _currentUvs.Add(new Vector2(0, 1));
+        _currentUvs.Add(new Vector2(0, 0));
+        _currentUvs.Add(new Vector2(0, 1));
+        _currentUvs.Add(new Vector2(1, 0.5f));
 
         _currentTris.Add(currentCount+1);
         _currentTris.Add(currentCount+4);
@@ -99,6 +109,7 @@ public static class TreeCreatorAndBatcher {
         var mesh = new Mesh();
         mesh.vertices = _currentVerts.ToArray();
         mesh.triangles = _currentTris.ToArray();
+        mesh.uv = _currentUvs.ToArray();
 
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
