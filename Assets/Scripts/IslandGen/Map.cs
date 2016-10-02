@@ -34,6 +34,14 @@ public class Map {
         SizeX = mapTemplate.SizeX;
         SizeY = mapTemplate.SizeY;
         _map = new int[SizeX, SizeY];
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = defaultValue;
+            }
+        }
     }
 
     public Map(int sizeX, int sizeY, int defaultValue)
@@ -41,6 +49,14 @@ public class Map {
         SizeX = sizeX;
         SizeY = sizeY;
         _map = new int[SizeX, SizeY];
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = defaultValue;
+            }
+        }
     }
 
     // Accessors
@@ -453,7 +469,7 @@ public class Map {
         return this;
     }
 
-    // Int Fill Functions
+    // Int Fill Functions    
 
     public Map AddHeightmapLayers(Map[] subMaps, int offset)
     {
@@ -481,15 +497,15 @@ public class Map {
         return this;
     }
 
-    //public Map GetLayersFromRegions(Map[][] regions)
-    //{
-    //    return GetLayersFromRegions(regions, regions[0], regions[0][0]);
-    //}
-
-    public Map[] GetLayersFromRegions(List<List<Coord>> regions, Map mapTemplate, Coord startPoint)
+    public Map[] CreateHeightSortedSubmapsFromRegions(List<List<Coord>> regions)
     {
-        var sizeX = mapTemplate.SizeX;
-        var sizeY = mapTemplate.SizeY;
+        return CreateHeightSortedSubmapsFromRegions(regions, regions[0][0]);
+    }
+
+    public Map[] CreateHeightSortedSubmapsFromRegions(List<List<Coord>> regions, Coord startPoint)
+    {
+        var sizeX = SizeX;
+        var sizeY = SizeY;
         var mapFlags = new int[sizeX, sizeY];
         var mapRegions = new int[sizeX, sizeY];
         var mapHeights = new int[sizeX, sizeY];
@@ -550,16 +566,6 @@ public class Map {
             }
         }
 
-        var parents = new List<GameObject>();
-
-        //for (int i = 0; i < regions.Count; i++)
-        //{
-        //    var parent = new GameObject();
-        //    parent.transform.parent = transform;
-        //    parent.transform.localPosition = Vector3.zero;
-        //    parents.Add(parent);
-        //}
-
         var heights = regionHeights.Distinct().ToList();
         heights.Sort();
         var outputHeights = new List<Map>();
@@ -567,7 +573,7 @@ public class Map {
 
         for (int i = 0; i < heights.Count; i++)
         {
-            outputHeights.Add(new Map(mapTemplate, 1));
+            outputHeights.Add(new Map(this,1));
         }
 
         for (int x = 0; x < sizeX; x++)

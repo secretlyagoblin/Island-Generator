@@ -106,74 +106,33 @@ public class MapGenerator
         var heightmap = Map.CreateHeightMap(subMaps);
         stack.RecordMapStateToStack(heightmap);
 
+        var allRegions = new List<List<Coord>>();
+
         for (int i = 0; i < subMaps.Length; i++)
         {
-            CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i);
+            var subMap = subMaps[i].RemoveSmallRegions(10);
+            //stack.RecordMapStateToStack(subMap);
+            allRegions.AddRange(subMap.GetRegions(0));
+            //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i);
         }
 
-        CreateTrees(heightmap, map, 7, 0.4f);
 
 
-        //}
-        //
-        //CreateTrees(heightMap, 7, 0.4f);
+        var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromRegions(allRegions);
+        heightmap = Map.CreateHeightMap(finalSubMaps);
+        stack.RecordMapStateToStack(heightmap);
+        
+        for (int i = 0; i < finalSubMaps.Length; i++)
+        {
+            //stack.RecordMapStateToStack(finalSubMaps[i]);
+            CreateMesh(finalSubMaps[i].InvertMap(),i);
+        }
 
-        //MAP TWO ******************************************************
-
-        //var map2 = new int[width, height];
-        //propHeights = new int[width, height];
-        //RandomFillMap(map2);
-        //map2 = BooleanUnion(map2, layers.Last());
-        //
-        //for (int i = layers.Length-10; i <layers.Length; i++)
-        //{
-        //    map2 = BooleanDifference(layers[i], map2);
-        //}
-        //
-        //
-        //for (int i = 0; i < Iterations; i++)
-        //{
-        //    SmoothMap(map2);
-        //}
-        //
-        //
-        //
-        //AddRoomLogic(map2);
-        //
-        //
-        //
-        ////map2 = BooleanDifference(layers.Last(), map2);
-        //
-        //var coord = FindClosestPointInB(layers.Last(), map2);
-        //
-        //
-        //subMaps = GenerateSubMaps(6, map2);
-        //heightMap = CreateNewMapFromTemplate(map2);
-        //
-        //subRegions = new List<List<Coord>>();
-        //
-        //var layerCountFinal = layers.Count();
-        //var finalLayer = layers.Last();
-        //
-        //for (int i = 0; i < subMaps.Count(); i++)
-        //{
-        //    subRegions.AddRange(GetRegions(subMaps[i], 0));
-        //}
-        //
-        //layers = GetLayersFromRegions(subRegions, map2, coord);
-        //
-        //for (int i = 0; i < layers.Length; i++)
-        //{
-        //    SetPropMapHeights(layers[i], heightMap, i + layerCountFinal);
-        //
-        //
-        //    CreateMesh(GetInvertedMap(layers[i]), i + layerCountFinal);
-        //}
-        //
+        CreateTrees(heightmap, unionMap, 7, 0.4f);
 
 
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * 15);
+        gameObject.transform.Translate(Vector3.up * (subMaps.Length+10));
         gameObject.name = "Debug Stack";
 
         stack.CreateDebugStack(gameObject.transform);
