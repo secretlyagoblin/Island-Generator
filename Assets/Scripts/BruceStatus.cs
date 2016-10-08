@@ -13,7 +13,7 @@ public class BruceStatus : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-        Debug.Log("Thirst Level at " + _thirstIntLevel);
+        //Debug.Log("Thirst Level at " + _thirstIntLevel);
 
     }
 	
@@ -28,7 +28,7 @@ public class BruceStatus : MonoBehaviour {
         if (_thirstIntLevel + 1 < _thirstFloatLevel)
         {
             _thirstIntLevel++;
-            Debug.Log("Thirst Level increased to " + _thirstIntLevel);
+            //Debug.Log("Thirst Level increased to " + _thirstIntLevel);
         }
 
         

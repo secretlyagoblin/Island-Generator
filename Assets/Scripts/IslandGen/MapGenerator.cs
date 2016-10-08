@@ -30,6 +30,8 @@ public class MapGenerator
 
     public int Size;
 
+    MeshLens _lens;
+
     [Range(0, 10)]
     public int Iterations;
 
@@ -39,7 +41,9 @@ public class MapGenerator
 
     void Start()
     {
-        RNG.Init(DateTime.Now.ToString());        
+        RNG.Init(DateTime.Now.ToString());
+
+        _lens = new MeshLens(Size, Size, new Vector3(1.2f,1,1.2f));        
 
         GenerateMap(Size,Size);
     }
@@ -285,7 +289,7 @@ public class MapGenerator
 
     void CreateMesh(Map subber, int height)
     {
-        var mesh = _meshGen.GenerateMesh(subber, 1f, RNG.Next());
+        var mesh = _meshGen.GenerateMesh(subber, _lens, RNG.Next());
 
         var parent = new GameObject();
         parent.name = "Geometry Layer " + height;
@@ -331,16 +335,16 @@ public class MapGenerator
                 {
                     if (perlin > 0.8 && RNG.Next(0, 3) < 1)
                     {
-                        treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
+                        treePositions.Add(_lens.TransformPosition(x, heightMap[x, y], y));
                     }
                     else if (RNG.Next(0, 10) < 1)
                     {
-                        treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
+                        treePositions.Add(_lens.TransformPosition(x, heightMap[x,y],y));
                     }
                 }
                 else if (mask[x, y] != 1 && RNG.Next(0, 100) < 1)
                 {
-                    treePositions.Add(new Vector3(x - (width * 0.5f), heightMap[x, y], y - (length * 0.5f)));
+                    treePositions.Add(_lens.TransformPosition(x, heightMap[x, y], y));
                 }
 
             }
@@ -366,31 +370,4 @@ public class MapGenerator
             filter.mesh = mesh;
         }        
     }
-
-    //Debug
-
-    void DebugZone(int[,] map, float height)
-    {
-        var parent = new GameObject();
-        parent.transform.parent = transform;
-        parent.transform.localPosition = Vector3.zero;
-
-        for (int x = 0; x < map.GetLength(0); x++)
-        {
-            for (int y = 0; y < map.GetLength(1); y++)
-            {
-                if (map[x, y] == 1)
-                {
-                    var gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    gameObject.transform.parent = parent.transform;
-                    gameObject.transform.localPosition = new Vector3(x - (map.GetLength(0) * 0.5f), height, y - (map.GetLength(1) * 0.5f));
-                }
-            }
-        }
-    }
-
-    //A* through zonez
-
-
-
 }

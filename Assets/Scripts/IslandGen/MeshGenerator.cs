@@ -14,29 +14,32 @@ public class MeshGenerator {
     int _width;
     int _height;
 
+    MeshLens _lens;
+
     SquareGrid _squareGrid;
 
-    System.Random _pseudoRandom;
     int _perlinSeed;
     int _detailPerlinSeed;
     int _wallHeightPerlinSeed;
 
 
-    public Mesh GenerateMesh(Map map, float squareSize, int seed)
+    public Mesh GenerateMesh(Map map, MeshLens lens, int seed)
     {
         _outlines.Clear();
         _checkedVerts.Clear();
         _triangleDict.Clear();
 
-        _squareGrid = new SquareGrid(map, squareSize);
+        _lens = lens;
+
+        _squareGrid = new SquareGrid(map, lens);
 
         _verts = new List<Vector3>();
         _tris = new List<int>();
 
-        _pseudoRandom = new System.Random(seed);
-        _perlinSeed = _pseudoRandom.Next(0, 1000);
-        _detailPerlinSeed = _pseudoRandom.Next(0, 1000);
-        _wallHeightPerlinSeed = _pseudoRandom.Next(0, 1000);
+        RNG.Init(System.DateTime.Now.ToString());
+        _perlinSeed = RNG.Next(0, 1000);
+        _detailPerlinSeed = RNG.Next(0, 1000);
+        _wallHeightPerlinSeed = RNG.Next(0, 1000);
 
         _width = map.SizeX;
         _height = map.SizeY;
@@ -63,8 +66,12 @@ public class MeshGenerator {
         int tileAmount = 10;
         for (int i = 0; i < verts.Count; i++)
         {
-            float percentX = Mathf.InverseLerp(-map.SizeX * squareSize / 2, map.SizeX * squareSize / 2,  verts[i].x) * tileAmount;
-            float percentY = Mathf.InverseLerp(-map.SizeY * squareSize / 2, map.SizeY * squareSize / 2, verts[i].z) * tileAmount;
+            var min = _lens.TransformPosition(0, 0, 0);
+            var max = _lens.TransformPosition(map.SizeX, 0, map.SizeY);
+
+            float percentX = Mathf.InverseLerp(min.x, max.x, verts[i].x) * tileAmount;
+            float percentY = Mathf.InverseLerp(min.z, max.z, verts[i].z) * tileAmount;
+
             uvs.Add(new Vector2(percentX, percentY));
         }
 
@@ -77,9 +84,9 @@ public class MeshGenerator {
 
 
 
-        verts.AddRange(wallMesh.vertices);
+       verts.AddRange(wallMesh.vertices);
 
-        var wallTris = wallMesh.triangles;
+       var wallTris = wallMesh.triangles;
 
         for (int i = 0; i < wallTris.Length; i++)
         {
@@ -108,7 +115,7 @@ public class MeshGenerator {
         var wallUvs = new List<Vector2>();
         var wallMesh = new Mesh();
 
-        var wallHeight = RNG.NextFloat(3f, 5f);
+        var wallHeight = global::RNG.NextFloat(3f, 5f);
 
         for (int i = 0; i < _outlines.Count; i++)
         {
@@ -148,21 +155,23 @@ public class MeshGenerator {
         public Square[,] Squares
         { get; private set; }
 
-        public SquareGrid(Map map, float squareSize)
+        public SquareGrid(Map map, MeshLens lens)
         {
             int nodeCountX = map.SizeX;
             int nodeCountY = map.SizeY;
-            float mapWidth = nodeCountX * squareSize;
-            float mapHeight = nodeCountX * squareSize;
 
             var controlNodes = new ControlNode[nodeCountX, nodeCountY];
+
+            var offset = lens.TransformVector(0.5f, 0, 0.5f);
+            Debug.Log(offset);
 
             for (int x = 0; x < nodeCountX; x++)
             {
                 for (int y = 0; y < nodeCountY; y++)
                 {
-                    var pos = new Vector3(-mapWidth / 2 + x * squareSize + squareSize / 2, 0, -mapHeight / 2 + y * squareSize + squareSize / 2);
-                    controlNodes[x, y] = new ControlNode(pos, map[x, y] == 1, squareSize);
+
+                    var pos = lens.TransformPosition(x, 0, y) + offset;
+                    controlNodes[x, y] = new ControlNode(pos, map[x, y] == 1, offset);
                 }
             }
 
@@ -258,11 +267,11 @@ public class MeshGenerator {
         public Node Right
         { get; private set; }
 
-        public ControlNode(Vector3 position, bool active, float squareSize) : base(position)
+        public ControlNode(Vector3 position, bool active, Vector3 offset) : base(position)
         {
             Active = active;
-            Above = new Node(position + Vector3.forward * squareSize / 2f);
-            Right = new Node(position + Vector3.right * squareSize / 2f);
+            Above = new Node(position + Vector3.forward * offset.z);
+            Right = new Node(position + Vector3.right * offset.x);
         }
     }
 

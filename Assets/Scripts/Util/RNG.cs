@@ -13,12 +13,14 @@ public static class RNG {
         else
         {
             _pseudoRandom = new System.Random(seed.GetHashCode());
+            _initialised = true;
         }
     } 
 
     public static void ForceInit(string seed)
     {
         _pseudoRandom = new System.Random(seed.GetHashCode());
+        _initialised = true;
     }
 
     public static int Next()
