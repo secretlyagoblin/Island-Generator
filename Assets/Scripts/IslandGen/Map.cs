@@ -13,27 +13,27 @@ public class Map {
 
     bool _isBoolMask = true;
 
-    int[,] _map;
+    float[,] _map;
 
     public Map(Map mapTemplate)
     {
         SizeX = mapTemplate.SizeX;
         SizeY = mapTemplate.SizeY;
-        _map = new int[SizeX, SizeY];
+        _map = new float[SizeX, SizeY];
     }
 
     public Map(int sizeX, int sizeY)
     {
         SizeX = sizeX;
         SizeY = sizeY;
-        _map = new int[SizeX, SizeY];
+        _map = new float[SizeX, SizeY];
     }
 
     public Map(Map mapTemplate, int defaultValue)
     {
         SizeX = mapTemplate.SizeX;
         SizeY = mapTemplate.SizeY;
-        _map = new int[SizeX, SizeY];
+        _map = new float[SizeX, SizeY];
 
         for (int x = 0; x < SizeX; x++)
         {
@@ -48,7 +48,7 @@ public class Map {
     {
         SizeX = sizeX;
         SizeY = sizeY;
-        _map = new int[SizeX, SizeY];
+        _map = new float[SizeX, SizeY];
 
         for (int x = 0; x < SizeX; x++)
         {
@@ -61,7 +61,7 @@ public class Map {
 
     // Accessors
 
-    public int this[int indexA, int indexB]
+    public float this[int indexA, int indexB]
     {
         get { return _map[indexA, indexB]; }
         set { _map[indexA, indexB] = value; }
@@ -852,7 +852,7 @@ public class Map {
 
         var tiles = new List<Coord>();
         var mapFlags = new int[SizeX, SizeY];
-        int tileType = _map[startX, startY];
+        int tileType = Mathf.RoundToInt(_map[startX, startY]);
 
         var queue = new Queue<Coord>();
         queue.Enqueue(new Coord(startX, startY));
@@ -1002,7 +1002,7 @@ public class Map {
         //Debug.Log("------------ End Line ------------");
     }
 
-    int[,] DrawCircle(Coord c, int r)
+    float[,] DrawCircle(Coord c, int r)
     {
         for (int x = -r; x <= r; x++)
         {
@@ -1025,7 +1025,7 @@ public class Map {
 
     // Helper Functions
 
-    int GetSurroundingWallCount(int[,] map, int gridX, int gridY)
+    int GetSurroundingWallCount(float[,] map, int gridX, int gridY)
     {
         int wallCount = 0;
         for (int x = gridX - 1; x <= gridX + 1; x++)
@@ -1036,7 +1036,7 @@ public class Map {
                 {
                     if (x != gridX || y != gridY)
                     {
-                        wallCount += map[x, y];
+                        wallCount += Mathf.RoundToInt(map[x, y]);
                     }
                 }
                 else
