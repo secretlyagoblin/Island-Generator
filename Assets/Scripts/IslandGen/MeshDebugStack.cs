@@ -36,7 +36,7 @@ public class MeshDebugStack {
         {
             for (int y = 0; y < map.SizeY; y++)
             {
-                var value = map[x, y];
+                var value = Mathf.RoundToInt(map[x, y]);
                 if (biggestValue < value)
                     biggestValue = value;
             }
