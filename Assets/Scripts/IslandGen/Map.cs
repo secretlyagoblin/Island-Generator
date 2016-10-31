@@ -251,10 +251,15 @@ public class Map {
 
     public Map CreateCircularFalloff()
     {
+        return CreateCircularFalloff(SizeX * 0.5f);
+    }
+
+    public Map CreateCircularFalloff(float radius)
+    {
         _isBoolMask = true;
         var centreX = (int)(SizeX * 0.5f);
         var centreY = (int)(SizeY * 0.5f);
-        var radius = Mathf.Pow(SizeY * 0.5f, 2f);
+        radius = Mathf.Pow(radius, 2f);
 
         for (int x = 0; x < SizeX; x++)
         {
@@ -268,6 +273,26 @@ public class Map {
                 {
                     _map[x, y] = 1;
                 }
+            }
+        }
+
+        return this;
+    }
+
+    public Map FillMapWithNoise(float perlinScale, float perlinCutoff)
+    {
+        _isBoolMask = true;
+        var perlinSeed = RNG.NextFloat(0, 10000f);
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                float perlinX = perlinSeed + ((x / (float)SizeX) * perlinScale);
+                float perlinY = perlinSeed + ((y / (float)SizeY) * perlinScale);
+
+                var perlin = Mathf.PerlinNoise(perlinX, perlinY);
+                _map[x, y] = perlin < perlinCutoff ? 1 : 0;
             }
         }
 

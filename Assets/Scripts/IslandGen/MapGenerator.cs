@@ -81,7 +81,7 @@ public class MapGenerator
         stack.RecordMapStateToStack(map);
 
 
-        map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff());
+        map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff(Size*0.45f));
         stack.RecordMapStateToStack(map);
 
 
@@ -95,6 +95,7 @@ public class MapGenerator
 
         var roomMap = Map.Clone(map).AddRoomLogic();
         stack.RecordMapStateToStack(roomMap);
+
 
 
         var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(1).InvertMap();
@@ -120,8 +121,12 @@ public class MapGenerator
 
         unionMap.AddRoomLogic();
 
+        var finalMap = unionMap;
+
 
         stack.RecordMapStateToStack(unionMap);
+
+
 
         var subMaps = unionMap.GenerateSubMaps(6, 12);
         var heightmap = Map.CreateHeightMap(subMaps);
@@ -151,6 +156,63 @@ public class MapGenerator
 
 
         CreateTrees(heightmap, unionMap, 7, 0.4f);
+
+        //Create Background
+
+        /*
+
+        var noiseMap = Map.CreateBlankMap(map).FillMapWithNoise(3f, 0.5f);
+        stack.RecordMapStateToStack(noiseMap);
+
+        noiseMap = Map.BooleanUnion(noiseMap, unionMap);
+        stack.RecordMapStateToStack(noiseMap);
+
+        noiseMap = Map.BooleanUnion(noiseMap, Map.CreateBlankMap(map).CreateCircularFalloff(Size * 0.4f));
+        stack.RecordMapStateToStack(noiseMap);
+
+        */
+
+        var noiseMap = Map.CreateBlankMap(map).CreateCircularFalloff(Size * 0.3f);
+        stack.RecordMapStateToStack(noiseMap);
+
+        thickMap = Map.Clone(noiseMap).InvertMap().ThickenOutline(15).InvertMap();
+        stack.RecordMapStateToStack(thickMap);
+
+        differenceMap = Map.BooleanDifference(noiseMap, thickMap);
+        stack.RecordMapStateToStack(differenceMap);
+
+        staticMap = new Map(width, height);
+        staticMap.RandomFillMap(0.4f);
+
+        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
+        stack.RecordMapStateToStack(differenceMap);
+
+        unionMap = Map.BooleanUnion(noiseMap, differenceMap);
+        stack.RecordMapStateToStack(unionMap);
+
+        unionMap.SmoothMap(4);
+        
+        stack.RecordMapStateToStack(unionMap);
+
+        unionMap = Map.BooleanUnion(finalMap, unionMap);
+        stack.RecordMapStateToStack(unionMap);
+
+        unionMap.RemoveSmallRegions(50).InvertMap();
+        stack.RecordMapStateToStack(unionMap);
+
+        subMaps = unionMap.GenerateSubMaps(6, 12);
+        heightmap = Map.CreateHeightMap(subMaps);
+        stack.RecordMapStateToStack(heightmap);
+
+        for (int i = 0; i < subMaps.Length; i++)
+        {
+            var subMap = subMaps[i];
+            CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i+20);
+        }
+
+        //CreateMesh(unionMap, 30);
+
+        //End Background
 
 
         var gameObject = new GameObject();
@@ -287,9 +349,9 @@ public class MapGenerator
 
     
 
-    void CreateMesh(Map subber, int height)
+    void CreateMesh(Map map, int height)
     {
-        var mesh = _meshGen.GenerateMesh(subber, _lens, RNG.Next());
+        var mesh = _meshGen.GenerateMesh(map, _lens, RNG.Next());
 
         var parent = new GameObject();
         parent.name = "Geometry Layer " + height;

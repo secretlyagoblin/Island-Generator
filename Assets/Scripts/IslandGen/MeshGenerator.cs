@@ -115,7 +115,7 @@ public class MeshGenerator {
         var wallUvs = new List<Vector2>();
         var wallMesh = new Mesh();
 
-        var wallHeight = global::RNG.NextFloat(3f, 5f);
+        var wallHeight = global::RNG.NextFloat(50f, 55f);
 
         for (int i = 0; i < _outlines.Count; i++)
         {
