@@ -43,7 +43,7 @@ public class MapGenerator
     {
         RNG.Init(DateTime.Now.ToString());
 
-        _lens = new MeshLens(Size, Size, new Vector3(1.2f,1,1.2f));        
+        _lens = new MeshLens(Size, Size, new Vector3(4f,1,4f));        
 
         GenerateMap(Size,Size);
     }
@@ -148,10 +148,13 @@ public class MapGenerator
         heightmap = Map.CreateHeightMap(finalSubMaps);
         stack.RecordMapStateToStack(heightmap);
 
+        var heightMap = HeightmeshGenerator.GenerateTerrianMesh(heightmap, _lens);
+        CreateHeightMesh(heightMap);
+
         for (int i = 0; i < finalSubMaps.Length; i++)
         {
             //stack.RecordMapStateToStack(finalSubMaps[i]);
-            CreateMesh(finalSubMaps[i].RemoveSmallRegions(3).InvertMap(),i);
+            //CreateMesh(finalSubMaps[i].RemoveSmallRegions(3).InvertMap(),i);
         }
 
 
@@ -207,7 +210,7 @@ public class MapGenerator
         for (int i = 0; i < subMaps.Length; i++)
         {
             var subMap = subMaps[i];
-            CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i+20);
+            //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i+20);
         }
 
         //CreateMesh(unionMap, 30);
@@ -369,6 +372,30 @@ public class MapGenerator
         filter.mesh = mesh;
 
     }
+
+    void CreateHeightMesh(HeightMesh heightMesh)
+    {
+        var mesh = heightMesh.CreateMesh();
+
+        var parent = new GameObject();
+        parent.name = "HeightMap";
+        parent.transform.parent = transform;
+        parent.transform.localPosition = Vector3.zero;
+
+        var renderer = parent.AddComponent<MeshRenderer>();
+        var material = new Material(Material);
+        material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
+        renderer.material = material;
+        var filter = parent.AddComponent<MeshFilter>();
+        var collider = parent.AddComponent<MeshCollider>();
+
+        collider.sharedMesh = mesh;
+        filter.mesh = mesh;
+
+    }
+
+
+
 
     //Prop Placement
 
