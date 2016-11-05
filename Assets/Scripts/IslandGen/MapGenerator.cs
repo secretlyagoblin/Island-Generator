@@ -132,12 +132,19 @@ public class MapGenerator
 
         var distanceMap = unionMap.GetDistanceMap(15);
         distanceMap.Normalise();
-        distanceMap.Remap(distanceFieldFalloff);
+
+        //Here we will merge these two maps
+
+        var mergeMap = Map.Blend(Map.BlankMap(Size, Size).RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale).Normalise(), new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.4f,1f).Normalise());
+        mergeMap.Multiply(100f);
+        stack.RecordMapStateToStack(mergeMap);
+
+        //distanceMap.Remap(distanceFieldFalloff);
         distanceMap.Normalise();
-        distanceMap.Multiply(100f);
+        //distanceMap.Multiply(100f);
         stack.RecordMapStateToStack(distanceMap);
 
-        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(distanceMap, _lens);
+        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(mergeMap, _lens);
         CreateHeightMesh(distanceHeightMap);
 
 

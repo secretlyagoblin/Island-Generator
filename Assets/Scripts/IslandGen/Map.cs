@@ -262,6 +262,35 @@ public class Map {
         return this;
     }
 
+    public static Map Blend(Map mapA, Map mapB, Map blendMap)
+    {
+        var outputMap = Map.BlankMapFromTemplate(mapA);
+
+        for (int x = 0; x < mapA.SizeX; x++)
+        {
+            for (int y = 0; y < mapA.SizeY; y++)
+            {
+                outputMap[x, y] = (mapA[x, y] * blendMap[x, y]) + (mapB[x, y] * (1 - blendMap[x, y]));
+            }
+        }
+
+        return outputMap;
+    }
+
+    public Map Clamp(float min, float max)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = Mathf.Clamp(_map[x, y], min, max);
+            }
+        }
+
+        return this;
+    }
+
+
     float RemapFloat(float value, float fromMin, float fromMax, float toMin, float toMax)
     {
         return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
