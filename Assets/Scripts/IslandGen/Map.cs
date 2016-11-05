@@ -71,10 +71,10 @@ public class Map {
 
     public static Map Clone(Map map)
     {
-        return CreateBlankMap(map).OverwriteMapWith(map);
+        return BlankMapFromTemplate(map).OverwriteMapWith(map);
     }
 
-    public static Map CreateBlankMap(Map template)
+    public static Map BlankMapFromTemplate(Map template)
     {
         return new Map(template.SizeX, template.SizeY);
     }
@@ -203,6 +203,68 @@ public class Map {
     public Map ApplyMask(Map maskToApply)
     {
         return ApplyMask(maskToApply, maskToApply);
+    }
+
+    public Map Normalise()
+    {
+        var smallestValue = float.MaxValue;
+        var biggestValue = float.MinValue;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var value = (_map[x, y]);
+                if (biggestValue < value)
+                    biggestValue = value;
+                if (smallestValue > value)
+                    smallestValue = value;
+            }
+        }
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var value = _map[x, y];
+                _map[x, y] = RemapFloat(value, smallestValue, biggestValue, 0f, 1f);
+            }
+        }
+
+        return this;
+    }
+
+    public Map Remap(AnimationCurve curve)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var value = _map[x, y];
+                _map[x, y] = curve.Evaluate(value);
+            }
+        }
+
+        return this;
+    }
+
+    public Map Multiply(float value)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var currentValue = _map[x, y];
+                _map[x, y] = value * currentValue;
+            }
+        }
+
+        return this;
+    }
+
+    float RemapFloat(float value, float fromMin, float fromMax, float toMin, float toMax)
+    {
+        return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
     }
 
     // Boolean Fill Functions
@@ -816,6 +878,87 @@ public class Map {
         return outputHeights.ToArray();
 
     }
+
+    public Map GetDistanceMap(int searchDistance)
+    {
+        var distanceMap = new Map(SizeX,SizeY,0);
+        
+
+        var currentSnapshot = Clone(this);
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                // Get pixel
+                float a = _map[x,y];
+
+                // Distance to closest pixel which is the inverse of a
+                // start on float.MaxValue so we can be sure we found something
+                float distance = float.MaxValue;
+
+                // Search coordinates, x min/max and y min/max
+                int fxMin = Math.Max(x - searchDistance, 0);
+                int fxMax = Math.Min(x + searchDistance, SizeX);
+                int fyMin = Math.Max(y - searchDistance, 0);
+                int fyMax = Math.Min(y + searchDistance, SizeY);
+
+                for (int fx = fxMin; fx < fxMax; ++fx)
+                {
+                    for (int fy = fyMin; fy < fyMax; ++fy)
+                    {
+                        // Get pixel to compare to
+                        float p = _map[fx, fy];
+
+                        // If not equal a
+                        if (a != p)
+                        {
+                            // Calculate distance
+                            float xd = x - fx;
+                            float yd = y - fy;
+                            float d = Mathf.Sqrt((xd * xd) + (yd * yd));
+
+                            // Compare absolute distance values, and if smaller replace distnace with the new oe
+                            if (Math.Abs(d) < Math.Abs(distance))
+                            {
+                                distance = d;
+                            }
+                        }
+                    }
+                }
+
+                if (_map[x, y] == 1)
+                    distance = -distance;
+
+                // If we found a new distance, otherwise we'll just use A 
+
+                if (distance != float.MaxValue && distance != float.MinValue)
+                {
+
+                    // Clamp distance to -/+ 
+                    distance = Mathf.Clamp(distance, -searchDistance, +searchDistance);
+
+                    // Convert from -search,+search to 0,+search*2 and then convert to 0.0, 1.0 and invert
+                    a = 1f - Mathf.Clamp((distance + searchDistance) / (searchDistance + searchDistance), 0, 1);
+                }
+
+                // Write pixel out
+
+
+                        
+                distanceMap[x, y] = a;
+
+
+            }
+        }
+
+
+
+
+        return distanceMap;
+    }
+
+
 
     // Region Helper Functions
 

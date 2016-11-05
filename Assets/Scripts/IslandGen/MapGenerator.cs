@@ -24,6 +24,8 @@ public class MapGenerator
     public bool UseRandomSeed;
     public int RegionSizeCutoff;
 
+    public AnimationCurve distanceFieldFalloff;
+
     public GameObject ThirdPersonController;
 
     public Material Material;
@@ -81,7 +83,7 @@ public class MapGenerator
         stack.RecordMapStateToStack(map);
 
 
-        map.ApplyMask(Map.CreateBlankMap(map).CreateCircularFalloff(Size*0.45f));
+        map.ApplyMask(Map.BlankMapFromTemplate(map).CreateCircularFalloff(Size*0.45f));
         stack.RecordMapStateToStack(map);
 
 
@@ -119,12 +121,24 @@ public class MapGenerator
 
 
 
+
+
         unionMap.AddRoomLogic();
 
         var finalMap = unionMap;
 
 
         stack.RecordMapStateToStack(unionMap);
+
+        var distanceMap = unionMap.GetDistanceMap(15);
+        distanceMap.Normalise();
+        distanceMap.Remap(distanceFieldFalloff);
+        distanceMap.Normalise();
+        distanceMap.Multiply(100f);
+        stack.RecordMapStateToStack(distanceMap);
+
+        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(distanceMap, _lens);
+        CreateHeightMesh(distanceHeightMap);
 
 
 
@@ -173,9 +187,8 @@ public class MapGenerator
         noiseMap = Map.BooleanUnion(noiseMap, Map.CreateBlankMap(map).CreateCircularFalloff(Size * 0.4f));
         stack.RecordMapStateToStack(noiseMap);
 
-        */
 
-        var noiseMap = Map.CreateBlankMap(map).CreateCircularFalloff(Size * 0.3f);
+        var noiseMap = Map.BlankMapFromTemplate(map).CreateCircularFalloff(Size * 0.3f);
         stack.RecordMapStateToStack(noiseMap);
 
         thickMap = Map.Clone(noiseMap).InvertMap().ThickenOutline(15).InvertMap();
@@ -212,6 +225,8 @@ public class MapGenerator
             var subMap = subMaps[i];
             //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i+20);
         }
+
+        */
 
         //CreateMesh(unionMap, 30);
 
