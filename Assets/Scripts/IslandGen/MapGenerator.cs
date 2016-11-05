@@ -135,7 +135,16 @@ public class MapGenerator
 
         //Here we will merge these two maps
 
-        var mergeMap = Map.Blend(Map.BlankMap(Size, Size).PerlinFillMap(10.454545f,100,100).Remap(0.4f,1f), new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.4f,1f).Normalise());
+        var perlinSeed = RNG.NextFloat(-1000f, 1000f);
+
+        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(27.454545f, 0, 0, perlinSeed, 5, 0.5f, 1.87f);
+        stack.RecordMapStateToStack(perlinMap);
+
+        //No tile no nicely
+        perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(27.454545f, 0, 1, perlinSeed, 5, 0.5f, 1.87f);
+        stack.RecordMapStateToStack(perlinMap);
+
+        var mergeMap = Map.Blend(perlinMap.Remap(0.3f,1f).Normalise(), new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.1f,1f).Normalise());
         mergeMap.Multiply(100f);
         stack.RecordMapStateToStack(mergeMap);
 
@@ -169,6 +178,7 @@ public class MapGenerator
         heightmap = Map.CreateHeightMap(finalSubMaps);
         stack.RecordMapStateToStack(heightmap);
 
+        
         var heightMap = HeightmeshGenerator.GenerateTerrianMesh(heightmap, _lens);
         CreateHeightMesh(heightMap);
 
