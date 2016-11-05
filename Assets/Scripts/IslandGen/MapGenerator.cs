@@ -135,7 +135,7 @@ public class MapGenerator
 
         //Here we will merge these two maps
 
-        var mergeMap = Map.Blend(Map.BlankMap(Size, Size).RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale).Normalise(), new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.4f,1f).Normalise());
+        var mergeMap = Map.Blend(Map.BlankMap(Size, Size).PerlinFillMap(10.454545f,100,100).Remap(0.4f,1f), new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.4f,1f).Normalise());
         mergeMap.Multiply(100f);
         stack.RecordMapStateToStack(mergeMap);
 

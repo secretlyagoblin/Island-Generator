@@ -234,6 +234,35 @@ public class Map {
         return this;
     }
 
+    public Map Remap(float min, float max)
+    {
+        var smallestValue = float.MaxValue;
+        var biggestValue = float.MinValue;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var value = (_map[x, y]);
+                if (biggestValue < value)
+                    biggestValue = value;
+                if (smallestValue > value)
+                    smallestValue = value;
+            }
+        }
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var value = _map[x, y];
+                _map[x, y] = RemapFloat(value, smallestValue, biggestValue, min, max);
+            }
+        }
+
+        return this;
+    }
+
     public Map Remap(AnimationCurve curve)
     {
         for (int x = 0; x < SizeX; x++)
@@ -370,20 +399,30 @@ public class Map {
         return this;
     }
 
-    public Map FillMapWithNoise(float perlinScale, float perlinCutoff)
+    public Map PerlinFillMap(float perlinScale, float offsetX, float offsetY)
     {
-        _isBoolMask = true;
+        _isBoolMask = false;
         var perlinSeed = RNG.NextFloat(0, 10000f);
+
+        if (perlinScale <= 0)
+            perlinScale = 0.0001f;
 
         for (int x = 0; x < SizeX; x++)
         {
             for (int y = 0; y < SizeY; y++)
             {
-                float perlinX = perlinSeed + ((x / (float)SizeX) * perlinScale);
-                float perlinY = perlinSeed + ((y / (float)SizeY) * perlinScale);
+
+
+
+                //float perlinX = perlinSeed + ((x / (float)SizeX) * perlinScale);
+                //float perlinY = perlinSeed + ((y / (float)SizeY) * perlinScale);
+
+                var perlinX = offsetX + (x / perlinScale);
+                var perlinY = offsetY + (y / perlinScale);
 
                 var perlin = Mathf.PerlinNoise(perlinX, perlinY);
-                _map[x, y] = perlin < perlinCutoff ? 1 : 0;
+
+                _map[x, y] = perlin;
             }
         }
 
