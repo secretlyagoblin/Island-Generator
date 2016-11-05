@@ -319,7 +319,6 @@ public class Map {
         return this;
     }
 
-
     float RemapFloat(float value, float fromMin, float fromMax, float toMin, float toMax)
     {
         return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
@@ -393,36 +392,6 @@ public class Map {
                 {
                     _map[x, y] = 1;
                 }
-            }
-        }
-
-        return this;
-    }
-
-    public Map PerlinFillMap(float perlinScale, float offsetX, float offsetY)
-    {
-        _isBoolMask = false;
-        var perlinSeed = RNG.NextFloat(0, 10000f);
-
-        if (perlinScale <= 0)
-            perlinScale = 0.0001f;
-
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
-            {
-
-
-
-                //float perlinX = perlinSeed + ((x / (float)SizeX) * perlinScale);
-                //float perlinY = perlinSeed + ((y / (float)SizeY) * perlinScale);
-
-                var perlinX = offsetX + (x / perlinScale);
-                var perlinY = offsetY + (y / perlinScale);
-
-                var perlin = Mathf.PerlinNoise(perlinX, perlinY);
-
-                _map[x, y] = perlin;
             }
         }
 
@@ -764,7 +733,6 @@ public class Map {
         return outputHeights.ToArray();
     }
 
-
     public Map[] CreateHeightSortedSubmapsFromDijkstrasAlgorithm(List<List<Coord>> regions)
     {
         var sizeX = SizeX;
@@ -947,6 +915,8 @@ public class Map {
 
     }
 
+    // Float Fill Functions
+
     public Map GetDistanceMap(int searchDistance)
     {
         var distanceMap = new Map(SizeX,SizeY,0);
@@ -1026,7 +996,89 @@ public class Map {
         return distanceMap;
     }
 
+    public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
+    {
+        _isBoolMask = false;
+        var perlinSeed = RNG.NextFloat(0, 10000f);
 
+        if (perlinScale <= 0)
+            perlinScale = 0.0001f;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+
+                var perlinX = seed + (mapCoordinateX*SizeX) + (x / perlinScale);
+                var perlinY = seed + (mapCoordinateY*SizeY) + (y / perlinScale);
+
+                var perlin = Mathf.PerlinNoise(perlinX, perlinY);
+
+                _map[x, y] = perlin;
+            }
+        }
+
+        return this;
+    }
+
+    public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
+    {
+        _isBoolMask = false;
+
+        if (perlinScale <= 0)
+            perlinScale = 0.0001f;
+
+        var maxNoiseHeight = float.MinValue;
+        var minNoiseHeight = float.MaxValue;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var amp = 1f;
+                var freq = 1f;
+                var noiseHeight = 0f;
+
+                for (int i = 0; i < octaves; i++)
+                {
+                    var perlinX = seed + (mapCoordinateX * SizeX) + (x / perlinScale * freq);
+                    var perlinY = seed + (mapCoordinateY * SizeY) + (y / perlinScale * freq);
+
+                    var perlin = Mathf.PerlinNoise(perlinX, perlinY) * 2 - 1;
+                    noiseHeight += perlin * amp;
+                    amp *= persistance;
+                    freq *= lacunarity;
+
+
+                }
+
+                if (noiseHeight > maxNoiseHeight)
+                    maxNoiseHeight = noiseHeight;
+                if (noiseHeight < minNoiseHeight)
+                    minNoiseHeight = noiseHeight;
+
+
+                _map[x, y] = noiseHeight;
+
+
+            }
+        }
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, _map[x, y]);
+            }
+        }
+
+        return this;
+    }
+
+    public Map GetVoronoiMap(int mapCoordinateX, int mapCoordinateY, float relativeDensity)
+    {
+        return this;
+    }
 
     // Region Helper Functions
 
