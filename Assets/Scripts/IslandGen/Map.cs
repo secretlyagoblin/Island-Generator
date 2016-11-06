@@ -11,8 +11,6 @@ public class Map {
     public int SizeY
     { get; private set; }
 
-    bool _isBoolMask = true;
-
     float[,] _map;
 
     public Map(Map mapTemplate)
@@ -71,10 +69,10 @@ public class Map {
 
     public static Map Clone(Map map)
     {
-        return BlankMapFromTemplate(map).OverwriteMapWith(map);
+        return BlankMap(map).OverwriteMapWith(map);
     }
 
-    public static Map BlankMapFromTemplate(Map template)
+    public static Map BlankMap(Map template)
     {
         return new Map(template.SizeX, template.SizeY);
     }
@@ -168,7 +166,69 @@ public class Map {
 
     public static Map GetInvertedMap(Map map)
     {
-        return Clone(map).InvertMap();
+        return Clone(map).Invert();
+    }
+
+    // Math Functions
+
+    public static Map operator +(Map a, Map b)
+    {
+        var outputMap = new Map(a);
+
+        for (int x = 0; x < a.SizeX; x++)
+        {
+            for (int y = 0; y < a.SizeY; y++)
+            {
+                outputMap[x, y] = a[x, y] + b[x, y];
+            }
+        }
+
+        return outputMap;
+    }
+
+    public static Map operator -(Map a, Map b)
+    {
+        var outputMap = new Map(a);
+
+        for (int x = 0; x < a.SizeX; x++)
+        {
+            for (int y = 0; y < a.SizeY; y++)
+            {
+                outputMap[x, y] = a[x, y] - b[x, y];
+            }
+        }
+
+        return outputMap;
+    }
+
+    public static Map operator *(Map a, Map b)
+    {
+        var outputMap = new Map(a);
+
+        for (int x = 0; x < a.SizeX; x++)
+        {
+            for (int y = 0; y < a.SizeY; y++)
+            {
+                outputMap[x, y] = a[x, y] * b[x, y];
+            }
+        }
+
+        return outputMap;
+    }
+
+    public static Map operator /(Map a, Map b)
+    {
+        var outputMap = new Map(a);
+
+        for (int x = 0; x < a.SizeX; x++)
+        {
+            for (int y = 0; y < a.SizeY; y++)
+            {
+                outputMap[x, y] = a[x, y] / b[x, y];
+            }
+        }
+
+        return outputMap;
     }
 
     // General Functions
@@ -293,7 +353,7 @@ public class Map {
 
     public static Map Blend(Map mapA, Map mapB, Map blendMap)
     {
-        var outputMap = Map.BlankMapFromTemplate(mapA);
+        var outputMap = Map.BlankMap(mapA);
 
         for (int x = 0; x < mapA.SizeX; x++)
         {
@@ -338,7 +398,6 @@ public class Map {
 
     public Map RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
     {
-        _isBoolMask = true;
         var perlinSeed = RNG.NextFloat(0, 10000f);
 
 
@@ -375,7 +434,6 @@ public class Map {
 
     public Map CreateCircularFalloff(float radius)
     {
-        _isBoolMask = true;
         var centreX = (int)(SizeX * 0.5f);
         var centreY = (int)(SizeY * 0.5f);
         radius = Mathf.Pow(radius, 2f);
@@ -402,11 +460,6 @@ public class Map {
 
     public Map SmoothMap()
     {
-        if (!_isBoolMask)
-        {
-            Debug.Log("Only works with boolean Maps");
-            return this;
-        }
 
         for (int x = 0; x < SizeX; x++)
         {
@@ -437,11 +490,6 @@ public class Map {
 
     public Map RemoveSmallRegions(int regionSizeCutoff)
     {
-        if (!_isBoolMask)
-        {
-            Debug.Log("Only works with boolean Maps");
-            return this;
-        }
 
         var wallRegions = GetRegions(1);
         var wallThresholdSize = regionSizeCutoff;
@@ -476,11 +524,6 @@ public class Map {
 
     public Map AddRoomLogic()
     {
-        if (!_isBoolMask)
-        {
-            Debug.Log("Only works with boolean Maps");
-            return this;
-        }
 
         Profiler.BeginSample("Get Regions");
 
@@ -515,11 +558,6 @@ public class Map {
 
     public Map[] GenerateSubMaps(int divisions, float perlinScale)
     {
-        if (!_isBoolMask)
-        {
-            Debug.Log("Only works with boolean Maps");
-            return new Map[] { this };
-        }
 
 
         var perlinSeed = RNG.Next(0, 1000);
@@ -558,22 +596,34 @@ public class Map {
         return outputList.ToArray();
     }
 
-    public Map InvertMap()
+    public Map Invert()
     {
-        if (!_isBoolMask)
-        {
-            Debug.Log("Only works with boolean Maps... currently");
-            return this;
-        }
+            var smallestValue = float.MaxValue;
+            var biggestValue = float.MinValue;
 
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
+            for (int x = 0; x < SizeX; x++)
             {
-                _map[x, y] = _map[x, y] == 0 ? 1 : 0;
+                for (int y = 0; y < SizeY; y++)
+                {
+                    var value = (_map[x, y]);
+                    if (biggestValue < value)
+                        biggestValue = value;
+                    if (smallestValue > value)
+                        smallestValue = value;
+                }
             }
-        }
-        return this;
+
+            for (int x = 0; x < SizeX; x++)
+            {
+                for (int y = 0; y < SizeY; y++)
+                {
+                    var value = _map[x, y];
+                    _map[x, y] = -(value - smallestValue) + biggestValue; 
+                }
+            }
+
+            return this;
+        
     }
 
     public Map ThickenOutline (int iterations)
@@ -611,7 +661,6 @@ public class Map {
 
     public Map AddHeightmapLayers(Map[] subMaps, int offset)
     {
-        _isBoolMask = false;
 
         for (int i = 0; i < subMaps.Length; i++)
         {
@@ -998,7 +1047,6 @@ public class Map {
 
     public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
     {
-        _isBoolMask = false;
         var perlinSeed = RNG.NextFloat(0, 10000f);
 
         if (perlinScale <= 0)
@@ -1023,7 +1071,6 @@ public class Map {
 
     public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
     {
-        _isBoolMask = false;
 
         if (perlinScale <= 0)
             perlinScale = 0.0001f;
@@ -1075,9 +1122,98 @@ public class Map {
         return this;
     }
 
-    public Map GetVoronoiMap(int mapCoordinateX, int mapCoordinateY, float relativeDensity)
+    public Map GetVoronoiMap(int mapCoordinateX, int mapCoordinateY, float relativeDensity, float buffer)
     {
+
+        var pointList = new List<Vector3>();
+
+        var even = true;
+
+        var mapSizeX = SizeX + buffer;
+        var mapSizeY = SizeY + buffer;
+
+        var voronoiCountX = (int)((mapSizeX+buffer) * relativeDensity);
+        var voronoiCountY = (int)((mapSizeY+buffer) * relativeDensity);
+
+        var voronoiStepX = SizeX / (float)voronoiCountX;
+        var voronoiStepY = SizeY / (float)voronoiCountY;
+
+        var distribution = 1.5f;
+        distribution = 0.5f * distribution;
+        distribution = 0.5f * distribution * voronoiStepX;
+
+        for (float x = -buffer; x < mapSizeX; x += voronoiStepX)
+        {
+ 
+
+            for (float y = -buffer; y < mapSizeY; y+=voronoiStepY)
+            {
+                if (even == false)
+                {
+                    even = true;
+                }
+                else
+                {
+                    even = false;
+                }
+
+                if (even == true)
+                {
+                        pointList.Add(new Vector3(x + RNG.NextFloat(-distribution, distribution), 0, y + RNG.NextFloat(-distribution, distribution)));
+                }
+            }
+        }
+        Debug.Log("pointList Count: ");
+        Debug.Log(pointList.Count);
+
+        /*
+
+        for (int i = 0; i < pointList.Count; i++)
+        {
+            var p = pointList[i];
+
+            var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.position = (p + (Vector3.up * 50));
+            sphere.transform.localScale += new Vector3(10, 10, 10);
+
+
+        }
+
+    */
+
+        for (int x = 0; x < SizeX; x++)
+        {
+
+            for (int y = 0; y < SizeY; y++)
+            {
+
+                var currentPos = new Vector3(x, 0, y);
+
+
+
+                var minDist = Mathf.Infinity;
+                Vector3 closest = Vector3.zero;
+
+                for (var i = 0; i < pointList.Count; i++)
+                {
+                    var dist = Vector3.Distance(pointList[i], currentPos);
+                    if (dist < minDist)
+                    {
+                        closest = pointList[i];
+                        minDist = dist;
+                    }
+                }
+
+                _map[x, y] = minDist;
+
+            }
+        }
+
+        Normalise();
+
         return this;
+
+
     }
 
     // Region Helper Functions

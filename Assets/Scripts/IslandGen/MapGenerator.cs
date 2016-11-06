@@ -25,6 +25,7 @@ public class MapGenerator
     public int RegionSizeCutoff;
 
     public AnimationCurve distanceFieldFalloff;
+    public AnimationCurve voronoiFalloff;
 
     public GameObject ThirdPersonController;
 
@@ -83,7 +84,7 @@ public class MapGenerator
         stack.RecordMapStateToStack(map);
 
 
-        map.ApplyMask(Map.BlankMapFromTemplate(map).CreateCircularFalloff(Size*0.45f));
+        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size*0.45f));
         stack.RecordMapStateToStack(map);
 
 
@@ -100,7 +101,9 @@ public class MapGenerator
 
 
 
-        var thickMap = Map.Clone(roomMap).InvertMap().ThickenOutline(1).InvertMap();
+
+
+        var thickMap = Map.Clone(roomMap).Invert().ThickenOutline(1).Invert();
         stack.RecordMapStateToStack(thickMap);
 
         var differenceMap = Map.BooleanDifference(roomMap, thickMap);
@@ -144,7 +147,14 @@ public class MapGenerator
         perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(27.454545f, 0, 1, perlinSeed, 5, 0.5f, 1.87f);
         stack.RecordMapStateToStack(perlinMap);
 
-        var mergeMap = Map.Blend(perlinMap.Remap(0.3f,1f).Normalise(), new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.1f,1f).Normalise());
+        var voronoiMap = Map.BlankMap(map).GetVoronoiMap(0, 0, 0.06f,20f).Remap(voronoiFalloff).Invert();
+        stack.RecordMapStateToStack(voronoiMap);
+
+        (perlinMap += voronoiMap).Normalise();
+
+        perlinMap.Remap(0.3f, 1f).Normalise();
+
+        var mergeMap = Map.Blend(voronoiMap, new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.1f,1f).Normalise());
         mergeMap.Multiply(100f);
         stack.RecordMapStateToStack(mergeMap);
 
