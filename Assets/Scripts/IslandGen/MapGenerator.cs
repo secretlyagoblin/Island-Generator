@@ -53,14 +53,7 @@ public class MapGenerator
 
     void Update()
     {
-       // if (Input.GetMouseButtonDown(0))
-       // {
-       //     for (int i = 0; i < transform.childCount; i++)
-       //     {
-       //         Destroy(transform.GetChild(i).gameObject);
-       //     }
-       //     GenerateMap(Size, Size);
-       // }
+
     }
 
     //Map Gen Functions
@@ -73,349 +66,137 @@ public class MapGenerator
         }
         RNG.ForceInit(Seed);
 
-        //Version 1
-
 
         var stack = new MeshDebugStack(Material);
 
         var map = new Map(width, height);
 
-        map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
-        stack.RecordMapStateToStack(map);
-
-
-        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size*0.45f));
-        stack.RecordMapStateToStack(map);
-
-
-        map.SmoothMap(4);
-        stack.RecordMapStateToStack(map);
-
-
-        map.RemoveSmallRegions(RegionSizeCutoff);
-        stack.RecordMapStateToStack(map);
-
-
-        var roomMap = Map.Clone(map).AddRoomLogic();
-        stack.RecordMapStateToStack(roomMap);
-
-
-
-
-
-        var thickMap = Map.Clone(roomMap).Invert().ThickenOutline(1).Invert();
-        stack.RecordMapStateToStack(thickMap);
-
-        var differenceMap = Map.BooleanDifference(roomMap, thickMap);
-        stack.RecordMapStateToStack(differenceMap);
-
-        var staticMap = new Map(width, height);
-        staticMap.RandomFillMap(0.4f);
-
-        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
-        stack.RecordMapStateToStack(differenceMap);
-
-        var unionMap = Map.BooleanUnion(roomMap, differenceMap);
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap.SmoothMap(4);
-        unionMap.RemoveSmallRegions(100);
-        stack.RecordMapStateToStack(unionMap);
-
-
-
-
-
+        var unionMap = CreateWalkableMap(map);
         unionMap.AddRoomLogic();
-
-        var finalMap = unionMap;
-
-
         stack.RecordMapStateToStack(unionMap);
 
-        var distanceMap = unionMap.GetDistanceMap(15);
+        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15);
         distanceMap.Normalise();
+        stack.RecordMapStateToStack(distanceMap);
 
-        //Here we will merge these two maps
 
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
 
-        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(27.454545f, 0, 0, perlinSeed, 5, 0.5f, 1.87f);
+        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 4, 0.5f, 1.87f);
         stack.RecordMapStateToStack(perlinMap);
 
-        //No tile no nicely
-        perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 4, 0.5f, 1.87f);
-        stack.RecordMapStateToStack(perlinMap);
+        var cliffHeightMap = Map.Blend(perlinMap, new Map(Size,Size,0),Map.Clone(distanceMap).Clamp(0.3f, 1f).Normalise());
+        stack.RecordMapStateToStack(cliffHeightMap);
+
+        /*
+
+        //Here we will merge these two maps
+
+
+    */
 
         var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
 
         var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
 
-        var cellEdgeMap = voronoiGenerator.GetFalloffMap(2).Normalise();
-        stack.RecordMapStateToStack(cellEdgeMap);
+        //var cellEdgeMap = voronoiGenerator.GetFalloffMap(2).Normalise();
+        //stack.RecordMapStateToStack(cellEdgeMap);
 
-        var vorHeightmap = voronoiGenerator.GetHeightMap(perlinMap).Normalise().Multiply(100);
-        stack.RecordMapStateToStack(vorHeightmap);
+        var mountainMap = voronoiGenerator.GetHeightMap(cliffHeightMap).Normalise();
+        stack.RecordMapStateToStack(mountainMap);
 
-        var blendedResult = Map.Blend(vorHeightmap.Normalise(), perlinMap.Normalise(), cellEdgeMap);
-        stack.RecordMapStateToStack(blendedResult);
+        var blurMap = Map.Clone(mountainMap).SmoothMap(2);
+        stack.RecordMapStateToStack(blurMap);
 
-        blendedResult += voronoiMap.Remap(0f, 0.2f);
-        stack.RecordMapStateToStack(blendedResult);
+        mountainMap = blurMap + (Map.Clone(voronoiMap).Clamp(0, 0.9f).Remap(0,0.3f));
+        mountainMap.Normalise();
+        stack.RecordMapStateToStack(mountainMap);
 
-        blendedResult.Normalise().Multiply(200f);
-
-        //var vormap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult.Multiply(200), _lens);
+        //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
         //CreateHeightMesh(vormap);
 
-        //(perlinMap += (voronoiMap.Remap(0,0.3f))).Normalise();
+        var hillMap = Map.Clone(cliffHeightMap).Remap(0,0.5f) + (Map.Clone(voronoiMap).Remap(0, 0.05f));
+        stack.RecordMapStateToStack(hillMap);
+
+        var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
+        //stack.RecordMapStateToStack(insideMap);
+
+        var terrain = Map.Blend(mountainMap, hillMap.Remap(0.05f,0.6f), isInside.SmoothMap(2));
+        stack.RecordMapStateToStack(terrain);
+
+        //blendedResult += (voronoiMap.Remap(0f, 0.05f));
+
+
+        //TextureStuff
+
+        var texture = new Texture2D(Size, Size);
+
+        var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f);
+        textureStuff.Normalise();
+
+        textureStuff.ApplyTexture(texture);
+        texture.Apply();
+
+        //TextureStuff
+
+        var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(200), _lens);
+        CreateHeightMesh(heightMesh, texture);
+
+
+
 
         //stack.RecordMapStateToStack(perlinMap);
 
-        perlinMap.Remap(0.3f, 1f).Normalise();
-
-        var mergeMap = Map.Blend(blendedResult, new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.4f,0.7f).Normalise());
+        distanceMap.Normalise().Clamp(0.4f, 0.8f).Normalise();
         stack.RecordMapStateToStack(distanceMap);
+
+        var mergeMap = Map.Blend(mountainMap.Remap(0.2f,1), new Map(Size,Size,0), isInside);
+        stack.RecordMapStateToStack(mergeMap);
 
         //var mergeMap = perlinMap;
 
-        mergeMap.Multiply(100f);
-        stack.RecordMapStateToStack(mergeMap);
+        //var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(mergeMap.Multiply(100f), _lens);
+        //CreateHeightMesh(distanceHeightMap);
 
-        //distanceMap.Remap(distanceFieldFalloff);
-        distanceMap.Normalise();
-        //distanceMap.Multiply(100f);
-        stack.RecordMapStateToStack(distanceMap);
+        var heightmap = CreateHeightMap(unionMap);
+        stack.RecordMapStateToStack(heightmap);
 
-        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult, _lens);
-        CreateHeightMesh(distanceHeightMap);
+        CreateTrees(heightmap, unionMap, 7, 0.4f);
 
+        CreateDebugStack(stack, 200f);
+    }
 
+    //Subdividing Map
 
+    Map CreateHeightMap(Map unionMap)
+    {
         var subMaps = unionMap.GenerateSubMaps(6, 12);
         var heightmap = Map.CreateHeightMap(subMaps);
-        stack.RecordMapStateToStack(heightmap);
 
         var allRegions = new List<List<Coord>>();
 
         for (int i = 0; i < subMaps.Length; i++)
         {
             var subMap = subMaps[i];
-            //stack.RecordMapStateToStack(subMap);
             allRegions.AddRange(subMap.GetRegions(0));
-            //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i);
         }
 
-
-
-        var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
+        var finalSubMaps = Map.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
         heightmap = Map.CreateHeightMap(finalSubMaps);
-        stack.RecordMapStateToStack(heightmap);
 
-       
+        return heightmap;
+    }
 
-        for (int i = 0; i < finalSubMaps.Length; i++)
-        {
-            //stack.RecordMapStateToStack(finalSubMaps[i]);
-            //CreateMesh(finalSubMaps[i].RemoveSmallRegions(3).InvertMap(),i);
-        }
-
-
-        CreateTrees(heightmap, unionMap, 7, 0.4f);
-
-        //Create Background
-
-        /*
-
-        var noiseMap = Map.CreateBlankMap(map).FillMapWithNoise(3f, 0.5f);
-        stack.RecordMapStateToStack(noiseMap);
-
-        noiseMap = Map.BooleanUnion(noiseMap, unionMap);
-        stack.RecordMapStateToStack(noiseMap);
-
-        noiseMap = Map.BooleanUnion(noiseMap, Map.CreateBlankMap(map).CreateCircularFalloff(Size * 0.4f));
-        stack.RecordMapStateToStack(noiseMap);
-
-
-        var noiseMap = Map.BlankMapFromTemplate(map).CreateCircularFalloff(Size * 0.3f);
-        stack.RecordMapStateToStack(noiseMap);
-
-        thickMap = Map.Clone(noiseMap).InvertMap().ThickenOutline(15).InvertMap();
-        stack.RecordMapStateToStack(thickMap);
-
-        differenceMap = Map.BooleanDifference(noiseMap, thickMap);
-        stack.RecordMapStateToStack(differenceMap);
-
-        staticMap = new Map(width, height);
-        staticMap.RandomFillMap(0.4f);
-
-        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
-        stack.RecordMapStateToStack(differenceMap);
-
-        unionMap = Map.BooleanUnion(noiseMap, differenceMap);
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap.SmoothMap(4);
-        
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap = Map.BooleanUnion(finalMap, unionMap);
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap.RemoveSmallRegions(50).InvertMap();
-        stack.RecordMapStateToStack(unionMap);
-
-        subMaps = unionMap.GenerateSubMaps(6, 12);
-        heightmap = Map.CreateHeightMap(subMaps);
-        stack.RecordMapStateToStack(heightmap);
-
-        for (int i = 0; i < subMaps.Length; i++)
-        {
-            var subMap = subMaps[i];
-            //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i+20);
-        }
-
-        */
-
-        //CreateMesh(unionMap, 30);
-
-        //End Background
-
-
+    void CreateDebugStack(MeshDebugStack stack, float height)
+    {
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * (finalSubMaps.Length+110));
+        gameObject.transform.Translate(Vector3.up * (height));
         gameObject.name = "Debug Stack";
         gameObject.layer = 5;
 
         stack.CreateDebugStack(gameObject.transform);
-
-
     }
-
-    //Coord FindClosestPointInB(Map mapA, Map mapB)
-    //{
-    //    if (!Map.MapsAreSameDimensions(mapA, mapB))
-    //    {
-    //        Debug.Log("Failed in FindClosestPoint because maps were not valid");
-    //        return new Coord(0, 0);
-    //    }
-    //
-    //    Debug.Log("Why are you using this it's blatantly not working properly");
-    //
-    //    var width = mapA.GetLength(0);
-    //    var length = mapA.GetLength(1);
-    //
-    //    var roomACoords = new List<Coord>();
-    //    var roomBCoords = new List<Coord>();
-    //
-    //    for (int x = 0; x < width; x++)
-    //    {
-    //        for (int y = 0; y < length; y++)
-    //        {
-    //            if (mapA[x, y] == 0)
-    //            {
-    //                roomACoords.Add(new Coord(x, y));
-    //            }
-    //
-    //            if (mapB[x, y] == 0)
-    //            {
-    //                roomBCoords.Add(new Coord(x, y));
-    //            }
-    //        }
-    //    }
-    //
-    //    var bestDistance = int.MaxValue;
-    //    var bestTileA = new Coord();
-    //    var bestTileB = new Coord();
-    //
-    //    Debug.Log("I get here");
-    //
-    //    var roomA = new Room(roomACoords, mapA);
-    //
-    //
-    //    var roomB = new Room(roomBCoords, mapB);
-    //
-    //    for (int tileIndexA = 0; tileIndexA < roomA.EdgeTiles.Count; tileIndexA++)
-    //    {
-    //        for (int tileIndexB = 0; tileIndexB < roomB.EdgeTiles.Count; tileIndexB++)
-    //        {
-    //            var tileA = roomA.EdgeTiles[tileIndexA];
-    //            var tileB = roomB.EdgeTiles[tileIndexB];
-    //            var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
-    //    
-    //            if (distanceBetweenRooms < bestDistance)
-    //            {
-    //                bestDistance = distanceBetweenRooms;
-    //                Debug.Log("Best Distance: " + bestDistance);
-    //                bestTileA = tileA;
-    //                bestTileB = tileB;
-    //            }
-    //    
-    //        }
-    //    }
-    //
-    //    Debug.DrawLine(CoordToWorldPoint(bestTileA,mapA), CoordToWorldPoint(bestTileB, mapB), Color.red, 100f);
-    //
-    //
-    //
-    //
-    //
-    //    return bestTileB;
-    //}
-
-    
-    
-
-
-    //Room Connection Functions
-
-        /*
-
-    int[,] ResizedMapFromRegion(List<Coord> regions)
-    {
-        var minX = int.MaxValue;
-        var minY = int.MaxValue;
-        var maxX = 0;
-        var maxY = 0;
-
-        for (int i = 0; i < regions.Count; i++)
-        {
-            var x = regions[i].TileX;
-            var y = regions[i].TileY;
-
-            if (x < minX)
-                minX = x;
-            if (y < minY)
-                minY = y;
-            if (x > maxX)
-                maxX = x;
-            if (y > maxY)
-                maxY = y;
-        }
-
-        var rangeX = maxX - minX;
-        var rangeY = maxY - minY;
-
-        var map = new int[rangeX+2, rangeY+2]; //might be wrong
-
-        map = CreateNewMapFromTemplate(map, 1);
-
-        for (int i = 0; i < regions.Count; i++)
-        {
-            var x = regions[i].TileX - minX +1;
-            var y = regions[i].TileY - minY +1;
-
-            map[x, y] = 0;
-        }
-
-        return map;
-    }
-    */
-
-    //Subdividing Map
-
-    
 
     void CreateMesh(Map map, int height)
     {
@@ -438,7 +219,7 @@ public class MapGenerator
 
     }
 
-    void CreateHeightMesh(HeightMesh heightMesh)
+    void CreateHeightMesh(HeightMesh heightMesh, Texture2D texture)
     {
         var mesh = heightMesh.CreateMesh();
 
@@ -449,6 +230,7 @@ public class MapGenerator
 
         var renderer = parent.AddComponent<MeshRenderer>();
         var material = new Material(Material);
+        material.mainTexture = texture;
         material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
         renderer.material = material;
         var filter = parent.AddComponent<MeshFilter>();
@@ -457,6 +239,43 @@ public class MapGenerator
         collider.sharedMesh = mesh;
         filter.mesh = mesh;
 
+    }
+
+    Map CreateWalkableMap(Map map)
+    {
+        //CreateWalkableSpace
+
+        map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
+        //stack.RecordMapStateToStack(map);
+        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size * 0.45f));
+        //stack.RecordMapStateToStack(map);
+        map.BoolSmoothOperation(4);
+        //stack.RecordMapStateToStack(map);
+        map.RemoveSmallRegions(RegionSizeCutoff);
+        //stack.RecordMapStateToStack(map);
+
+        var roomMap = Map.Clone(map).AddRoomLogic();
+        //stack.RecordMapStateToStack(roomMap);
+
+        var thickMap = Map.Clone(roomMap).Invert().ThickenOutline(1).Invert();
+        //stack.RecordMapStateToStack(thickMap);
+
+        var differenceMap = Map.BooleanDifference(roomMap, thickMap);
+        //stack.RecordMapStateToStack(differenceMap);
+
+        var staticMap = new Map(map);
+        staticMap.RandomFillMap(0.4f);
+
+        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
+        //stack.RecordMapStateToStack(differenceMap);
+
+        var unionMap = Map.BooleanUnion(roomMap, differenceMap);
+        //stack.RecordMapStateToStack(unionMap);
+
+        unionMap.BoolSmoothOperation(4);
+        unionMap.RemoveSmallRegions(100);
+
+        return unionMap;
     }
 
 

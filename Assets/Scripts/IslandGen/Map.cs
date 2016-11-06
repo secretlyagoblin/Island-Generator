@@ -473,7 +473,7 @@ public class Map {
 
     // Iterative Functions that Require Bool
 
-    public Map SmoothMap()
+    public Map BoolSmoothOperation()
     {
 
         for (int x = 0; x < SizeX; x++)
@@ -494,11 +494,11 @@ public class Map {
         return this;
     }
 
-    public Map SmoothMap(int iterations)
+    public Map BoolSmoothOperation(int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {
-            SmoothMap();
+            BoolSmoothOperation();
         }
         return this;
     }
@@ -1139,6 +1139,58 @@ public class Map {
         return this;
     }
 
+    public Map SmoothMap()
+    {
+        var nextMap = new Map(this);
+
+        for (int gridX = 0; gridX < SizeX; gridX++)
+        {
+            for (int gridY = 0; gridY < SizeY; gridY++)
+            {
+                var count = 0;
+                var totalValue = 0f;
+
+                for (int x = gridX - 1; x <= gridX + 1; x++)
+                {
+                    for (int y = gridY - 1; y <= gridY + 1; y++)
+                    {
+                        if (IsInMapRange(x, y))
+                        {
+                            var weight = 0.7f;
+
+                            if (x != gridX || y != gridY)
+                            {
+                                weight = 1;
+                            }
+
+                            totalValue += (this[x, y] * weight);
+
+
+
+                        }
+
+                        count++;
+                    }
+                }
+
+                nextMap[gridX, gridY] = (totalValue / count);
+            }
+        }
+
+        _map = nextMap._map;
+
+        return this;
+    }
+
+    public Map SmoothMap(int iterations)
+    {
+        for (int i = 0; i < iterations; i++)
+        {
+            SmoothMap();
+        }
+        return this;
+    }
+
     // Region Helper Functions
 
     public List<List<Coord>> GetRegions(int tileType)
@@ -1394,6 +1446,21 @@ public class Map {
         }
 
         return count;
+    }
+
+    //Texture Modifications
+
+    public Texture2D ApplyTexture(Texture2D texture)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                texture.SetPixel(x, y, new Color(_map[x, y], _map[x, y], _map[x, y]));
+            }
+        }
+
+        return texture;
     }
 
 
