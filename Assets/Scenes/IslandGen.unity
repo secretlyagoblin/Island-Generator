@@ -198,6 +198,10 @@ Prefab:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11400004, guid: c6453f8e1f814744d8b94e5a6d1f9942, type: 2}
+      propertyPath: mouseLook.lockCursor
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c6453f8e1f814744d8b94e5a6d1f9942, type: 2}
   m_IsPrefabParent: 0
@@ -270,6 +274,18 @@ MonoBehaviour:
   Seed: 9/18/2016 1:38:14 PM
   UseRandomSeed: 1
   RegionSizeCutoff: 700
+  distanceFieldFalloff:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  voronoiFalloff:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   ThirdPersonController: {fileID: 0}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   Size: 200
@@ -320,9 +336,41 @@ MonoBehaviour:
   NoiseIntensity: 0
   RandomMapPerlinScale: 5
   SubzoneGenerationPerlinScale: 10
-  Seed: 871855497
-  UseRandomSeed: 1
+  Seed: 1416618547
+  UseRandomSeed: 0
   RegionSizeCutoff: 400
+  distanceFieldFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+    - time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  voronoiFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
   ThirdPersonController: {fileID: 0}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   Size: 200

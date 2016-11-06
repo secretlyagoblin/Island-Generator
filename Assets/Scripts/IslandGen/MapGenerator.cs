@@ -161,23 +161,24 @@ public class MapGenerator
         var blendedResult = Map.Blend(vorHeightmap.Normalise(), perlinMap.Normalise(), cellEdgeMap);
         stack.RecordMapStateToStack(blendedResult);
 
-
-
         blendedResult += voronoiMap.Remap(0f, 0.2f);
         stack.RecordMapStateToStack(blendedResult);
 
-        var vormap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult.Multiply(200), _lens);
-        CreateHeightMesh(vormap);
+        blendedResult.Normalise().Multiply(200f);
 
-        (perlinMap += (voronoiMap.Remap(0,0.3f))).Normalise();
+        //var vormap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult.Multiply(200), _lens);
+        //CreateHeightMesh(vormap);
 
-        stack.RecordMapStateToStack(perlinMap);
+        //(perlinMap += (voronoiMap.Remap(0,0.3f))).Normalise();
+
+        //stack.RecordMapStateToStack(perlinMap);
 
         perlinMap.Remap(0.3f, 1f).Normalise();
 
-        //var mergeMap = Map.Blend(perlinMap, new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.1f,1f).Normalise());
+        var mergeMap = Map.Blend(blendedResult, new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.4f,0.7f).Normalise());
+        stack.RecordMapStateToStack(distanceMap);
 
-        var mergeMap = perlinMap;
+        //var mergeMap = perlinMap;
 
         mergeMap.Multiply(100f);
         stack.RecordMapStateToStack(mergeMap);
@@ -187,7 +188,7 @@ public class MapGenerator
         //distanceMap.Multiply(100f);
         stack.RecordMapStateToStack(distanceMap);
 
-        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(mergeMap, _lens);
+        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult, _lens);
         CreateHeightMesh(distanceHeightMap);
 
 
@@ -212,9 +213,7 @@ public class MapGenerator
         heightmap = Map.CreateHeightMap(finalSubMaps);
         stack.RecordMapStateToStack(heightmap);
 
-        
-        var heightMap = HeightmeshGenerator.GenerateTerrianMesh(heightmap, _lens);
-        CreateHeightMesh(heightMap);
+       
 
         for (int i = 0; i < finalSubMaps.Length; i++)
         {
