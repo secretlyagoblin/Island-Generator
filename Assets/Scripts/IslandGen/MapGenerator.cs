@@ -144,17 +144,35 @@ public class MapGenerator
         stack.RecordMapStateToStack(perlinMap);
 
         //No tile no nicely
-        perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(27.454545f, 0, 1, perlinSeed, 5, 0.5f, 1.87f);
+        perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 2, 0.5f, 1.87f);
         stack.RecordMapStateToStack(perlinMap);
 
-        var voronoiMap = Map.BlankMap(map).GetVoronoiMap(0, 0, 0.06f,20f).Remap(voronoiFalloff).Invert();
+        var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
+
+        var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
 
-        (perlinMap += voronoiMap).Normalise();
+        var cellEdgeMap = voronoiGenerator.GetFalloffMap().Normalise();
+        stack.RecordMapStateToStack(cellEdgeMap);
+
+        var vorHeightmap = voronoiGenerator.GetHeightMap(perlinMap).Normalise().Multiply(100);
+        stack.RecordMapStateToStack(vorHeightmap);
+
+
+
+        var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap, _lens);
+        CreateHeightMesh(vormap);
+
+        (perlinMap += (voronoiMap.Remap(0,0.3f))).Normalise();
+
+        stack.RecordMapStateToStack(perlinMap);
 
         perlinMap.Remap(0.3f, 1f).Normalise();
 
-        var mergeMap = Map.Blend(voronoiMap, new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.1f,1f).Normalise());
+        //var mergeMap = Map.Blend(perlinMap, new Map(Size,Size,0), distanceMap.Normalise().Clamp(0.1f,1f).Normalise());
+
+        var mergeMap = perlinMap;
+
         mergeMap.Multiply(100f);
         stack.RecordMapStateToStack(mergeMap);
 
