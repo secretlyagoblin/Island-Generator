@@ -182,44 +182,34 @@ public class MapGenerator
         var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult, _lens);
         CreateHeightMesh(distanceHeightMap);
 
+        var heightmap = CreateHeightMap(unionMap);
+        stack.RecordMapStateToStack(heightmap);
 
+        CreateTrees(heightmap, unionMap, 7, 0.4f);
 
+        CreateDebugStack(stack, 200f);
+    }
+
+    //Subdividing Map
+
+    Map CreateHeightMap(Map unionMap)
+    {
         var subMaps = unionMap.GenerateSubMaps(6, 12);
         var heightmap = Map.CreateHeightMap(subMaps);
-        stack.RecordMapStateToStack(heightmap);
 
         var allRegions = new List<List<Coord>>();
 
         for (int i = 0; i < subMaps.Length; i++)
         {
             var subMap = subMaps[i];
-            //stack.RecordMapStateToStack(subMap);
             allRegions.AddRange(subMap.GetRegions(0));
-            //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i);
         }
 
-
-
-        var finalSubMaps = Map.BlankMap(width, height).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
+        var finalSubMaps = Map.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
         heightmap = Map.CreateHeightMap(finalSubMaps);
-        stack.RecordMapStateToStack(heightmap);
 
-       
-
-        for (int i = 0; i < finalSubMaps.Length; i++)
-        {
-            //stack.RecordMapStateToStack(finalSubMaps[i]);
-            //CreateMesh(finalSubMaps[i].RemoveSmallRegions(3).InvertMap(),i);
-        }
-
-
-        CreateTrees(heightmap, unionMap, 7, 0.4f);
-
-        CreateDebugStack(stack, 200f);
-
+        return heightmap;
     }
-
-    //Subdividing Map
 
     void CreateDebugStack(MeshDebugStack stack, float height)
     {
