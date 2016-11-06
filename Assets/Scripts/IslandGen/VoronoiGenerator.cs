@@ -51,6 +51,36 @@ public class VoronoiGenerator {
         return map;
     }
 
+    public Map GetVoronoiBoolMap(Map insideMap)
+    {
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
+
+        for (int i = 0; i < _pointList.Count; i++)
+        {
+
+            var cell = _pointList[i];
+
+            if (cell.MapPoints.Count == 0)
+                continue;
+
+            cell.Sort(_distanceMap);
+
+            var center = cell.Center;
+
+            if(Mathf.Abs(insideMap[center.TileX,center.TileY]) <0.00001)
+            {
+                for (int p = 0; p < cell.MapPoints.Count; p++)
+                {
+                    var point = cell.MapPoints[p];
+
+
+                    map[point.TileX, point.TileY] = 0;
+                }
+            }
+        }
+        return map;
+    }
+
     void RandomlyDistributeCells(float relativeDensity)
     {
         var outputList = new List<VoronoiCell>();
