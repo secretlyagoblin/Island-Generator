@@ -24,6 +24,33 @@ public class VoronoiGenerator {
         return Map.Clone(_distanceMap);
     }
 
+    public Map GetSmattering(int chance)
+    {
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
+
+        _distanceMap.Normalise();
+
+        for (int i = 0; i < _pointList.Count; i++)
+        {
+
+            var cell = _pointList[i];
+
+            if(RNG.Next(0, chance) == 0)
+            {
+                for (int p = 0; p < cell.MapPoints.Count; p++)
+                {
+                    var point = cell.MapPoints[p];
+
+                    map[point.TileX, point.TileY] = _distanceMap[point.TileX, point.TileY];
+                }
+            }
+
+
+
+        }
+        return map;
+    }
+
     void RandomlyDistributeCells(float relativeDensity)
     {
         var outputList = new List<VoronoiCell>();
@@ -42,7 +69,7 @@ public class VoronoiGenerator {
         var voronoiStepX = _map.SizeX / (float)voronoiCountX;
         var voronoiStepY = _map.SizeY / (float)voronoiCountY;
 
-        var distribution = 1.5f;
+        var distribution = 3f;
         distribution = 0.5f * distribution;
         distribution = 0.5f * distribution * voronoiStepX;
 
@@ -147,7 +174,7 @@ public class VoronoiGenerator {
         return Map.Clone(_heightMap);
     }
 
-    public Map GetFalloffMap()
+    public Map GetFalloffMap(int searchDistance)
     {
         _falloffMap = new Map(_map);
 
@@ -155,7 +182,10 @@ public class VoronoiGenerator {
         {
 
             var cell = _pointList[i];
-            cell.SetFalloff(_falloffMap);
+            if (cell.MapPoints.Count == 0)
+                continue;
+
+            cell.SetFalloff(_falloffMap, searchDistance);
         }
 
         return Map.Clone(_falloffMap);
@@ -184,13 +214,15 @@ public class VoronoiGenerator {
             Center = points.First();
         }
 
-        public void SetFalloff(Map bigMap)
+        public void SetFalloff(Map bigMap, int searchDistance)
         {
             var minX = int.MaxValue;
             var maxX = int.MinValue;
 
             var minY = int.MaxValue;
             var maxY = int.MinValue;
+
+            var buffer = 0;
 
             for (int i = 0; i < MapPoints.Count; i++)
             {
@@ -207,22 +239,22 @@ public class VoronoiGenerator {
                     minY = p.TileY;
             }
 
-            var map = new Map(maxX - minX, maxY - minY, 0);
+            var map = new Map(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
 
             for (int i = 0; i < MapPoints.Count; i++)
             {
                 var p = MapPoints[i];
 
-                map[p.TileX - minX, p.TileY - minY] = 1;
+                map[p.TileX - minX + buffer, p.TileY - minY + buffer] = 1;
 
             }
 
-            map.GetDistanceMap(10);
+            map.GetDistanceMap(searchDistance);
 
             for (int i = 0; i < MapPoints.Count; i++)
             {
                 var p = MapPoints[i];
-                bigMap[p.TileX, p.TileY] = map[p.TileX - minX, p.TileY - minY];
+                bigMap[p.TileX, p.TileY] = map[p.TileX - minX + buffer, p.TileY - minY + buffer];
 
             }
 

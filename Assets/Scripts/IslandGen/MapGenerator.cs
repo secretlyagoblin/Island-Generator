@@ -144,7 +144,7 @@ public class MapGenerator
         stack.RecordMapStateToStack(perlinMap);
 
         //No tile no nicely
-        perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 2, 0.5f, 1.87f);
+        perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 4, 0.5f, 1.87f);
         stack.RecordMapStateToStack(perlinMap);
 
         var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
@@ -152,15 +152,21 @@ public class MapGenerator
         var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
 
-        var cellEdgeMap = voronoiGenerator.GetFalloffMap().Normalise();
+        var cellEdgeMap = voronoiGenerator.GetFalloffMap(2).Normalise();
         stack.RecordMapStateToStack(cellEdgeMap);
 
         var vorHeightmap = voronoiGenerator.GetHeightMap(perlinMap).Normalise().Multiply(100);
         stack.RecordMapStateToStack(vorHeightmap);
 
+        var blendedResult = Map.Blend(vorHeightmap.Normalise(), perlinMap.Normalise(), cellEdgeMap);
+        stack.RecordMapStateToStack(blendedResult);
 
 
-        var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap, _lens);
+
+        blendedResult += voronoiMap.Remap(0f, 0.2f);
+        stack.RecordMapStateToStack(blendedResult);
+
+        var vormap = HeightmeshGenerator.GenerateTerrianMesh(blendedResult.Multiply(200), _lens);
         CreateHeightMesh(vormap);
 
         (perlinMap += (voronoiMap.Remap(0,0.3f))).Normalise();
@@ -279,7 +285,7 @@ public class MapGenerator
 
 
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * (finalSubMaps.Length+10));
+        gameObject.transform.Translate(Vector3.up * (finalSubMaps.Length+110));
         gameObject.name = "Debug Stack";
         gameObject.layer = 5;
 

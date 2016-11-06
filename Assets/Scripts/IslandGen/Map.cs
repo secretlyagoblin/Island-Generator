@@ -169,6 +169,21 @@ public class Map {
         return Clone(map).Invert();
     }
 
+    public static Map HigherResult(Map mapA, Map mapB)
+    {
+        var map = Clone(mapA);
+
+        for (int x = 0; x < mapA.SizeX; x++)
+        {
+            for (int y = 0; y < mapA.SizeY; y++)
+            {
+                map[x,y] = mapA[x,y] > mapB[x,y]?mapA[x,y]:mapB[x, y];
+            }
+        }
+
+        return map;
+    }
+
     // Math Functions
 
     public static Map operator +(Map a, Map b)
@@ -1039,10 +1054,12 @@ public class Map {
             }
         }
 
+        _map = distanceMap._map;
 
 
 
-        return distanceMap;
+
+        return this;
     }
 
     public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
