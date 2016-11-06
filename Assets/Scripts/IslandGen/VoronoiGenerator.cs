@@ -69,7 +69,7 @@ public class VoronoiGenerator {
         var voronoiStepX = _map.SizeX / (float)voronoiCountX;
         var voronoiStepY = _map.SizeY / (float)voronoiCountY;
 
-        var distribution = 3f;
+        var distribution = 2f;
         distribution = 0.5f * distribution;
         distribution = 0.5f * distribution * voronoiStepX;
 
