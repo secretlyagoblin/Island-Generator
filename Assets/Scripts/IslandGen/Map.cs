@@ -1448,6 +1448,21 @@ public class Map {
         return count;
     }
 
+    //Texture Modifications
+
+    public Texture2D ApplyTexture(Texture2D texture)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                texture.SetPixel(x, y, new Color(_map[x, y], _map[x, y], _map[x, y]));
+            }
+        }
+
+        return texture;
+    }
+
 
     // Room Class
 

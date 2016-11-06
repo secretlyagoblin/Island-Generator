@@ -116,23 +116,32 @@ public class MapGenerator
         //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
         //CreateHeightMesh(vormap);
 
-        var hillMap = cliffHeightMap + (Map.Clone(voronoiMap).Remap(0, 0.05f));
+        var hillMap = Map.Clone(cliffHeightMap).Remap(0,0.5f) + (Map.Clone(voronoiMap).Remap(0, 0.05f));
         stack.RecordMapStateToStack(hillMap);
 
         var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
         //stack.RecordMapStateToStack(insideMap);
 
-        var terrain = Map.Blend(mountainMap, hillMap.Remap(0.1f,1f), isInside.SmoothMap(2));
+        var terrain = Map.Blend(mountainMap, hillMap.Remap(0.05f,0.6f), isInside.SmoothMap(2));
         stack.RecordMapStateToStack(terrain);
-
-        var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(200), _lens);
-        CreateHeightMesh(heightMesh);
-
 
         //blendedResult += (voronoiMap.Remap(0f, 0.05f));
 
 
+        //TextureStuff
 
+        var texture = new Texture2D(Size, Size);
+
+        var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f);
+        textureStuff.Normalise();
+
+        textureStuff.ApplyTexture(texture);
+        texture.Apply();
+
+        //TextureStuff
+
+        var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(200), _lens);
+        CreateHeightMesh(heightMesh, texture);
 
 
 
@@ -210,7 +219,7 @@ public class MapGenerator
 
     }
 
-    void CreateHeightMesh(HeightMesh heightMesh)
+    void CreateHeightMesh(HeightMesh heightMesh, Texture2D texture)
     {
         var mesh = heightMesh.CreateMesh();
 
@@ -221,6 +230,7 @@ public class MapGenerator
 
         var renderer = parent.AddComponent<MeshRenderer>();
         var material = new Material(Material);
+        material.mainTexture = texture;
         material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
         renderer.material = material;
         var filter = parent.AddComponent<MeshFilter>();
