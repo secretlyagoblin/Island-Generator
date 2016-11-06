@@ -80,34 +80,25 @@ public class MapGenerator
 
         var map = new Map(width, height);
 
+        //CreateWalkableSpace
+
         map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
-        stack.RecordMapStateToStack(map);
-
-
+        //stack.RecordMapStateToStack(map);
         map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size*0.45f));
-        stack.RecordMapStateToStack(map);
-
-
+        //stack.RecordMapStateToStack(map);
         map.SmoothMap(4);
-        stack.RecordMapStateToStack(map);
-
-
+        //stack.RecordMapStateToStack(map);
         map.RemoveSmallRegions(RegionSizeCutoff);
-        stack.RecordMapStateToStack(map);
-
+        //stack.RecordMapStateToStack(map);
 
         var roomMap = Map.Clone(map).AddRoomLogic();
-        stack.RecordMapStateToStack(roomMap);
-
-
-
-
+        //stack.RecordMapStateToStack(roomMap);
 
         var thickMap = Map.Clone(roomMap).Invert().ThickenOutline(1).Invert();
-        stack.RecordMapStateToStack(thickMap);
+        //stack.RecordMapStateToStack(thickMap);
 
         var differenceMap = Map.BooleanDifference(roomMap, thickMap);
-        stack.RecordMapStateToStack(differenceMap);
+        //stack.RecordMapStateToStack(differenceMap);
 
         var staticMap = new Map(width, height);
         staticMap.RandomFillMap(0.4f);
@@ -224,198 +215,21 @@ public class MapGenerator
 
         CreateTrees(heightmap, unionMap, 7, 0.4f);
 
-        //Create Background
+        CreateDebugStack(stack, 200f);
 
-        /*
+    }
 
-        var noiseMap = Map.CreateBlankMap(map).FillMapWithNoise(3f, 0.5f);
-        stack.RecordMapStateToStack(noiseMap);
+    //Subdividing Map
 
-        noiseMap = Map.BooleanUnion(noiseMap, unionMap);
-        stack.RecordMapStateToStack(noiseMap);
-
-        noiseMap = Map.BooleanUnion(noiseMap, Map.CreateBlankMap(map).CreateCircularFalloff(Size * 0.4f));
-        stack.RecordMapStateToStack(noiseMap);
-
-
-        var noiseMap = Map.BlankMapFromTemplate(map).CreateCircularFalloff(Size * 0.3f);
-        stack.RecordMapStateToStack(noiseMap);
-
-        thickMap = Map.Clone(noiseMap).InvertMap().ThickenOutline(15).InvertMap();
-        stack.RecordMapStateToStack(thickMap);
-
-        differenceMap = Map.BooleanDifference(noiseMap, thickMap);
-        stack.RecordMapStateToStack(differenceMap);
-
-        staticMap = new Map(width, height);
-        staticMap.RandomFillMap(0.4f);
-
-        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
-        stack.RecordMapStateToStack(differenceMap);
-
-        unionMap = Map.BooleanUnion(noiseMap, differenceMap);
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap.SmoothMap(4);
-        
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap = Map.BooleanUnion(finalMap, unionMap);
-        stack.RecordMapStateToStack(unionMap);
-
-        unionMap.RemoveSmallRegions(50).InvertMap();
-        stack.RecordMapStateToStack(unionMap);
-
-        subMaps = unionMap.GenerateSubMaps(6, 12);
-        heightmap = Map.CreateHeightMap(subMaps);
-        stack.RecordMapStateToStack(heightmap);
-
-        for (int i = 0; i < subMaps.Length; i++)
-        {
-            var subMap = subMaps[i];
-            //CreateMesh(subMaps[i].RemoveSmallRegions(10).InvertMap(),i+20);
-        }
-
-        */
-
-        //CreateMesh(unionMap, 30);
-
-        //End Background
-
-
+    void CreateDebugStack(MeshDebugStack stack, float height)
+    {
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * (finalSubMaps.Length+110));
+        gameObject.transform.Translate(Vector3.up * (height));
         gameObject.name = "Debug Stack";
         gameObject.layer = 5;
 
         stack.CreateDebugStack(gameObject.transform);
-
-
     }
-
-    //Coord FindClosestPointInB(Map mapA, Map mapB)
-    //{
-    //    if (!Map.MapsAreSameDimensions(mapA, mapB))
-    //    {
-    //        Debug.Log("Failed in FindClosestPoint because maps were not valid");
-    //        return new Coord(0, 0);
-    //    }
-    //
-    //    Debug.Log("Why are you using this it's blatantly not working properly");
-    //
-    //    var width = mapA.GetLength(0);
-    //    var length = mapA.GetLength(1);
-    //
-    //    var roomACoords = new List<Coord>();
-    //    var roomBCoords = new List<Coord>();
-    //
-    //    for (int x = 0; x < width; x++)
-    //    {
-    //        for (int y = 0; y < length; y++)
-    //        {
-    //            if (mapA[x, y] == 0)
-    //            {
-    //                roomACoords.Add(new Coord(x, y));
-    //            }
-    //
-    //            if (mapB[x, y] == 0)
-    //            {
-    //                roomBCoords.Add(new Coord(x, y));
-    //            }
-    //        }
-    //    }
-    //
-    //    var bestDistance = int.MaxValue;
-    //    var bestTileA = new Coord();
-    //    var bestTileB = new Coord();
-    //
-    //    Debug.Log("I get here");
-    //
-    //    var roomA = new Room(roomACoords, mapA);
-    //
-    //
-    //    var roomB = new Room(roomBCoords, mapB);
-    //
-    //    for (int tileIndexA = 0; tileIndexA < roomA.EdgeTiles.Count; tileIndexA++)
-    //    {
-    //        for (int tileIndexB = 0; tileIndexB < roomB.EdgeTiles.Count; tileIndexB++)
-    //        {
-    //            var tileA = roomA.EdgeTiles[tileIndexA];
-    //            var tileB = roomB.EdgeTiles[tileIndexB];
-    //            var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
-    //    
-    //            if (distanceBetweenRooms < bestDistance)
-    //            {
-    //                bestDistance = distanceBetweenRooms;
-    //                Debug.Log("Best Distance: " + bestDistance);
-    //                bestTileA = tileA;
-    //                bestTileB = tileB;
-    //            }
-    //    
-    //        }
-    //    }
-    //
-    //    Debug.DrawLine(CoordToWorldPoint(bestTileA,mapA), CoordToWorldPoint(bestTileB, mapB), Color.red, 100f);
-    //
-    //
-    //
-    //
-    //
-    //    return bestTileB;
-    //}
-
-    
-    
-
-
-    //Room Connection Functions
-
-        /*
-
-    int[,] ResizedMapFromRegion(List<Coord> regions)
-    {
-        var minX = int.MaxValue;
-        var minY = int.MaxValue;
-        var maxX = 0;
-        var maxY = 0;
-
-        for (int i = 0; i < regions.Count; i++)
-        {
-            var x = regions[i].TileX;
-            var y = regions[i].TileY;
-
-            if (x < minX)
-                minX = x;
-            if (y < minY)
-                minY = y;
-            if (x > maxX)
-                maxX = x;
-            if (y > maxY)
-                maxY = y;
-        }
-
-        var rangeX = maxX - minX;
-        var rangeY = maxY - minY;
-
-        var map = new int[rangeX+2, rangeY+2]; //might be wrong
-
-        map = CreateNewMapFromTemplate(map, 1);
-
-        for (int i = 0; i < regions.Count; i++)
-        {
-            var x = regions[i].TileX - minX +1;
-            var y = regions[i].TileY - minY +1;
-
-            map[x, y] = 0;
-        }
-
-        return map;
-    }
-    */
-
-    //Subdividing Map
-
-    
 
     void CreateMesh(Map map, int height)
     {
