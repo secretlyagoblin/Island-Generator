@@ -76,6 +76,7 @@ public class HeightMesh {
         mesh.uv = UVs;
         mesh.triangles = Triangles;
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
         return mesh;
     }
 

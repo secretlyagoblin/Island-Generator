@@ -75,8 +75,16 @@ public class MapGenerator
         unionMap.AddRoomLogic();
         stack.RecordMapStateToStack(unionMap);
 
-        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15);
+        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise();
         distanceMap.Normalise();
+
+        //var distanceMesh = HeightmeshGenerator.GenerateTerrianMesh(distanceMap.Multiply(200), _lens);
+
+        //var text = new Texture2D(Size, Size);
+       // distanceMap.ApplyTexture(text);
+
+       // CreateHeightMesh(distanceMesh, text);
+
         stack.RecordMapStateToStack(distanceMap);
 
 
@@ -116,13 +124,22 @@ public class MapGenerator
         //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
         //CreateHeightMesh(vormap);
 
-        var hillMap = Map.Clone(cliffHeightMap).Remap(0,0.5f) + (Map.Clone(voronoiMap).Remap(0, 0.05f));
+        var nextMesh = Map.Clone(distanceMap).Remap(distanceFieldFalloff).SmoothMap(2).Normalise();
+
+        var smallerVoronoi = new VoronoiGenerator(map, 0, 0, 0.27f);
+
+        var smallerVoronoiMap = smallerVoronoi.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
+        stack.RecordMapStateToStack(voronoiMap);
+
+        var hillMap = Map.Clone(nextMesh).Remap(0, 0.2f) + (Map.Clone(smallerVoronoiMap).Remap(0, 0.04f));
         stack.RecordMapStateToStack(hillMap);
 
         var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
         //stack.RecordMapStateToStack(insideMap);
 
-        var terrain = Map.Blend(mountainMap, hillMap.Remap(0.05f,0.6f), isInside.SmoothMap(2));
+        hillMap.Remap(0f, 0.25f);
+
+        var terrain = Map.Blend(mountainMap, hillMap, isInside.SmoothMap(2));
         stack.RecordMapStateToStack(terrain);
 
         //blendedResult += (voronoiMap.Remap(0f, 0.05f));
@@ -139,6 +156,8 @@ public class MapGenerator
         texture.Apply();
 
         //TextureStuff
+
+        
 
         var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(200), _lens);
         CreateHeightMesh(heightMesh, texture);
@@ -236,7 +255,7 @@ public class MapGenerator
         var filter = parent.AddComponent<MeshFilter>();
         var collider = parent.AddComponent<MeshCollider>();
 
-        collider.sharedMesh = mesh;
+        //collider.sharedMesh = mesh;
         filter.mesh = mesh;
 
     }
