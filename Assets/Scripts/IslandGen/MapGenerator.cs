@@ -111,8 +111,8 @@ public class MapGenerator
         var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
 
-        //var cellEdgeMap = voronoiGenerator.GetFalloffMap(2).Normalise();
-        //stack.RecordMapStateToStack(cellEdgeMap);
+        var cellEdgeMap = voronoiGenerator.GetFalloffMap(2).Normalise();
+        stack.RecordMapStateToStack(cellEdgeMap);
 
         var mountainMap = voronoiGenerator.GetHeightMap(cliffHeightMap).Normalise();
         stack.RecordMapStateToStack(mountainMap);
@@ -133,6 +133,9 @@ public class MapGenerator
 
         var smallerVoronoiMap = smallerVoronoi.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
+
+        var smallerboosts = smallerVoronoi.GetFalloffMap(3).Normalise();
+        stack.RecordMapStateToStack(smallerboosts);
 
         var hillMap = Map.Clone(nextMesh).Remap(0, 0.2f) + (Map.Clone(smallerVoronoiMap).Remap(0, 0.04f));
         stack.RecordMapStateToStack(hillMap);
@@ -155,12 +158,12 @@ public class MapGenerator
         var texture = new Texture2D(Size, Size);
 
         //var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f).Normalise();
-        var textureStuff = Map.Clone(voronoiMap).Clamp(0.5f,1).Normalise();
-        textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
+        var textureStuff = Map.Clone(cellEdgeMap).Clamp(0.25f,1f).Normalise();
+        //textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
         textureStuff.Normalise();
 
-        var secondTexture = Map.Clone(smallerVoronoiMap).Clamp(0.5f, 1).Normalise();
-        secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
+        var secondTexture = Map.Clone(smallerboosts).Clamp(0.2f,0.8f).Normalise();
+        secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
 
         textureStuff.ApplyTexture(texture,stoneGradient);
         secondTexture.ApplyTexture(texture, grassGradient, Map.Clone(isInside).ThickenOutline(1).Invert());

@@ -252,7 +252,7 @@ public class VoronoiGenerator {
             var minY = int.MaxValue;
             var maxY = int.MinValue;
 
-            var buffer = 0;
+            var buffer = 3;
 
             for (int i = 0; i < MapPoints.Count; i++)
             {
@@ -279,7 +279,9 @@ public class VoronoiGenerator {
 
             }
 
-            map.GetDistanceMap(searchDistance);
+            map.SmoothMap(searchDistance);
+
+            //map.GetDistanceMap(searchDistance);
 
             for (int i = 0; i < MapPoints.Count; i++)
             {
