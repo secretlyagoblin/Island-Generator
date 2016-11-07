@@ -628,6 +628,8 @@ public class Map {
                 }
             }
 
+
+
             for (int x = 0; x < SizeX; x++)
             {
                 for (int y = 0; y < SizeY; y++)
@@ -1457,6 +1459,37 @@ public class Map {
             for (int y = 0; y < SizeY; y++)
             {
                 texture.SetPixel(x, y, new Color(_map[x, y], _map[x, y], _map[x, y]));
+            }
+        }
+
+        return texture;
+    }
+
+    public Texture2D ApplyTexture(Texture2D texture, Gradient gradient)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                texture.SetPixel(x, y, gradient.Evaluate(_map[x, y]));
+
+            }
+        }
+
+        return texture;
+    }
+
+    public Texture2D ApplyTexture(Texture2D texture, Gradient gradient, Map mask)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                if (mask[x, y] == 1)
+                {
+
+                    texture.SetPixel(x, y, gradient.Evaluate(_map[x, y]));
+                }
             }
         }
 

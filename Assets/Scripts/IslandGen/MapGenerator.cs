@@ -27,6 +27,9 @@ public class MapGenerator
     public AnimationCurve distanceFieldFalloff;
     public AnimationCurve voronoiFalloff;
 
+    public Gradient stoneGradient;
+    public Gradient grassGradient;
+
     public GameObject ThirdPersonController;
 
     public Material Material;
@@ -137,9 +140,11 @@ public class MapGenerator
         var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
         //stack.RecordMapStateToStack(insideMap);
 
-        hillMap.Remap(0f, 0.25f);
+        var offset = 0.03f;
 
-        var terrain = Map.Blend(mountainMap, hillMap, isInside.SmoothMap(2));
+        hillMap.Remap(0f+offset, 0.25f+ offset);
+
+        var terrain = Map.Blend(mountainMap, hillMap, Map.Clone(isInside).SmoothMap(1));
         stack.RecordMapStateToStack(terrain);
 
         //blendedResult += (voronoiMap.Remap(0f, 0.05f));
@@ -149,10 +154,17 @@ public class MapGenerator
 
         var texture = new Texture2D(Size, Size);
 
-        var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f);
+        //var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f).Normalise();
+        var textureStuff = Map.Clone(voronoiMap).Clamp(0.5f,1).Normalise();
+        textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
         textureStuff.Normalise();
 
-        textureStuff.ApplyTexture(texture);
+        var secondTexture = Map.Clone(smallerVoronoiMap).Clamp(0.5f, 1).Normalise();
+        secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
+
+        textureStuff.ApplyTexture(texture,stoneGradient);
+        secondTexture.ApplyTexture(texture, grassGradient, Map.Clone(isInside).ThickenOutline(1).Invert());
+        //textureStuff.ApplyTexture(texture);
         texture.Apply();
 
         //TextureStuff
@@ -255,7 +267,7 @@ public class MapGenerator
         var filter = parent.AddComponent<MeshFilter>();
         var collider = parent.AddComponent<MeshCollider>();
 
-        //collider.sharedMesh = mesh;
+        collider.sharedMesh = mesh;
         filter.mesh = mesh;
 
     }
