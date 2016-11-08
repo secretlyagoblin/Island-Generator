@@ -51,7 +51,7 @@ public class MapGenerator
     {
         RNG.Init(DateTime.Now.ToString());
 
-        _lens = new MeshLens(Size, Size, new Vector3(2f,1,2f));        
+        _lens = new MeshLens(Size, Size, new Vector3(2f,1.3f,2f));        
 
         GenerateMap(Size,Size);
     }
