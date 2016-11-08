@@ -49,7 +49,7 @@ public class MapGenerator
     {
         RNG.Init(DateTime.Now.ToString());
 
-        _lens = new MeshLens(Size, Size, new Vector3(4f,1,4f));        
+        _lens = new MeshLens(Size, Size, new Vector3(2f,1,2f));        
 
         GenerateMap(Size,Size);
     }
@@ -172,21 +172,31 @@ public class MapGenerator
 
         //TextureStuff
 
+        var mapHeight = 100f;
+
+        var superHeight = new Texture2D(Size, Size);
+        terrain.ApplyTexture(superHeight);
+
         
 
-        var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(200), _lens);
+        var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(mapHeight), _lens);
         var heightObject = CreateHeightMesh(heightMesh, texture);
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
 
-        var propMap = new PoissonDiscSampler(10, 5, 0.3f);
+        var propMap = new PoissonDiscSampler(Size, Size, 0.7f);
 
         foreach (var sample in propMap.Samples())
         {
-            var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0,200,sample.x), Mathf.InverseLerp(0, 200, sample.y));
-            //if (tex.grayscale > 0.5f)
-            //{
-                Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, 0, sample.y)), Vector3.up * 300,tex.linear,100f);
-           // }
+            var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+            if (tex.grayscale < 0.3f)
+            {
+                var heig = superHeight.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+
+                //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
+
+                var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                obj.transform.position = _lens.TransformPosition(new Vector3(sample.x, heig.grayscale * mapHeight, sample.y));
+            }
 
         }
 
