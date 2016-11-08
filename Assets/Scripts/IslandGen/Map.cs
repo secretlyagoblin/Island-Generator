@@ -1193,6 +1193,35 @@ public class Map {
         return this;
     }
 
+    public Map LerpHeightMap(Map mask)
+    {
+        var yIterativeGrid = new Map(this);
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            var chain = new List<Coord>();
+            var inChain = false;
+            var startValue = 0;
+            var endValue = 0;
+
+
+            for (int y = 0; y < SizeY; y++)
+            {
+                if (inChain)
+                {
+                    if (mask[x, y] == 0)
+                        continue;
+                }
+                else
+                {
+
+                }   
+            }
+        }
+
+        return this;
+    }
+
     // Region Helper Functions
 
     public List<List<Coord>> GetRegions(int tileType)

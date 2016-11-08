@@ -80,4 +80,10 @@ public static class RNG {
 
     }
 
+    public static T GetRandomItem<T>(T[] array)
+    {
+        var item = Next(array.Length);
+        return array[item];
+    }
+
 }

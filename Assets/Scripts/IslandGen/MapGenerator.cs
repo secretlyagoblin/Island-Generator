@@ -36,6 +36,8 @@ public class MapGenerator
 
     public int Size;
 
+    public GameObject[] plantObjects;
+
     MeshLens _lens;
 
     [Range(0, 10)]
@@ -182,20 +184,44 @@ public class MapGenerator
         var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(mapHeight), _lens);
         var heightObject = CreateHeightMesh(heightMesh, texture);
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
+        var collider = heightObject.GetComponent<MeshCollider>();
 
-        var propMap = new PoissonDiscSampler(Size, Size, 0.7f);
+        var propMap = new PoissonDiscSampler(Size, Size, 0.45f);
 
         foreach (var sample in propMap.Samples())
         {
             var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
-            if (tex.grayscale < 0.3f)
+            var heig = superHeight.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+
+            if (tex.grayscale < 0.4f)
             {
-                var heig = superHeight.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+                if (heig.grayscale > 0.8f)
+                    continue;
+
+                if (heig.grayscale > 0.5f && RNG.NextFloat() < 0.7f)
+                    continue;
+
+                if (heig.grayscale < 0.12f && RNG.NextFloat() < 0.99f)
+                    continue;
+
 
                 //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
 
-                var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                obj.transform.position = _lens.TransformPosition(new Vector3(sample.x, heig.grayscale * mapHeight, sample.y));
+                var hitpoint = _lens.TransformPosition(new Vector3(sample.x, (heig.grayscale * mapHeight)+1f, sample.y));
+
+                RaycastHit hit;
+
+                if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
+                {
+                    var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+                    obj.transform.position = hit.point + (hit.normal*0.1f);
+                    obj.transform.up = hit.normal;
+                    obj.transform.localScale *= 1.7f;
+                }
+
+
+
+
             }
 
         }
@@ -221,7 +247,7 @@ public class MapGenerator
         stack.RecordMapStateToStack(heightmap);
 
 
-        CreateTrees(heightmap, unionMap, 7, 0.4f);
+        //CreateTrees(heightmap, unionMap, 7, 0.4f);
 
         CreateDebugStack(stack, 200f);
     }

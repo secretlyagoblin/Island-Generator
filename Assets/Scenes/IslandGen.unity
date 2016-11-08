@@ -383,6 +383,7 @@ MonoBehaviour:
   ThirdPersonController: {fileID: 0}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   Size: 200
+  plantObjects: []
   Iterations: 4
 --- !u!4 &699064301
 Transform:
@@ -431,7 +432,7 @@ MonoBehaviour:
   RandomMapPerlinScale: 5
   SubzoneGenerationPerlinScale: 10
   Seed: 1416618547
-  UseRandomSeed: 1
+  UseRandomSeed: 0
   RegionSizeCutoff: 400
   distanceFieldFalloff:
     serializedVersion: 2
@@ -554,6 +555,13 @@ MonoBehaviour:
   ThirdPersonController: {fileID: 0}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   Size: 200
+  plantObjects:
+  - {fileID: 143808, guid: 0a3c208c4428312488cb6068f67611b3, type: 2}
+  - {fileID: 150166, guid: 3969535855a5afb4fb36b1b0e6ee986f, type: 2}
+  - {fileID: 117810, guid: 4b82ad24013e73442a4fd2f1f3abfd39, type: 2}
+  - {fileID: 103298, guid: 58bfc17884bb0b14789f41cc56e3d34f, type: 2}
+  - {fileID: 196462, guid: 9fe1c654a6c85ad45a2c7128f7561994, type: 2}
+  - {fileID: 119296, guid: d2df64e2f1836b944b66bfc35088213a, type: 2}
   Iterations: 4
 --- !u!4 &945621557
 Transform:
