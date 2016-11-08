@@ -84,9 +84,9 @@ public class MapGenerator
         //var distanceMesh = HeightmeshGenerator.GenerateTerrianMesh(distanceMap.Multiply(200), _lens);
 
         //var text = new Texture2D(Size, Size);
-       // distanceMap.ApplyTexture(text);
+        // distanceMap.ApplyTexture(text);
 
-       // CreateHeightMesh(distanceMesh, text);
+        // CreateHeightMesh(distanceMesh, text);
 
         stack.RecordMapStateToStack(distanceMap);
 
@@ -104,7 +104,7 @@ public class MapGenerator
         //Here we will merge these two maps
 
 
-    */
+        */
 
         var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
 
@@ -175,9 +175,23 @@ public class MapGenerator
         
 
         var heightMesh = HeightmeshGenerator.GenerateTerrianMesh(terrain.Multiply(200), _lens);
-        CreateHeightMesh(heightMesh, texture);
+        var heightObject = CreateHeightMesh(heightMesh, texture);
+        var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
+
+        var propMap = new PoissonDiscSampler(10, 5, 0.3f);
+
+        foreach (var sample in propMap.Samples())
+        {
+            var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0,200,sample.x), Mathf.InverseLerp(0, 200, sample.y));
+            //if (tex.grayscale > 0.5f)
+            //{
+                Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, 0, sample.y)), Vector3.up * 300,tex.linear,100f);
+           // }
+
+        }
 
 
+        
 
 
         //stack.RecordMapStateToStack(perlinMap);
@@ -195,6 +209,7 @@ public class MapGenerator
 
         var heightmap = CreateHeightMap(unionMap);
         stack.RecordMapStateToStack(heightmap);
+
 
         CreateTrees(heightmap, unionMap, 7, 0.4f);
 
@@ -253,7 +268,7 @@ public class MapGenerator
 
     }
 
-    void CreateHeightMesh(HeightMesh heightMesh, Texture2D texture)
+    GameObject CreateHeightMesh(HeightMesh heightMesh, Texture2D texture)
     {
         var mesh = heightMesh.CreateMesh();
 
@@ -272,6 +287,8 @@ public class MapGenerator
 
         collider.sharedMesh = mesh;
         filter.mesh = mesh;
+
+        return parent;
 
     }
 

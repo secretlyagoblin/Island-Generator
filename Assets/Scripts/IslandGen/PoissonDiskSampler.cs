@@ -54,7 +54,8 @@ public class PoissonDiscSampler {
         {
 
             // Pick a random active sample
-            int i = RNG.Next() * activeSamples.Count;
+            var floater = RNG.NextFloat();
+            int i = (int)floater * activeSamples.Count;
             Vector2 sample = activeSamples[i];
 
             // Try `k` random candidates between [radius, 2 * radius] from that sample.

@@ -49,11 +49,17 @@ public static class RNG {
         return _pseudoRandom.Next(minValue, maxValue);
     }
 
-    public static float NextFloat()
+    public static float NextFullRangeFloat()
     {
         double mantissa = (_pseudoRandom.NextDouble() * 2.0) - 1.0;
         double exponent = System.Math.Pow(2.0, _pseudoRandom.Next(-126, 128));
         return (float)(mantissa * exponent);
+    }
+
+    public static float NextFloat()
+    {
+        return (float)(_pseudoRandom.NextDouble());
+
     }
 
     public static float NextFloat(float maxValue)
