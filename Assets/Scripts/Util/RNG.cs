@@ -15,7 +15,18 @@ public static class RNG {
             _pseudoRandom = new System.Random(seed.GetHashCode());
             _initialised = true;
         }
-    } 
+    }
+
+    public static void Init()
+    {
+        if (_initialised)
+        { }
+        else
+        {
+            _pseudoRandom = new System.Random();
+            _initialised = true;
+        }
+    }
 
     public static void ForceInit(string seed)
     {

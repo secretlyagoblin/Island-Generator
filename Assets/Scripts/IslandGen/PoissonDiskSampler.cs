@@ -35,6 +35,7 @@ public class PoissonDiscSampler {
     /// radius: each sample will be at least `radius` units away from any other sample, and at most 2 * `radius`.
     public PoissonDiscSampler(float width, float height, float radius)
     {
+        RNG.Init();
         rect = new Rect(0, 0, width, height);
         radius2 = radius * radius;
         cellSize = radius / Mathf.Sqrt(2);
@@ -47,13 +48,13 @@ public class PoissonDiscSampler {
     public IEnumerable<Vector2> Samples()
     {
         // First sample is choosen randomly
-        yield return AddSample(new Vector2(Random.value * rect.width, Random.value * rect.height));
+        yield return AddSample(new Vector2(RNG.NextFloat() * rect.width, RNG.NextFloat() * rect.height));
 
         while (activeSamples.Count > 0)
         {
 
             // Pick a random active sample
-            int i = (int)Random.value * activeSamples.Count;
+            int i = RNG.Next() * activeSamples.Count;
             Vector2 sample = activeSamples[i];
 
             // Try `k` random candidates between [radius, 2 * radius] from that sample.
@@ -61,8 +62,8 @@ public class PoissonDiscSampler {
             for (int j = 0; j < k; ++j)
             {
 
-                float angle = 2 * Mathf.PI * Random.value;
-                float r = Mathf.Sqrt(Random.value * 3 * radius2 + radius2); // See: http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus/9048443#9048443
+                float angle = 2 * Mathf.PI * RNG.NextFloat();
+                float r = Mathf.Sqrt(RNG.NextFloat() * 3 * radius2 + radius2); // See: http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus/9048443#9048443
                 Vector2 candidate = sample + r * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
                 // Accept candidates if it's inside the rect and farther than 2 * radius to any existing sample.
