@@ -553,7 +553,7 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   ThirdPersonController: {fileID: 0}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
-  Size: 200
+  Size: 250
   Iterations: 4
 --- !u!4 &945621557
 Transform:
