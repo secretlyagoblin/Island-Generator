@@ -13,6 +13,9 @@ public class Map {
 
     float[,] _map;
 
+    public float[,] FloatArray
+    { get { return Clone(this).Normalise()._map; } }
+
     public Map(Map mapTemplate)
     {
         SizeX = mapTemplate.SizeX;
