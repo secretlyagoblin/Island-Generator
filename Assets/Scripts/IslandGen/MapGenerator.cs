@@ -326,16 +326,30 @@ public class MapGenerator
 
         var secondTexture = Map.Clone(smallerboosts).Clamp(0.2f, 0.8f).Normalise();
         secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
-        secondTexture += Map.Clone(heightmap).Clamp(0.3f,0.6f).Normalise().Multiply(3f);
+        secondTexture += Map.Clone(heightmap).Clamp(0.3f,0.6f).Normalise().Multiply(0.5f);
         secondTexture.Normalise();
 
         stack.RecordMapStateToStack(secondTexture);
-
 
         textureStuff.ApplyTexture(texture, stoneGradient);
         secondTexture.ApplyTexture(texture, grassGradient, Map.Clone(isInside).ThickenOutline(0).Invert());
         //textureStuff.ApplyTexture(texture);
         texture.Apply();
+
+
+        //SampleMapStuff
+
+        var sampleTexture = new Texture2D(Size, Size);
+
+        var secondSampleTexture = Map.Clone(smallerboosts).Clamp(0.2f, 0.8f).Normalise();
+        secondSampleTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
+        secondSampleTexture.Normalise();
+
+
+        textureStuff.ApplyTexture(sampleTexture, stoneGradient);
+        secondSampleTexture.ApplyTexture(sampleTexture, stoneGradient, Map.Clone(isInside).ThickenOutline(0).Invert());
+        //textureStuff.ApplyTexture(texture);
+        sampleTexture.Apply();
 
 
 
@@ -349,11 +363,11 @@ public class MapGenerator
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
         var collider = heightObject.GetComponent<MeshCollider>();
 
-        var propMap = new PoissonDiscSampler(Size, Size, 0.45f);
+        var propMap = new PoissonDiscSampler(Size, Size, 0.35f);
 
         foreach (var sample in propMap.Samples())
         {
-            var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+            var tex = sampleTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
             var heig = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
             var terra = terrainTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
 
@@ -379,10 +393,10 @@ public class MapGenerator
 
                 if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
                 {
-                    //var obj = Instantiate(RNG.GetRandomItem(plantObjects));
-                    //obj.transform.position = hit.point + (hit.normal * 0.1f);
-                    //obj.transform.up = hit.normal;
-                    //obj.transform.localScale *= 1.7f;
+                    var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+                    obj.transform.position = hit.point + (hit.normal * 0.1f);
+                    obj.transform.up = hit.normal;
+                    obj.transform.localScale *= 1.7f;
                 }
 
 
