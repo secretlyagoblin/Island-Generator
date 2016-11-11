@@ -28,6 +28,8 @@ public class MapGenerator
     public AnimationCurve voronoiFalloff;
     public AnimationCurve LerpMapFalloff;
 
+    public GameObject ParticleBud;
+
     public Gradient stoneGradient;
     public Gradient grassGradient;
 
@@ -98,6 +100,8 @@ public class MapGenerator
 
         var cliffHeightMap = Map.Blend(perlinMap, distanceMap, Map.Clone(cutoffMap).Clamp(0f, 1f).Normalise());
         stack.RecordMapStateToStack(cliffHeightMap);
+
+
 
         var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
 
@@ -355,6 +359,17 @@ public class MapGenerator
 
 
         var mapHeight = 90f;
+
+        var sickHeight = Map.Clone(additiveMap).BooleanMapFromThreshold(0.6f).GetRegions(1);
+        var boostHeight = Map.GetCenters(sickHeight);
+
+        for (int i = 0; i < boostHeight.Count; i++)
+        {
+            var vec3 = _lens.TransformPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
+            var obj = Instantiate(ParticleBud, vec3, Quaternion.identity);
+        }
+
+        //stack.RecordMapStateToStack(sickHeight);
 
 
         var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(additiveMap.Multiply(mapHeight), _lens);

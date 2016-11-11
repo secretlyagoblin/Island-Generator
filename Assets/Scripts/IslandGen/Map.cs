@@ -75,6 +75,30 @@ public class Map {
         return BlankMap(map).OverwriteMapWith(map);
     }
 
+    public static List<Coord> GetCenters(List<List<Coord>> coords)
+    {
+        var returnCoords = new List<Coord>();
+
+        for (int i = 0; i < coords.Count; i++)
+        {
+            var averageX = 0;
+            var averageY = 0;
+
+            for (int u = 0; u < coords[i].Count; u++)
+            {
+                averageX += coords[i][u].TileX;
+                averageY += coords[i][u].TileY;
+            }
+
+            averageX /= coords[i].Count;
+            averageY /= coords[i].Count;
+
+            returnCoords.Add(new Coord(averageX, averageY));
+        }
+
+        return returnCoords;
+    }
+
     public static Map BlankMap(Map template)
     {
         return new Map(template.SizeX, template.SizeY);
@@ -165,6 +189,19 @@ public class Map {
             }
         }
         return outputMap;
+    }
+
+    public Map BooleanMapFromThreshold(float threshold)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = _map[x, y] <= threshold ? 0 : 1; 
+            }
+        }
+
+        return this;
     }
 
     public static Map GetInvertedMap(Map map)
