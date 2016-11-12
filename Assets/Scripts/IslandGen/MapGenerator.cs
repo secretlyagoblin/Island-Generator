@@ -32,6 +32,7 @@ public class MapGenerator
 
     public Gradient stoneGradient;
     public Gradient grassGradient;
+    public Gradient plantTinting;
 
     public GameObject ThirdPersonController;
 
@@ -378,7 +379,7 @@ public class MapGenerator
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
         var collider = heightObject.GetComponent<MeshCollider>();
 
-        var propMap = new PoissonDiscSampler(Size, Size, 0.35f);
+        var propMap = new PoissonDiscSampler(Size, Size, 0.5f);
 
         foreach (var sample in propMap.Samples())
         {
@@ -392,7 +393,7 @@ public class MapGenerator
                 if (terra.grayscale > 0.8f)
                     continue;
 
-                if (terra.grayscale > 0.5f && RNG.NextFloat() < 0.7f)
+                if (terra.grayscale > 0.5f)
                     continue;
 
                 if (terra.grayscale < 0.05f && RNG.NextFloat() < 0.99f)
@@ -406,9 +407,25 @@ public class MapGenerator
 
                 RaycastHit hit;
 
+                var materialProperties = new MaterialPropertyBlock();
+                MeshRenderer[] renderers;
+
+
                 if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
                 {
+
+                    float t = RNG.NextFloat(0.0f, 1.0f);
+                    materialProperties.SetColor("_Color", plantTinting.Evaluate(t));
+
                     var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+
+                    renderers = obj.GetComponentsInChildren<MeshRenderer>();
+
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        renderers[i].SetPropertyBlock(materialProperties);
+                    }
+
                     obj.transform.position = hit.point + (hit.normal * 0.1f);
                     obj.transform.up = hit.normal;
                     obj.transform.localScale *= 1.7f;
