@@ -151,7 +151,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
@@ -202,6 +202,10 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c6453f8e1f814744d8b94e5a6d1f9942, type: 2}
   m_IsPrefabParent: 0
+--- !u!1 &635109893 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 100006, guid: c6453f8e1f814744d8b94e5a6d1f9942, type: 2}
+  m_PrefabInternal: {fileID: 432294226}
 --- !u!1 &699064297
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,6 +271,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4461f18bef8717749b7b51c01c2689cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CreateProps: 0
   RandomFillPercent: 50
   NoiseIntensity: 41
   RandomMapPerlinScale: 5
@@ -469,12 +474,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4461f18bef8717749b7b51c01c2689cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RandomFillPercent: 0.5
+  CreateProps: 1
+  RandomFillPercent: 0.495
   NoiseIntensity: 0
   RandomMapPerlinScale: 5
   SubzoneGenerationPerlinScale: 10
   Seed: 1416618547
-  UseRandomSeed: 0
+  UseRandomSeed: 1
   RegionSizeCutoff: 400
   distanceFieldFalloff:
     serializedVersion: 2
@@ -654,9 +660,9 @@ MonoBehaviour:
     atime7: 0
     m_NumColorKeys: 5
     m_NumAlphaKeys: 2
-  ThirdPersonController: {fileID: 0}
+  ThirdPersonController: {fileID: 635109893}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
-  Size: 200
+  Size: 250
   plantObjects:
   - {fileID: 143808, guid: 0a3c208c4428312488cb6068f67611b3, type: 2}
   - {fileID: 162320, guid: a38717b696d98614383facb0b300a7de, type: 2}

@@ -9,6 +9,8 @@ public class MapGenerator
 
     //REMINDER: 1 = Cell on, 0 = Cell off
 
+    public bool CreateProps;
+
     [Range(0.4f, 0.6f)]
     public float RandomFillPercent;
 
@@ -125,15 +127,15 @@ public class MapGenerator
         //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
         //CreateHeightMesh(vormap);
 
-        var smallerVoronoi = new VoronoiGenerator(map, 0, 0, 0.27f);
+        var hillVoronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.13f);
 
-        var smallerVoronoiMap = smallerVoronoi.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
+        var hillVoronoiMap = hillVoronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
 
-        var smallerboosts = smallerVoronoi.GetFalloffMap(3).Normalise();
-        stack.RecordMapStateToStack(smallerboosts);
+        var hillVoronoiFalloffMap = hillVoronoiGenerator.GetFalloffMap(3).Normalise();
+        stack.RecordMapStateToStack(hillVoronoiFalloffMap);
 
-        var hillMap = Map.BlankMap(Size,Size).FillWilth(0f) + (Map.Clone(smallerVoronoiMap).Remap(0, 0.05f));
+        var hillMap = Map.BlankMap(Size,Size).FillWilth(0f) + (Map.Clone(hillVoronoiMap).Remap(0, 0.07f));
         stack.RecordMapStateToStack(hillMap);
 
         var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
@@ -306,13 +308,13 @@ public class MapGenerator
         stack.RecordMapStateToStack(heightmap);
 
 
-        heightmap = heightmap.LerpHeightMap(unionMap, LerpMapFalloff).SmoothMap(5).Normalise();
+        heightmap = heightmap.LerpHeightMap(unionMap, LerpMapFalloff).SmoothMap(10).Normalise();
         stack.RecordMapStateToStack(heightmap);
 
         var terrainTexture = new Texture2D(Size, Size);
         terrain.ApplyTexture(terrainTexture);
 
-        var additiveMap = heightmap + (terrain.Multiply(2));
+        var additiveMap = heightmap + (terrain.Multiply(2.5f));
         stack.RecordMapStateToStack(additiveMap);
 
         additiveMap.Normalise();
@@ -329,9 +331,11 @@ public class MapGenerator
         //textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
         textureStuff.Normalise();
 
-        var secondTexture = Map.Clone(smallerboosts).Clamp(0.2f, 0.8f).Normalise();
+        var secondTexture = hillVoronoiGenerator.GetDistanceMap().Invert().Normalise();
+
+        //var secondTexture = Map.Clone(hillVoronoiFalloffMap).Clamp(0.2f, 0.8f).Normalise();
         secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
-        secondTexture += Map.Clone(heightmap).Clamp(0.3f,0.6f).Normalise().Multiply(0.5f);
+        secondTexture += Map.Clone(heightmap).Remap(0.3f,0.6f).Normalise().Multiply(2f);
         secondTexture.Normalise();
 
         stack.RecordMapStateToStack(secondTexture);
@@ -346,7 +350,7 @@ public class MapGenerator
 
         var sampleTexture = new Texture2D(Size, Size);
 
-        var secondSampleTexture = Map.Clone(smallerboosts).Clamp(0.2f, 0.8f).Normalise();
+        var secondSampleTexture = Map.Clone(hillVoronoiFalloffMap).Clamp(0.2f, 0.8f).Normalise();
         secondSampleTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
         secondSampleTexture.Normalise();
 
@@ -370,6 +374,13 @@ public class MapGenerator
             var obj = Instantiate(ParticleBud, vec3, Quaternion.identity);
         }
 
+        var insideTexture = new Texture2D(Size, Size);
+        var circleMap = Map.BlankMap(Size,Size).CreateCircularFalloff(Size*0.42f);
+        circleMap.ApplyTexture(insideTexture);
+        stack.RecordMapStateToStack(circleMap);
+        
+        
+
         //stack.RecordMapStateToStack(sickHeight);
 
 
@@ -381,60 +392,68 @@ public class MapGenerator
 
         var propMap = new PoissonDiscSampler(Size, Size, 0.5f);
 
-        foreach (var sample in propMap.Samples())
+        if (CreateProps)
         {
-            var tex = sampleTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
-            var heig = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
-            var terra = terrainTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
 
-            if (tex.grayscale < 0.4f)
+            foreach (var sample in propMap.Samples())
             {
-                
-                if (terra.grayscale > 0.8f)
+                if (insideTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y)).grayscale > 0f)
                     continue;
 
-                if (terra.grayscale > 0.5f)
-                    continue;
+                var tex = sampleTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+                var heig = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+                var terra = terrainTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
 
-                if (terra.grayscale < 0.05f && RNG.NextFloat() < 0.99f)
-                    continue;
-                    
-
-
-                //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
-
-                var hitpoint = _lens.TransformPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
-
-                RaycastHit hit;
-
-                var materialProperties = new MaterialPropertyBlock();
-                MeshRenderer[] renderers;
-
-
-                if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
+                if (tex.grayscale < 0.4f)
                 {
 
-                    float t = RNG.NextFloat(0.0f, 1.0f);
-                    materialProperties.SetColor("_Color", plantTinting.Evaluate(t));
+                    if (terra.grayscale > 0.8f)
+                        continue;
 
-                    var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+                    if (terra.grayscale > 0.5f)
+                        continue;
 
-                    renderers = obj.GetComponentsInChildren<MeshRenderer>();
+                    if (terra.grayscale < 0.05f && RNG.NextFloat() < 0.99f)
+                        continue;
 
-                    for (int i = 0; i < renderers.Length; i++)
+
+
+                    //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
+
+                    var hitpoint = _lens.TransformPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
+
+                    RaycastHit hit;
+
+                    var materialProperties = new MaterialPropertyBlock();
+                    MeshRenderer[] renderers;
+
+
+                    if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
                     {
-                        renderers[i].SetPropertyBlock(materialProperties);
+
+                        float t = RNG.NextFloat(0.0f, 1.0f);
+                        materialProperties.SetColor("_Color", plantTinting.Evaluate(t));
+
+                        var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+
+                        renderers = obj.GetComponentsInChildren<MeshRenderer>();
+
+                        for (int i = 0; i < renderers.Length; i++)
+                        {
+                            renderers[i].SetPropertyBlock(materialProperties);
+                        }
+
+                        obj.transform.position = hit.point + (hit.normal * 0.1f);
+                        obj.transform.up = hit.normal;
+                        obj.transform.localScale *= 1.7f;
                     }
 
-                    obj.transform.position = hit.point + (hit.normal * 0.1f);
-                    obj.transform.up = hit.normal;
-                    obj.transform.localScale *= 1.7f;
+
+
+
                 }
-
-
-
-
             }
+
         }
 
 
@@ -525,7 +544,7 @@ public class MapGenerator
 
         map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
         //stack.RecordMapStateToStack(map);
-        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size * 0.45f));
+        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size * 0.4f));
         //stack.RecordMapStateToStack(map);
         map.BoolSmoothOperation(4);
         //stack.RecordMapStateToStack(map);
