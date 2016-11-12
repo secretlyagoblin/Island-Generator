@@ -13,6 +13,9 @@ public class Map {
 
     float[,] _map;
 
+    public float[,] FloatArray
+    { get { return Clone(this).Normalise()._map; } }
+
     public Map(Map mapTemplate)
     {
         SizeX = mapTemplate.SizeX;
@@ -42,7 +45,7 @@ public class Map {
         }
     }
 
-    public Map(int sizeX, int sizeY, int defaultValue)
+    public Map(int sizeX, int sizeY, float defaultValue)
     {
         SizeX = sizeX;
         SizeY = sizeY;
@@ -70,6 +73,30 @@ public class Map {
     public static Map Clone(Map map)
     {
         return BlankMap(map).OverwriteMapWith(map);
+    }
+
+    public static List<Coord> GetCenters(List<List<Coord>> coords)
+    {
+        var returnCoords = new List<Coord>();
+
+        for (int i = 0; i < coords.Count; i++)
+        {
+            var averageX = 0;
+            var averageY = 0;
+
+            for (int u = 0; u < coords[i].Count; u++)
+            {
+                averageX += coords[i][u].TileX;
+                averageY += coords[i][u].TileY;
+            }
+
+            averageX /= coords[i].Count;
+            averageY /= coords[i].Count;
+
+            returnCoords.Add(new Coord(averageX, averageY));
+        }
+
+        return returnCoords;
     }
 
     public static Map BlankMap(Map template)
@@ -164,6 +191,19 @@ public class Map {
         return outputMap;
     }
 
+    public Map BooleanMapFromThreshold(float threshold)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = _map[x, y] <= threshold ? 0 : 1; 
+            }
+        }
+
+        return this;
+    }
+
     public static Map GetInvertedMap(Map map)
     {
         return Clone(map).Invert();
@@ -247,6 +287,19 @@ public class Map {
     }
 
     // General Functions
+
+    public Map FillWilth(float value)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = value;
+            }
+        }
+
+        return this;
+    }
 
     public Map OverwriteMapWith(Map map)
     {
@@ -1193,33 +1246,127 @@ public class Map {
         return this;
     }
 
-    public Map LerpHeightMap(Map mask)
+    public Map LerpHeightMap(Map mask, AnimationCurve falloffCurve)
     {
-        var yIterativeGrid = new Map(this);
+        var outputMapY = new Map(this);
 
         for (int x = 0; x < SizeX; x++)
         {
-            var chain = new List<Coord>();
-            var inChain = false;
-            var startValue = 0;
-            var endValue = 0;
+            var column = GetGridColumn(this, x, false);
+            var maskColumn = GetGridColumn(mask, x, false);
+            var heightmapRow = CalculateHeightmapRow(column, maskColumn, falloffCurve);
+            outputMapY.ApplyHeightmapRow(heightmapRow, x, false);
+        }
+
+        var outputMapX = new Map(this);
 
 
-            for (int y = 0; y < SizeY; y++)
+        for (int y = 0; y < SizeY; y++)
+        {
+            var column = GetGridColumn(this, y, true);
+            var maskColumn = GetGridColumn(mask, y, true);
+            var heightmapRow = CalculateHeightmapRow(column, maskColumn, falloffCurve);
+            outputMapX.ApplyHeightmapRow(heightmapRow, y, true);
+        }
+
+        var output = (outputMapX + outputMapY).Multiply(0.5f);
+
+        
+        return output;
+    }
+
+    //LerpHeightmap Helper Functions
+
+    float[] GetGridColumn(Map map, int index, bool columnA)
+    {
+        if (!columnA)
+        {
+            var length = map.SizeY;
+            var outputArray = new float[length];
+
+            for (int i = 0; i < length; i++)
             {
-                if (inChain)
-                {
-                    if (mask[x, y] == 0)
-                        continue;
-                }
-                else
-                {
+                outputArray[i] = map[index, i];
+            }
+            return outputArray;
+        }
+        else
+        {
+            var length = map.SizeX;
+            var outputArray = new float[length];
 
-                }   
+            for (int i = 0; i < length; i++)
+            {
+                outputArray[i] = map[i, index];
+            }
+            return outputArray;
+        }
+    }
+
+    float[] CalculateHeightmapRow(float[] heightmapRow, float[] heightmapMask, AnimationCurve curve)
+    {
+
+        HeightmapLerpSegment heightmapLerpSegment = null;
+        var inLoop = false;
+
+        for (int i = 0; i < heightmapRow.Length; i++)
+        {
+
+            var index = heightmapRow[i];
+
+            if (inLoop)
+            {
+                if (heightmapMask[i] != 1)
+                {
+                    inLoop = false;
+                    heightmapLerpSegment.Close(i, index);
+                    heightmapRow = heightmapLerpSegment.Apply(heightmapRow, curve);
+                }
+
+
+
+            }
+            else
+            {
+                if (heightmapMask[i] == 1)
+                {
+                    inLoop = true;
+                    heightmapLerpSegment = new HeightmapLerpSegment(Mathf.Max(0, i - 1), heightmapRow[Mathf.Max(0, i - 1)]);
+                }
             }
         }
 
-        return this;
+        if (inLoop)
+        {
+            heightmapLerpSegment.Close(heightmapRow.Length, heightmapRow[heightmapRow.Length - 1]);
+            heightmapRow = heightmapLerpSegment.Apply(heightmapRow, curve);
+        }
+
+        return heightmapRow;
+    }
+
+    Map ApplyHeightmapRow(float[] heightmapRow, int index, bool columnA)
+    {
+        if (!columnA)
+        {
+            var length = heightmapRow.Length;
+
+            for (int i = 0; i < length; i++)
+            {
+                _map[index, i] = heightmapRow[i];
+            }
+            return this;
+        }
+        else
+        {
+            var length = heightmapRow.Length;
+
+            for (int i = 0; i < length; i++)
+            {
+                _map[i, index] = heightmapRow[i];
+            }
+            return this;
+        }
     }
 
     // Region Helper Functions
@@ -1663,4 +1810,66 @@ public class Map {
 
 
     }
+
+    // Heightmap Helper Class
+
+    class HeightmapLerpSegment {
+
+        int _startIndex;
+        int _endIndex;
+
+        float _startValue;
+        float _endValue;
+
+        public HeightmapLerpSegment(int startIndex, float startValue)
+        {
+
+            _startIndex = startIndex;
+            _startValue = startValue;
+        }
+
+        public void Close(int endIndex, float endValue)
+        {
+
+            _endIndex = endIndex;
+            _endValue = endValue;
+
+
+
+        }
+
+        public float[] Apply(float[] array, AnimationCurve curve)
+        {
+
+            var size = _endIndex - _startIndex;
+
+            for (int i = _startIndex; i < _endIndex; i++)
+            {
+
+
+                if (_startValue == -1 && _endValue == -1)
+                {
+                    array[i] = -1;
+                }
+                else if (_startValue == -1 && _endValue != -1)
+                {
+                    array[i] = _endValue;
+                }
+                else if (_startValue != -1 && _endValue == -1)
+                {
+                    array[i] = _startValue;
+                }
+                else if (_startValue != -1 && _endValue != -1)
+                {
+                    array[i] = Mathf.Lerp(_startValue, _endValue, curve.Evaluate((float)(i - _startIndex) / size));
+                }
+
+            }
+
+            return array;
+        }
+
+
+    }
+
 }

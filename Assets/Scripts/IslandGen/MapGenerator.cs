@@ -26,9 +26,13 @@ public class MapGenerator
 
     public AnimationCurve distanceFieldFalloff;
     public AnimationCurve voronoiFalloff;
+    public AnimationCurve LerpMapFalloff;
+
+    public GameObject ParticleBud;
 
     public Gradient stoneGradient;
     public Gradient grassGradient;
+    public Gradient plantTinting;
 
     public GameObject ThirdPersonController;
 
@@ -80,8 +84,68 @@ public class MapGenerator
         unionMap.AddRoomLogic();
         stack.RecordMapStateToStack(unionMap);
 
-        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise();
+        var perlinSeed = RNG.NextFloat(-1000f, 1000f);
+
+        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise().Clamp(0.5f,1f);
         distanceMap.Normalise();
+        stack.RecordMapStateToStack(distanceMap);
+
+        var cutoffMap = Map.Clone(distanceMap).Clamp(0.5f, 1f);
+        cutoffMap.Normalise();
+        stack.RecordMapStateToStack(cutoffMap);
+
+        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 4, 0.5f, 1.87f);
+        stack.RecordMapStateToStack(perlinMap);
+
+        //var cliffHeightMap = distanceMap;
+
+        var cliffHeightMap = Map.Blend(perlinMap, distanceMap, Map.Clone(cutoffMap).Clamp(0f, 1f).Normalise());
+        stack.RecordMapStateToStack(cliffHeightMap);
+
+
+
+        var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
+
+        var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
+        stack.RecordMapStateToStack(voronoiMap);
+
+        var cellEdgeMap = voronoiGenerator.GetFalloffMap(2).Normalise();
+        stack.RecordMapStateToStack(cellEdgeMap);
+
+        var mountainMap = voronoiGenerator.GetHeightMap(cliffHeightMap).Normalise();
+        stack.RecordMapStateToStack(mountainMap);
+
+        var blurMap = Map.Clone(mountainMap).SmoothMap(2);
+        stack.RecordMapStateToStack(blurMap);
+
+        mountainMap = blurMap + (Map.Clone(voronoiMap).Clamp(0, 0.9f).Remap(0, 0.3f));
+        mountainMap.Normalise();
+        stack.RecordMapStateToStack(mountainMap);
+
+        //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
+        //CreateHeightMesh(vormap);
+
+        var smallerVoronoi = new VoronoiGenerator(map, 0, 0, 0.27f);
+
+        var smallerVoronoiMap = smallerVoronoi.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
+        stack.RecordMapStateToStack(voronoiMap);
+
+        var smallerboosts = smallerVoronoi.GetFalloffMap(3).Normalise();
+        stack.RecordMapStateToStack(smallerboosts);
+
+        var hillMap = Map.BlankMap(Size,Size).FillWilth(0f) + (Map.Clone(smallerVoronoiMap).Remap(0, 0.05f));
+        stack.RecordMapStateToStack(hillMap);
+
+        var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
+        //stack.RecordMapStateToStack(insideMap);
+
+        
+
+
+        var terrain = Map.Blend(mountainMap.Clamp(0.15f,1f).Normalise(), hillMap, Map.Clone(isInside).SmoothMap(1));
+        stack.RecordMapStateToStack(terrain);
+
+        /*
 
         //var distanceMesh = HeightmeshGenerator.GenerateTerrianMesh(distanceMap.Multiply(200), _lens);
 
@@ -107,6 +171,8 @@ public class MapGenerator
 
 
         */
+
+        /*
 
         var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
 
@@ -153,31 +219,22 @@ public class MapGenerator
         stack.RecordMapStateToStack(terrain);
 
         //blendedResult += (voronoiMap.Remap(0f, 0.05f));
+        */
+
+
 
 
         //TextureStuff
 
-        var texture = new Texture2D(Size, Size);
+        /*
 
-        //var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f).Normalise();
-        var textureStuff = Map.Clone(cellEdgeMap).Clamp(0.25f,1f).Normalise();
-        //textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
-        textureStuff.Normalise();
-
-        var secondTexture = Map.Clone(smallerboosts).Clamp(0.2f,0.8f).Normalise();
-        secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
-
-        textureStuff.ApplyTexture(texture,stoneGradient);
-        secondTexture.ApplyTexture(texture, grassGradient, Map.Clone(isInside).ThickenOutline(1).Invert());
-        //textureStuff.ApplyTexture(texture);
-        texture.Apply();
-
-        //TextureStuff
-
-        var mapHeight = 100f;
+         mapHeight = 100f;
 
         var superHeight = new Texture2D(Size, Size);
         terrain.ApplyTexture(superHeight);
+
+
+
 
         
 
@@ -228,7 +285,7 @@ public class MapGenerator
 
 
         
-
+    
 
         //stack.RecordMapStateToStack(perlinMap);
 
@@ -238,18 +295,152 @@ public class MapGenerator
         var mergeMap = Map.Blend(mountainMap.Remap(0.2f,1), new Map(Size,Size,0), isInside);
         stack.RecordMapStateToStack(mergeMap);
 
+    */
+
         //var mergeMap = perlinMap;
 
         //var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(mergeMap.Multiply(100f), _lens);
         //CreateHeightMesh(distanceHeightMap);
 
-        var heightmap = CreateHeightMap(unionMap);
+        var heightmap = CreateHeightMap(unionMap).Normalise();
         stack.RecordMapStateToStack(heightmap);
 
 
-        //CreateTrees(heightmap, unionMap, 7, 0.4f);
+        heightmap = heightmap.LerpHeightMap(unionMap, LerpMapFalloff).SmoothMap(5).Normalise();
+        stack.RecordMapStateToStack(heightmap);
 
-        CreateDebugStack(stack, 200f);
+        var terrainTexture = new Texture2D(Size, Size);
+        terrain.ApplyTexture(terrainTexture);
+
+        var additiveMap = heightmap + (terrain.Multiply(2));
+        stack.RecordMapStateToStack(additiveMap);
+
+        additiveMap.Normalise();
+
+        var heightTexture = new Texture2D(Size, Size);
+        additiveMap.ApplyTexture(heightTexture);
+
+        //TextureStuff
+
+        var texture = new Texture2D(Size, Size);
+
+        //var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f).Normalise();
+        var textureStuff = Map.Clone(cellEdgeMap).Clamp(0.25f, 1f).Normalise();
+        //textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
+        textureStuff.Normalise();
+
+        var secondTexture = Map.Clone(smallerboosts).Clamp(0.2f, 0.8f).Normalise();
+        secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
+        secondTexture += Map.Clone(heightmap).Clamp(0.3f,0.6f).Normalise().Multiply(0.5f);
+        secondTexture.Normalise();
+
+        stack.RecordMapStateToStack(secondTexture);
+
+        textureStuff.ApplyTexture(texture, stoneGradient);
+        secondTexture.ApplyTexture(texture, grassGradient, Map.Clone(isInside).ThickenOutline(0).Invert());
+        //textureStuff.ApplyTexture(texture);
+        texture.Apply();
+
+
+        //SampleMapStuff
+
+        var sampleTexture = new Texture2D(Size, Size);
+
+        var secondSampleTexture = Map.Clone(smallerboosts).Clamp(0.2f, 0.8f).Normalise();
+        secondSampleTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
+        secondSampleTexture.Normalise();
+
+
+        textureStuff.ApplyTexture(sampleTexture, stoneGradient);
+        secondSampleTexture.ApplyTexture(sampleTexture, stoneGradient, Map.Clone(isInside).ThickenOutline(0).Invert());
+        //textureStuff.ApplyTexture(texture);
+        sampleTexture.Apply();
+
+
+
+
+        var mapHeight = 90f;
+
+        var sickHeight = Map.Clone(additiveMap).BooleanMapFromThreshold(0.6f).GetRegions(1);
+        var boostHeight = Map.GetCenters(sickHeight);
+
+        for (int i = 0; i < boostHeight.Count; i++)
+        {
+            var vec3 = _lens.TransformPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
+            var obj = Instantiate(ParticleBud, vec3, Quaternion.identity);
+        }
+
+        //stack.RecordMapStateToStack(sickHeight);
+
+
+        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(additiveMap.Multiply(mapHeight), _lens);
+        var heightObject = CreateHeightMesh(distanceHeightMap, texture);
+
+        var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
+        var collider = heightObject.GetComponent<MeshCollider>();
+
+        var propMap = new PoissonDiscSampler(Size, Size, 0.5f);
+
+        foreach (var sample in propMap.Samples())
+        {
+            var tex = sampleTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+            var heig = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+            var terra = terrainTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+
+            if (tex.grayscale < 0.4f)
+            {
+                
+                if (terra.grayscale > 0.8f)
+                    continue;
+
+                if (terra.grayscale > 0.5f)
+                    continue;
+
+                if (terra.grayscale < 0.05f && RNG.NextFloat() < 0.99f)
+                    continue;
+                    
+
+
+                //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
+
+                var hitpoint = _lens.TransformPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
+
+                RaycastHit hit;
+
+                var materialProperties = new MaterialPropertyBlock();
+                MeshRenderer[] renderers;
+
+
+                if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
+                {
+
+                    float t = RNG.NextFloat(0.0f, 1.0f);
+                    materialProperties.SetColor("_Color", plantTinting.Evaluate(t));
+
+                    var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+
+                    renderers = obj.GetComponentsInChildren<MeshRenderer>();
+
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        renderers[i].SetPropertyBlock(materialProperties);
+                    }
+
+                    obj.transform.position = hit.point + (hit.normal * 0.1f);
+                    obj.transform.up = hit.normal;
+                    obj.transform.localScale *= 1.7f;
+                }
+
+
+
+
+            }
+        }
+
+
+            //CreateTrees(heightmap, unionMap, 7, 0.4f);
+
+            CreateDebugStack(stack, 200f);
     }
 
     //Subdividing Map
