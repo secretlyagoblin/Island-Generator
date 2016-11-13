@@ -781,7 +781,6 @@ GameObject:
   - 92: {fileID: 854973966}
   - 81: {fileID: 854973965}
   - 114: {fileID: 854973971}
-  - 114: {fileID: 854973964}
   - 114: {fileID: 854973970}
   m_Layer: 0
   m_Name: UI Camera
@@ -790,35 +789,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &854973964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 854973963}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd70d448b18cfbc46af26466f752332c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visualizeFocus: 0
-  focalLength: 30
-  focalSize: 0.05
-  aperture: 0.5
-  focalTransform: {fileID: 0}
-  maxBlurSize: 2
-  highResolution: 0
-  blurType: 0
-  blurSampleCount: 2
-  nearBlur: 0
-  foregroundOverlap: 1
-  dofHdrShader: {fileID: 4800000, guid: acd613035ff3e455e8abf23fdc8c8c24, type: 3}
-  dx11BokehShader: {fileID: 4800000, guid: d8e82664aa8686642a424c88ab10164a, type: 3}
-  dx11BokehThreshold: 0.5
-  dx11SpawnHeuristic: 0.0875
-  dx11BokehTexture: {fileID: 2800000, guid: a4cdca73d61814d33ac1587f6c163bca, type: 3}
-  dx11BokehScale: 1.2
-  dx11BokehIntensity: 2.5
 --- !u!81 &854973965
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1155,7 +1125,7 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   ThirdPersonController: {fileID: 635109893}
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
-  Size: 210
+  Size: 250
   plantObjects:
   - {fileID: 143808, guid: 0a3c208c4428312488cb6068f67611b3, type: 2}
   - {fileID: 162320, guid: a38717b696d98614383facb0b300a7de, type: 2}
