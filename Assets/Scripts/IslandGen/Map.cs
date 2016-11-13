@@ -1263,6 +1263,47 @@ public class Map {
         return this;
     }
 
+    public Map PerlinFillMap(float perlinScale, float minNoiseHeight, float maxNoiseHeight, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
+    {
+
+        if (perlinScale <= 0)
+            perlinScale = 0.0001f;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var amp = 1f;
+                var freq = 1f;
+                var noiseHeight = 0f;
+
+                for (int i = 0; i < octaves; i++)
+                {
+                    //var perlinX = seed + (mapCoordinateX * SizeX) + (x / perlinScale * freq);
+                    //var perlinY = seed + (mapCoordinateY * SizeY) + (y / perlinScale * freq);
+
+                    var perlinX =  (x / perlinScale * freq);
+                    var perlinY =  (y / perlinScale * freq);
+
+                    var perlin = Mathf.PerlinNoise(perlinX, perlinY) * 2 - 1;
+                    noiseHeight += perlin * amp;
+                    amp *= persistance;
+                    freq *= lacunarity;
+
+
+                }
+
+                noiseHeight = Mathf.Clamp(noiseHeight, minNoiseHeight, maxNoiseHeight);
+
+                _map[x, y] = noiseHeight;
+
+
+            }
+        }
+
+        return this;
+    }
+
     public Map SmoothMap()
     {
         var nextMap = new Map(this);
