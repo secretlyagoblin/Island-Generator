@@ -4,9 +4,9 @@ using System;
 
 public struct Coord {
     public int TileX
-    { get; private set; }
+    { get; set; }
     public int TileY
-    { get; private set; }
+    { get; set; }
 
     public Coord(int x, int y)
     {

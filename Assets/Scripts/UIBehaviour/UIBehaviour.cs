@@ -34,9 +34,9 @@ public class UIBehaviour:MonoBehaviour {
 
     public void Update()
     {
-        if (Input.GetButtonDown("Cancel"))
+        if (Input.GetButtonDown("Cancel") && !_isUIMode)
         {
-            StartCoroutine(FadeAndThenCallback(Color.white, 0.35f, SwitchToUIMode, false));
+            StartCoroutine(FadeAndThenCallback(Color.white, 0.75f, SwitchToUIMode, false));
         }
     }
 
@@ -53,6 +53,7 @@ public class UIBehaviour:MonoBehaviour {
 
     public void Quit()
     {
+        SetTitleBehind();
         StartCoroutine(FadeAndThenCallback(Color.white, 1f, Application.Quit, false));
         
     }

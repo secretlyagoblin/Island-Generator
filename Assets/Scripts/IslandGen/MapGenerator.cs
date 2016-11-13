@@ -10,6 +10,7 @@ public class MapGenerator
     //REMINDER: 1 = Cell on, 0 = Cell off
 
     public bool CreateProps;
+    public GameObject UICamera;
 
     [Range(0.4f, 0.6f)]
     public float RandomFillPercent;
@@ -88,7 +89,12 @@ public class MapGenerator
 
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
 
-        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise().Clamp(0.5f,1f);
+        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise();
+        var validStartPoint = Map.Clone(distanceMap).Clamp(0.1f, 1).Normalise().GetValidStartLocation();
+        var cameraPosition = Map.Clone(distanceMap).Normalise().Clamp(0.3f, 1f).Normalise().GetValidStartLocation();
+
+
+        distanceMap.Clamp(0.5f,1f);
         distanceMap.Normalise();
         stack.RecordMapStateToStack(distanceMap);
 
@@ -368,6 +374,8 @@ public class MapGenerator
         var sickHeight = Map.Clone(additiveMap).BooleanMapFromThreshold(0.6f).GetRegions(1);
         var boostHeight = Map.GetCenters(sickHeight);
 
+        
+
         for (int i = 0; i < boostHeight.Count; i++)
         {
             var vec3 = _lens.TransformPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
@@ -390,7 +398,7 @@ public class MapGenerator
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
         var collider = heightObject.GetComponent<MeshCollider>();
 
-        var propMap = new PoissonDiscSampler(Size, Size, 0.5f);
+        var propMap = new PoissonDiscSampler(Size, Size, 0.4f);
 
         if (CreateProps)
         {
@@ -456,10 +464,28 @@ public class MapGenerator
 
         }
 
+        var heightmapPoint = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, validStartPoint.TileX), Mathf.InverseLerp(0, Size, validStartPoint.TileY));
+        var userLandPoint = _lens.TransformPosition(new Vector3(validStartPoint.TileX, (heightmapPoint.grayscale * mapHeight) + 1f, validStartPoint.TileY));
 
-            //CreateTrees(heightmap, unionMap, 7, 0.4f);
+        
 
-            CreateDebugStack(stack, 200f);
+        RaycastHit userHit;
+
+
+        if (collider.Raycast(new Ray(userLandPoint, -Vector3.up), out userHit, 2f))
+        {
+            ThirdPersonController.transform.position = userHit.point+(Vector3.up*0.8f);
+        }
+
+
+        userLandPoint = _lens.TransformPosition(new Vector3(cameraPosition.TileX, (heightmapPoint.grayscale * mapHeight+30f) + 1f, cameraPosition.TileY));
+        UICamera.transform.position = userLandPoint;
+
+
+
+        //CreateTrees(heightmap, unionMap, 7, 0.4f);
+
+        //CreateDebugStack(stack, 200f);
     }
 
     //Subdividing Map
