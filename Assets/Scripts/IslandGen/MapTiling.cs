@@ -31,7 +31,10 @@ public class MapTiling : MonoBehaviour {
 
         for (int i = 0; i < 10; i++)
         {
-            var map = new Map(width, height).PerlinFillMap(47.454545f,0,3, 0, i, perlinSeed, 4, 0.5f, 1.87f);
+            //float perlinScale = 47.454545f;
+            float perlinScale = 3f;
+
+            var map = new Map(width, height).PerlinFillMap(perlinScale, new Domain(0.3f,1.8f),new Coord(0,i),new Vector2(0.5f,0.5f), new Vector2(0,0), 7, 0.5f, 1.87f);
             stack.RecordMapStateToStack(map);            
         }
 
@@ -46,6 +49,11 @@ public class MapTiling : MonoBehaviour {
         gameObject.layer = 5;
 
         stack.CreateDebugStack(gameObject.transform);
+
+        for (int i = 0; i < gameObject.transform.childCount; i++)
+        {
+            gameObject.transform.GetChild(i).localScale = new Vector3(1.1f, 1.1f, 1.1f);
+        }
     }
 
 }

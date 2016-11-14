@@ -1263,7 +1263,7 @@ public class Map {
         return this;
     }
 
-    public Map PerlinFillMap(float perlinScale, float minNoiseHeight, float maxNoiseHeight, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
+    public Map PerlinFillMap(float perlinScale, Domain noiseDomain, Coord mapTile, Vector2 mapTileSize, Vector2 seedOffset, int octaves, float persistance, float lacunarity)
     {
 
         if (perlinScale <= 0)
@@ -1279,13 +1279,34 @@ public class Map {
 
                 for (int i = 0; i < octaves; i++)
                 {
-                    //var perlinX = seed + (mapCoordinateX * SizeX) + (x / perlinScale * freq);
-                    //var perlinY = seed + (mapCoordinateY * SizeY) + (y / perlinScale * freq);
 
-                    var perlinX =  (x / perlinScale * freq);
-                    var perlinY =  (y / perlinScale * freq);
+                    //find sample position between 0..1
 
-                    var perlin = Mathf.PerlinNoise(perlinX, perlinY) * 2 - 1;
+                    float localTilePositionX = x / (float)SizeX;
+                    float localTilePositionY = y / (float)SizeY;
+
+                    //offset by tile position, for example 0.332 -> 3.332
+
+                    localTilePositionX += mapTile.TileX;
+                    localTilePositionY += mapTile.TileY;
+
+                    //multiply by scale of the mapTile in real space, i.e. 3.332 * 1.2 = 3.9984
+
+                    localTilePositionX *= mapTileSize.x;
+                    localTilePositionY *= mapTileSize.y;
+
+                    //add seed to offset off of zero
+
+                    localTilePositionX += seedOffset.x;
+                    localTilePositionY += seedOffset.y;
+
+                    //multiply by perlinScale
+
+                    float perlinX = perlinScale * localTilePositionX * freq;
+                    float perlinY = perlinScale * localTilePositionY * freq;
+
+                    var perlin = Mathf.PerlinNoise(perlinX, perlinY);
+
                     noiseHeight += perlin * amp;
                     amp *= persistance;
                     freq *= lacunarity;
@@ -1293,7 +1314,7 @@ public class Map {
 
                 }
 
-                noiseHeight = Mathf.Clamp(noiseHeight, minNoiseHeight, maxNoiseHeight);
+                noiseHeight = noiseDomain.Clamp(noiseHeight);
 
                 _map[x, y] = noiseHeight;
 
