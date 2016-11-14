@@ -34,29 +34,39 @@ public class MapTiling : MonoBehaviour {
 
         var size = 5;
 
-        for (int x = 0; x < 10; x++)
-        {
-            for (int y = 0; y < 10; y++)
-            {
-                float perlinScale = 3f;
+        //for (int x = 0; x < 3; x++)
+        //{
+        //    for (int y = 0; y < 3; y++)
+        //    {
+        //        float perlinScale = 3f;
+        //
+        //        var map = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        //        //stack.RecordMapStateToStack(map);
+        //
+        //        //Debug.Log("Start mesh");
+        //
+        //        var meshGen = HeightmeshGenerator.GenerateHeightmeshPatch(map, lens);
+        //
+        //        size++;
+        //
+        //        //Debug.Log("End Mesh");
+        //
+        //        var mesh = CreateHeightMesh(meshGen, new Coord(x, y), lens);
+        //    }
+        //}
 
-                var map = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
-                //stack.RecordMapStateToStack(map);
+        var coordA = new Coord(0, 0);
+        var coordB = new Coord(0, -1);
 
-                //Debug.Log("Start mesh");
+        var mapA = new Map(4, 4).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordA, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        CreateHeightMesh(HeightmeshGenerator.GenerateHeightmeshPatch(mapA, lens),coordA,lens);
+        var mapB = new Map(4, 4).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordB, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        CreateHeightMesh(HeightmeshGenerator.GenerateHeightmeshPatch(mapB, lens), coordB, lens);
 
-                var meshGen = HeightmeshGenerator.GenerateTerrianMesh(map, lens);
-
-                size++;
-
-                //Debug.Log("End Mesh");
-
-                var mesh = CreateHeightMesh(meshGen, new Coord(x, y), lens);
-            }
-        }
+        HeightmeshGenerator.GenerateMeshSeam(mapA, coordA, mapB, coordB, lens);
     }
 
-    GameObject CreateHeightMesh(HeightMesh heightMesh, Coord tile, MeshLens lens)
+    GameObject CreateHeightMesh(HeightmeshPatch heightMesh, Coord tile, MeshLens lens)
     {
         var mesh = heightMesh.CreateMesh();
 

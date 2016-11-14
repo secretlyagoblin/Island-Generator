@@ -3,12 +3,12 @@ using System.Collections;
 
 public static class HeightmeshGenerator {
 
-    public static HeightMesh GenerateTerrianMesh(Map heightMap, MeshLens lens)
+    public static HeightmeshPatch GenerateHeightmeshPatch(Map heightMap, MeshLens lens)
     {
         var sizeX = heightMap.SizeX;
         var sizeY = heightMap.SizeY;
 
-        var heightmesh = new HeightMesh(sizeX, sizeY);
+        var heightmesh = new HeightmeshPatch(sizeX, sizeY);
         var vertexIndex = 0;
 
         for (int x = 0; x < sizeX; x++)
@@ -34,9 +34,66 @@ public static class HeightmeshGenerator {
         }
         return heightmesh;
     }
+
+    public static HeightmeshSeam GenerateMeshSeam(Map MapA, Coord CoordA, Map MapB,Coord CoordB, MeshLens lens)
+    {
+        if (CoordA.TileX == CoordB.TileX && CoordA.TileY == CoordB.TileY)
+        {
+            Debug.Log("Patches are Identical!");
+            return null;
+        }
+
+        if (CoordA.TileX != CoordB.TileX && CoordA.TileY != CoordB.TileY)
+        {
+            Debug.Log("Patches are Diagonal!");
+            return null;
+        }
+
+        Vector3[] seamA;
+        Vector3[] seamB;
+
+        if (CoordA.TileX < CoordB.TileX)
+        {
+            seamA = MapA.GetNormalisedVectorColumn(MapA.SizeX - 1);
+            seamB = MapB.GetNormalisedVectorColumn(0);
+        }
+        else if (CoordA.TileX > CoordB.TileX)
+        {
+            seamA = MapA.GetNormalisedVectorColumn(0);
+            seamB = MapB.GetNormalisedVectorColumn(MapB.SizeY - 1);
+        }
+        else if (CoordA.TileY < CoordB.TileY)
+        {
+
+            seamA = MapA.GetNormalisedVectorRow(MapA.SizeY - 1);
+            seamB = MapB.GetNormalisedVectorRow(0);
+        }
+        else
+        {
+            seamA = MapA.GetNormalisedVectorRow(0);
+            seamB = MapB.GetNormalisedVectorRow(MapB.SizeY - 1);
+        }
+
+
+
+        for (int a = 0; a < seamA.Length; a++)
+        {
+            for (int b = 0; b < seamB.Length; b++)
+            {
+                var pointA = lens.TransformNormalisedPosition(seamA[a] + CoordA.Vector3);
+                var pointB = lens.TransformNormalisedPosition(seamB[b] + CoordB.Vector3);
+
+                Debug.DrawLine(pointA, pointB, Color.white, 100f);
+            }
+        }
+
+
+
+        return new HeightmeshSeam();
+    }
 }
 
-public class HeightMesh {
+public class HeightmeshPatch {
 
     public Vector3[] Vertices
     { get; private set; }
@@ -47,7 +104,7 @@ public class HeightMesh {
 
     int _triangleIndex = 0;
 
-    public HeightMesh(int meshWidth, int meshHeight)
+    public HeightmeshPatch(int meshWidth, int meshHeight)
     {
         Vertices = new Vector3[meshWidth * meshHeight];
         UVs = new Vector2[meshWidth * meshHeight];
@@ -83,5 +140,23 @@ public class HeightMesh {
         mesh.RecalculateBounds();
         return mesh;
     }
+
+}
+
+public class HeightmeshSeam {
+
+    public Vector3[] Vertices
+    { get; private set; }
+    public Vector2[] UVs
+    { get; private set; }
+    public int[] Triangles
+    { get; private set; }
+
+    int _triangleIndex = 0;
+
+    float[] _mapA;
+    float[] _mapB;
+
+
 
 }

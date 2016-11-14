@@ -594,6 +594,56 @@ public class Map {
         return (new Coord((int)(SizeX * 0.5f), (int)(SizeY * 0.5f)));
     }
 
+    // List Fuctions
+
+    public float[] GetColumn(int xIndex)
+    {
+        var outputFloat = new float[SizeY];
+
+        for (int y = 0; y < SizeY; y++)
+        {
+            outputFloat[y] = _map[xIndex, y];
+        }
+
+        return outputFloat;
+    }
+
+    public float[] GetRow(int yIndex)
+    {
+        var outputFloat = new float[SizeX];
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            outputFloat[x] = _map[x, yIndex];
+        }
+
+        return outputFloat;
+    }
+
+    public Vector3[] GetNormalisedVectorColumn(int xIndex)
+    {
+        var outputVectorArray = new Vector3[SizeY];
+
+        for (int y = 0; y < SizeY; y++)
+        {
+            outputVectorArray[y] = new Vector3(xIndex/(float)SizeX, _map[xIndex, y],y/ (float)SizeY);
+        }
+
+        return outputVectorArray;
+    }
+
+    public Vector3[] GetNormalisedVectorRow(int yIndex)
+    {
+        var outputVectorArray = new Vector3[SizeX];
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            outputVectorArray[x] = new Vector3(x / (float)SizeX, _map[x, yIndex], yIndex / (float)SizeY);
+        }
+
+        return outputVectorArray;
+    }
+
     // Iterative Functions that Require Bool
 
     public Map BoolSmoothOperation()

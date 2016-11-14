@@ -392,7 +392,7 @@ public class MapGenerator
         //stack.RecordMapStateToStack(sickHeight);
 
 
-        var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(additiveMap.Multiply(mapHeight), _lens);
+        var distanceHeightMap = HeightmeshGenerator.GenerateHeightmeshPatch(additiveMap.Multiply(mapHeight), _lens);
         var heightObject = CreateHeightMesh(distanceHeightMap, texture);
 
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
@@ -540,7 +540,7 @@ public class MapGenerator
 
     }
 
-    GameObject CreateHeightMesh(HeightMesh heightMesh, Texture2D texture)
+    GameObject CreateHeightMesh(HeightmeshPatch heightMesh, Texture2D texture)
     {
         var mesh = heightMesh.CreateMesh();
 
