@@ -29,13 +29,17 @@ public class MapTiling : MonoBehaviour {
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
         var stack = new MeshDebugStack(BaseMaterial);
 
+        var size = 5;
+
         for (int i = 0; i < 10; i++)
         {
             //float perlinScale = 47.454545f;
             float perlinScale = 3f;
 
-            var map = new Map(width, height).PerlinFillMap(perlinScale, new Domain(0.3f,1.8f),new Coord(0,i),new Vector2(0.5f,0.5f), new Vector2(0,0), 7, 0.5f, 1.87f);
-            stack.RecordMapStateToStack(map);            
+            var map = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f,1.8f),new Coord(0,i),new Vector2(0.5f,0.5f), new Vector2(0,0), 2, 0.5f, 1.87f);
+            stack.RecordMapStateToStack(map);
+
+            size = (int)(size*1.5f);     
         }
 
         CreateDebugStack(stack, 0);

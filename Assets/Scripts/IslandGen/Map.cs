@@ -391,6 +391,7 @@ public class Map {
         return this;
     }
 
+
     public Map Remap(AnimationCurve curve)
     {
         for (int x = 0; x < SizeX; x++)
