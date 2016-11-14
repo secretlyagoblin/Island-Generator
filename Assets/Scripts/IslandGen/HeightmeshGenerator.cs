@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public static class HeightmeshGenerator {
 
@@ -49,6 +49,13 @@ public static class HeightmeshGenerator {
             return null;
         }
 
+        var newCoordA = new Coord(0, 0);
+        CoordB = new Coord(CoordB.TileX - CoordA.TileX, CoordB.TileY - CoordA.TileY);
+        CoordA = new Coord(0, 0);
+
+
+
+
         Vector3[] seamA;
         Vector3[] seamB;
 
@@ -74,22 +81,79 @@ public static class HeightmeshGenerator {
             seamB = MapB.GetNormalisedVectorRow(MapB.SizeY - 1);
         }
 
+        Vector3[] longest;
+        Coord longestCoord;
+        Vector3[] shortest;
+        Coord shortestCoord;
 
-
-        for (int a = 0; a < seamA.Length; a++)
+        if (seamA.Length > seamB.Length)
         {
-            for (int b = 0; b < seamB.Length; b++)
-            {
-                var pointA = lens.TransformNormalisedPosition(seamA[a] + CoordA.Vector3);
-                var pointB = lens.TransformNormalisedPosition(seamB[b] + CoordB.Vector3);
+            longest = seamA;
+            longestCoord = CoordA;
+            shortest = seamB;
+            shortestCoord = CoordB;
+        }
+        else
+        {
+            longest = seamB;
+            longestCoord = CoordB;
+            shortest = seamA;
+            shortestCoord = CoordA;
 
-                Debug.DrawLine(pointA, pointB, Color.white, 100f);
+        }
+
+        var seam = new HeightmeshSeam(longest, longestCoord, shortest, shortestCoord, lens);
+
+
+        var lastIndexB = longest.Length;
+
+        for (int a = 0; a < longest.Length-1; a++)
+        {
+
+            int indexB = (int)((a / (float)longest.Length) * shortest.Length);
+            indexB += longest.Length;
+
+            seam.AddTriangle(indexB, a + 1, a);
+
+            if (lastIndexB != indexB)
+            {
+
+                seam.AddTriangle(lastIndexB, indexB, a);
+
+                lastIndexB = indexB;
             }
+
+            //var pointA = lens.TransformNormalisedPosition(longest[a] + longestCoord.Vector3);
+
+
+            //var pointB = lens.TransformNormalisedPosition(shortest[indexB] + shortestCoord.Vector3);
+
+            //if(lastIndexB != indexB)
+            //{                
+            //    Debug.DrawLine(pointA, lastPointB, Color.red, 100f);
+            //    lastPointB = pointB;
+            //    lastIndexB = indexB;
+            //}
+            //
+            //Debug.DrawLine(pointA, pointB, Color.white, 100f);
         }
 
 
 
-        return new HeightmeshSeam();
+        //for (int a = 0; a < seamA.Length; a++)
+        //{
+        //    for (int b = 0; b < seamB.Length; b++)
+        //    {
+        //        var pointA = lens.TransformNormalisedPosition(seamA[a] + CoordA.Vector3);
+        //        var pointB = lens.TransformNormalisedPosition(seamB[b] + CoordB.Vector3);
+        //
+        //        Debug.DrawLine(pointA, pointB, Color.white, 100f);
+        //    }
+        //}
+
+
+
+        return seam;
     }
 }
 
@@ -149,14 +213,66 @@ public class HeightmeshSeam {
     { get; private set; }
     public Vector2[] UVs
     { get; private set; }
-    public int[] Triangles
+    public List<int> Triangles
     { get; private set; }
-
-    int _triangleIndex = 0;
 
     float[] _mapA;
     float[] _mapB;
 
+    public HeightmeshSeam(Vector3[] longArray,Coord longCoord, Vector3[] shortArray, Coord shortCoord,  MeshLens lens)
+    {
+        Vertices = new Vector3[longArray.Length+shortArray.Length];
+        UVs = new Vector2[longArray.Length + shortArray.Length];
+
+        CalculateVectorArray(longArray, 0, longCoord, lens);
+        CalculateVectorArray(shortArray, longArray.Length, shortCoord, lens);
+        SetUVs(new Vector3[][] {longArray,shortArray});
+        Triangles = new List<int>();
+
+        
+    }
+
+    void CalculateVectorArray(Vector3[] array, int startIndex, Coord coord, MeshLens lens)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            Vertices[i+startIndex] = lens.TransformNormalisedPosition(array[i] + coord.Vector3);
+        }
+    }
+
+    void SetUVs(Vector3[][] arrays)
+    {
+        var vectorList = new List<Vector2>();
+
+        for (int i = 0; i < arrays.Length; i++)
+        {
+            for (int u = 0; u < arrays[i].Length; u++)
+            {
+                var vec = arrays[i][u];
+                vectorList.Add(new Vector2(vec.x,vec.z));
+            }
+        }
+
+        UVs = vectorList.ToArray();
+    }
+
+    public void AddTriangle(int a, int b, int c)
+    {
+        Triangles.Add(a);
+        Triangles.Add(b);
+        Triangles.Add(c);
+    }
+
+    public Mesh CreateMesh()
+    {
+        Mesh mesh = new Mesh();
+        mesh.vertices = Vertices;
+        mesh.uv = UVs;
+        mesh.triangles = Triangles.ToArray();
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        return mesh;
+    }
 
 
 }

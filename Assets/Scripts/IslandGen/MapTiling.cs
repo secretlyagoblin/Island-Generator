@@ -56,14 +56,25 @@ public class MapTiling : MonoBehaviour {
         //}
 
         var coordA = new Coord(0, 0);
-        var coordB = new Coord(0, -1);
+        var coordB = new Coord(0, 1);
+        var coordC = new Coord(1, 0);
+        var coordD = new Coord(1, 1);
 
-        var mapA = new Map(4, 4).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordA, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        var mapA = new Map(8, 8).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordA, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
         CreateHeightMesh(HeightmeshGenerator.GenerateHeightmeshPatch(mapA, lens),coordA,lens);
-        var mapB = new Map(4, 4).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordB, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        var mapB = new Map(16, 16).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordB, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
         CreateHeightMesh(HeightmeshGenerator.GenerateHeightmeshPatch(mapB, lens), coordB, lens);
+        var mapC = new Map(28, 28).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordC, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        CreateHeightMesh(HeightmeshGenerator.GenerateHeightmeshPatch(mapC, lens), coordC, lens);
+        var mapD = new Map(28, 28).PerlinFillMap(3f, new Domain(0.3f, 1.8f), coordD, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+        CreateHeightMesh(HeightmeshGenerator.GenerateHeightmeshPatch(mapD, lens), coordD, lens);
 
-        HeightmeshGenerator.GenerateMeshSeam(mapA, coordA, mapB, coordB, lens);
+        CreateSeam(HeightmeshGenerator.GenerateMeshSeam(mapB, coordB, mapA, coordA, lens), coordA, lens);
+        CreateSeam(HeightmeshGenerator.GenerateMeshSeam(mapC, coordC, mapA, coordA, lens), coordC, lens);
+
+        CreateSeam(HeightmeshGenerator.GenerateMeshSeam(mapD, coordD, mapB, coordB, lens), coordD, lens);
+        CreateSeam(HeightmeshGenerator.GenerateMeshSeam(mapD, coordD, mapC, coordC, lens), coordD, lens);
+        //HeightmeshGenerator.GenerateMeshSeam(mapA, coordA, mapC, coordC, lens);
     }
 
     GameObject CreateHeightMesh(HeightmeshPatch heightMesh, Coord tile, MeshLens lens)
@@ -71,7 +82,7 @@ public class MapTiling : MonoBehaviour {
         var mesh = heightMesh.CreateMesh();
 
         var parent = new GameObject();
-        parent.name = "HeightMap";
+        parent.name = "Patch " + tile.TileX + " " + tile.TileY;
         parent.transform.parent = transform;
         parent.transform.localPosition = Vector3.zero + lens.TransformNormalisedPosition(tile.TileX,0,tile.TileY);
         
@@ -89,6 +100,30 @@ public class MapTiling : MonoBehaviour {
 
         return parent;
 
+    }
+
+    GameObject CreateSeam(HeightmeshSeam seam, Coord tile, MeshLens lens)
+    {
+        var mesh = seam.CreateMesh();
+
+        var parent = new GameObject();
+        parent.name = "Seam";
+        parent.transform.parent = transform;
+        parent.transform.localPosition = Vector3.zero + lens.TransformNormalisedPosition(tile.TileX, 0, tile.TileY);
+
+
+        var renderer = parent.AddComponent<MeshRenderer>();
+        var material = new Material(TerrianMaterial);
+        //material.mainTexture = texture;
+        material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
+        renderer.material = material;
+        var filter = parent.AddComponent<MeshFilter>();
+        var collider = parent.AddComponent<MeshCollider>();
+
+        collider.sharedMesh = mesh;
+        filter.mesh = mesh;
+
+        return parent;
     }
 
     void CreateDebugStack(MeshDebugStack stack, float height)
