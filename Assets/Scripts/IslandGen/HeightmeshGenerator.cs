@@ -15,10 +15,13 @@ public static class HeightmeshGenerator {
         {
             for (int y = 0; y < sizeY; y++)
             {
-                var normalisedX = x / (float)sizeX;
-                var normalisedY = y / (float)sizeY;
+                var normalisedX = x / (float)(sizeX);
+                var normalisedY = y / (float)(sizeY);
 
                 heightmesh.AddVertex(lens.TransformNormalisedPosition(normalisedX, heightMap[x, y], normalisedY), vertexIndex);
+
+                //Debug.Log("x: " + normalisedX + " y: " + heightMap[x, y] + " z: " + normalisedY);
+
                 heightmesh.AddUV(new Vector2(normalisedX, normalisedY), vertexIndex);
 
                 if(x < sizeX-1 && y < sizeY - 1)

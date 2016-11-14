@@ -29,27 +29,31 @@ public class MapTiling : MonoBehaviour {
     {
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
         var stack = new MeshDebugStack(DebugMaterial);
-        var lens = new MeshLens(new Vector3(10, 5, 10));
+        var lens = new MeshLens(new Vector3(70, 50, 70));
 
 
         var size = 5;
 
-        for (int i = 0; i < 10; i++)
+        for (int x = 0; x < 10; x++)
         {
-            //float perlinScale = 47.454545f;
-            float perlinScale = 3f;
+            for (int y = 0; y < 10; y++)
+            {
+                float perlinScale = 3f;
 
-            var map = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f,1.8f),new Coord(0,i),new Vector2(0.5f,0.5f), new Vector2(0,0), 2, 0.5f, 1.87f);
-            stack.RecordMapStateToStack(map);
+                var map = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);
+                //stack.RecordMapStateToStack(map);
 
-            var meshGen = HeightmeshGenerator.GenerateTerrianMesh(map, lens);
-            var mesh = CreateHeightMesh(meshGen, new Coord(0,i), lens);
+                //Debug.Log("Start mesh");
 
+                var meshGen = HeightmeshGenerator.GenerateTerrianMesh(map, lens);
 
-            size = (int)(size*1.5f);     
+                size++;
+
+                //Debug.Log("End Mesh");
+
+                var mesh = CreateHeightMesh(meshGen, new Coord(x, y), lens);
+            }
         }
-
-        //CreateDebugStack(stack, 0);
     }
 
     GameObject CreateHeightMesh(HeightMesh heightMesh, Coord tile, MeshLens lens)
