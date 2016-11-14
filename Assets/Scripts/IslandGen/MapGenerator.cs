@@ -50,7 +50,7 @@ public class MapGenerator
     [Range(0, 10)]
     public int Iterations;
 
-    MeshGenerator _meshGen = new MeshGenerator();
+    MarchingSquaresMeshGenerator _meshGen = new MarchingSquaresMeshGenerator();
 
     //Monobehaviour Stuff
 

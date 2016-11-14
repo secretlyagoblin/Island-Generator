@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class MeshGenerator {
+public class MarchingSquaresMeshGenerator {
 
     List<Vector3> _verts = new List<Vector3>();
     List<int> _tris = new List<int>();

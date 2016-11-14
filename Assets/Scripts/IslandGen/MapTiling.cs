@@ -9,7 +9,7 @@ public class MapTiling : MonoBehaviour {
     public int Size;
     public Material BaseMaterial;
 
-    MeshGenerator _meshGen = new MeshGenerator();
+    MarchingSquaresMeshGenerator _meshGen = new MarchingSquaresMeshGenerator();
     
 
     // Use this for initialization
