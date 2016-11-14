@@ -15,19 +15,20 @@ public static class HeightmeshGenerator {
         {
             for (int y = 0; y < sizeY; y++)
             {
-                heightmesh.AddVertex(lens.TransformPosition(new Vector3(x, heightMap[x, y], y)), vertexIndex);
-                heightmesh.AddUV(new Vector2(x / (float)sizeX, y / (float)sizeY), vertexIndex);
+                var normalisedX = x / (float)sizeX;
+                var normalisedY = y / (float)sizeY;
+
+                heightmesh.AddVertex(lens.TransformNormalisedPosition(normalisedX, heightMap[x, y], normalisedY), vertexIndex);
+                heightmesh.AddUV(new Vector2(normalisedX, normalisedY), vertexIndex);
 
                 if(x < sizeX-1 && y < sizeY - 1)
                 {
                     heightmesh.AddTriangle(vertexIndex, vertexIndex + sizeX + 1, vertexIndex + sizeX);
                     heightmesh.AddTriangle(vertexIndex+sizeX+1, vertexIndex, vertexIndex + 1);
                 }
-
                 vertexIndex++;
             }
         }
-
         return heightmesh;
     }
 }

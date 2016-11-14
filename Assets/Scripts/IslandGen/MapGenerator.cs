@@ -58,7 +58,7 @@ public class MapGenerator
     {
         RNG.Init(DateTime.Now.ToString());
 
-        _lens = new MeshLens(Size, Size, new Vector3(2f,1.3f,2f));        
+        _lens = new MeshLens(new Vector3(Size, 1f, Size));        
 
         GenerateMap(Size,Size);
     }
@@ -378,7 +378,7 @@ public class MapGenerator
 
         for (int i = 0; i < boostHeight.Count; i++)
         {
-            var vec3 = _lens.TransformPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
+            var vec3 = _lens.TransformNormalisedPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
             var obj = Instantiate(ParticleBud, vec3, Quaternion.identity);
         }
 
@@ -428,7 +428,7 @@ public class MapGenerator
 
                     //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
 
-                    var hitpoint = _lens.TransformPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
+                    var hitpoint = _lens.TransformNormalisedPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
 
                     RaycastHit hit;
 
@@ -465,7 +465,7 @@ public class MapGenerator
         }
 
         var heightmapPoint = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, validStartPoint.TileX), Mathf.InverseLerp(0, Size, validStartPoint.TileY));
-        var userLandPoint = _lens.TransformPosition(new Vector3(validStartPoint.TileX, (heightmapPoint.grayscale * mapHeight) + 1f, validStartPoint.TileY));
+        var userLandPoint = _lens.TransformNormalisedPosition(new Vector3(validStartPoint.TileX, (heightmapPoint.grayscale * mapHeight) + 1f, validStartPoint.TileY));
 
         
 
@@ -478,7 +478,7 @@ public class MapGenerator
         }
 
 
-        userLandPoint = _lens.TransformPosition(new Vector3(cameraPosition.TileX, (heightmapPoint.grayscale * mapHeight+30f) + 1f, cameraPosition.TileY));
+        userLandPoint = _lens.TransformNormalisedPosition(new Vector3(cameraPosition.TileX, (heightmapPoint.grayscale * mapHeight+30f) + 1f, cameraPosition.TileY));
         UICamera.transform.position = userLandPoint;
 
 
@@ -631,16 +631,16 @@ public class MapGenerator
                 {
                     if (perlin > 0.8 && RNG.Next(0, 3) < 1)
                     {
-                        treePositions.Add(_lens.TransformPosition(x, heightMap[x, y], y));
+                        treePositions.Add(_lens.TransformNormalisedPosition(x, heightMap[x, y], y));
                     }
                     else if (RNG.Next(0, 10) < 1)
                     {
-                        treePositions.Add(_lens.TransformPosition(x, heightMap[x,y],y));
+                        treePositions.Add(_lens.TransformNormalisedPosition(x, heightMap[x,y],y));
                     }
                 }
                 else if (mask[x, y] != 1 && RNG.Next(0, 100) < 1)
                 {
-                    treePositions.Add(_lens.TransformPosition(x, heightMap[x, y], y));
+                    treePositions.Add(_lens.TransformNormalisedPosition(x, heightMap[x, y], y));
                 }
 
             }

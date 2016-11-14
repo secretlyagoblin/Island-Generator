@@ -7,7 +7,8 @@ using System.Linq;
 public class MapTiling : MonoBehaviour {
 
     public int Size;
-    public Material BaseMaterial;
+    public Material DebugMaterial;
+    public Material TerrianMaterial;
 
     MarchingSquaresMeshGenerator _meshGen = new MarchingSquaresMeshGenerator();
     
@@ -27,7 +28,9 @@ public class MapTiling : MonoBehaviour {
     void GenerateMap(int width, int height)
     {
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
-        var stack = new MeshDebugStack(BaseMaterial);
+        var stack = new MeshDebugStack(DebugMaterial);
+        var lens = new MeshLens(new Vector3(10, 5, 10));
+
 
         var size = 5;
 
@@ -39,10 +42,39 @@ public class MapTiling : MonoBehaviour {
             var map = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f,1.8f),new Coord(0,i),new Vector2(0.5f,0.5f), new Vector2(0,0), 2, 0.5f, 1.87f);
             stack.RecordMapStateToStack(map);
 
+            var meshGen = HeightmeshGenerator.GenerateTerrianMesh(map, lens);
+            var mesh = CreateHeightMesh(meshGen, new Coord(0,i), lens);
+
+
             size = (int)(size*1.5f);     
         }
 
-        CreateDebugStack(stack, 0);
+        //CreateDebugStack(stack, 0);
+    }
+
+    GameObject CreateHeightMesh(HeightMesh heightMesh, Coord tile, MeshLens lens)
+    {
+        var mesh = heightMesh.CreateMesh();
+
+        var parent = new GameObject();
+        parent.name = "HeightMap";
+        parent.transform.parent = transform;
+        parent.transform.localPosition = Vector3.zero + lens.TransformNormalisedPosition(tile.TileX,0,tile.TileY);
+        
+
+        var renderer = parent.AddComponent<MeshRenderer>();
+        var material = new Material(TerrianMaterial);
+        //material.mainTexture = texture;
+        material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
+        renderer.material = material;
+        var filter = parent.AddComponent<MeshFilter>();
+        var collider = parent.AddComponent<MeshCollider>();
+
+        collider.sharedMesh = mesh;
+        filter.mesh = mesh;
+
+        return parent;
+
     }
 
     void CreateDebugStack(MeshDebugStack stack, float height)

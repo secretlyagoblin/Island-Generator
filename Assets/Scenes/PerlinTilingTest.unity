@@ -268,7 +268,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 5
-  BaseMaterial: {fileID: 2100000, guid: ac75297f10a754d44b77e67b8075a8da, type: 2}
+  DebugMaterial: {fileID: 2100000, guid: ac75297f10a754d44b77e67b8075a8da, type: 2}
+  TerrianMaterial: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
 --- !u!4 &732221425
 Transform:
   m_ObjectHideFlags: 0

@@ -66,8 +66,8 @@ public class MarchingSquaresMeshGenerator {
         int tileAmount = 10;
         for (int i = 0; i < verts.Count; i++)
         {
-            var min = _lens.TransformPosition(0, 0, 0);
-            var max = _lens.TransformPosition(map.SizeX, 0, map.SizeY);
+            var min = _lens.TransformNormalisedPosition(0, 0, 0);
+            var max = _lens.TransformNormalisedPosition(map.SizeX, 0, map.SizeY);
 
             float percentX = Mathf.InverseLerp(min.x, max.x, verts[i].x) * tileAmount;
             float percentY = Mathf.InverseLerp(min.z, max.z, verts[i].z) * tileAmount;
@@ -162,7 +162,7 @@ public class MarchingSquaresMeshGenerator {
 
             var controlNodes = new ControlNode[nodeCountX, nodeCountY];
 
-            var offset = lens.TransformVector(0.5f, 0, 0.5f);
+            var offset = lens.TransformNormalisedVector(0.5f, 0, 0.5f);
             Debug.Log(offset);
 
             for (int x = 0; x < nodeCountX; x++)
@@ -170,7 +170,7 @@ public class MarchingSquaresMeshGenerator {
                 for (int y = 0; y < nodeCountY; y++)
                 {
 
-                    var pos = lens.TransformPosition(x, 0, y) + offset;
+                    var pos = lens.TransformNormalisedPosition(x, 0, y) + offset;
                     controlNodes[x, y] = new ControlNode(pos, map[x, y] == 1, offset);
                 }
             }
