@@ -59,6 +59,8 @@ public static class HeightmeshGenerator {
         Vector3[] seamA;
         Vector3[] seamB;
 
+        var column = true;
+
         if (CoordA.TileX < CoordB.TileX)
         {
             seamA = MapA.GetNormalisedVectorColumn(MapA.SizeX - 1);
@@ -71,12 +73,13 @@ public static class HeightmeshGenerator {
         }
         else if (CoordA.TileY < CoordB.TileY)
         {
-
+            column = false;
             seamA = MapA.GetNormalisedVectorRow(MapA.SizeY - 1);
             seamB = MapB.GetNormalisedVectorRow(0);
         }
         else
         {
+            column = false;
             seamA = MapA.GetNormalisedVectorRow(0);
             seamB = MapB.GetNormalisedVectorRow(MapB.SizeY - 1);
         }
@@ -113,12 +116,28 @@ public static class HeightmeshGenerator {
             int indexB = (int)((a / (float)longest.Length) * shortest.Length);
             indexB += longest.Length;
 
-            seam.AddTriangle(indexB, a + 1, a);
+            if (column)
+            {
+                seam.AddTriangle(indexB, a + 1, a);
+            }
+            else
+            {
+                seam.AddTriangle(a, a + 1, indexB);
+            }
+
+
 
             if (lastIndexB != indexB)
             {
-
-                seam.AddTriangle(lastIndexB, indexB, a);
+                if (column)
+                {
+                    seam.AddTriangle(lastIndexB, indexB, a);
+                }
+                else
+                {
+                    seam.AddTriangle(a , indexB, lastIndexB);
+                }
+                
 
                 lastIndexB = indexB;
             }
