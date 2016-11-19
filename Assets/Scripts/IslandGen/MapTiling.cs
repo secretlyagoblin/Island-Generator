@@ -30,7 +30,7 @@ public class MapTiling : MonoBehaviour {
     {
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
         var stack = new MeshDebugStack(DebugMaterial);
-        var lens = new MeshLens(new Vector3(120, 50, 120));
+        var lens = new MeshLens(new Vector3(400, 400, 400));
         var size = 128;
 
         var perlinScale = 3f;
@@ -44,7 +44,7 @@ public class MapTiling : MonoBehaviour {
             for (int y = 0; y < mapCount; y++)
             {
 
-                MapArray[x,y] = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f);        
+                MapArray[x,y] = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1,2f);        
                 //size += 5;
             }
         }
