@@ -40,11 +40,11 @@ public class InfiniteTerrain : MonoBehaviour {
         if (_mapThread.Count == 0)
             return;
 
-        for (int i = 0; i < _mapThread.Count; i++)
+        for (int i = 0; i < Math.Min(_mapThread.Count,2); i++)
         {
             var data = _mapThread.Dequeue();
             data.Callback(data.Parameter);
-            Debug.Log("I worked");
+            //Debug.Log("I worked");
         }
 
 
@@ -99,17 +99,18 @@ public class InfiniteTerrain : MonoBehaviour {
         int _size;
 
 
-        int _currentLodCount = 4;
+        int _currentLodCount = 6;
         int _currentLod = -1;
 
         int _mapSize = 240;
+        int _mapMinSize = 10;
 
         Mesh[] _lods;
         LODstatus[] _lodStatus;
 
 
         MeshFilter _filter;
-        MeshCollider _collider;
+        //MeshCollider _collider;
 
         public TerrainChunk(Vector2 coord, int size, Transform transform, Material terrainMaterial)
         {
@@ -142,7 +143,7 @@ public class InfiniteTerrain : MonoBehaviour {
             //material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
             renderer.sharedMaterial = material;
             _filter = _meshObject.AddComponent<MeshFilter>();
-            _collider = _meshObject.AddComponent<MeshCollider>();
+            //_collider = _meshObject.AddComponent<MeshCollider>();
 
             CreateLOD(_currentLodCount-1);
 
@@ -153,7 +154,7 @@ public class InfiniteTerrain : MonoBehaviour {
         {
             var viewerDistanceFromNearestEdge = Mathf.Sqrt(_bounds.SqrDistance(_viewerPosition));
 
-            var part = Mathf.InverseLerp(0, MaxViewDistance*0.6f, viewerDistanceFromNearestEdge);
+            var part = Mathf.InverseLerp(0, MaxViewDistance*0.8f, viewerDistanceFromNearestEdge);
 
             if(part < 1f)
             {
@@ -169,7 +170,7 @@ public class InfiniteTerrain : MonoBehaviour {
                     else if (_lodStatus[lod] == LODstatus.Created)
                     {
                         _filter.mesh = _lods[lod];
-                        _collider.sharedMesh = _lods[lod];
+                        //_collider.sharedMesh = _lods[lod];
 
                         _currentLod = lod;
                     }
@@ -196,7 +197,7 @@ public class InfiniteTerrain : MonoBehaviour {
         void CreateLOD(int LOD)
         {
             var t = Mathf.InverseLerp(0, _currentLodCount-1, LOD);
-            var mapSize = -((int)Mathf.Lerp(-_mapSize, -15, t));
+            var mapSize = -((int)Mathf.Lerp(-_mapSize, -_mapMinSize, t));
             _lodStatus[LOD] = LODstatus.InProgress;
             //Debug.Log("LOD: " + LOD + ", Map Size: " + mapSize);
             RequestMap(ImplimentLOD, mapSize, LOD);
@@ -208,7 +209,7 @@ public class InfiniteTerrain : MonoBehaviour {
             var heightMeshGenerator = new HeightmeshGenerator();
             _lods[mapCreationData.LOD] = heightMeshGenerator.GenerateHeightmeshPatch(mapCreationData.Map, new MeshLens(new Vector3(_size, _size, _size))).CreateMesh();
 
-            _collider.sharedMesh = _lods[mapCreationData.LOD];
+            //_collider.sharedMesh = _lods[mapCreationData.LOD];
             _filter.mesh = _lods[mapCreationData.LOD];
             _currentLod = mapCreationData.LOD;
             _lodStatus[mapCreationData.LOD] = LODstatus.Created;
