@@ -4,7 +4,7 @@ using System;
 
 public class InfiniteTerrain : MonoBehaviour {
 
-    public const float MaxViewDistance = 400;
+    public const float MaxViewDistance = 2000;
     public Transform Viewer;
     public Material TerrainMaterial;
 
@@ -20,7 +20,7 @@ public class InfiniteTerrain : MonoBehaviour {
     {
         RNG.Init(DateTime.Now.ToString());
 
-        _chunkSize = 241 - 1;
+        _chunkSize = 320 - 1;
         _chunksVisibleInViewDistance = Mathf.RoundToInt(MaxViewDistance / _chunkSize);
 
     }
@@ -72,41 +72,32 @@ public class InfiniteTerrain : MonoBehaviour {
         Vector2 _position;
         Bounds _bounds;
 
+        Coord _coord;
 
-        int _currentLodCount = 4;
-         int _currentLod = 0;
+        int _size;
+
+
+        int _currentLodCount = 6;
+        int _currentLod = -1;
+
+        int _mapSize = 100;
 
         Mesh[] _lods;
 
         MeshFilter _filter;
+        MeshCollider _collider;
 
         public TerrainChunk(Vector2 coord, int size, Transform transform, Material terrainMaterial)
         {
-            _currentLodCount = 4;
             _currentLod = 0;
+            _coord = new Coord((int)coord.x, (int)coord.y);
 
-
-            _lods = new Mesh[4];
-            var mapSize = 240;
-
-
+            _size = size;
+            _lods = new Mesh[_currentLodCount];
             _position = coord * size;
-
-            for (int i = 0; i < _currentLodCount; i++)
-            {
-                var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), new Coord((int)coord.x, (int)coord.y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1, 2f);
-
-                _lods[i] = HeightmeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(size, size, size))).CreateMesh();
-
-                mapSize = (int)(mapSize * 0.5f);
-            }
-
-
 
             _bounds = new Bounds(_position, Vector2.one * size);
             var positionVector3 = new Vector3(_position.x, 0, _position.y);
-
-
 
             _meshObject = new GameObject();
 
@@ -120,9 +111,11 @@ public class InfiniteTerrain : MonoBehaviour {
             material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
             renderer.material = material;
             _filter = _meshObject.AddComponent<MeshFilter>();
-            var collider = _meshObject.AddComponent<MeshCollider>();
+            _collider = _meshObject.AddComponent<MeshCollider>();
 
-            collider.sharedMesh = _lods[1];
+            CreateLOD(_currentLodCount-1);
+
+            _collider.sharedMesh = _lods[_currentLodCount - 1];
             _filter.mesh = _lods[_currentLodCount-1];
             _currentLod = _currentLodCount - 1;
 
@@ -139,7 +132,20 @@ public class InfiniteTerrain : MonoBehaviour {
             if(part < 1f)
             {
                 var lod = (int)(part * _currentLodCount);
-                _filter.mesh = _lods[lod];
+
+                if (_currentLod != lod)
+                {
+
+                    if (_lods[lod] == null)
+                    {
+                        CreateLOD(lod);
+                    }
+
+                    _filter.mesh = _lods[lod];
+                    _collider.sharedMesh = _lods[lod];
+
+                    _currentLod = lod;
+                }
             }
 
 
@@ -157,6 +163,14 @@ public class InfiniteTerrain : MonoBehaviour {
         public bool IsVisible()
         {
             return _meshObject.activeSelf;
+        }
+
+        void CreateLOD(int LOD)
+        {
+            var t = Mathf.InverseLerp(0, _currentLodCount, LOD);
+            var mapSize = -((int)Mathf.Lerp(-_mapSize, -4, t));
+            var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1, 2f);
+            _lods[LOD] = HeightmeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size))).CreateMesh();
         }
 
 
