@@ -386,13 +386,14 @@ public class MapGenerator
         var circleMap = Map.BlankMap(Size,Size).CreateCircularFalloff(Size*0.42f);
         circleMap.ApplyTexture(insideTexture);
         stack.RecordMapStateToStack(circleMap);
-        
-        
+
+
 
         //stack.RecordMapStateToStack(sickHeight);
 
+        var heightmeshGenerator = new HeightmeshGenerator();
 
-        var distanceHeightMap = HeightmeshGenerator.GenerateHeightmeshPatch(additiveMap.Multiply(mapHeight), _lens);
+        var distanceHeightMap = heightmeshGenerator.GenerateHeightmeshPatch(additiveMap.Multiply(mapHeight), _lens);
         var heightObject = CreateHeightMesh(distanceHeightMap, texture);
 
         var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;

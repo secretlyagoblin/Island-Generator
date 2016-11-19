@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Threading;
+using System;
 
-public static class HeightmeshGenerator {
+public class HeightmeshGenerator {
 
-    public static HeightmeshPatch GenerateHeightmeshPatch(Map heightMap, MeshLens lens)
+    public HeightmeshPatch GenerateHeightmeshPatch(Map heightMap, MeshLens lens)
     {
         var sizeX = heightMap.SizeX;
         var sizeY = heightMap.SizeY;
@@ -35,7 +37,7 @@ public static class HeightmeshGenerator {
         return heightmesh;
     }
 
-    public static HeightmeshSeam GenerateMeshSeam(Map MapA, Coord CoordA, Map MapB,Coord CoordB, MeshLens lens)
+    public HeightmeshSeam GenerateMeshSeam(Map MapA, Coord CoordA, Map MapB,Coord CoordB, MeshLens lens)
     {
         if (CoordA.TileX == CoordB.TileX && CoordA.TileY == CoordB.TileY)
         {

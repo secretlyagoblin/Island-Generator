@@ -49,15 +49,17 @@ public class MapTiling : MonoBehaviour {
             }
         }
 
+        var heightmeshGenerator = new HeightmeshGenerator();
+
         for (int x = 0; x < mapCount - 1; x++)
         {
             for (int y = 0; y < mapCount - 1; y++)
             {
                 if (x != mapCount - 1 & y != mapCount - 1)
                 {
-                    var meshBase = HeightmeshGenerator.GenerateHeightmeshPatch(MapArray[x, y], lens).CreateMesh();
-                    var meshSeamA = HeightmeshGenerator.GenerateMeshSeam(MapArray[x, y], new Coord(x, y), MapArray[x + 1, y], new Coord(x + 1, y), lens).CreateMesh();
-                    var meshSeamB = HeightmeshGenerator.GenerateMeshSeam(MapArray[x, y], new Coord(x, y), MapArray[x , y+1], new Coord(x, y+1), lens).CreateMesh();
+                    var meshBase = heightmeshGenerator.GenerateHeightmeshPatch(MapArray[x, y], lens).CreateMesh();
+                    var meshSeamA = heightmeshGenerator.GenerateMeshSeam(MapArray[x, y], new Coord(x, y), MapArray[x + 1, y], new Coord(x + 1, y), lens).CreateMesh();
+                    var meshSeamB = heightmeshGenerator.GenerateMeshSeam(MapArray[x, y], new Coord(x, y), MapArray[x , y+1], new Coord(x, y+1), lens).CreateMesh();
 
                     CreateHeightMesh(meshBase, new Coord(x, y), lens);
                     CreateHeightMesh(meshSeamA, new Coord(x, y), lens);

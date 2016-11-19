@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Threading;
 
 public class InfiniteTerrain : MonoBehaviour {
 
@@ -11,6 +12,8 @@ public class InfiniteTerrain : MonoBehaviour {
     public static Vector2 _viewerPosition;
     int _chunkSize;
     int _chunksVisibleInViewDistance;
+
+    static Queue<ThreadData<MapCreationData>> _mapThread = new Queue<ThreadData<MapCreationData>>();
 
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
     List<TerrainChunk> terrainChunksVisibleLastUpdate = new List<TerrainChunk>();
@@ -28,7 +31,24 @@ public class InfiniteTerrain : MonoBehaviour {
     void Update()
     {
         _viewerPosition = new Vector2(Viewer.position.x, Viewer.position.z);
+        dequeueNewLODS();
         updateVisibleChunks();
+    }
+
+    void dequeueNewLODS()
+    {
+        if (_mapThread.Count == 0)
+            return;
+
+        for (int i = 0; i < _mapThread.Count; i++)
+        {
+            var data = _mapThread.Dequeue();
+            data.Callback(data.Parameter);
+            Debug.Log("I worked");
+        }
+
+
+
     }
 
     void updateVisibleChunks()
@@ -82,9 +102,11 @@ public class InfiniteTerrain : MonoBehaviour {
         int _currentLodCount = 4;
         int _currentLod = -1;
 
-        int _mapSize = 150;
+        int _mapSize = 240;
 
         Mesh[] _lods;
+        LODstatus[] _lodStatus;
+
 
         MeshFilter _filter;
         MeshCollider _collider;
@@ -96,6 +118,13 @@ public class InfiniteTerrain : MonoBehaviour {
 
             _size = size;
             _lods = new Mesh[_currentLodCount];
+            _lodStatus = new LODstatus[_currentLodCount];
+
+            for (int i = 0; i < _currentLodCount; i++)
+            {
+                _lodStatus[i] = LODstatus.NotCreated;
+            }
+
             _position = coord * size;
 
             _bounds = new Bounds(_position, Vector2.one * size);
@@ -117,12 +146,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
             CreateLOD(_currentLodCount-1);
 
-            _collider.sharedMesh = _lods[_currentLodCount - 1];
-            _filter.mesh = _lods[_currentLodCount-1];
-            _currentLod = _currentLodCount - 1;
 
-            _currentState = false;
-            SetVisible(false);
         }
 
         public void UpdateTerrainChunk()
@@ -138,15 +162,17 @@ public class InfiniteTerrain : MonoBehaviour {
                 if (_currentLod != lod)
                 {
 
-                    if (_lods[lod] == null)
+                    if (_lodStatus[lod] == LODstatus.NotCreated)
                     {
                         CreateLOD(lod);
                     }
+                    else if (_lodStatus[lod] == LODstatus.Created)
+                    {
+                        _filter.mesh = _lods[lod];
+                        _collider.sharedMesh = _lods[lod];
 
-                    _filter.mesh = _lods[lod];
-                    _collider.sharedMesh = _lods[lod];
-
-                    _currentLod = lod;
+                        _currentLod = lod;
+                    }
                 }
             }
 
@@ -171,12 +197,75 @@ public class InfiniteTerrain : MonoBehaviour {
         {
             var t = Mathf.InverseLerp(0, _currentLodCount-1, LOD);
             var mapSize = -((int)Mathf.Lerp(-_mapSize, -15, t));
+            _lodStatus[LOD] = LODstatus.InProgress;
             //Debug.Log("LOD: " + LOD + ", Map Size: " + mapSize);
+            RequestMap(ImplimentLOD, mapSize, LOD);
+            
+        }
+
+        void ImplimentLOD(MapCreationData mapCreationData)
+        {
+            var heightMeshGenerator = new HeightmeshGenerator();
+            _lods[mapCreationData.LOD] = heightMeshGenerator.GenerateHeightmeshPatch(mapCreationData.Map, new MeshLens(new Vector3(_size, _size, _size))).CreateMesh();
+
+            _collider.sharedMesh = _lods[mapCreationData.LOD];
+            _filter.mesh = _lods[mapCreationData.LOD];
+            _currentLod = mapCreationData.LOD;
+            _lodStatus[mapCreationData.LOD] = LODstatus.Created;
+
+            _currentState = false;
+            SetVisible(false);
+        }
+
+        void RequestMap(Action<MapCreationData> callback, int mapSize, int lod)
+        {
+            ThreadStart threadStart = delegate
+             {
+                 MapThread(callback, mapSize, lod);
+             };
+
+            new Thread(threadStart).Start();
+        }
+
+        void MapThread(Action<MapCreationData> callback, int mapSize, int lod)
+        {
             var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1, 2f);
-            _lods[LOD] = HeightmeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size))).CreateMesh();
+            //var mesh = new HeightmeshGenerator()
+            //Should generate mesh in here
+            lock (_mapThread)
+            {
+                _mapThread.Enqueue(new ThreadData<MapCreationData>(callback, new MapCreationData(lod, map)));
+            }
         }
 
 
     }
+
+    struct ThreadData<T> {
+        public readonly Action<T> Callback;
+        public readonly T Parameter;
+
+        public ThreadData(Action<T> callback, T parameter)
+        {
+            Callback = callback;
+            Parameter = parameter;
+        }
+
+    }
+
+    struct MapCreationData {
+        public readonly int LOD;
+        public readonly Map Map;
+
+        public MapCreationData(int lod, Map map)
+        {
+            LOD = lod;
+            Map = map;
+        }
+    }
+
+    enum LODstatus {
+        NotCreated,InProgress,Created 
+    };
 
 }
