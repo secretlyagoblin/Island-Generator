@@ -33,11 +33,11 @@ public class InfiniteTerrain : MonoBehaviour {
     void Update()
     {
         _viewerPosition = new Vector2(Viewer.position.x, Viewer.position.z);
-        dequeueNewLODS();
+        DequeueNewLODS();
         updateVisibleChunks();
     }
 
-    void dequeueNewLODS()
+    void DequeueNewLODS()
     {
         if (_mapThread.Count == 0)
             return;
@@ -77,10 +77,12 @@ public class InfiniteTerrain : MonoBehaviour {
                     terrainChunkDictionary[viewedChunkCoord].UpdateTerrainChunk();
 
                     var cellAbove = new Coord(viewedChunkCoord.TileX, viewedChunkCoord.TileY + 1);
+                    var cellCount = 0;
 
                     if (terrainChunkDictionary.ContainsKey(cellAbove))
                     {
                         terrainChunkDictionary[viewedChunkCoord].UpdateTopSeam(terrainChunkDictionary[cellAbove].CurrentMap, terrainChunkDictionary[cellAbove].CurrentLod);
+                        cellCount++;
                     }
 
                     var cellBeside = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY);
@@ -88,6 +90,14 @@ public class InfiniteTerrain : MonoBehaviour {
                     if (terrainChunkDictionary.ContainsKey(cellBeside))
                     {
                         terrainChunkDictionary[viewedChunkCoord].UpdateRightSeam(terrainChunkDictionary[cellBeside].CurrentMap, terrainChunkDictionary[cellBeside].CurrentLod);
+                        cellCount++;
+                    }
+
+                    var cellDiagonal = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY+1);
+
+                    if (terrainChunkDictionary.ContainsKey(cellDiagonal) && cellCount == 2)
+                    {
+                        terrainChunkDictionary[viewedChunkCoord].UpdateCorner(terrainChunkDictionary[cellAbove], terrainChunkDictionary[cellBeside], terrainChunkDictionary[cellDiagonal]);
                     }
 
 
@@ -251,9 +261,9 @@ public class InfiniteTerrain : MonoBehaviour {
 
         void ImplimentLOD(MapCreationData mapCreationData)
         {
-            var heightMeshGenerator = new HeightmeshGenerator();
+            
             _maps[mapCreationData.LOD] = mapCreationData.Map;
-            _lods[mapCreationData.LOD] = heightMeshGenerator.GenerateHeightmeshPatch(mapCreationData.Map, new MeshLens(new Vector3(_size, _size, _size))).CreateMesh();
+            _lods[mapCreationData.LOD] = mapCreationData.MeshPatch.CreateMesh();
 
             //_collider.sharedMesh = _lods[mapCreationData.LOD];
             _filter.mesh = _lods[mapCreationData.LOD];
@@ -276,11 +286,13 @@ public class InfiniteTerrain : MonoBehaviour {
         void MapThread(Action<MapCreationData> callback, int mapSize, int lod)
         {
             var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1, 2f);
+            var heightMeshGenerator = new HeightmeshGenerator();
+            var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)));
             //var mesh = new HeightmeshGenerator()
             //Should generate mesh in here
             lock (_mapThread)
             {
-                _mapThread.Enqueue(new ThreadData<MapCreationData>(callback, new MapCreationData(lod, map)));
+                _mapThread.Enqueue(new ThreadData<MapCreationData>(callback, new MapCreationData(lod,map, meshPatch)));
             }
         }
 
@@ -313,10 +325,15 @@ public class InfiniteTerrain : MonoBehaviour {
         {
             //Debug.Log("Seam needs updating");
 
-            var heightmeshGenerator = new HeightmeshGenerator();
-
             var mesh = _heightmeshGenerator.GenerateMeshSeam(_maps[CurrentLod], _coord, mapB, coordB, new MeshLens(new Vector3(_size, _size, _size)));
             seam.ApplyMesh(mesh.CreateMesh());
+        }
+
+        // Corner
+
+        public void UpdateCorner(TerrainChunk mapA, TerrainChunk mapB, TerrainChunk mapC)
+        {
+
         }
 
         struct MeshSeam {
@@ -387,12 +404,14 @@ public class InfiniteTerrain : MonoBehaviour {
 
     struct MapCreationData {
         public readonly int LOD;
+        public readonly HeightmeshPatch MeshPatch;
         public readonly Map Map;
 
-        public MapCreationData(int lod, Map map)
+        public MapCreationData(int lod, Map map, HeightmeshPatch meshPatch)
         {
             LOD = lod;
             Map = map;
+            MeshPatch = meshPatch;
         }
     }
 

@@ -620,6 +620,11 @@ public class Map {
         return outputFloat;
     }
 
+    public Vector3 GetNormalisedVectorIndex(int xIndex, int yIndex)
+    {
+        return new Vector3(xIndex / (float)SizeX, _map[xIndex, yIndex], yIndex / (float)SizeY);
+    }
+
     public Vector3[] GetNormalisedVectorColumn(int xIndex)
     {
         var outputVectorArray = new Vector3[SizeY];
