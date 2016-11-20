@@ -10,12 +10,14 @@ public class InfiniteTerrain : MonoBehaviour {
     public Material TerrainMaterial;
 
     public static Vector2 _viewerPosition;
+    public static HeightmeshGenerator _heightmeshGenerator = new HeightmeshGenerator();
     int _chunkSize;
     int _chunksVisibleInViewDistance;
 
     static Queue<ThreadData<MapCreationData>> _mapThread = new Queue<ThreadData<MapCreationData>>();
 
-    Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
+    Dictionary<Coord, TerrainChunk> terrainChunkDictionary = new Dictionary<Coord, TerrainChunk>();
+
     List<TerrainChunk> terrainChunksVisibleLastUpdate = new List<TerrainChunk>();
 
     // Use this for initialization
@@ -68,11 +70,29 @@ public class InfiniteTerrain : MonoBehaviour {
         {
             for (int xOffset = -_chunksVisibleInViewDistance; xOffset <= _chunksVisibleInViewDistance; xOffset++)
             {
-                var viewedChunkCoord = new Vector2(currentChunkCoordX + xOffset, currentChunkCoordY + yOffset);
+                var viewedChunkCoord = new Coord(currentChunkCoordX + xOffset, currentChunkCoordY + yOffset);
 
                 if (terrainChunkDictionary.ContainsKey(viewedChunkCoord))
                 {
                     terrainChunkDictionary[viewedChunkCoord].UpdateTerrainChunk();
+
+                    var cellAbove = new Coord(viewedChunkCoord.TileX, viewedChunkCoord.TileY + 1);
+
+                    if (terrainChunkDictionary.ContainsKey(cellAbove))
+                    {
+                        terrainChunkDictionary[viewedChunkCoord].UpdateTopSeam(terrainChunkDictionary[cellAbove].CurrentMap, terrainChunkDictionary[cellAbove].CurrentLod);
+                    }
+
+                    var cellBeside = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY);
+
+                    if (terrainChunkDictionary.ContainsKey(cellBeside))
+                    {
+                        terrainChunkDictionary[viewedChunkCoord].UpdateRightSeam(terrainChunkDictionary[cellBeside].CurrentMap, terrainChunkDictionary[cellBeside].CurrentLod);
+                    }
+
+
+
+
                     if (terrainChunkDictionary[viewedChunkCoord].IsVisible())
                     {
                         terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoord]);
@@ -89,21 +109,37 @@ public class InfiniteTerrain : MonoBehaviour {
     public class TerrainChunk {
 
         GameObject _meshObject;
+
         Vector2 _position;
         Bounds _bounds;
-
-        bool _currentState;
 
         Coord _coord;
 
         int _size;
 
+        public Map CurrentMap{
+            get
+            {
+                if (CurrentLod == -1)
+                    return null;
+                if (_lodStatus[CurrentLod] == LODstatus.Created)
+                    return _maps[CurrentLod]; 
+                return null;
+
+            }
+        }
+
+        MeshSeam _topSeam;
+        MeshSeam _rightSeam;
+
 
         int _currentLodCount = 6;
-        int _currentLod = -1;
+        public int CurrentLod = -1;
 
         int _mapSize = 240;
         int _mapMinSize = 10;
+
+        Map[] _maps;
 
         Mesh[] _lods;
         LODstatus[] _lodStatus;
@@ -112,21 +148,22 @@ public class InfiniteTerrain : MonoBehaviour {
         MeshFilter _filter;
         //MeshCollider _collider;
 
-        public TerrainChunk(Vector2 coord, int size, Transform transform, Material terrainMaterial)
+        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial)
         {
-            _currentLod = -1;
-            _coord = new Coord((int)coord.x, (int)coord.y);
+            CurrentLod = -1;
+            _coord = coord;
 
             _size = size;
             _lods = new Mesh[_currentLodCount];
             _lodStatus = new LODstatus[_currentLodCount];
+            _maps = new Map[_currentLodCount];
 
             for (int i = 0; i < _currentLodCount; i++)
             {
                 _lodStatus[i] = LODstatus.NotCreated;
             }
 
-            _position = coord * size;
+            _position = new Vector2(coord.TileX * size, coord.TileY * size);
 
             _bounds = new Bounds(_position, Vector2.one * size);
             var positionVector3 = new Vector3(_position.x, 0, _position.y);
@@ -149,20 +186,36 @@ public class InfiniteTerrain : MonoBehaviour {
 
             //CreateLOD(_currentLodCount-1);
 
+            _topSeam = new MeshSeam(-1, -1, _meshObject.transform, terrainMaterial);
+            _rightSeam = new MeshSeam(-1, -1, _meshObject.transform, terrainMaterial);
+
 
         }
+
+        
+        public void SetVisible(bool visible)
+        {
+            _meshObject.SetActive(visible);
+        }
+
+        public bool IsVisible()
+        {
+            return _meshObject.activeSelf;
+        }
+
+        // Mesh Chunk Data
 
         public void UpdateTerrainChunk()
         {
             var viewerDistanceFromNearestEdge = Mathf.Sqrt(_bounds.SqrDistance(_viewerPosition));
 
-            var part = Mathf.InverseLerp(0, MaxViewDistance*0.8f, viewerDistanceFromNearestEdge);
+            var part = Mathf.InverseLerp(0, MaxViewDistance * 0.8f, viewerDistanceFromNearestEdge);
 
-            if(part < 1f)
+            if (part < 1f)
             {
                 var lod = (int)(part * _currentLodCount);
 
-                if (_currentLod != lod)
+                if (CurrentLod != lod)
                 {
 
                     if (_lodStatus[lod] == LODstatus.NotCreated)
@@ -174,7 +227,7 @@ public class InfiniteTerrain : MonoBehaviour {
                         _filter.mesh = _lods[lod];
                         //_collider.sharedMesh = _lods[lod];
 
-                        _currentLod = lod;
+                        CurrentLod = lod;
                     }
                 }
             }
@@ -184,16 +237,6 @@ public class InfiniteTerrain : MonoBehaviour {
 
             var visible = viewerDistanceFromNearestEdge <= MaxViewDistance;
             SetVisible(visible);
-        }
-
-        public void SetVisible(bool visible)
-        {
-            _meshObject.SetActive(visible);
-        }
-
-        public bool IsVisible()
-        {
-            return _meshObject.activeSelf;
         }
 
         void CreateLOD(int LOD)
@@ -209,14 +252,14 @@ public class InfiniteTerrain : MonoBehaviour {
         void ImplimentLOD(MapCreationData mapCreationData)
         {
             var heightMeshGenerator = new HeightmeshGenerator();
+            _maps[mapCreationData.LOD] = mapCreationData.Map;
             _lods[mapCreationData.LOD] = heightMeshGenerator.GenerateHeightmeshPatch(mapCreationData.Map, new MeshLens(new Vector3(_size, _size, _size))).CreateMesh();
 
             //_collider.sharedMesh = _lods[mapCreationData.LOD];
             _filter.mesh = _lods[mapCreationData.LOD];
-            _currentLod = mapCreationData.LOD;
+            CurrentLod = mapCreationData.LOD;
             _lodStatus[mapCreationData.LOD] = LODstatus.Created;
 
-            _currentState = false;
             SetVisible(false);
         }
 
@@ -239,6 +282,92 @@ public class InfiniteTerrain : MonoBehaviour {
             {
                 _mapThread.Enqueue(new ThreadData<MapCreationData>(callback, new MapCreationData(lod, map)));
             }
+        }
+
+        // Mesh Seam Data
+
+        public void UpdateTopSeam(Map mapB, int LOD)
+        {
+            if (CurrentMap == null | mapB == null)
+                return;
+
+            if (_topSeam.NeedsUpdate(CurrentLod, LOD))
+            {
+                UpdateSeam(mapB, new Coord(_coord.TileX, _coord.TileY + 1),_topSeam);
+            }
+
+        }
+
+        public void UpdateRightSeam(Map mapB, int LOD)
+        {
+            if (CurrentMap == null | mapB == null)
+                return;
+
+            if (_rightSeam.NeedsUpdate(CurrentLod, LOD))
+            {
+                UpdateSeam(mapB, new Coord(_coord.TileX+1, _coord.TileY), _rightSeam);
+            }
+        }
+
+        void UpdateSeam(Map mapB, Coord coordB, MeshSeam seam)
+        {
+            //Debug.Log("Seam needs updating");
+
+            var heightmeshGenerator = new HeightmeshGenerator();
+
+            var mesh = _heightmeshGenerator.GenerateMeshSeam(_maps[CurrentLod], _coord, mapB, coordB, new MeshLens(new Vector3(_size, _size, _size)));
+            seam.ApplyMesh(mesh.CreateMesh());
+        }
+
+        struct MeshSeam {
+            int homeTileLOD;
+            int awayTileLOD;
+
+            GameObject _gameObject;
+            MeshFilter _filter;
+
+            public MeshSeam(int homeLOD, int awayLOD, Transform parent, Material terrianMaterial)
+            {
+                homeTileLOD = homeLOD;
+                awayTileLOD = awayLOD;
+
+                _gameObject = new GameObject();
+
+                _gameObject.transform.parent = parent;
+                _gameObject.transform.localPosition = Vector3.zero;
+                //_meshObject.transform.localScale = Vector3.one * size * 0.1f;
+
+                var renderer = _gameObject.AddComponent<MeshRenderer>();
+                var material = terrianMaterial;
+                //material.mainTexture = texture;
+                //material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
+                renderer.sharedMaterial = material;
+                _filter = _gameObject.AddComponent<MeshFilter>();
+            }
+
+            public bool NeedsUpdate(int homeLOD, int awayLOD)
+            {
+                var returnValue = false;
+                if(homeLOD != homeTileLOD)
+                {
+                    homeTileLOD = homeLOD;
+                    returnValue = true;
+                }
+
+                if (awayLOD != awayTileLOD)
+                {
+                    awayTileLOD = awayLOD;
+                    returnValue = true;
+                }
+
+                return returnValue;
+            }
+
+            public void ApplyMesh(Mesh mesh)
+            {
+                _filter.mesh = mesh;
+            }
+
         }
 
 

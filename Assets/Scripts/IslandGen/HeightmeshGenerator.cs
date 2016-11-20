@@ -37,23 +37,23 @@ public class HeightmeshGenerator {
         return heightmesh;
     }
 
-    public HeightmeshSeam GenerateMeshSeam(Map MapA, Coord CoordA, Map MapB,Coord CoordB, MeshLens lens)
+    public HeightmeshSeam GenerateMeshSeam(Map mapA, Coord coordA, Map mapB,Coord coordB, MeshLens lens)
     {
-        if (CoordA.TileX == CoordB.TileX && CoordA.TileY == CoordB.TileY)
+        if (coordA.TileX == coordB.TileX && coordA.TileY == coordB.TileY)
         {
             Debug.Log("Patches are Identical!");
             return null;
         }
 
-        if (CoordA.TileX != CoordB.TileX && CoordA.TileY != CoordB.TileY)
+        if (coordA.TileX != coordB.TileX && coordA.TileY != coordB.TileY)
         {
             Debug.Log("Patches are Diagonal!");
             return null;
         }
 
         var newCoordA = new Coord(0, 0);
-        CoordB = new Coord(CoordB.TileX - CoordA.TileX, CoordB.TileY - CoordA.TileY);
-        CoordA = new Coord(0, 0);
+        coordB = new Coord(coordB.TileX - coordA.TileX, coordB.TileY - coordA.TileY);
+        coordA = new Coord(0, 0);
 
 
 
@@ -61,29 +61,29 @@ public class HeightmeshGenerator {
         Vector3[] seamA;
         Vector3[] seamB;
 
-        var column = true;
+        var flip = true;
 
-        if (CoordA.TileX < CoordB.TileX)
+        if (coordA.TileX < coordB.TileX)
         {
-            seamA = MapA.GetNormalisedVectorColumn(MapA.SizeX - 1);
-            seamB = MapB.GetNormalisedVectorColumn(0);
+            seamA = mapA.GetNormalisedVectorColumn(mapA.SizeX - 1);
+            seamB = mapB.GetNormalisedVectorColumn(0);
         }
-        else if (CoordA.TileX > CoordB.TileX)
+        else if (coordA.TileX > coordB.TileX)
         {
-            seamA = MapA.GetNormalisedVectorColumn(0);
-            seamB = MapB.GetNormalisedVectorColumn(MapB.SizeY - 1);
+            seamA = mapA.GetNormalisedVectorColumn(0);
+            seamB = mapB.GetNormalisedVectorColumn(mapB.SizeY - 1);
         }
-        else if (CoordA.TileY < CoordB.TileY)
+        else if (coordA.TileY < coordB.TileY)
         {
-            column = false;
-            seamA = MapA.GetNormalisedVectorRow(MapA.SizeY - 1);
-            seamB = MapB.GetNormalisedVectorRow(0);
+            flip = false;
+            seamA = mapA.GetNormalisedVectorRow(mapA.SizeY - 1);
+            seamB = mapB.GetNormalisedVectorRow(0);
         }
         else
         {
-            column = false;
-            seamA = MapA.GetNormalisedVectorRow(0);
-            seamB = MapB.GetNormalisedVectorRow(MapB.SizeY - 1);
+            flip = false;
+            seamA = mapA.GetNormalisedVectorRow(0);
+            seamB = mapB.GetNormalisedVectorRow(mapB.SizeY - 1);
         }
 
         Vector3[] longest;
@@ -94,70 +94,80 @@ public class HeightmeshGenerator {
         if (seamA.Length > seamB.Length)
         {
             longest = seamA;
-            longestCoord = CoordA;
+            longestCoord = coordA;
             shortest = seamB;
-            shortestCoord = CoordB;
+            shortestCoord = coordB;
+            flip = !flip;
         }
         else
         {
             longest = seamB;
-            longestCoord = CoordB;
+            longestCoord = coordB;
             shortest = seamA;
-            shortestCoord = CoordA;
+            shortestCoord = coordA;
+           
 
         }
 
         var seam = new HeightmeshSeam(longest, longestCoord, shortest, shortestCoord, lens);
 
 
-        var lastIndexB = longest.Length;
+        var previousShortestIndex = longest.Length;
 
-        for (int a = 0; a < longest.Length-1; a++)
+        for (int longestIndex = 0; longestIndex < longest.Length-1; longestIndex++)
         {
 
-            int indexB = (int)((a / (float)longest.Length) * shortest.Length);
-            indexB += longest.Length;
+            int shortestIndex = (int)((longestIndex / (float)longest.Length) * shortest.Length);
+            shortestIndex += longest.Length;
 
-            if (column)
+            if (flip)
             {
-                seam.AddTriangle(indexB, a + 1, a);
+                seam.AddTriangle(shortestIndex, longestIndex + 1, longestIndex);
             }
             else
             {
-                seam.AddTriangle(a, a + 1, indexB);
+                seam.AddTriangle(longestIndex, longestIndex + 1, shortestIndex);
             }
 
 
 
-            if (lastIndexB != indexB)
+            if (previousShortestIndex != shortestIndex)
             {
-                if (column)
+                if (flip)
                 {
-                    seam.AddTriangle(lastIndexB, indexB, a);
+                    seam.AddTriangle(previousShortestIndex, shortestIndex, longestIndex);
                 }
                 else
                 {
-                    seam.AddTriangle(a , indexB, lastIndexB);
+                    seam.AddTriangle(longestIndex , shortestIndex, previousShortestIndex);
                 }
                 
 
-                lastIndexB = indexB;
+                previousShortestIndex = shortestIndex;
             }
 
-            //var pointA = lens.TransformNormalisedPosition(longest[a] + longestCoord.Vector3);
-
-
-            //var pointB = lens.TransformNormalisedPosition(shortest[indexB] + shortestCoord.Vector3);
-
-            //if(lastIndexB != indexB)
-            //{                
-            //    Debug.DrawLine(pointA, lastPointB, Color.red, 100f);
-            //    lastPointB = pointB;
-            //    lastIndexB = indexB;
-            //}
-            //
-            //Debug.DrawLine(pointA, pointB, Color.white, 100f);
         }
+
+        
+
+        if (previousShortestIndex + 1 < longest.Length + shortest.Length)
+        {
+
+
+            if (flip)
+            {
+                seam.AddTriangle(previousShortestIndex, previousShortestIndex + 1, longest.Length - 1);
+            }
+            else
+            {
+                seam.AddTriangle(longest.Length - 1, previousShortestIndex + 1, previousShortestIndex);
+            }
+        }
+
+        //previousIndexLongestSegment = longest.Length-1;
+        //var lastIndexA = longest.Length + shortest.Length;
+
+        //seam.AddTriangle(previousIndexLongestSegment, lastIndexA, lastIndexA - 1);
 
 
 
@@ -165,8 +175,8 @@ public class HeightmeshGenerator {
         //{
         //    for (int b = 0; b < seamB.Length; b++)
         //    {
-        //        var pointA = lens.TransformNormalisedPosition(seamA[a] + CoordA.Vector3);
-        //        var pointB = lens.TransformNormalisedPosition(seamB[b] + CoordB.Vector3);
+        //        var pointA = lens.TransformNormalisedPosition(seamA[a] + coordA.Vector3);
+        //        var pointB = lens.TransformNormalisedPosition(seamB[b] + coordB.Vector3);
         //
         //        Debug.DrawLine(pointA, pointB, Color.white, 100f);
         //    }
