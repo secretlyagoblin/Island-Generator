@@ -114,7 +114,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         public TerrainChunk(Vector2 coord, int size, Transform transform, Material terrainMaterial)
         {
-            _currentLod = 0;
+            _currentLod = -1;
             _coord = new Coord((int)coord.x, (int)coord.y);
 
             _size = size;
@@ -145,7 +145,9 @@ public class InfiniteTerrain : MonoBehaviour {
             _filter = _meshObject.AddComponent<MeshFilter>();
             //_collider = _meshObject.AddComponent<MeshCollider>();
 
-            CreateLOD(_currentLodCount-1);
+            //UpdateTerrainChunk();
+
+            //CreateLOD(_currentLodCount-1);
 
 
         }
