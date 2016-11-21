@@ -117,7 +117,7 @@ public class InfiniteTerrain : MonoBehaviour {
                             }
                         }
 
-                        if (!currentChunk.Links[1])
+                        if (!currentChunk.Links[2])
                         {
 
                             var cellDiagonal = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY + 1);
@@ -159,7 +159,11 @@ public class InfiniteTerrain : MonoBehaviour {
 
 
         public bool IsFullyLinked
-        { get; private set; }
+        { get
+            {
+                return Links[0] & Links[1] & Links[2];
+            }
+        }
         public bool[] Links
         { get; private set; }
 
@@ -182,6 +186,8 @@ public class InfiniteTerrain : MonoBehaviour {
         MeshSeam _topSeam;
         MeshSeam _rightSeam;
 
+        MeshCorner _corner;
+
 
         static int _totalLODS = 6;
         public int CurrentLod = -1;
@@ -200,6 +206,8 @@ public class InfiniteTerrain : MonoBehaviour {
         TerrainChunk _rightChunk;
         TerrainChunk _diagonalChunk;
 
+        
+
 
         MeshFilter _filter;
         //MeshCollider _collider;
@@ -207,7 +215,6 @@ public class InfiniteTerrain : MonoBehaviour {
         public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial)
         {
             CurrentLod = -1;
-            IsFullyLinked = false;
 
             _coord = coord;
 
@@ -248,6 +255,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
             _topSeam = new MeshSeam(-1, -1, _meshObject.transform, terrainMaterial);
             _rightSeam = new MeshSeam(-1, -1, _meshObject.transform, terrainMaterial);
+            _corner = new MeshCorner(_meshObject.transform, terrainMaterial);
 
 
         }
@@ -282,6 +290,11 @@ public class InfiniteTerrain : MonoBehaviour {
                     UpdateRightSeam(_rightChunk.CurrentMap, _rightChunk.CurrentLod);
                 }
 
+                if (IsFullyLinked)
+                {
+                    UpdateCorner(_topChunk, _rightChunk, _diagonalChunk);
+                }
+
                 _markedForUpdate = false;
             }
             else
@@ -298,6 +311,13 @@ public class InfiniteTerrain : MonoBehaviour {
                     if (_rightChunk._markedForUpdate)
                     {
                         UpdateRightSeam(_rightChunk.CurrentMap, _rightChunk.CurrentLod);
+                    }
+                }
+                if (IsFullyLinked)
+                {
+                    if (_rightChunk._markedForUpdate | _topChunk._markedForUpdate | _diagonalChunk._markedForUpdate)
+                    {
+                        UpdateCorner(_topChunk, _rightChunk, _diagonalChunk);
                     }
                 }
             }
@@ -439,9 +459,13 @@ public class InfiniteTerrain : MonoBehaviour {
 
         // Corner
 
-        void UpdateCorner(TerrainChunk mapA, TerrainChunk mapB, TerrainChunk mapC)
+        void UpdateCorner(TerrainChunk upMap, TerrainChunk rightMap, TerrainChunk diagonalMap)
         {
+            if (CurrentLod == -1 |upMap.CurrentLod == -1 | rightMap.CurrentLod == -1 | diagonalMap.CurrentLod == -1)
+                return;
 
+                var mesh = _heightmeshGenerator.GenerateMeshCorner(CurrentMap, upMap.CurrentMap, rightMap.CurrentMap, diagonalMap.CurrentMap, new MeshLens(new Vector3(_size, _size, _size)));
+            _corner.ApplyMesh(mesh.CreateMesh());
         }
 
         struct MeshSeam {
@@ -486,6 +510,34 @@ public class InfiniteTerrain : MonoBehaviour {
                 }
 
                 return returnValue;
+            }
+
+            public void ApplyMesh(Mesh mesh)
+            {
+                _filter.mesh = mesh;
+            }
+
+        }
+
+        struct MeshCorner {
+
+            GameObject _gameObject;
+            MeshFilter _filter;
+
+            public MeshCorner(Transform parent, Material terrianMaterial)
+            {
+                _gameObject = new GameObject();
+
+                _gameObject.transform.parent = parent;
+                _gameObject.transform.localPosition = Vector3.zero;
+                //_meshObject.transform.localScale = Vector3.one * size * 0.1f;
+
+                var renderer = _gameObject.AddComponent<MeshRenderer>();
+                var material = terrianMaterial;
+                //material.mainTexture = texture;
+                //material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
+                renderer.sharedMaterial = material;
+                _filter = _gameObject.AddComponent<MeshFilter>();
             }
 
             public void ApplyMesh(Mesh mesh)

@@ -190,9 +190,12 @@ public class HeightmeshGenerator {
     public HeightmeshQuad GenerateMeshCorner(Map startMap, Map upMap, Map rightMap,Map diagonalMap, MeshLens lens)
     {
         var a = startMap.GetNormalisedVectorIndex(startMap.SizeX - 1, startMap.SizeY - 1);
-        var b = upMap.GetNormalisedVectorIndex(upMap.SizeX - 1, 0);
-        var c = rightMap.GetNormalisedVectorIndex(0, startMap.SizeY - 1);
-        var d = diagonalMap.GetNormalisedVectorIndex(0, 0);
+        var b = upMap.GetNormalisedVectorIndex(upMap.SizeX - 1, 0) + Vector3.forward;
+        var c = rightMap.GetNormalisedVectorIndex(0, rightMap.SizeY - 1) + Vector3.right;
+        var d = new Vector3(1,diagonalMap.GetNormalisedVectorIndex(0, 0).y,1);
+
+        //Debug.Log("Start Normalised Quad");
+        //Debug.Log(a);
 
         var quad = new HeightmeshQuad(a, b, c, d, lens);
 
