@@ -58,7 +58,7 @@ public class MapGenerator
     {
         RNG.Init(DateTime.Now.ToString());
 
-        _lens = new MeshLens(new Vector3(Size, 1f, Size));        
+        _lens = new MeshLens(new Vector3(Size/2, Size/4, Size));        
 
         GenerateMap(Size,Size);
     }
@@ -83,11 +83,14 @@ public class MapGenerator
 
         var map = new Map(width, height);
 
-        var unionMap = CreateWalkableMap(map);
-        unionMap.AddRoomLogic();
-        stack.RecordMapStateToStack(unionMap);
+        //var unionMap = CreateWalkableMap(map);
+        //unionMap.AddRoomLogic();
+        //stack.RecordMapStateToStack(unionMap);
 
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
+
+        var unionMap = new Map(width, height).PerlinFillMap(3, new Domain(0.3f, 1.8f), new Coord(0,0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000,1000), 7, 0.5f, 1.87f);
+        unionMap.BooleanMapFromThreshold(1f);
 
         var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise();
         var validStartPoint = Map.Clone(distanceMap).Clamp(0.1f, 1).Normalise().GetValidStartLocation();
@@ -102,7 +105,7 @@ public class MapGenerator
         cutoffMap.Normalise();
         stack.RecordMapStateToStack(cutoffMap);
 
-        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(47.454545f, 0, 2, perlinSeed, 4, 0.5f, 1.87f);
+        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(7, new Domain(0f, 5f), new Coord(0, 0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000, 1000), 7, 0.5f, 1.87f);
         stack.RecordMapStateToStack(perlinMap);
 
         //var cliffHeightMap = distanceMap;
@@ -112,7 +115,7 @@ public class MapGenerator
 
 
 
-        var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.2f);
+        var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.08f);
 
         var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
@@ -133,7 +136,7 @@ public class MapGenerator
         //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
         //CreateHeightMesh(vormap);
 
-        var hillVoronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.13f);
+        var hillVoronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.07f);
 
         var hillVoronoiMap = hillVoronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
@@ -310,23 +313,12 @@ public class MapGenerator
         //var distanceHeightMap = HeightmeshGenerator.GenerateTerrianMesh(mergeMap.Multiply(100f), _lens);
         //CreateHeightMesh(distanceHeightMap);
 
-        var heightmap = CreateHeightMap(unionMap).Normalise();
-        stack.RecordMapStateToStack(heightmap);
-
-
-        heightmap = heightmap.LerpHeightMap(unionMap, LerpMapFalloff).SmoothMap(10).Normalise();
-        stack.RecordMapStateToStack(heightmap);
 
         var terrainTexture = new Texture2D(Size, Size);
         terrain.ApplyTexture(terrainTexture);
 
-        var additiveMap = heightmap + (terrain.Multiply(2.5f));
-        stack.RecordMapStateToStack(additiveMap);
-
-        additiveMap.Normalise();
-
         var heightTexture = new Texture2D(Size, Size);
-        additiveMap.ApplyTexture(heightTexture);
+        terrain.ApplyTexture(heightTexture);
 
         //TextureStuff
 
@@ -341,7 +333,6 @@ public class MapGenerator
 
         //var secondTexture = Map.Clone(hillVoronoiFalloffMap).Clamp(0.2f, 0.8f).Normalise();
         secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
-        secondTexture += Map.Clone(heightmap).Remap(0.3f,0.6f).Normalise().Multiply(2f);
         secondTexture.Normalise();
 
         stack.RecordMapStateToStack(secondTexture);
@@ -371,16 +362,13 @@ public class MapGenerator
 
         var mapHeight = 90f;
 
-        var sickHeight = Map.Clone(additiveMap).BooleanMapFromThreshold(0.6f).GetRegions(1);
-        var boostHeight = Map.GetCenters(sickHeight);
-
         
 
-        for (int i = 0; i < boostHeight.Count; i++)
-        {
-            var vec3 = _lens.TransformNormalisedPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
-            var obj = Instantiate(ParticleBud, vec3, Quaternion.identity);
-        }
+        //for (int i = 0; i < boostHeight.Count; i++)
+        //{
+        //    var vec3 = _lens.TransformNormalisedPosition(new Vector3(boostHeight[i].TileX, (0.6f + RNG.NextFloat(-0.1f,0f)) * 90f, boostHeight[i].TileY));
+        //    var obj = Instantiate(ParticleBud, vec3, Quaternion.identity);
+        //}
 
         var insideTexture = new Texture2D(Size, Size);
         var circleMap = Map.BlankMap(Size,Size).CreateCircularFalloff(Size*0.42f);
@@ -393,94 +381,94 @@ public class MapGenerator
 
         var heightmeshGenerator = new HeightmeshGenerator();
 
-        var distanceHeightMap = heightmeshGenerator.GenerateHeightmeshPatch(additiveMap.Multiply(mapHeight), _lens);
+        var distanceHeightMap = heightmeshGenerator.GenerateHeightmeshPatch(terrain, _lens);
         var heightObject = CreateHeightMesh(distanceHeightMap, texture);
 
-        var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
-        var collider = heightObject.GetComponent<MeshCollider>();
+        //var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;
+        //var collider = heightObject.GetComponent<MeshCollider>();
 
         var propMap = new PoissonDiscSampler(Size, Size, 0.4f);
 
-        if (CreateProps)
-        {
+        //if (CreateProps)
+        //{
+        //
+        //    foreach (var sample in propMap.Samples())
+        //    {
+        //        if (insideTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y)).grayscale > 0f)
+        //            continue;
+        //
+        //        var tex = sampleTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+        //        var heig = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+        //        var terra = terrainTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
+        //
+        //        if (tex.grayscale < 0.4f)
+        //        {
+        //
+        //            if (terra.grayscale > 0.8f)
+        //                continue;
+        //
+        //            if (terra.grayscale > 0.5f)
+        //                continue;
+        //
+        //            if (terra.grayscale < 0.05f && RNG.NextFloat() < 0.99f)
+        //                continue;
+        //
+        //
+        //
+        //            //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
+        //
+        //            var hitpoint = _lens.TransformNormalisedPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
+        //
+        //            RaycastHit hit;
+        //
+        //            var materialProperties = new MaterialPropertyBlock();
+        //            MeshRenderer[] renderers;
+        //
+        //
+        //            if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
+        //            {
+        //
+        //                float t = RNG.NextFloat(0.0f, 1.0f);
+        //                materialProperties.SetColor("_Color", plantTinting.Evaluate(t));
+        //
+        //                var obj = Instantiate(RNG.GetRandomItem(plantObjects));
+        //
+        //                renderers = obj.GetComponentsInChildren<MeshRenderer>();
+        //
+        //                for (int i = 0; i < renderers.Length; i++)
+        //                {
+        //                    renderers[i].SetPropertyBlock(materialProperties);
+        //                }
+        //
+        //                obj.transform.position = hit.point + (hit.normal * 0.1f);
+        //                obj.transform.up = hit.normal;
+        //                obj.transform.localScale *= 1.7f;
+        //            }
+        //
+        //
+        //
+        //
+        //        }
+        //    }
+        //
+        //}
 
-            foreach (var sample in propMap.Samples())
-            {
-                if (insideTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y)).grayscale > 0f)
-                    continue;
-
-                var tex = sampleTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
-                var heig = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
-                var terra = terrainTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, sample.x), Mathf.InverseLerp(0, Size, sample.y));
-
-                if (tex.grayscale < 0.4f)
-                {
-
-                    if (terra.grayscale > 0.8f)
-                        continue;
-
-                    if (terra.grayscale > 0.5f)
-                        continue;
-
-                    if (terra.grayscale < 0.05f && RNG.NextFloat() < 0.99f)
-                        continue;
-
-
-
-                    //Debug.DrawRay(_lens.TransformPosition(new Vector3(sample.x, heig.grayscale*mapHeight, sample.y)), Vector3.up,Color.red,100f);
-
-                    var hitpoint = _lens.TransformNormalisedPosition(new Vector3(sample.x, (heig.grayscale * mapHeight) + 1f, sample.y));
-
-                    RaycastHit hit;
-
-                    var materialProperties = new MaterialPropertyBlock();
-                    MeshRenderer[] renderers;
-
-
-                    if (collider.Raycast(new Ray(hitpoint, -Vector3.up), out hit, 2f))
-                    {
-
-                        float t = RNG.NextFloat(0.0f, 1.0f);
-                        materialProperties.SetColor("_Color", plantTinting.Evaluate(t));
-
-                        var obj = Instantiate(RNG.GetRandomItem(plantObjects));
-
-                        renderers = obj.GetComponentsInChildren<MeshRenderer>();
-
-                        for (int i = 0; i < renderers.Length; i++)
-                        {
-                            renderers[i].SetPropertyBlock(materialProperties);
-                        }
-
-                        obj.transform.position = hit.point + (hit.normal * 0.1f);
-                        obj.transform.up = hit.normal;
-                        obj.transform.localScale *= 1.7f;
-                    }
-
-
-
-
-                }
-            }
-
-        }
-
-        var heightmapPoint = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, validStartPoint.TileX), Mathf.InverseLerp(0, Size, validStartPoint.TileY));
-        var userLandPoint = _lens.TransformNormalisedPosition(new Vector3(validStartPoint.TileX, (heightmapPoint.grayscale * mapHeight) + 1f, validStartPoint.TileY));
+        //var heightmapPoint = heightTexture.GetPixelBilinear(Mathf.InverseLerp(0, Size, validStartPoint.TileX), Mathf.InverseLerp(0, Size, validStartPoint.TileY));
+        //var userLandPoint = _lens.TransformNormalisedPosition(new Vector3(validStartPoint.TileX, (heightmapPoint.grayscale * mapHeight) + 1f, validStartPoint.TileY));
 
         
 
-        RaycastHit userHit;
+        //RaycastHit userHit;
 
 
-        if (collider.Raycast(new Ray(userLandPoint, -Vector3.up), out userHit, 2f))
-        {
-            ThirdPersonController.transform.position = userHit.point+(Vector3.up*0.8f);
-        }
+        //if (collider.Raycast(new Ray(userLandPoint, -Vector3.up), out userHit, 2f))
+        //{
+        //    ThirdPersonController.transform.position = userHit.point+(Vector3.up*0.8f);
+        //}
 
 
-        userLandPoint = _lens.TransformNormalisedPosition(new Vector3(cameraPosition.TileX, (heightmapPoint.grayscale * mapHeight+30f) + 1f, cameraPosition.TileY));
-        UICamera.transform.position = userLandPoint;
+        //userLandPoint = _lens.TransformNormalisedPosition(new Vector3(cameraPosition.TileX, (heightmapPoint.grayscale * mapHeight+30f) + 1f, cameraPosition.TileY));
+        //UICamera.transform.position = userLandPoint;
 
 
 
