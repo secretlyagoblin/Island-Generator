@@ -8,6 +8,8 @@ public class InfiniteTerrain : MonoBehaviour {
     public const float MaxViewDistance = 2000;
     public Transform Viewer;
 
+    static Vector2 _offsetSeed = Vector2.zero;
+
     public Material TerrainMaterial;
 
     public static Vector2 _viewerPosition;
@@ -25,7 +27,11 @@ public class InfiniteTerrain : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        RNG.Init(DateTime.Now.ToString());
+        var time = DateTime.Now.ToString();
+        Debug.Log(time);
+
+        RNG.Init(time);
+        _offsetSeed = RNG.NextVector2(-1000, 1000);
 
         _chunkSize = 500;
         _chunksVisibleInViewDistance = Mathf.RoundToInt(MaxViewDistance / _chunkSize);
@@ -189,7 +195,7 @@ public class InfiniteTerrain : MonoBehaviour {
         MeshCorner _corner;
 
 
-        static int _totalLODS = 6;
+        static int _totalLODS = 3;
         public int CurrentLod = -1;
 
         int _mapSize = 240;
@@ -330,7 +336,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         void UpdateMeshPatch(float viewerDistanceFromNearestEdge)
         {
-            var normalisedDistance = Mathf.InverseLerp(0, MaxViewDistance * 0.8f, viewerDistanceFromNearestEdge);
+            var normalisedDistance = Mathf.InverseLerp(0, MaxViewDistance, viewerDistanceFromNearestEdge);
 
             if (normalisedDistance < 1f)
             {
@@ -392,7 +398,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         void MapThread(Action<MapCreationData> callback, int mapSize, int lod)
         {
-            var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1, 2f);
+            var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f).Clamp(1, 2f);
             var heightMeshGenerator = new HeightmeshGenerator();
             var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)));
             //var mesh = new HeightmeshGenerator()
