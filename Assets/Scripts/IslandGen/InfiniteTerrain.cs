@@ -129,13 +129,16 @@ public class InfiniteTerrain : MonoBehaviour {
 
                         }
 
-                        currentChunk.UpdateTerrainChunk();
-
-                        if (terrainChunkDictionary[viewedChunkCoord].IsVisible())
-                        {
-                            terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoord]);
-                        }
                     }
+
+
+                    currentChunk.UpdateTerrainChunk();
+
+                    if (terrainChunkDictionary[viewedChunkCoord].IsVisible())
+                    {
+                        terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoord]);
+                    }
+                
                 }
                 else
                 {
@@ -152,12 +155,15 @@ public class InfiniteTerrain : MonoBehaviour {
         Vector2 _position;
         Bounds _bounds;
 
+        bool _markedForUpdate = false;
+
+
         public bool IsFullyLinked
         { get; private set; }
         public bool[] Links
         { get; private set; }
 
-    Coord _coord;
+        Coord _coord;
 
         int _size;
 
@@ -177,7 +183,7 @@ public class InfiniteTerrain : MonoBehaviour {
         MeshSeam _rightSeam;
 
 
-        int _currentLodCount = 6;
+        static int _totalLODS = 6;
         public int CurrentLod = -1;
 
         int _mapSize = 240;
@@ -187,6 +193,8 @@ public class InfiniteTerrain : MonoBehaviour {
 
         Mesh[] _lods;
         LODstatus[] _lodStatus;
+
+        int[] _adjacantMapLods = new int[] { -1, -1, -1, -1 };
 
         TerrainChunk _topChunk;
         TerrainChunk _rightChunk;
@@ -204,13 +212,13 @@ public class InfiniteTerrain : MonoBehaviour {
             _coord = coord;
 
             _size = size;
-            _lods = new Mesh[_currentLodCount];
-            _lodStatus = new LODstatus[_currentLodCount];
-            _maps = new Map[_currentLodCount];
+            _lods = new Mesh[_totalLODS];
+            _lodStatus = new LODstatus[_totalLODS];
+            _maps = new Map[_totalLODS];
 
             Links = new bool[] { false, false, false };
 
-            for (int i = 0; i < _currentLodCount; i++)
+            for (int i = 0; i < _totalLODS; i++)
             {
                 _lodStatus[i] = LODstatus.NotCreated;
             }
@@ -261,11 +269,52 @@ public class InfiniteTerrain : MonoBehaviour {
         {
             var viewerDistanceFromNearestEdge = Mathf.Sqrt(_bounds.SqrDistance(_viewerPosition));
 
-            var part = Mathf.InverseLerp(0, MaxViewDistance * 0.8f, viewerDistanceFromNearestEdge);
+            UpdateMeshPatch(viewerDistanceFromNearestEdge);
 
-            if (part < 1f)
+            if (_markedForUpdate)
             {
-                var lod = (int)(part * _currentLodCount);
+                if (Links[0])
+                {
+                    UpdateTopSeam(_topChunk.CurrentMap, _topChunk.CurrentLod);
+                }
+                if (Links[1])
+                {
+                    UpdateRightSeam(_rightChunk.CurrentMap, _rightChunk.CurrentLod);
+                }
+
+                _markedForUpdate = false;
+            }
+            else
+            {
+                if (Links[0])
+                {
+                    if (_topChunk._markedForUpdate)
+                    {
+                        UpdateTopSeam(_topChunk.CurrentMap, _topChunk.CurrentLod);
+                    }
+                }
+                if (Links[1])
+                {
+                    if (_rightChunk._markedForUpdate)
+                    {
+                        UpdateRightSeam(_rightChunk.CurrentMap, _rightChunk.CurrentLod);
+                    }
+                }
+            }
+
+            var visible = viewerDistanceFromNearestEdge <= MaxViewDistance;
+            SetVisible(visible);
+        }
+
+        // Mesh Patch Data
+
+        void UpdateMeshPatch(float viewerDistanceFromNearestEdge)
+        {
+            var normalisedDistance = Mathf.InverseLerp(0, MaxViewDistance * 0.8f, viewerDistanceFromNearestEdge);
+
+            if (normalisedDistance < 1f)
+            {
+                var lod = (int)(normalisedDistance * _totalLODS);
 
                 if (CurrentLod != lod)
                 {
@@ -280,20 +329,15 @@ public class InfiniteTerrain : MonoBehaviour {
                         //_collider.sharedMesh = _lods[lod];
 
                         CurrentLod = lod;
+                        _markedForUpdate = true;
                     }
                 }
             }
-
-
-
-
-            var visible = viewerDistanceFromNearestEdge <= MaxViewDistance;
-            SetVisible(visible);
         }
 
         void CreateLOD(int LOD)
         {
-            var t = Mathf.InverseLerp(0, _currentLodCount-1, LOD);
+            var t = Mathf.InverseLerp(0, _totalLODS-1, LOD);
             var mapSize = -((int)Mathf.Lerp(-_mapSize, -_mapMinSize, t));
             _lodStatus[LOD] = LODstatus.InProgress;
             //Debug.Log("LOD: " + LOD + ", Map Size: " + mapSize);
@@ -311,8 +355,9 @@ public class InfiniteTerrain : MonoBehaviour {
             _filter.mesh = _lods[mapCreationData.LOD];
             CurrentLod = mapCreationData.LOD;
             _lodStatus[mapCreationData.LOD] = LODstatus.Created;
+            _markedForUpdate = true;
 
-            SetVisible(false);
+            //SetVisible(false);
         }
 
         void RequestMap(Action<MapCreationData> callback, int mapSize, int lod)
@@ -342,30 +387,33 @@ public class InfiniteTerrain : MonoBehaviour {
 
         void UpdateTopSeam(Map mapB, int LOD)
         {
-            if (CurrentMap == null | mapB == null)
-                return;
+            //if (CurrentMap == null | mapB == null)
+               // return;
 
-            if (_topSeam.NeedsUpdate(CurrentLod, LOD))
-            {
+            //if (_topSeam.NeedsUpdate(CurrentLod, LOD))
+            //{
                 UpdateSeam(mapB, new Coord(_coord.TileX, _coord.TileY + 1),_topSeam);
-            }
+            //}
 
         }
 
         void UpdateRightSeam(Map mapB, int LOD)
         {
-            if (CurrentMap == null | mapB == null)
-                return;
+            //if (CurrentMap == null | mapB == null)
+               // return;
 
-            if (_rightSeam.NeedsUpdate(CurrentLod, LOD))
-            {
+            //if (_rightSeam.NeedsUpdate(CurrentLod, LOD))
+           // {
                 UpdateSeam(mapB, new Coord(_coord.TileX+1, _coord.TileY), _rightSeam);
-            }
+            //}
         }
 
         void UpdateSeam(Map mapB, Coord coordB, MeshSeam seam)
         {
             //Debug.Log("Seam needs updating");
+
+            if (CurrentMap == null | mapB == null)
+             return;
 
             var mesh = _heightmeshGenerator.GenerateMeshSeam(_maps[CurrentLod], _coord, mapB, coordB, new MeshLens(new Vector3(_size, _size, _size)));
             seam.ApplyMesh(mesh.CreateMesh());
