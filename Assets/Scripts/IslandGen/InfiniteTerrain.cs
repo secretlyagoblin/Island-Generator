@@ -7,9 +7,11 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public const float MaxViewDistance = 2000;
     public Transform Viewer;
+
     public Material TerrainMaterial;
 
     public static Vector2 _viewerPosition;
+    public static Vector2 _oldPosition;
     public static HeightmeshGenerator _heightmeshGenerator = new HeightmeshGenerator();
     int _chunkSize;
     int _chunksVisibleInViewDistance;
@@ -28,13 +30,24 @@ public class InfiniteTerrain : MonoBehaviour {
         _chunkSize = 500;
         _chunksVisibleInViewDistance = Mathf.RoundToInt(MaxViewDistance / _chunkSize);
 
+        _oldPosition = new Vector2(float.MaxValue, float.MaxValue);
+
     }
 
     void Update()
     {
         _viewerPosition = new Vector2(Viewer.position.x, Viewer.position.z);
         DequeueNewLODS();
-        updateVisibleChunks();
+
+        //if(!(_oldPosition.x - _viewerPosition.x < 3 && _oldPosition.y - _viewerPosition.y < 3))
+        //{
+            updateVisibleChunks();
+            _oldPosition = _viewerPosition;
+        //}
+
+       
+
+
     }
 
     void DequeueNewLODS()
@@ -74,38 +87,54 @@ public class InfiniteTerrain : MonoBehaviour {
 
                 if (terrainChunkDictionary.ContainsKey(viewedChunkCoord))
                 {
-                    terrainChunkDictionary[viewedChunkCoord].UpdateTerrainChunk();
+                    var currentChunk = terrainChunkDictionary[viewedChunkCoord];
 
-                    var cellAbove = new Coord(viewedChunkCoord.TileX, viewedChunkCoord.TileY + 1);
-                    var cellCount = 0;
 
-                    if (terrainChunkDictionary.ContainsKey(cellAbove))
+                    if (currentChunk.IsFullyLinked)
                     {
-                        terrainChunkDictionary[viewedChunkCoord].UpdateTopSeam(terrainChunkDictionary[cellAbove].CurrentMap, terrainChunkDictionary[cellAbove].CurrentLod);
-                        cellCount++;
+
                     }
-
-                    var cellBeside = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY);
-
-                    if (terrainChunkDictionary.ContainsKey(cellBeside))
+                    else
                     {
-                        terrainChunkDictionary[viewedChunkCoord].UpdateRightSeam(terrainChunkDictionary[cellBeside].CurrentMap, terrainChunkDictionary[cellBeside].CurrentLod);
-                        cellCount++;
-                    }
+                        if (!currentChunk.Links[0])
+                        {
+                            var cellAbove = new Coord(viewedChunkCoord.TileX, viewedChunkCoord.TileY + 1);
 
-                    var cellDiagonal = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY+1);
+                            if (terrainChunkDictionary.ContainsKey(cellAbove))
+                            {
+                                currentChunk.AddTopChunk(terrainChunkDictionary[cellAbove]);
+                            }
+                        }
 
-                    if (terrainChunkDictionary.ContainsKey(cellDiagonal) && cellCount == 2)
-                    {
-                        terrainChunkDictionary[viewedChunkCoord].UpdateCorner(terrainChunkDictionary[cellAbove], terrainChunkDictionary[cellBeside], terrainChunkDictionary[cellDiagonal]);
-                    }
+                        if (!currentChunk.Links[1])
+                        {
 
+                            var cellBeside = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY);
 
+                            if (terrainChunkDictionary.ContainsKey(cellBeside))
+                            {
+                                currentChunk.AddRightChunk(terrainChunkDictionary[cellBeside]);
+                            }
+                        }
 
+                        if (!currentChunk.Links[1])
+                        {
 
-                    if (terrainChunkDictionary[viewedChunkCoord].IsVisible())
-                    {
-                        terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoord]);
+                            var cellDiagonal = new Coord(viewedChunkCoord.TileX + 1, viewedChunkCoord.TileY + 1);
+
+                            if (terrainChunkDictionary.ContainsKey(cellDiagonal))
+                            {
+                                currentChunk.AddDiagonalChunk(terrainChunkDictionary[cellDiagonal]);
+                            }
+
+                        }
+
+                        currentChunk.UpdateTerrainChunk();
+
+                        if (terrainChunkDictionary[viewedChunkCoord].IsVisible())
+                        {
+                            terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoord]);
+                        }
                     }
                 }
                 else
@@ -123,7 +152,12 @@ public class InfiniteTerrain : MonoBehaviour {
         Vector2 _position;
         Bounds _bounds;
 
-        Coord _coord;
+        public bool IsFullyLinked
+        { get; private set; }
+        public bool[] Links
+        { get; private set; }
+
+    Coord _coord;
 
         int _size;
 
@@ -154,6 +188,10 @@ public class InfiniteTerrain : MonoBehaviour {
         Mesh[] _lods;
         LODstatus[] _lodStatus;
 
+        TerrainChunk _topChunk;
+        TerrainChunk _rightChunk;
+        TerrainChunk _diagonalChunk;
+
 
         MeshFilter _filter;
         //MeshCollider _collider;
@@ -161,12 +199,16 @@ public class InfiniteTerrain : MonoBehaviour {
         public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial)
         {
             CurrentLod = -1;
+            IsFullyLinked = false;
+
             _coord = coord;
 
             _size = size;
             _lods = new Mesh[_currentLodCount];
             _lodStatus = new LODstatus[_currentLodCount];
             _maps = new Map[_currentLodCount];
+
+            Links = new bool[] { false, false, false };
 
             for (int i = 0; i < _currentLodCount; i++)
             {
@@ -298,7 +340,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         // Mesh Seam Data
 
-        public void UpdateTopSeam(Map mapB, int LOD)
+        void UpdateTopSeam(Map mapB, int LOD)
         {
             if (CurrentMap == null | mapB == null)
                 return;
@@ -310,7 +352,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         }
 
-        public void UpdateRightSeam(Map mapB, int LOD)
+        void UpdateRightSeam(Map mapB, int LOD)
         {
             if (CurrentMap == null | mapB == null)
                 return;
@@ -329,9 +371,27 @@ public class InfiniteTerrain : MonoBehaviour {
             seam.ApplyMesh(mesh.CreateMesh());
         }
 
+        public void AddTopChunk(TerrainChunk chunk)
+        {
+            _topChunk = chunk;
+            Links[0] = true;
+        }
+
+        public void AddRightChunk(TerrainChunk chunk)
+        {
+            _rightChunk = chunk;
+            Links[1] = true;
+        }
+
+        public void AddDiagonalChunk(TerrainChunk chunk)
+        {
+            _diagonalChunk = chunk;
+            Links[2] = true;
+        }
+
         // Corner
 
-        public void UpdateCorner(TerrainChunk mapA, TerrainChunk mapB, TerrainChunk mapC)
+        void UpdateCorner(TerrainChunk mapA, TerrainChunk mapB, TerrainChunk mapC)
         {
 
         }
