@@ -181,9 +181,6 @@ public class HeightmeshGenerator {
         //        Debug.DrawLine(pointA, pointB, Color.white, 100f);
         //    }
         //}
-
-
-
         return seam;
     }
 
@@ -313,7 +310,7 @@ public class HeightmeshSeam {
         Mesh mesh = new Mesh();
         mesh.vertices = Vertices;
         mesh.uv = UVs;
-        mesh.triangles = Triangles.ToArray();
+        mesh.SetTriangles(Triangles,0);
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         return mesh;
@@ -350,7 +347,7 @@ public class HeightmeshQuad {
         Mesh mesh = new Mesh();
         mesh.vertices = Vertices;
         mesh.uv = UVs;
-        mesh.triangles = Triangles.ToArray();
+        mesh.SetTriangles(Triangles,0);
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         return mesh;

@@ -3,290 +3,9 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-public class Map {
-
-    public int SizeX
-    { get; private set; }
-
-    public int SizeY
-    { get; private set; }
-
-    float[,] _map;
-
-    public float[,] FloatArray
-    { get { return Clone(this).Normalise()._map; } }
-
-    public Map(Map mapTemplate)
-    {
-        SizeX = mapTemplate.SizeX;
-        SizeY = mapTemplate.SizeY;
-        _map = new float[SizeX, SizeY];
-    }
-
-    public Map(int sizeX, int sizeY)
-    {
-        SizeX = sizeX;
-        SizeY = sizeY;
-        _map = new float[SizeX, SizeY];
-    }
-
-    public Map(Map mapTemplate, int defaultValue)
-    {
-        SizeX = mapTemplate.SizeX;
-        SizeY = mapTemplate.SizeY;
-        _map = new float[SizeX, SizeY];
-
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
-            {
-                _map[x, y] = defaultValue;
-            }
-        }
-    }
-
-    public Map(int sizeX, int sizeY, float defaultValue)
-    {
-        SizeX = sizeX;
-        SizeY = sizeY;
-        _map = new float[SizeX, SizeY];
-
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
-            {
-                _map[x, y] = defaultValue;
-            }
-        }
-    }
-
-    // Accessors
-
-    public float this[int indexA, int indexB]
-    {
-        get { return _map[indexA, indexB]; }
-        set { _map[indexA, indexB] = value; }
-    }
-
-    // Static Functions
-
-    public static Map Clone(Map map)
-    {
-        return BlankMap(map).OverwriteMapWith(map);
-    }
-
-    public static List<Coord> GetCenters(List<List<Coord>> coords)
-    {
-        var returnCoords = new List<Coord>();
-
-        for (int i = 0; i < coords.Count; i++)
-        {
-            var averageX = 0;
-            var averageY = 0;
-
-            for (int u = 0; u < coords[i].Count; u++)
-            {
-                averageX += coords[i][u].TileX;
-                averageY += coords[i][u].TileY;
-            }
-
-            averageX /= coords[i].Count;
-            averageY /= coords[i].Count;
-
-            returnCoords.Add(new Coord(averageX, averageY));
-        }
-
-        return returnCoords;
-    }
-
-    public static Map BlankMap(Map template)
-    {
-        return new Map(template.SizeX, template.SizeY);
-    }
-
-    public static Map CreateHeightMap(Map[] heightData)
-    {
-        return Clone(heightData[0]).AddHeightmapLayers(heightData, 0);
-    }
-
-    public static Map BlankMap(int sizeX, int sizeY)
-    {
-        return new Map(sizeX, sizeY);
-    }
-
-    public static Map ApplyMask(Map mapA, Map mapB, Map mask)
-    {
-        return Clone(mapA).ApplyMask(mask, mapB);
-    }
-
-    public static bool MapsAreSameDimensions(Map mapA, Map mapB)
-    {
-        return mapA.SizeX == mapB.SizeX && mapA.SizeY == mapB.SizeY;
-
-    }
-
-    public static Map BooleanUnion(Map mapA, Map mapB)
-    {
-        //Need a check here to avoid failure
-
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Maps are not the same size!");
-            return null;
-        }
-
-        var outputMap = new Map(mapA);
-
-        for (int x = 0; x < mapA.SizeX; x++)
-        {
-            for (int y = 0; y < mapA.SizeY; y++)
-            {
-                outputMap[x, y] = (mapA[x, y] == 0 | mapB[x, y] == 0) ? 0 : 1;
-            }
-        }
-        return outputMap;
-    }
-
-    public static Map BooleanIntersection(Map mapA, Map mapB)
-    {
-        //Need a check here to avoid failure
-
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Maps are not the same size!");
-            return null;
-        }
-
-        var outputMap = new Map(mapA);
-
-        for (int x = 0; x < mapA.SizeX; x++)
-        {
-            for (int y = 0; y < mapA.SizeY; y++)
-            {
-                outputMap[x, y] = (mapA[x, y] == 0 && mapB[x, y] == 0) ? 0 : 1;
-            }
-        }
-        return outputMap;
-    }
-
-    public static Map BooleanDifference(Map mapA, Map mapB)
-    {
-        //Need a check here to avoid failure
-
-        if (!MapsAreSameDimensions(mapA, mapB))
-        {
-            Debug.Log("Maps are not the same size!");
-            return null;
-        }
-
-        var outputMap = new Map(mapA);
-
-        for (int x = 0; x < mapA.SizeX; x++)
-        {
-            for (int y = 0; y < mapA.SizeY; y++)
-            {
-                outputMap[x, y] = (mapA[x, y] == 0) ? 1 : mapB[x, y];
-            }
-        }
-        return outputMap;
-    }
-
-    public Map BooleanMapFromThreshold(float threshold)
-    {
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
-            {
-                _map[x, y] = _map[x, y] <= threshold ? 0 : 1; 
-            }
-        }
-
-        return this;
-    }
-
-    public static Map GetInvertedMap(Map map)
-    {
-        return Clone(map).Invert();
-    }
-
-    public static Map HigherResult(Map mapA, Map mapB)
-    {
-        var map = Clone(mapA);
-
-        for (int x = 0; x < mapA.SizeX; x++)
-        {
-            for (int y = 0; y < mapA.SizeY; y++)
-            {
-                map[x,y] = mapA[x,y] > mapB[x,y]?mapA[x,y]:mapB[x, y];
-            }
-        }
-
-        return map;
-    }
-
-    // Math Functions
-
-    public static Map operator +(Map a, Map b)
-    {
-        var outputMap = new Map(a);
-
-        for (int x = 0; x < a.SizeX; x++)
-        {
-            for (int y = 0; y < a.SizeY; y++)
-            {
-                outputMap[x, y] = a[x, y] + b[x, y];
-            }
-        }
-
-        return outputMap;
-    }
-
-    public static Map operator -(Map a, Map b)
-    {
-        var outputMap = new Map(a);
-
-        for (int x = 0; x < a.SizeX; x++)
-        {
-            for (int y = 0; y < a.SizeY; y++)
-            {
-                outputMap[x, y] = a[x, y] - b[x, y];
-            }
-        }
-
-        return outputMap;
-    }
-
-    public static Map operator *(Map a, Map b)
-    {
-        var outputMap = new Map(a);
-
-        for (int x = 0; x < a.SizeX; x++)
-        {
-            for (int y = 0; y < a.SizeY; y++)
-            {
-                outputMap[x, y] = a[x, y] * b[x, y];
-            }
-        }
-
-        return outputMap;
-    }
-
-    public static Map operator /(Map a, Map b)
-    {
-        var outputMap = new Map(a);
-
-        for (int x = 0; x < a.SizeX; x++)
-        {
-            for (int y = 0; y < a.SizeY; y++)
-            {
-                outputMap[x, y] = a[x, y] / b[x, y];
-            }
-        }
-
-        return outputMap;
-    }
-
-    // General Functions
+public partial class Map
+{
+// General Functions
 
     public Map FillWilth(float value)
     {
@@ -527,72 +246,6 @@ public class Map {
 
     // Vector Functions
 
-    public Coord GetValidStartLocation()
-    {
-
-        var samplePoint = new Coord((int)(SizeX * 0.5f), (int)(SizeY * 0.5f));
-
-        if (_map[samplePoint.TileX, samplePoint.TileY] < 0.001f)
-        {
-            return new Coord(samplePoint.TileX, samplePoint.TileY);
-        }
-
-        var iterationCount = 0;
-        var maxIterations = (int)(SizeX * 0.4f);
-
-        var xNeg = false;
-        var yNeg = false;
-
-        var xStep = 1;
-        var yStep = 1;
-
-        while (iterationCount <maxIterations)
-        {
-            for (int x = 0; x < xStep; x++)
-            {
-                if (xNeg)
-                {
-                    samplePoint.TileX--;
-                }
-                else
-                {
-                    samplePoint.TileX++;
-                }
-
-                if (_map[samplePoint.TileX, samplePoint.TileY] < 0.001f)
-                {
-                    return samplePoint;
-                }
-            }
-
-            for (int y = 0; y < yStep; y++)
-            {
-                if (yNeg)
-                {
-                    samplePoint.TileY--;
-                }
-                else
-                {
-                    samplePoint.TileY++;
-                }
-
-                if (_map[samplePoint.TileX, samplePoint.TileY] < 0.001f)
-                {
-                    return samplePoint;
-                }
-            }
-
-            xNeg = xNeg ? false:true;
-            yNeg = yNeg ? false : true;
-
-            xStep++;
-            yStep++;
-        }
-
-        Debug.Log("FailedToFindPoint");
-
-        return (new Coord((int)(SizeX * 0.5f), (int)(SizeY * 0.5f)));
-    }
 
     // List Fuctions
 
@@ -631,7 +284,7 @@ public class Map {
 
         for (int y = 0; y < SizeY; y++)
         {
-            outputVectorArray[y] = new Vector3(xIndex/(float)SizeX, _map[xIndex, y],y/ (float)SizeY);
+            outputVectorArray[y] = new Vector3(xIndex / (float)SizeX, _map[xIndex, y], y / (float)SizeY);
         }
 
         return outputVectorArray;
@@ -681,73 +334,7 @@ public class Map {
         return this;
     }
 
-    public Map RemoveSmallRegions(int regionSizeCutoff)
-    {
 
-        var wallRegions = GetRegions(1);
-        var wallThresholdSize = regionSizeCutoff;
-
-        for (int i = 0; i < wallRegions.Count; i++)
-        {
-            if (wallRegions[i].Count < wallThresholdSize)
-            {
-                for (int r = 0; r < wallRegions[i].Count; r++)
-                {
-                    _map[wallRegions[i][r].TileX, wallRegions[i][r].TileY] = 0;
-                }
-            }
-        }
-
-        var roomRegions = GetRegions(0);
-        var roomThresholdSize = regionSizeCutoff;
-
-
-        for (int i = 0; i < roomRegions.Count; i++)
-        {
-            if (roomRegions[i].Count < roomThresholdSize)
-            {
-                for (int r = 0; r < roomRegions[i].Count; r++)
-                {
-                    _map[roomRegions[i][r].TileX, roomRegions[i][r].TileY] = 1;
-                }
-            }
-        }
-        return this;
-    }
-
-    public Map AddRoomLogic()
-    {
-
-        Profiler.BeginSample("Get Regions");
-
-
-        var roomRegions = GetRegions(0);
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Middler");
-
-        var survivingRooms = new List<Room>();
-
-        for (int i = 0; i < roomRegions.Count; i++)
-        {
-                survivingRooms.Add(new Room(roomRegions[i],this));
-        }
-
-        survivingRooms.Sort();
-        survivingRooms[0].IsMainRoom = true;
-        survivingRooms[0].IsAccessibleFromMainRoom = true;
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Connect Closest Rooms");
-
-        ConnectClosestRooms(survivingRooms, false);
-
-        Profiler.EndSample();
-
-        return this;
-    }
 
     public Map[] GenerateSubMaps(int divisions, float perlinScale)
     {
@@ -791,37 +378,37 @@ public class Map {
 
     public Map Invert()
     {
-            var smallestValue = float.MaxValue;
-            var biggestValue = float.MinValue;
+        var smallestValue = float.MaxValue;
+        var biggestValue = float.MinValue;
 
-            for (int x = 0; x < SizeX; x++)
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
             {
-                for (int y = 0; y < SizeY; y++)
-                {
-                    var value = (_map[x, y]);
-                    if (biggestValue < value)
-                        biggestValue = value;
-                    if (smallestValue > value)
-                        smallestValue = value;
-                }
+                var value = (_map[x, y]);
+                if (biggestValue < value)
+                    biggestValue = value;
+                if (smallestValue > value)
+                    smallestValue = value;
             }
+        }
 
 
 
-            for (int x = 0; x < SizeX; x++)
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
             {
-                for (int y = 0; y < SizeY; y++)
-                {
-                    var value = _map[x, y];
-                    _map[x, y] = -(value - smallestValue) + biggestValue; 
-                }
+                var value = _map[x, y];
+                _map[x, y] = -(value - smallestValue) + biggestValue;
             }
+        }
 
-            return this;
-        
+        return this;
+
     }
 
-    public Map ThickenOutline (int iterations)
+    public Map ThickenOutline(int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {
@@ -834,9 +421,9 @@ public class Map {
     {
         var currentSnapshot = Clone(this);
 
-        for (int x = 1; x < SizeX-1; x++)
+        for (int x = 1; x < SizeX - 1; x++)
         {
-            for (int y = 1; y < SizeY-1; y++)
+            for (int y = 1; y < SizeY - 1; y++)
             {
                 if (currentSnapshot[x, y] == 0)
                 {
@@ -867,7 +454,7 @@ public class Map {
                 {
                     if (map[x, y] == 0)
                     {
-                        _map[x, y] = i+offset;
+                        _map[x, y] = i + offset;
                         //Debug.Log("successfully changed map cell height to " + height);
                     }
                 }
@@ -955,7 +542,7 @@ public class Map {
 
         for (int i = 0; i < heights.Count; i++)
         {
-            outputHeights.Add(new Map(this,1));
+            outputHeights.Add(new Map(this, 1));
         }
 
         for (int x = 0; x < sizeX; x++)
@@ -1006,7 +593,7 @@ public class Map {
                 var coord = regions[i][u];
                 mapRegions[coord.TileX, coord.TileY] = i;
                 mapFlags[coord.TileX, coord.TileY] = 0;
-                
+
             }
             var room = new Room(regions[i], this);
             room.InitForDijkstra();
@@ -1075,7 +662,7 @@ public class Map {
         while (!finished)
         {
             failCount++;
-            if(failCount > 1000)
+            if (failCount > 1000)
             {
                 return null;
             }
@@ -1086,7 +673,7 @@ public class Map {
                 firstIteration = false;
                 currentRoom.DijkstraDistance = 0;
             }
-            
+
             for (int i = 0; i < currentRoom.ConnectedRooms.Count; i++)
             {
                 var connectedRoom = currentRoom.ConnectedRooms[i];
@@ -1163,8 +750,8 @@ public class Map {
 
     public Map GetDistanceMap(int searchDistance)
     {
-        var distanceMap = new Map(SizeX,SizeY,0);
-        
+        var distanceMap = new Map(SizeX, SizeY, 0);
+
 
         var currentSnapshot = Clone(this);
 
@@ -1173,7 +760,7 @@ public class Map {
             for (int y = 0; y < SizeY; y++)
             {
                 // Get pixel
-                float a = _map[x,y];
+                float a = _map[x, y];
 
                 // Distance to closest pixel which is the inverse of a
                 // start on float.MaxValue so we can be sure we found something
@@ -1227,7 +814,7 @@ public class Map {
                 // Write pixel out
 
 
-                        
+
                 distanceMap[x, y] = a;
 
 
@@ -1254,8 +841,8 @@ public class Map {
             for (int y = 0; y < SizeY; y++)
             {
 
-                var perlinX = seed + (mapCoordinateX*SizeX) + (x / perlinScale);
-                var perlinY = seed + (mapCoordinateY*SizeY) + (y / perlinScale);
+                var perlinX = seed + (mapCoordinateX * SizeX) + (x / perlinScale);
+                var perlinY = seed + (mapCoordinateY * SizeY) + (y / perlinScale);
 
                 var perlin = Mathf.PerlinNoise(perlinX, perlinY);
 
@@ -1458,7 +1045,7 @@ public class Map {
 
         var output = (outputMapX + outputMapY).Multiply(0.5f);
 
-        
+
         return output;
     }
 
@@ -1556,236 +1143,7 @@ public class Map {
         }
     }
 
-    // Region Helper Functions
 
-    public List<List<Coord>> GetRegions(int tileType)
-    {
-        var regions = new List<List<Coord>>();
-        var mapFlags = new int[SizeX, SizeY];
-
-        for (int x = 0; x < SizeX; x++)
-        {
-            for (int y = 0; y < SizeY; y++)
-            {
-                if (mapFlags[x, y] == 0 && _map[x, y] == tileType)
-                {
-                    var newRegion = GetRegionTiles( x, y);
-                    regions.Add(newRegion);
-
-                    for (int i = 0; i < newRegion.Count; i++)
-                    {
-                        var tile = newRegion[i];
-                        mapFlags[tile.TileX, tile.TileY] = 1;
-                    }
-                }
-            }
-        }
-
-        //Debug.Log("There are " + regions.Count + " distinct regions.");
-
-        return regions;
-    }
-
-    List<Coord> GetRegionTiles(int startX, int startY)
-    {
-
-        var tiles = new List<Coord>();
-        var mapFlags = new int[SizeX, SizeY];
-        int tileType = Mathf.RoundToInt(_map[startX, startY]);
-
-        var queue = new Queue<Coord>();
-        queue.Enqueue(new Coord(startX, startY));
-        mapFlags[startX, startY] = 1;
-
-        while (queue.Count > 0)
-        {
-            var tile = queue.Dequeue();
-            tiles.Add(tile);
-
-            for (int x = tile.TileX - 1; x <= tile.TileX + 1; x++)
-            {
-                for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
-                {
-                    if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
-                    {
-                        if (mapFlags[x, y] == 0 && _map[x, y] == tileType)
-                        {
-                            mapFlags[x, y] = 1;
-                            queue.Enqueue(new Coord(x, y));
-                        }
-                    }
-                }
-            }
-        }
-
-        return tiles;
-    }
-
-    // Room Helper Functions
-
-    void ConnectClosestRooms(List<Room> allRooms, bool forceAccessibilityFromMainRoom)
-    {
-        var nonConnectedRooms = new List<Room>();
-        var connectedRooms = new List<Room>();
-
-        if (forceAccessibilityFromMainRoom)
-        {
-            for (int i = 0; i < allRooms.Count; i++)
-            {
-                var room = allRooms[i];
-                if (room.IsAccessibleFromMainRoom)
-                {
-                    connectedRooms.Add(room);
-                }
-                else
-                {
-                    nonConnectedRooms.Add(room);
-                }
-            }
-        }
-        else
-        {
-            nonConnectedRooms = allRooms;
-            connectedRooms = allRooms;
-        }
-
-        var bestDistance = 0;
-        var bestTileA = new Coord();
-        var bestTileB = new Coord();
-        var bestRoomA = new Room();
-        var bestRoomB = new Room();
-        var possibleConnectionFound = false;
-
-        for (int a = 0; a < nonConnectedRooms.Count; a++)
-        {
-            var roomA = nonConnectedRooms[a];
-            if (!forceAccessibilityFromMainRoom)
-            {
-                possibleConnectionFound = false;
-                if (roomA.ConnectedRooms.Count > 0)
-                {
-                    continue;
-                }
-            }
-
-            for (int b = 0; b < connectedRooms.Count; b++)
-            {
-                var roomB = connectedRooms[b];
-                if (roomA == roomB || roomA.IsAbstractlyConnected(roomB))
-                    continue;
-
-                for (int tileIndexA = 0; tileIndexA < roomA.EdgeTiles.Count; tileIndexA++)
-                {
-                    for (int tileIndexB = 0; tileIndexB < roomB.EdgeTiles.Count; tileIndexB++)
-                    {
-                        var tileA = roomA.EdgeTiles[tileIndexA];
-                        var tileB = roomB.EdgeTiles[tileIndexB];
-                        var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
-
-                        if (distanceBetweenRooms < bestDistance || !possibleConnectionFound)
-                        {
-                            bestDistance = distanceBetweenRooms;
-                            possibleConnectionFound = true;
-                            bestTileA = tileA;
-                            bestTileB = tileB;
-                            bestRoomA = roomA;
-                            bestRoomB = roomB;
-                        }
-
-                    }
-                }
-            }
-            if (possibleConnectionFound && !forceAccessibilityFromMainRoom)
-            {
-                CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
-            }
-        }
-
-        if (possibleConnectionFound && forceAccessibilityFromMainRoom)
-        {
-            CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
-            ConnectClosestRooms(allRooms, true);
-        }
-
-        if (!forceAccessibilityFromMainRoom)
-        {
-            ConnectClosestRooms(allRooms, true);
-        }
-    }    
-
-    void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB)
-    {
-        Room.ConnectRooms(roomA, roomB);
-
-        //Debug.Log("----------- Start Line -----------");
-
-        //Debug.DrawLine(CoordToWorldPoint(tileA, _map), CoordToWorldPoint(tileB, _map), Color.green, 100f);
-
-        //Debug.Log("Desired Start Point: " + tileA.TileX + " " + tileA.TileY);
-
-        var line = Coord.GetLine(tileA, tileB);
-        for (int i = 0; i < line.Length; i++)
-        {
-
-            //Debug.Log("Real Line Points " + i + " " + line[i].TileX + " " + line[i].TileY);
-
-            var weight = RNG.Next(1, 4);
-            if (weight == 3)
-                weight = RNG.Next(1, 9);
-
-            DrawCircle(line[i], RNG.Next(1, weight));
-        }
-
-        //Debug.Log("Desired End Point: " + tileB.TileX + " " + tileB.TileY);
-
-        //Debug.Log("------------ End Line ------------");
-    }
-
-    float[,] DrawCircle(Coord c, int r)
-    {
-        for (int x = -r; x <= r; x++)
-        {
-            for (int y = -r; y <= r; y++)
-            {
-                if (x * x + y * y <= r * r)
-                {
-                    var drawX = c.TileX + x;
-                    var drawY = c.TileY + y;
-                    if (IsInMapRange(drawX, drawY))
-                    {
-                        _map[drawX, drawY] = 0;
-                    }
-                }
-            }
-        }
-
-        return _map;
-    }
-
-    // Helper Functions
-
-    int GetSurroundingWallCount(float[,] map, int gridX, int gridY)
-    {
-        int wallCount = 0;
-        for (int x = gridX - 1; x <= gridX + 1; x++)
-        {
-            for (int y = gridY - 1; y <= gridY + 1; y++)
-            {
-                if (IsInMapRange(x, y))
-                {
-                    if (x != gridX || y != gridY)
-                    {
-                        wallCount += Mathf.RoundToInt(map[x, y]);
-                    }
-                }
-                else
-                {
-                    wallCount++;
-                }
-            }
-        }
-        return wallCount;
-    }
 
     public bool IsInMapRange(int x, int y)
     {
@@ -1860,203 +1218,6 @@ public class Map {
     }
 
 
-    // Room Class
 
-    class Room : IComparable<Room> {
-
-        public List<Coord> Tiles
-        { get; private set; }
-        public List<Coord> EdgeTiles
-        { get; private set; }
-        public List<Room> ConnectedRooms
-        { get; private set; }
-        public int RoomSize
-        { get; private set; }
-        public bool IsAccessibleFromMainRoom
-        { get; set; }
-        public bool IsMainRoom
-        { get; set; }
-
-        public int DijkstraDistance
-        { get; set; }
-
-        public bool Visited
-        { get; set; }
-
-        public Room()
-        {
-
-        }
-
-        public Room(List<Coord> roomTiles, Map map)
-        {
-            Tiles = roomTiles;
-            RoomSize = Tiles.Count;
-            ConnectedRooms = new List<Room>();
-
-            EdgeTiles = new List<Coord>();
-            for (int i = 0; i < Tiles.Count; i++)
-            {
-                var tile = Tiles[i];
-                for (int x = tile.TileX - 1; x < tile.TileX + 1; x++)
-                {
-                    for (int y = tile.TileY - 1; y < tile.TileY + 1; y++)
-                    {
-                        if (x == tile.TileX || y == tile.TileY)
-                        {
-                            if (map[x, y] == 1)
-                            {
-                                EdgeTiles.Add(tile);
-                            }
-                        }
-                    }
-                }
-            }
-
-
-        }
-
-        public void SetAccessibleFromMainRoom()
-        {
-            if (!IsAccessibleFromMainRoom)
-            {
-                IsAccessibleFromMainRoom = true;
-                for (int i = 0; i < ConnectedRooms.Count; i++)
-                {
-                    var room = ConnectedRooms[i];
-                    room.IsAccessibleFromMainRoom = true;
-                }
-            }
-        }
-
-        public void InitForDijkstra()
-        {
-            DijkstraDistance = int.MaxValue;
-            Visited = false;
-        }
-
-        public static void ConnectRooms(Room roomA, Room roomB)
-        {
-            if (roomA.IsAccessibleFromMainRoom)
-            {
-                roomB.SetAccessibleFromMainRoom();
-            }
-            else if (roomB.IsAccessibleFromMainRoom)
-            {
-                roomA.SetAccessibleFromMainRoom();
-            }
-
-            roomA.ConnectedRooms.Add(roomB);
-            roomB.ConnectedRooms.Add(roomA);
-        }
-
-        public bool IsAbstractlyConnected(Room otherRoom)
-        {
-            return ConnectedRooms.Contains(otherRoom);
-        }
-
-        public int CompareTo(Room otherRoom)
-        {
-            return otherRoom.RoomSize.CompareTo(RoomSize);
-        }
-
-        public bool IsLiterallyConnected(Room otherRoom)
-        {
-            for (int a = 0; a < Tiles.Count; a++)
-            {
-                for (int b = 0; b < otherRoom.Tiles.Count; b++)
-                {
-                    var coordA = Tiles[a];
-                    var coordB = otherRoom.Tiles[b];
-
-                    var innerX = coordA.TileX - coordB.TileX;
-                    var innerY = coordA.TileY - coordB.TileY;
-
-                    innerX = Math.Abs(innerX);
-                    innerY = Math.Abs(innerY);
-
-                    if (innerX + innerY < 2)
-                        return true;
-                }
-            }
-            return false;
-        }
-
-        public Vector3 GetCenter(int SizeX, int SizeY)
-        {
-            var centerX = 0;
-            var centerY = 0;
-            for (int i = 0; i < Tiles.Count; i++)
-            {
-                centerX += Tiles[i].TileX;
-                centerY += Tiles[i].TileY;
-            }
-
-            return new Vector3(-SizeX / 2 + .5f + ((float)centerX/Tiles.Count), 50, -SizeY / 2 + .5f + ((float)centerY / Tiles.Count));
-        }
-
-
-    }
-
-    // Heightmap Helper Class
-
-    class HeightmapLerpSegment {
-
-        int _startIndex;
-        int _endIndex;
-
-        float _startValue;
-        float _endValue;
-
-        public HeightmapLerpSegment(int startIndex, float startValue)
-        {
-
-            _startIndex = startIndex;
-            _startValue = startValue;
-        }
-
-        public void Close(int endIndex, float endValue)
-        {
-
-            _endIndex = endIndex;
-            _endValue = endValue;
-
-
-
-        }
-
-        public float[] Apply(float[] array, AnimationCurve curve)
-        {
-
-            var size = _endIndex - _startIndex;
-
-            for (int i = _startIndex; i < _endIndex; i++)
-            {
-
-
-                if (_startValue == -1 && _endValue == -1)
-                {
-                    array[i] = -1;
-                }
-                else if (_startValue == -1 && _endValue != -1)
-                {
-                    array[i] = _endValue;
-                }
-                else if (_startValue != -1 && _endValue == -1)
-                {
-                    array[i] = _startValue;
-                }
-                else if (_startValue != -1 && _endValue != -1)
-                {
-                    array[i] = Mathf.Lerp(_startValue, _endValue, curve.Evaluate((float)(i - _startIndex) / size));
-                }
-
-            }
-
-            return array;
-        }
-
-
-    }
 
 }
