@@ -6,6 +6,10 @@ public static class RNG {
     static System.Random _pseudoRandom;
     static bool _initialised = false;
 
+    public static void DateTimeInit(){
+		Init(System.DateTime.Now.ToString());
+    }
+
     public static void Init(string seed)
     {
         if (_initialised)

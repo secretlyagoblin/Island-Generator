@@ -91,5 +91,15 @@ public class MeshDebugStack {
 
     }
 
+    public void CreateDebugStack(float height)
+    {
+        var gameObject = new GameObject();
+        gameObject.transform.Translate(Vector3.up * (height));
+        gameObject.name = "Debug Stack";
+        gameObject.layer = 5;
+
+        this.CreateDebugStack(gameObject.transform);
+    }
+
 
 }

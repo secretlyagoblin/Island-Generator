@@ -1217,6 +1217,10 @@ public partial class Map
         return texture;
     }
 
+    public Map AddToStack(MeshDebugStack stack){
+        stack.RecordMapStateToStack(this);
+        return this;
+    }
 
 
 
