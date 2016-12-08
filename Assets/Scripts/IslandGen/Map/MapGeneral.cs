@@ -275,7 +275,30 @@ public partial class Map
 
     public Vector3 GetNormalisedVectorIndex(int xIndex, int yIndex)
     {
+        
         return new Vector3(xIndex / (float)SizeX, _map[xIndex, yIndex], yIndex / (float)SizeY);
+    }
+
+    public float BilinearSampleFromNormalisedVector(Vector2 normalisedVector){
+
+        if(normalisedVector.x>1 | normalisedVector.y>1 |normalisedVector.x<0 | normalisedVector.y<0){
+            Debug.Log("You aren't normal and as such are not welcome here, in this debug log");
+
+			Debug.Log(normalisedVector);
+        }
+
+        float u = normalisedVector.x * SizeX - 0.5f;
+        float v = normalisedVector.y * SizeY - 0.5f;
+        int x = (int)Mathf.Floor(u);
+        int y = (int)Mathf.Floor(v);
+        float u_ratio = u - x;
+        float v_ratio = v - y;
+        float u_opposite = 1f - u_ratio;
+        float v_opposite = 1f - v_ratio;
+        float result = (_map[x,y]   * u_opposite  + _map[x+1,y]   * u_ratio) * v_opposite + 
+                   (_map[x,y+1] * u_opposite  + _map[x+1,y+1] * u_ratio) * v_ratio;
+        return result;
+
     }
 
     public Vector3[] GetNormalisedVectorColumn(int xIndex)

@@ -21,7 +21,7 @@ public class PhysicalMeshOverlapTest : MonoBehaviour {
 		var rectB = new Rect(new Vector2(0,7),new Vector2(10,10));
 
 		mapA.ToPhysical(rectA)
-			.PhysicalAverage(mapB.ToPhysical(rectB))
+			.Add(mapB.ToPhysical(rectB))
 			.ToMap()
 			.AddToStack(stack);
 
