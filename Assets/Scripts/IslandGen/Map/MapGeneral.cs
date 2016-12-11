@@ -287,17 +287,20 @@ public partial class Map
 			Debug.Log(normalisedVector);
         }
 
-        float u = normalisedVector.x * SizeX - 0.5f;
-        float v = normalisedVector.y * SizeY - 0.5f;
+        float u = normalisedVector.x * (SizeX - 1);
+        float v = normalisedVector.y * (SizeY - 1);
         int x = (int)Mathf.Floor(u);
         int y = (int)Mathf.Floor(v);
         float u_ratio = u - x;
         float v_ratio = v - y;
         float u_opposite = 1f - u_ratio;
         float v_opposite = 1f - v_ratio;
-        float result = (_map[x,y]   * u_opposite  + _map[x+1,y]   * u_ratio) * v_opposite + 
-                   (_map[x,y+1] * u_opposite  + _map[x+1,y+1] * u_ratio) * v_ratio;
+
+
+        float result = (_map[x, y] * u_opposite + _map[x + 1, y] * u_ratio) * v_opposite +
+                   (_map[x, y + 1] * u_opposite + _map[x + 1, y + 1] * u_ratio) * v_ratio;
         return result;
+
 
     }
 

@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class PhysicalMap
 {
@@ -58,18 +58,20 @@ public class PhysicalMap
     {
 
         var point = _map.GetNormalisedVectorIndex(x, y);
-        point.x = _xRange.InverseLerp(point.x);
-        point.y = _yRange.InverseLerp(point.y);
 
-        return point;
+        return new Vector2(_xRange.Lerp(point.x), _yRange.Lerp(point.z));
     }
 
     Vector2 NormalisedVectorFromWorldContext(Vector2 vector)
     {
 
-        vector = new Vector2(_xRange.Lerp(vector.x), _yRange.Lerp(vector.y));
+        vector = new Vector2(_xRange.InverseLerp(vector.x), _yRange.InverseLerp(vector.y));
         return vector;
     }
+
+    // Exposed public transformations
+
+    delegate float DataTransformation(float a, float b);
 
     public PhysicalMap Add(PhysicalMap other)
     {
@@ -78,9 +80,34 @@ public class PhysicalMap
             return this;
 
         var boundsA = new NormalisedRectArray(this, other);
-        //var boundsB = new NormalisedRectArray(other, this);
 
-		AddMap(boundsA,other);
+		PerformBilinearFunction(boundsA,other, Add);
+
+        return this;
+    }
+
+    public PhysicalMap Subtract(PhysicalMap other)
+    {
+
+        if (!Overlaps(other))
+            return this;
+
+        var boundsA = new NormalisedRectArray(this, other);
+
+        PerformBilinearFunction(boundsA, other, Subtract);
+
+        return this;
+    }
+
+    public PhysicalMap Average(PhysicalMap other)
+    {
+
+        if (!Overlaps(other))
+            return this;
+
+        var boundsA = new NormalisedRectArray(this, other);
+
+        PerformBilinearFunction(boundsA, other, Average);
 
         return this;
     }
@@ -97,7 +124,9 @@ public class PhysicalMap
         return new Rect(new Vector2(xRange.Min, yRange.Min), new Vector2(xRange.Size, yRange.Size));
     }
 
-    void AddMap(NormalisedRectArray bounds, PhysicalMap mapB)
+
+
+    void PerformBilinearFunction(NormalisedRectArray bounds, PhysicalMap mapB, DataTransformation transformationToApply )
     {
 
         var sizeX = _map.SizeX;
@@ -108,8 +137,8 @@ public class PhysicalMap
         var yMin = Mathf.RoundToInt(sizeY * bounds.YBounds.Min);
         var yMax = Mathf.RoundToInt(sizeY * bounds.YBounds.Max);
 
-        Debug.Log("X Sub-Array Bounds: " + xMin + ", " + xMax);
-        Debug.Log("Y Sub-Array Bounds: " + yMin + ", " + yMax);
+        //Debug.Log("X Sub-Array Bounds: " + xMin + ", " + xMax);
+        //Debug.Log("Y Sub-Array Bounds: " + yMin + ", " + yMax);
 
         var returnArray = new float[xMax - xMin, yMax - yMin];
 
@@ -118,19 +147,27 @@ public class PhysicalMap
             for (int y = yMin; y < yMax; y++)
             {
 
-				Debug.Log("Index: ");
-				Debug.Log(x + " " + y);
-
                 var point = ArrayIndexToWorldContext(x, y);
-				Debug.Log("WorldContext: ");
-				Debug.Log(point);
                 var otherPoint = mapB.NormalisedVectorFromWorldContext(point);
-				Debug.Log("TransformedPoint: ");
-				Debug.Log(otherPoint);
-                _map[x, y] = mapB._map.BilinearSampleFromNormalisedVector(otherPoint);
 
+                _map[x, y] = transformationToApply(_map[x, y], mapB._map.BilinearSampleFromNormalisedVector(otherPoint));    
             }
         }
+    }
+
+    float Add(float a, float b)
+    {
+        return a + b;
+    }
+
+    float Subtract(float a, float b)
+    {
+        return a - b;
+    }
+
+    float Average(float a, float b)
+    {
+        return (a + b)*0.5f;
     }
 
     protected struct NumberRange

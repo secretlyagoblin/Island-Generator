@@ -14,11 +14,11 @@ public class PhysicalMeshOverlapTest : MonoBehaviour {
 
 		var stack = new MeshDebugStack(BaseMaterial);
 		
-		var mapA = Map.BlankMap(100,100).PerlinFillMap(10,0,0,30).AddToStack(stack);
-		var mapB = Map.BlankMap(100,100).PerlinFillMap(20,0,0,25).AddToStack(stack);
+		var mapA = Map.BlankMap(100,100).FillWilth(0f).AddToStack(stack);
+		var mapB = Map.BlankMap(7,7).PerlinFillMap(3,0,0, RNG.NextFloat(0, 300)).AddToStack(stack);
 
-		var rectA = new Rect(Vector2.zero,new Vector2(10,10));
-		var rectB = new Rect(new Vector2(0,7),new Vector2(10,10));
+		var rectA = new Rect(Vector2.zero+(Vector2.one*30),new Vector2(10,10));
+		var rectB = new Rect((Vector2.one*3) + (Vector2.one * 30), new Vector2(5,5));
 
 		mapA.ToPhysical(rectA)
 			.Add(mapB.ToPhysical(rectB))
