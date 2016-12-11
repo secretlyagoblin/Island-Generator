@@ -7,7 +7,7 @@ public partial class Map
 {
 // General Functions
 
-    public Map FillWilth(float value)
+    public Map FillWith(float value)
     {
         for (int x = 0; x < SizeX; x++)
         {
@@ -855,7 +855,7 @@ public partial class Map
         return this;
     }
 
-    public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
+    public Map PerlinFill(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
     {
         var perlinSeed = RNG.NextFloat(0, 10000f);
 

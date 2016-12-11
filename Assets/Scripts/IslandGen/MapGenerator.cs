@@ -144,7 +144,7 @@ public class MapGenerator
         var hillVoronoiFalloffMap = hillVoronoiGenerator.GetFalloffMap(3).Normalise();
         stack.RecordMapStateToStack(hillVoronoiFalloffMap);
 
-        var hillMap = Map.BlankMap(Size,Size).FillWilth(0f) + (Map.Clone(hillVoronoiMap).Remap(0, 0.07f));
+        var hillMap = Map.BlankMap(Size,Size).FillWith(0f) + (Map.Clone(hillVoronoiMap).Remap(0, 0.07f));
         stack.RecordMapStateToStack(hillMap);
 
         var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);

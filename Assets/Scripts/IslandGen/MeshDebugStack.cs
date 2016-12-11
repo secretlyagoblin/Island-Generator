@@ -84,7 +84,7 @@ public class MeshDebugStack {
         obj.transform.parent = parent;
         obj.name = "Layer " + layer;
         obj.layer = parent.gameObject.layer;
-        obj.transform.localPosition =(Vector3.left * layer * heightMultiplier);
+        obj.transform.localPosition =(Vector3.right * layer * heightMultiplier);
         
 
         return obj;
