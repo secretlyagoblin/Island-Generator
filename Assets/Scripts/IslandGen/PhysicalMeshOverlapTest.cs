@@ -14,6 +14,7 @@ public class PhysicalMeshOverlapTest : MonoBehaviour {
         // Create debug stack to display maps
 
 		var stack = new MeshDebugStack(BaseMaterial);
+        Map.SetGlobalStack(stack);
 
         //Create physical bounds for maps that overlap
 
@@ -22,20 +23,21 @@ public class PhysicalMeshOverlapTest : MonoBehaviour {
 
         //make maps physical, add a to b, convert back to abstract and 
 
-		Map.BlankMap(100, 100)
+        Map.BlankMap(100, 100)
             .FillWith(0f)
-            .AddToStack(stack)
+            .AddToGlobalStack()
             .ToPhysical(rectA)
-			.Add(Map.BlankMap(7, 7)
+            .Add(Map.BlankMap(7, 7)
                     .PerlinFill(3, 0, 0, RNG.NextFloat(0, 300))
-                    .AddToStack(stack)
+                    .AddToGlobalStack()
                     .ToPhysical(rectB))
-			.ToMap()
-			.AddToStack(stack)
+            .ToMap()
+            .AddToGlobalStack()
             .SmoothMap(7)
-            .AddToStack(stack);
+            .AddToGlobalStack();
 
-		stack.CreateDebugStack(0f);
+
+        stack.CreateDebugStack(0f);
 	
 	}
 	

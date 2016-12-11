@@ -70,6 +70,23 @@ public partial class Map
 
     // Static Functions
 
+    static MeshDebugStack _stack = null;
+
+    public static void SetGlobalStack(MeshDebugStack stack)
+    {
+        _stack = stack;
+    }
+
+    public Map AddToGlobalStack()
+    {
+        if(_stack != null)
+        {
+            _stack.RecordMapStateToStack(this);
+        }
+
+        return this;
+    }
+
     public static Map Clone(Map map)
     {
         return BlankMap(map).OverwriteMapWith(map);
