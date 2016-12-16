@@ -12,6 +12,11 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public Material TerrainMaterial;
 
+    Map _baseMap = MapPattern.SimpleIsland(300, 300);
+    PhysicalMap _basePhysical;
+
+
+
     public static Vector2 _viewerPosition;
     public static Vector2 _oldPosition;
     public static HeightmeshGenerator _heightmeshGenerator = new HeightmeshGenerator();
@@ -37,6 +42,12 @@ public class InfiniteTerrain : MonoBehaviour {
         _chunksVisibleInViewDistance = Mathf.RoundToInt(MaxViewDistance / _chunkSize);
 
         _oldPosition = new Vector2(float.MaxValue, float.MaxValue);
+
+        var stack = new MeshDebugStack(TerrainMaterial);
+        _baseMap.AddToStack(stack);
+        stack.CreateDebugStack(1000);
+
+        _basePhysical = _baseMap.ToPhysical(new Rect(new Vector2(-500,-500), new Vector2(1000, 1000)));
 
     }
 
@@ -399,6 +410,7 @@ public class InfiniteTerrain : MonoBehaviour {
         void MapThread(Action<MapCreationData> callback, int mapSize, int lod)
         {
             var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f).Clamp(1, 2f);
+            //map.ToPhysical()
             var heightMeshGenerator = new HeightmeshGenerator();
             var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)));
             //var mesh = new HeightmeshGenerator()

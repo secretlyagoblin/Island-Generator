@@ -7,7 +7,13 @@ public static class RNG {
     static bool _initialised = false;
 
     public static void DateTimeInit(){
-		Init(System.DateTime.Now.ToString());
+        if (_initialised)
+        {
+        }
+        else
+        {
+            Init(System.DateTime.Now.ToString());
+        }
     }
 
     public static void Init(string seed)
