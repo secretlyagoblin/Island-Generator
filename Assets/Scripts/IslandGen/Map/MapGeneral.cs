@@ -1028,6 +1028,7 @@ public partial class Map
                     }
                 }
 
+
                 nextMap[gridX, gridY] = (totalValue / count);
             }
         }

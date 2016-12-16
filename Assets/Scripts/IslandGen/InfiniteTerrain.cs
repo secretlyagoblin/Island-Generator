@@ -47,7 +47,9 @@ public class InfiniteTerrain : MonoBehaviour {
         _baseMap.AddToStack(stack);
         stack.CreateDebugStack(1000);
 
-        _basePhysical = _baseMap.ToPhysical(new Rect(new Vector2(-500,-500), new Vector2(1000, 1000)));
+        var physicalSize = Vector2.one * 5000;
+
+        _basePhysical = _baseMap.ToPhysical(new Rect(-physicalSize*0.5f, physicalSize));
 
     }
 
@@ -159,7 +161,7 @@ public class InfiniteTerrain : MonoBehaviour {
                 }
                 else
                 {
-                    terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, _chunkSize, transform, TerrainMaterial));
+                    terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, _chunkSize, transform, TerrainMaterial, _basePhysical));
                 }
             }
         }
@@ -223,15 +225,18 @@ public class InfiniteTerrain : MonoBehaviour {
         TerrainChunk _rightChunk;
         TerrainChunk _diagonalChunk;
 
+        PhysicalMap _baseMap;
         
 
 
         MeshFilter _filter;
         //MeshCollider _collider;
 
-        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial)
+        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, PhysicalMap baseMap)
         {
             CurrentLod = -1;
+
+            _baseMap = baseMap;
 
             _coord = coord;
 
@@ -378,7 +383,10 @@ public class InfiniteTerrain : MonoBehaviour {
             var mapSize = -((int)Mathf.Lerp(-_mapSize, -_mapMinSize, t));
             _lodStatus[LOD] = LODstatus.InProgress;
             //Debug.Log("LOD: " + LOD + ", Map Size: " + mapSize);
-            RequestMap(ImplimentLOD, mapSize, LOD);
+
+            var rect = new Rect(_position, Vector2.one * _size);
+
+            RequestMap(ImplimentLOD, mapSize, rect, _baseMap, LOD);
             
         }
 
@@ -397,20 +405,20 @@ public class InfiniteTerrain : MonoBehaviour {
             //SetVisible(false);
         }
 
-        void RequestMap(Action<MapCreationData> callback, int mapSize, int lod)
+        void RequestMap(Action<MapCreationData> callback, int mapSize, Rect mapPhysicalLocationAndSize, PhysicalMap mapToSample, int lod)
         {
             ThreadStart threadStart = delegate
              {
-                 MapThread(callback, mapSize, lod);
+                 MapThread(callback, mapSize, mapPhysicalLocationAndSize, mapToSample, lod);
              };
 
             new Thread(threadStart).Start();
         }
 
-        void MapThread(Action<MapCreationData> callback, int mapSize, int lod)
+        void MapThread(Action<MapCreationData> callback, int mapSize,Rect mapPhysicalLocationAndSize,PhysicalMap mapToSample, int lod)
         {
             var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f).Clamp(1, 2f);
-            //map.ToPhysical()
+            map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample).ToMap();
             var heightMeshGenerator = new HeightmeshGenerator();
             var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)));
             //var mesh = new HeightmeshGenerator()
