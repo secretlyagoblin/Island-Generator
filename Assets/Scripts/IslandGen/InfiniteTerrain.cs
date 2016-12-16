@@ -230,7 +230,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
 
         MeshFilter _filter;
-        //MeshCollider _collider;
+        MeshCollider _collider;
 
         public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, PhysicalMap baseMap)
         {
@@ -269,7 +269,7 @@ public class InfiniteTerrain : MonoBehaviour {
             //material.color = new Color(material.color.r + (RNG.Next(-20, 20) * 0.01f), material.color.g, material.color.b + (RNG.Next(-20, 20) * 0.01f));
             renderer.sharedMaterial = material;
             _filter = _meshObject.AddComponent<MeshFilter>();
-            //_collider = _meshObject.AddComponent<MeshCollider>();
+            _collider = _meshObject.AddComponent<MeshCollider>();
 
             //UpdateTerrainChunk();
 
@@ -396,7 +396,7 @@ public class InfiniteTerrain : MonoBehaviour {
             _maps[mapCreationData.LOD] = mapCreationData.Map;
             _lods[mapCreationData.LOD] = mapCreationData.MeshPatch.CreateMesh();
 
-            //_collider.sharedMesh = _lods[mapCreationData.LOD];
+            _collider.sharedMesh = _lods[mapCreationData.LOD];
             _filter.mesh = _lods[mapCreationData.LOD];
             CurrentLod = mapCreationData.LOD;
             _lodStatus[mapCreationData.LOD] = LODstatus.Created;

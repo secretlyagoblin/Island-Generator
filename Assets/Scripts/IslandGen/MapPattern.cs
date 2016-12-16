@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapPattern  {
+public static class MapPattern  {
 
-    public Map SimpleIsland(int sizeX, int sizeY)
+    public static Map SimpleIsland(int sizeX, int sizeY)
     {
+        RNG.DateTimeInit();
+
         var map = Map.BlankMap(sizeX, sizeY)
             .CreateCircularFalloff(sizeX * 0.3f)
             .SmoothMap(25)
