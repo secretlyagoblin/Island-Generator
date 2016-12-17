@@ -115,7 +115,7 @@ public class MapGenerator
 
 
 
-        var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.08f);
+        var voronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.08f,0);
 
         var voronoiMap = voronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);
@@ -136,7 +136,7 @@ public class MapGenerator
         //var vormap = HeightmeshGenerator.GenerateTerrianMesh(vorHeightmap.Multiply(200), _lens);
         //CreateHeightMesh(vormap);
 
-        var hillVoronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.07f);
+        var hillVoronoiGenerator = new VoronoiGenerator(map, 0, 0, 0.07f,0);
 
         var hillVoronoiMap = hillVoronoiGenerator.GetDistanceMap().Normalise().Remap(voronoiFalloff).Invert();
         stack.RecordMapStateToStack(voronoiMap);

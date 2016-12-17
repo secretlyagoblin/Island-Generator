@@ -10,9 +10,15 @@ public class VoronoiGenerator {
     Map _falloffMap;
     List<VoronoiCell> _pointList;
 
-    public VoronoiGenerator(Map map, int mapCoordinateX, int mapCoordinateY, float relativeDensity)
+    Coord _coord;
+
+    float _seed;
+
+    public VoronoiGenerator(Map map, int mapCoordinateX, int mapCoordinateY, float relativeDensity, float seed)
     {
         _map = map;
+        _seed = seed;
+        _coord = new Coord(mapCoordinateX, mapCoordinateY);
 
         RandomlyDistributeCells(relativeDensity);
         LinkMapPointsToCells();
@@ -99,7 +105,7 @@ public class VoronoiGenerator {
         var voronoiStepX = _map.SizeX / (float)voronoiCountX;
         var voronoiStepY = _map.SizeY / (float)voronoiCountY;
 
-        var distribution = 2f;
+        var distribution = 1.5f;
         distribution = 0.5f * distribution;
         distribution = 0.5f * distribution * voronoiStepX;
 
@@ -113,11 +119,22 @@ public class VoronoiGenerator {
             {
                 evenY = evenY ? false : true;
 
+                var perlin = Mathf.PerlinNoise(x + _seed, y + _seed)*Mathf.PI*2;
+
+                var moveX = Mathf.Sin(perlin)*distribution;
+                var moveY = Mathf.Cos(perlin)*distribution;
+
+                outputList.Add(new VoronoiCell(new Vector2(x + moveX, y + moveY)));
+
+                Debug.Log(new Vector2(moveX, moveY));
+                Debug.Log(new Vector2(moveX, moveY).magnitude);
+
+                /*
                 if (yOdd)
                 {
                     if (evenY == true)
                     {
-                        outputList.Add(new VoronoiCell(new Vector2(x + RNG.NextFloat(-distribution, distribution), y + RNG.NextFloat(-distribution, distribution))));
+                        outputList.Add(new VoronoiCell(new Vector2(x + Mathf.Sin(Mathf.PerlinNoise(x+_seed,y+_seed)),y + Mathf.Cos(Mathf.PerlinNoise(x + _seed, y + _seed)))));
                     }
                 }
                 else
@@ -126,7 +143,8 @@ public class VoronoiGenerator {
                     {
                         if (evenY)
                         {
-                            outputList.Add(new VoronoiCell(new Vector2(x + RNG.NextFloat(-distribution, distribution), y + RNG.NextFloat(-distribution, distribution))));
+                            //outputList.Add(new VoronoiCell(new Vector2(x + RNG.NextFloat(-distribution, distribution), y + RNG.NextFloat(-distribution, distribution))));
+                            outputList.Add(new VoronoiCell(new Vector2(x + Mathf.Sin(Mathf.PerlinNoise(x + _seed, y + _seed)), y + Mathf.Cos(Mathf.PerlinNoise(x + _seed, y + _seed)))));
                         }
                     }
                     else
@@ -137,6 +155,7 @@ public class VoronoiGenerator {
                         }
                     }
                 }
+                */
             }
         }
 
@@ -219,6 +238,25 @@ public class VoronoiGenerator {
         }
 
         return Map.Clone(_falloffMap);
+    }
+
+
+    public void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer)
+    {
+        var cellStep = 1f / sizeRelativeTo;
+
+        var startX = cellStep * _coord.TileX;
+        var startY = cellStep * _coord.TileX;
+
+        var intStartX = Mathf.FloorToInt(cellStep * _coord.TileX) - buffer;
+        var intStartY = Mathf.FloorToInt(cellStep * _coord.TileY) - buffer;
+
+        var intEndX = Mathf.CeilToInt(cellStep * (_coord.TileX+1)) + buffer;
+        var intEndY = Mathf.CeilToInt(cellStep * (_coord.TileY+1)) + buffer;
+
+
+
+
     }
 
 

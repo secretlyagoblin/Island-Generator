@@ -98,7 +98,7 @@ public class MeshDebugStack {
         gameObject.name = "Debug Stack";
         gameObject.layer = 5;
 
-        this.CreateDebugStack(gameObject.transform);
+        CreateDebugStack(gameObject.transform);
     }
 
 
