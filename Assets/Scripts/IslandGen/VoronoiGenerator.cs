@@ -20,7 +20,9 @@ public class VoronoiGenerator {
         _seed = seed;
         _coord = new Coord(mapCoordinateX, mapCoordinateY);
 
-        RandomlyDistributeCells(relativeDensity);
+        GetPointsIgnoringResolution(relativeDensity, 2, relativeDensity*0.75f);
+
+        //RandomlyDistributeCells(relativeDensity);
         LinkMapPointsToCells();
 
     }
@@ -241,12 +243,10 @@ public class VoronoiGenerator {
     }
 
 
-    public void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer)
+    public void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer, float percentageWarped)
     {
+        _pointList = new List<VoronoiCell>();
         var cellStep = 1f / sizeRelativeTo;
-
-        var startX = cellStep * _coord.TileX;
-        var startY = cellStep * _coord.TileX;
 
         var intStartX = Mathf.FloorToInt(cellStep * _coord.TileX) - buffer;
         var intStartY = Mathf.FloorToInt(cellStep * _coord.TileY) - buffer;
@@ -254,9 +254,35 @@ public class VoronoiGenerator {
         var intEndX = Mathf.CeilToInt(cellStep * (_coord.TileX+1)) + buffer;
         var intEndY = Mathf.CeilToInt(cellStep * (_coord.TileY+1)) + buffer;
 
+        for (int x = intStartX; x < intEndX; x++)
+        {
+            for (int y = intStartY; y < intEndY; y++)
+            {
+                var vector = new Vector2(x * sizeRelativeTo, y * sizeRelativeTo);
+
+                var offset = Mathf.PerlinNoise(x + _seed, y + _seed);
+
+                var offsetVector = Vector2.zero;
+
+                offsetVector.x = Mathf.Cos(offset * Mathf.PI * 2);
+                offsetVector.x = Mathf.Sin(offset * Mathf.PI * 2);
+
+                vector += (offsetVector * percentageWarped);
+
+                vector.x -= _coord.TileX;
+                vector.y -= _coord.TileY;
+
+                vector.x *= _map.SizeX;
+                vector.y *= _map.SizeY;
 
 
 
+
+
+
+                _pointList.Add(new VoronoiCell(vector));
+            }
+        }
     }
 
 

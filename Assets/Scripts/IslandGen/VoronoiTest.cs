@@ -18,14 +18,29 @@ public class VoronoiTest : MonoBehaviour {
         var seed = RNG.NextFloat(0, 1000);
 
         var map = Map.BlankMap(100, 100);
-        var voronoi = new VoronoiGenerator(map,0, 0, 0.05f, seed);
+        var voronoi = new VoronoiGenerator(map,0, 0, 0.25f, seed);
         map += voronoi.GetFalloffMap(4);
         map.AddToGlobalStack();
 
         map = Map.BlankMap(100, 100);
-        voronoi = new VoronoiGenerator(map, 1, 0, 0.05f, seed);
+        voronoi = new VoronoiGenerator(map, 1, 0, 0.25f, seed);
         map += voronoi.GetFalloffMap(4);
         map.AddToGlobalStack();
+
+        map = Map.BlankMap(100, 100);
+        voronoi = new VoronoiGenerator(map, 0, 1, 0.25f, seed);
+        map += voronoi.GetFalloffMap(4);
+        map.AddToGlobalStack();
+
+        map = Map.BlankMap(100, 100);
+        voronoi = new VoronoiGenerator(map, 1, 1, 0.25f, seed);
+        map += voronoi.GetFalloffMap(4);
+        map.AddToGlobalStack();
+
+        //map = Map.BlankMap(100, 100);
+        //voronoi = new VoronoiGenerator(map, 1, 0, 0.25f, seed);
+        //map += voronoi.GetFalloffMap(4);
+        //map.AddToGlobalStack();
 
         stack.CreateDebugStack(0);
 
