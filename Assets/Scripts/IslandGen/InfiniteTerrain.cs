@@ -419,6 +419,13 @@ public class InfiniteTerrain : MonoBehaviour {
         {
             var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f).Clamp(1, 2f);
             map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample).ToMap();
+
+            var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
+
+            map+= voronoi.GetHeightMap(map);
+            map.Multiply(0.5f);
+
+
             var heightMeshGenerator = new HeightmeshGenerator();
             var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)));
             //var mesh = new HeightmeshGenerator()
