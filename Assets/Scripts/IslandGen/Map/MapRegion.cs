@@ -43,14 +43,14 @@ public partial class Map
     public Map AddRoomLogic()
     {
 
-        UnityEngine.Profiling.Profiler.BeginSample("Get Regions");
+        //UnityEngine.Profiling.Profiler.BeginSample("Get Regions");
 
 
         var roomRegions = GetRegions(0);
 
-        UnityEngine.Profiling.Profiler.EndSample();
+        //UnityEngine.Profiling.Profiler.EndSample();
 
-        UnityEngine.Profiling.Profiler.BeginSample("Middler");
+        //UnityEngine.Profiling.Profiler.BeginSample("Middler");
 
         var survivingRooms = new List<Room>();
 
@@ -63,13 +63,13 @@ public partial class Map
         survivingRooms[0].IsMainRoom = true;
         survivingRooms[0].IsAccessibleFromMainRoom = true;
 
-        UnityEngine.Profiling.Profiler.EndSample();
+        //UnityEngine.Profiling.Profiler.EndSample();
 
-        UnityEngine.Profiling.Profiler.BeginSample("Connect Closest Rooms");
+        //UnityEngine.Profiling.Profiler.BeginSample("Connect Closest Rooms");
 
         ConnectClosestRooms(survivingRooms, false);
 
-        UnityEngine.Profiling.Profiler.EndSample();
+        //UnityEngine.Profiling.Profiler.EndSample();
 
         return this;
     }

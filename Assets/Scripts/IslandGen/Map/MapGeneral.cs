@@ -1072,8 +1072,9 @@ public partial class Map
 
         var output = (outputMapX + outputMapY).Multiply(0.5f);
 
+        this._map = output._map;
 
-        return output;
+        return this;
     }
 
     //LerpHeightmap Helper Functions

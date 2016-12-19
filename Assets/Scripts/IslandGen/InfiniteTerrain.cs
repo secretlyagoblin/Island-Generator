@@ -12,7 +12,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public Material TerrainMaterial;
 
-    Map _baseMap = MapPattern.SimpleIsland(300, 300);
+    Map _baseMap = MapPattern.MajorMap(400);
     PhysicalMap _basePhysical;
 
 
@@ -47,7 +47,7 @@ public class InfiniteTerrain : MonoBehaviour {
         _baseMap.AddToStack(stack);
         stack.CreateDebugStack(1000);
 
-        var physicalSize = Vector2.one * 5000;
+        var physicalSize = Vector2.one * 3500;
 
         _basePhysical = _baseMap.ToPhysical(new Rect(-physicalSize*0.5f, physicalSize));
 
@@ -417,13 +417,15 @@ public class InfiniteTerrain : MonoBehaviour {
 
         void MapThread(Action<MapCreationData> callback, int mapSize,Rect mapPhysicalLocationAndSize,PhysicalMap mapToSample, int lod)
         {
-            var map = new Map(mapSize, mapSize).PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f).Clamp(1, 2f);
+            var map = new Map(mapSize, mapSize);
+                //.PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f)
+                //.Clamp(1, 2f);
             map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample).ToMap();
 
-            var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
+            //var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
 
-            map+= voronoi.GetHeightMap(map);
-            map.Multiply(0.5f);
+            //map+= voronoi.GetHeightMap(map);
+            //map.Multiply(0.5f);
 
 
             var heightMeshGenerator = new HeightmeshGenerator();
