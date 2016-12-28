@@ -206,7 +206,7 @@ public static class MapPattern  {
 
         totalFalloffMap.Normalise();
 
-        var finalMap = totalFalloffMap + heightMap;
+        var finalMap = totalFalloffMap.Multiply(3) + heightMap;
 
         var realFinalMap = Map.Blend(finalMap, heightMap, heightMapSlope);
 

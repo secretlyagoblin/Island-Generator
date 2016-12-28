@@ -5,7 +5,7 @@ using System.Threading;
 
 public class InfiniteTerrain : MonoBehaviour {
 
-    public const float MaxViewDistance = 5000;
+    public const float MaxViewDistance = 2500;
     public Transform Viewer;
 
     static Vector2 _offsetSeed = Vector2.zero;
@@ -47,12 +47,14 @@ public class InfiniteTerrain : MonoBehaviour {
         _oldPosition = new Vector2(float.MaxValue, float.MaxValue);
 
         var stack = new MeshDebugStack(TerrainMaterial);
+        _baseMap.GetMap(MapType.HeightMap).AddToStack(stack);
+        _baseMap.GetMap(MapType.WalkableMap).AddToStack(stack);
+
         stack.CreateDebugStack(1000);
 
         var physicalSize = Vector2.one * 3500;
 
-
-
+        _baseMap.SetRect(new Rect(-physicalSize * 0.5f, physicalSize));
     }
 
     void Update()
@@ -227,8 +229,7 @@ public class InfiniteTerrain : MonoBehaviour {
         TerrainChunk _rightChunk;
         TerrainChunk _diagonalChunk;
 
-        MapCollection _baseMap;
-        
+        MapCollection _baseMap;      
 
 
         MeshFilter _filter;
@@ -427,16 +428,16 @@ public class InfiniteTerrain : MonoBehaviour {
                 //.Clamp(1, 2f);
             map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample[MapType.HeightMap]).ToMap();
 
-            var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.15f, 23245.2344335454f);
+            var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
 
             var diffMap = voronoi.GetVoronoiBoolMap(new Map(mapSize, mapSize).ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample[MapType.WalkableMap]).ToMap());
 
-            var heightMap = voronoi.GetHeightMap(map);
+            var heightMap = map + voronoi.GetHeightMap(map);
+            heightMap.Multiply(0.5f);
 
-            map = Map.Blend(map, heightMap, diffMap);
+            map = Map.Blend(heightMap, map, diffMap);
 
-            //map+= voronoi.GetHeightMap(map);
-            //map.Multiply(0.5f);
+            
 
 
             var heightMeshGenerator = new HeightmeshGenerator();

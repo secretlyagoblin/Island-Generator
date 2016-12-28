@@ -29,8 +29,13 @@ public class MapCollection : MonoBehaviour {
         }
     }
 
-
-
+    public void SetRect(Rect rect)
+    {
+        foreach (var item in _maps)
+        {
+            item.Value.SetRect(rect);
+        }
+    }
 
     public PhysicalMap this[MapType type]
     {
@@ -53,7 +58,7 @@ public class MapCollection : MonoBehaviour {
 
     }
 
-    struct MapPair {
+    class MapPair {
         public Map Map { get; private set; }
         Rect _rect;
 
@@ -65,17 +70,15 @@ public class MapCollection : MonoBehaviour {
 
         public void SetRect(Rect rect)
         {
-                _rect = rect;       
+                _rect = rect;
+                
         }
 
         public PhysicalMap GetPhysicalMap()
         {
             return Map.ToPhysical(_rect);
         }
-    }
-
-
-    
+    }    
 }
 
 
