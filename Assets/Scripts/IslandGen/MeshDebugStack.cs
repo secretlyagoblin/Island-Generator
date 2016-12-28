@@ -28,26 +28,8 @@ public class MeshDebugStack {
 
     GameObject CreateDebugLayer(Map map, int layer, float heightMultiplier, Transform parent)
     {
-        //Iterate through grid to get colours
+        map.Normalise();
 
-        var biggestValue = 0;
-
-        for (int x = 0; x < map.SizeX; x++)
-        {
-            for (int y = 0; y < map.SizeY; y++)
-            {
-                var value = Mathf.RoundToInt(map[x, y]);
-                if (biggestValue < value)
-                    biggestValue = value;
-            }
-        }
-
-        var multiplier = 0f;
-
-        if(biggestValue != 0)
-        {
-            multiplier = 1f / biggestValue;
-        }
 
         var colors = new List<Color>(map.SizeX * map.SizeY);
 
@@ -56,7 +38,7 @@ public class MeshDebugStack {
             for (int y = 0; y < map.SizeY; y++)
             {
                 var value = map[x, y];
-                colors.Add(new Color(value* multiplier, value * multiplier, value * multiplier));
+                colors.Add(new Color(value,value,value));
             }
         }
 

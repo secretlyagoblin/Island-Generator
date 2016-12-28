@@ -302,5 +302,37 @@ public partial class Map
 
         return outputMap;
     }
+
+
+    public static Map Blend(Map mapA, Map mapB, Map blendMap)
+    {
+        var outputMap = Map.BlankMap(mapA);
+
+        for (int x = 0; x < mapA.SizeX; x++)
+        {
+            for (int y = 0; y < mapA.SizeY; y++)
+            {
+                outputMap[x, y] = (mapA[x, y] * blendMap[x, y]) + (mapB[x, y] * (1 - blendMap[x, y]));
+            }
+        }
+
+        return outputMap;
+    }
+
+
+    // Map Photoshop Functions
+
+    public Map Lighten(Map other)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x,y] = _map[x,y] > other[x,y]?_map[x,y]:other[x, y];
+            }
+        }
+
+        return this;
+    }
 }
     

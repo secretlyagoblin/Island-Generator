@@ -104,6 +104,21 @@ public partial class Map
         return regions;
     }
 
+    public Map GetFootprintOutline()
+    {
+        var coords = GetRegionTiles(0, 0);
+        var fillValue = this[0, 0];
+        var newMap = BlankMap(this).FillWith(fillValue==0?1:0);
+
+        for (int i = 0; i < coords.Count; i++)
+        {
+            var coord = coords[i];
+            newMap[coord.TileX, coord.TileY] = fillValue;
+        }
+
+        return newMap;
+    }
+
     List<Coord> GetRegionTiles(int startX, int startY)
     {
 
@@ -305,11 +320,8 @@ public partial class Map
         return wallCount;
     }
 
-
-
     //Room Class
-
-
+    
     class Room : IComparable<Room>
     {
 

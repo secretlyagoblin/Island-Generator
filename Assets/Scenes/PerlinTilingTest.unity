@@ -17,7 +17,7 @@ RenderSettings:
   m_Fog: 1
   m_FogColor: {r: 0.81098616, g: 0.9146432, b: 0.9191176, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.0013
+  m_FogDensity: 0.0005
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
@@ -50,7 +50,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 1
+    m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
     serializedVersion: 4
@@ -250,7 +250,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 655
+      value: 290
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
       propertyPath: m_LocalPosition.z
@@ -528,6 +528,10 @@ Prefab:
       propertyPath: m_SteerHelper
       value: 0.41
       objectReference: {fileID: 0}
+    - target: {fileID: 5400000, guid: 0e7ee4df08df88c4880f43398f9ad2c2, type: 2}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 0e7ee4df08df88c4880f43398f9ad2c2, type: 2}
   m_IsPrefabParent: 0
@@ -560,6 +564,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Viewer: {fileID: 2115635732}
   TerrainMaterial: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
+  RenderDistance: 1000
 --- !u!4 &972721933
 Transform:
   m_ObjectHideFlags: 0

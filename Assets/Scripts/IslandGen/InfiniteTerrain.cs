@@ -5,15 +5,18 @@ using System.Threading;
 
 public class InfiniteTerrain : MonoBehaviour {
 
-    public const float MaxViewDistance = 2000;
+    public const float MaxViewDistance = 5000;
     public Transform Viewer;
 
     static Vector2 _offsetSeed = Vector2.zero;
 
     public Material TerrainMaterial;
 
-    Map _baseMap = MapPattern.MajorMap(400);
-    PhysicalMap _basePhysical;
+    MapCollection _baseMap = MapPattern.CliffHillDiffMap(300);
+
+    public const bool IncludeColliders = false;
+
+    public float RenderDistance = 1000;
 
 
 
@@ -44,12 +47,11 @@ public class InfiniteTerrain : MonoBehaviour {
         _oldPosition = new Vector2(float.MaxValue, float.MaxValue);
 
         var stack = new MeshDebugStack(TerrainMaterial);
-        _baseMap.AddToStack(stack);
         stack.CreateDebugStack(1000);
 
         var physicalSize = Vector2.one * 3500;
 
-        _basePhysical = _baseMap.ToPhysical(new Rect(-physicalSize*0.5f, physicalSize));
+
 
     }
 
@@ -161,7 +163,7 @@ public class InfiniteTerrain : MonoBehaviour {
                 }
                 else
                 {
-                    terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, _chunkSize, transform, TerrainMaterial, _basePhysical));
+                    terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, _chunkSize, transform, TerrainMaterial, _baseMap));
                 }
             }
         }
@@ -225,14 +227,14 @@ public class InfiniteTerrain : MonoBehaviour {
         TerrainChunk _rightChunk;
         TerrainChunk _diagonalChunk;
 
-        PhysicalMap _baseMap;
+        MapCollection _baseMap;
         
 
 
         MeshFilter _filter;
         MeshCollider _collider;
 
-        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, PhysicalMap baseMap)
+        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, MapCollection baseMap)
         {
             CurrentLod = -1;
 
@@ -396,7 +398,10 @@ public class InfiniteTerrain : MonoBehaviour {
             _maps[mapCreationData.LOD] = mapCreationData.Map;
             _lods[mapCreationData.LOD] = mapCreationData.MeshPatch.CreateMesh();
 
-            _collider.sharedMesh = _lods[mapCreationData.LOD];
+            if (IncludeColliders)
+            {
+                _collider.sharedMesh = _lods[mapCreationData.LOD];
+            }
             _filter.mesh = _lods[mapCreationData.LOD];
             CurrentLod = mapCreationData.LOD;
             _lodStatus[mapCreationData.LOD] = LODstatus.Created;
@@ -405,7 +410,7 @@ public class InfiniteTerrain : MonoBehaviour {
             //SetVisible(false);
         }
 
-        void RequestMap(Action<MapCreationData> callback, int mapSize, Rect mapPhysicalLocationAndSize, PhysicalMap mapToSample, int lod)
+        void RequestMap(Action<MapCreationData> callback, int mapSize, Rect mapPhysicalLocationAndSize, MapCollection mapToSample, int lod)
         {
             ThreadStart threadStart = delegate
              {
@@ -415,14 +420,20 @@ public class InfiniteTerrain : MonoBehaviour {
             new Thread(threadStart).Start();
         }
 
-        void MapThread(Action<MapCreationData> callback, int mapSize,Rect mapPhysicalLocationAndSize,PhysicalMap mapToSample, int lod)
+        void MapThread(Action<MapCreationData> callback, int mapSize,Rect mapPhysicalLocationAndSize,MapCollection mapToSample, int lod)
         {
             var map = new Map(mapSize, mapSize);
                 //.PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f)
                 //.Clamp(1, 2f);
-            map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample).ToMap();
+            map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample[MapType.HeightMap]).ToMap();
 
-            //var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
+            var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.15f, 23245.2344335454f);
+
+            var diffMap = voronoi.GetVoronoiBoolMap(new Map(mapSize, mapSize).ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample[MapType.WalkableMap]).ToMap());
+
+            var heightMap = voronoi.GetHeightMap(map);
+
+            map = Map.Blend(map, heightMap, diffMap);
 
             //map+= voronoi.GetHeightMap(map);
             //map.Multiply(0.5f);
@@ -613,5 +624,7 @@ public class InfiniteTerrain : MonoBehaviour {
     enum LODstatus {
         NotCreated,InProgress,Created 
     };
+
+    
 
 }

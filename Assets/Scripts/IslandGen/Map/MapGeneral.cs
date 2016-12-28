@@ -110,7 +110,6 @@ public partial class Map
         return this;
     }
 
-
     public Map Remap(AnimationCurve curve)
     {
         for (int x = 0; x < SizeX; x++)
@@ -139,19 +138,37 @@ public partial class Map
         return this;
     }
 
-    public static Map Blend(Map mapA, Map mapB, Map blendMap)
+    public Map Multiply(Map other)
     {
-        var outputMap = Map.BlankMap(mapA);
-
-        for (int x = 0; x < mapA.SizeX; x++)
+        for (int x = 0; x < SizeX; x++)
         {
-            for (int y = 0; y < mapA.SizeY; y++)
+            for (int y = 0; y < SizeY; y++)
             {
-                outputMap[x, y] = (mapA[x, y] * blendMap[x, y]) + (mapB[x, y] * (1 - blendMap[x, y]));
+                var currentValue = _map[x, y];
+                _map[x, y] = _map[x, y] * other._map[x, y];
             }
         }
 
-        return outputMap;
+        return this;
+    }
+
+    public Map Add(Map other)
+    {
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] = _map[x, y] + other._map[x, y]; 
+            }
+        }
+
+        return this;
+    }
+
+    public Map Clone()
+    {
+        return Clone(this);
     }
 
     public Map Clamp(float min, float max)
@@ -167,9 +184,43 @@ public partial class Map
         return this;
     }
 
+    public Map ShiftLowestValueToZero()
+    {
+        var smallestValue = float.MaxValue;
+        var biggestValue = float.MinValue;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var value = (_map[x, y]);
+                if (biggestValue < value)
+                    biggestValue = value;
+                if (smallestValue > value)
+                    smallestValue = value;
+            }
+        }
+
+        var displacement = -smallestValue;
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[x, y] += displacement;
+            }
+        }
+
+        return this;
+    }
+
     float RemapFloat(float value, float fromMin, float fromMax, float toMin, float toMax)
     {
-        return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
+        var t = Mathf.InverseLerp(fromMin, fromMax, value);
+
+        return Mathf.LerpUnclamped(toMin, toMax, t);
+
+        //return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
     }
 
     // Boolean Fill Functions
@@ -183,6 +234,7 @@ public partial class Map
     {
         return RandomFillMap(randomFillPercent, 0, 1);
     }
+    
 
     public Map RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
     {
@@ -879,7 +931,7 @@ public partial class Map
         return this;
     }
 
-    public Map PerlinFillMap(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
+    public Map PerlinFillOctaves(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
     {
 
         if (perlinScale <= 0)
@@ -1047,6 +1099,78 @@ public partial class Map
         return this;
     }
 
+    public Map GetBumpMap()
+    {
+        return GetBumpMap(false);
+    }
+
+    public Map GetAbsoluteBumpMap()
+    {
+        return GetBumpMap(true);
+    }
+
+    Map GetBumpMap(bool absolute)
+    {
+        var nextMap = new Map(this);
+
+        for (int gridX = 0; gridX < SizeX; gridX++)
+        {
+            for (int gridY = 0; gridY < SizeY; gridY++)
+            {
+                var count = 0;
+                var totalVector = 0f;
+
+                for (int x = gridX - 1; x <= gridX + 1; x++)
+                {
+                    for (int y = gridY - 1; y <= gridY + 1; y++)
+                    {
+                        if (IsInMapRange(x, y))
+                        {
+                            var weight = 0.7f;
+
+                            if (x != gridX || y != gridY)
+                            {
+                                weight = 1;
+                            }
+
+                            var xDiff = gridX - x;
+                            var yDiff = gridY - y;
+                            var zDiff = _map[gridX, gridY] - _map[x, y];
+
+                            var angleVector = new Vector3(xDiff, yDiff, zDiff);
+                            angleVector.Normalize();
+
+                            if (absolute)
+                            {
+                                totalVector += Mathf.Abs((angleVector.z * weight));
+                            }
+                            else
+                            {
+                                totalVector += (angleVector.z * weight);
+                            }
+
+                            
+
+                            
+
+
+
+                        }
+
+                        count++;
+                    }
+                }
+
+
+                nextMap[gridX, gridY] = (totalVector / count);
+            }
+        }
+
+        _map = nextMap._map;
+
+        return this;
+    }
+
     public Map LerpHeightMap(Map mask, AnimationCurve falloffCurve)
     {
         var outputMapY = new Map(this);
@@ -1171,8 +1295,6 @@ public partial class Map
         }
     }
 
-
-
     public bool IsInMapRange(int x, int y)
     {
         return x >= 0 && x < SizeX && y >= 0 && y < SizeY;
@@ -1198,6 +1320,8 @@ public partial class Map
 
         return count;
     }
+
+    
 
     //Texture Modifications
 
