@@ -5,7 +5,7 @@ using System.Threading;
 
 public class InfiniteTerrain : MonoBehaviour {
 
-    public const float MaxViewDistance = 2500;
+    public const float MaxViewDistance = 1600;
     public Transform Viewer;
 
     static Vector2 _offsetSeed = Vector2.zero;
@@ -16,9 +16,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public const bool IncludeColliders = false;
 
-    public float RenderDistance = 1000;
-
-    TextureManager _textureManager = new TextureManager();
+    TextureManager _textureManager;
 
     public static Vector2 _viewerPosition;
     public static Vector2 _oldPosition;
@@ -36,10 +34,12 @@ public class InfiniteTerrain : MonoBehaviour {
     void Start()
     {
         var time = DateTime.Now.ToString();
-        Debug.Log(time);
+        //Debug.Log(time);
 
         RNG.Init(time);
         _offsetSeed = RNG.NextVector2(-1000, 1000);
+
+        _textureManager = new TextureManager();
 
         _chunkSize = 500;
         _chunksVisibleInViewDistance = Mathf.RoundToInt(MaxViewDistance / _chunkSize);
@@ -48,6 +48,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         var stack = new MeshDebugStack(TerrainMaterial);
         TerrainMaterial = new Material(TerrainMaterial);
+        TerrainMaterial.name = "mainMaterial";
         TerrainMaterial.mainTexture = _textureManager.Texture;
 
         _baseMap.GetMap(MapType.HeightMap).AddToStack(stack);
@@ -183,7 +184,6 @@ public class InfiniteTerrain : MonoBehaviour {
 
         bool _markedForUpdate = false;
 
-
         public bool IsFullyLinked
         { get
             {
@@ -214,12 +214,11 @@ public class InfiniteTerrain : MonoBehaviour {
 
         MeshCorner _corner;
 
-
         static int _totalLODS = 3;
         public int CurrentLod = -1;
 
         int _mapSize = 240;
-        int _mapMinSize = 10;
+        int _mapMinSize = 60;
 
         Map[] _maps;
 
@@ -240,9 +239,11 @@ public class InfiniteTerrain : MonoBehaviour {
 
         TextureManager _manager;
 
-        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, MapCollection baseMap, TextureManager _manager)
+        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, MapCollection baseMap, TextureManager manager)
         {
             CurrentLod = -1;
+
+            _manager = manager;
 
             _baseMap = baseMap;
 
@@ -286,10 +287,7 @@ public class InfiniteTerrain : MonoBehaviour {
             _topSeam = new MeshSeam(-1, -1, _meshObject.transform, terrainMaterial);
             _rightSeam = new MeshSeam(-1, -1, _meshObject.transform, terrainMaterial);
             _corner = new MeshCorner(_meshObject.transform, terrainMaterial);
-
-
         }
-
         
         public void SetVisible(bool visible)
         {
@@ -396,8 +394,9 @@ public class InfiniteTerrain : MonoBehaviour {
 
             var coord = _manager.RequestCoord();
 
-            RequestMap(ImplimentLOD, mapSize, new MapData(rect, _manager.RequestRect(coord), coord), _baseMap, LOD);
-            
+            //Debug.Log(_manager.RequestRect(coord));
+
+            RequestMap(ImplimentLOD, mapSize, new MapData(rect, _manager.RequestRect(coord), coord), _baseMap, LOD);            
         }
 
         void ImplimentLOD(MapCreationData mapCreationData)
@@ -405,6 +404,8 @@ public class InfiniteTerrain : MonoBehaviour {
             
             _maps[mapCreationData.LOD] = mapCreationData.Map;
             _lods[mapCreationData.LOD] = mapCreationData.MeshPatch.CreateMesh();
+
+            _manager.ApplyTexture(mapCreationData.Map, mapCreationData.TextureCoord);
 
             if (IncludeColliders)
             {
@@ -432,19 +433,20 @@ public class InfiniteTerrain : MonoBehaviour {
 
         void MapThread(Action<MapCreationData> callback, int mapSize, MapData mapData,MapCollection mapToSample, int lod)
         {
-            var map = new Map(mapSize, mapSize);
-                //.PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f)
-                //.Clamp(1, 2f);
-            map = map.ToPhysical(mapData.Rect).Add(mapToSample[MapType.HeightMap]).ToMap();
+            var map = new Map(mapSize, mapSize);   
+            map = map.ToPhysical(mapData.Rect).Add(mapToSample[MapType.HeightMap]).ToMap();            
 
             var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
 
             var diffMap = voronoi.GetVoronoiBoolMap(new Map(mapSize, mapSize).ToPhysical(mapData.Rect).Add(mapToSample[MapType.WalkableMap]).ToMap());
+            var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.05f);
 
-            var heightMap = map + voronoi.GetHeightMap(map);
+            var heightMap = map + voronoi.GetHeightMap(map) + distanceMap;
             heightMap.Multiply(0.5f);
 
-            map = Map.Blend(heightMap, map, diffMap);     
+            map = Map.Blend(heightMap, map, diffMap);
+
+            //map.SmoothMap();
 
             var heightMeshGenerator = new HeightmeshGenerator();
             var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)), mapData.TextureRect);
@@ -599,8 +601,6 @@ public class InfiniteTerrain : MonoBehaviour {
             }
 
         }
-
-
     }
 
     struct ThreadData<T> {
@@ -631,6 +631,7 @@ public class InfiniteTerrain : MonoBehaviour {
     }
 
     class MapData{
+
 
         public Rect Rect { get; private set; }
         public Rect TextureRect { get; private set; }
