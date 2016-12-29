@@ -336,12 +336,12 @@ public partial class Map
 
         var colours = new Color[list.Count];
 
-        Debug.Log("Colour Array: ");
+        //Debug.Log("Colour Array: ");
 
         for (int i = 0; i < list.Count; i++)
         {
             colours[i] = new Color(list[i], list[i], list[i]);
-            Debug.Log(colours[i].grayscale);
+            //Debug.Log(colours[i].grayscale);
         }
 
         return colours;

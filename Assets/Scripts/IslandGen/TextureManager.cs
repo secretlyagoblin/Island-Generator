@@ -24,7 +24,7 @@ public class TextureManager {
         _sizeX = _totalSize / _blockSize;
         _sizeY = _sizeX;
 
-        Debug.Log(_sizeX + " " + _sizeY);
+        //Debug.Log(_sizeX + " " + _sizeY);
 
         _texture = new Texture2D(_totalSize, _totalSize);
     }
@@ -32,12 +32,12 @@ public class TextureManager {
     public Rect ApplyTextureAndReturnDomain(Map map)
     {
         var ourMap = new Map(_blockSize, _blockSize);
-        ourMap.WarpMapToMatch(map);
-
-        GetNextCoord();
+        ourMap.WarpMapToMatch(map).Normalise();        
 
         _texture.SetPixels(_currentCoord.TileX * _blockSize, _currentCoord.TileY * _blockSize, _blockSize, _blockSize, ourMap.GetColours());
-        _texture.Apply();    
+        _texture.Apply();
+
+        GetNextCoord();
 
         return new Rect();
     }

@@ -11,16 +11,18 @@ public class TextureManagerTester : MonoBehaviour {
 
         var textureManager = new TextureManager();
 
-        var blurt = MapPattern.CliffHillDiffMap(300);
-        var gurt = MapPattern.SimpleIsland(400,200);
+        var blurt = MapPattern.MajorMap(400);
+        var gurt = MapPattern.SimpleIsland(400,400);
 
-        textureManager.ApplyTextureAndReturnDomain(blurt.GetMap(MapType.HeightMap));
+        textureManager.ApplyTextureAndReturnDomain(blurt);
         textureManager.ApplyTextureAndReturnDomain(gurt);
-        textureManager.ApplyTextureAndReturnDomain(blurt.GetMap(MapType.WalkableMap));
+        //textureManager.ApplyTextureAndReturnDomain(blurt.GetMap(MapType.WalkableMap));
 
         var material = new Material(BaseMaterial);
         material.name = "UGH";
         material.mainTexture = textureManager.Texture;
+
+        material.mainTexture.filterMode = FilterMode.Point;
 
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         obj.GetComponent<MeshRenderer>().sharedMaterial = material;
