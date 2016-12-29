@@ -30,7 +30,7 @@ public partial class Map
         _map = new float[SizeX, SizeY];
     }
 
-    public Map(Map mapTemplate, int defaultValue)
+    public Map(Map mapTemplate, float defaultValue)
     {
         SizeX = mapTemplate.SizeX;
         SizeY = mapTemplate.SizeY;

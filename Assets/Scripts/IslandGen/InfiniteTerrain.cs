@@ -12,7 +12,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public Material TerrainMaterial;
 
-    MapCollection _baseMap = MapPattern.CliffHillDiffMap(300);
+    MapCollection _baseMap = MapPattern.CliffHillDiffMap(400);
 
     public const bool IncludeColliders = false;
 

@@ -16,14 +16,13 @@ public class VoronoiTest : MonoBehaviour {
         Map.SetGlobalStack(stack);
         var seed = RNG.NextFloat(0, 1000);
 
-
         //CreateWalkableSpace
 
         var size = 400;
 
         var walkableAreaMap = new Map(size, size);
 
-        walkableAreaMap.RandomFillMap(0.49f, 0, 0)
+        walkableAreaMap.RandomFillMap(0.5f, 0, 0)
             .ApplyMask(Map.BlankMap(walkableAreaMap)
                     .CreateCircularFalloff(size * 0.45f))
             .BoolSmoothOperation(4)
@@ -42,12 +41,21 @@ public class VoronoiTest : MonoBehaviour {
             .Normalise()
             .AddToStack(stack);
 
+       
+
         var waterFalloff = Map.Blend(walkableAreaFalloffMap, new Map(size, size, 0f), oceanFalloffMap).AddToStack(stack);
-        var cliffsFalloff = Map.Blend(walkableAreaFalloffMap.Invert(), new Map(size, size, 1f), oceanFalloffMap.Invert()).AddToStack(stack);
+
+        var deepWaterFalloff = waterFalloff.Clone().Invert().BooleanMapFromThreshold(0.35f).AddToGlobalStack().GetDistanceMap(30).Clamp(0.75f, 1f).Normalise().AddToGlobalStack();
+
+        var finalWaterFalloff = Map.Blend(new Map(size, size, 0).Remap(0,0.5f), waterFalloff, deepWaterFalloff).AddToGlobalStack();
+
+        var cliffsFalloff = Map.Blend(new Map(size, size, 0f), walkableAreaFalloffMap, finalWaterFalloff.Clone().Normalise().Clamp(0f,0.1f).Normalise().AddToGlobalStack()).AddToStack(stack);
+
+        // HERE TODAY: need to get identify inner cliffs.
 
         walkableAreaFalloffMap.Invert();
 
-        var totalFalloffMap = waterFalloff + cliffsFalloff;
+        var totalFalloffMap = finalWaterFalloff + cliffsFalloff.Invert();
 
         totalFalloffMap.Invert().Normalise().AddToStack(stack);
 
@@ -69,15 +77,17 @@ public class VoronoiTest : MonoBehaviour {
             .SmoothMap(10)
             .Normalise();
 
-        var heightMapSlope = Map.Clone(heightMap).GetAbsoluteBumpMap().Normalise().Clamp(0.12f,0.2f);
+        heightMap = Map.Blend(new Map(size, size, 0f),heightMap, finalWaterFalloff.Clone().Clamp(0,0.5f).Normalise().AddToGlobalStack()).AddToGlobalStack();
+
+        var heightMapSlope = Map.Clone(heightMap).GetAbsoluteBumpMap().Normalise().Clamp(0.12f,0.2f).Normalise();
 
         totalFalloffMap.Normalise();
 
-        var finalMap = totalFalloffMap + heightMap;
+        var finalMap = cliffsFalloff.Clone().Invert().Normalise() + heightMap;
 
-        var realFinalMap = Map.Blend(finalMap.AddToStack(stack), heightMap.AddToStack(stack), heightMapSlope.AddToStack(stack)).AddToStack(stack);
+        var realFinalMap = Map.Blend(heightMap.AddToStack(stack), finalMap.AddToStack(stack), heightMapSlope.AddToStack(stack)).AddToStack(stack);
 
-        var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
+        //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
         stack.CreateDebugStack(0);
 

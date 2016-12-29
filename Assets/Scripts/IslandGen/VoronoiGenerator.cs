@@ -243,7 +243,7 @@ public class VoronoiGenerator {
     }
 
 
-    public void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer, float percentageWarped)
+    void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer, float percentageWarped)
     {
         _pointList = new List<VoronoiCell>();
         var cellStep = 1f / sizeRelativeTo;
@@ -284,7 +284,6 @@ public class VoronoiGenerator {
             }
         }
     }
-
 
     class VoronoiCell {
 
