@@ -64,9 +64,6 @@ public class MapTiling : MonoBehaviour {
                     CreateHeightMesh(meshBase, new Coord(x, y), lens);
                     CreateHeightMesh(meshSeamA, new Coord(x, y), lens);
                     CreateHeightMesh(meshSeamB, new Coord(x, y), lens);
-
-
-
                 }
             }
         }

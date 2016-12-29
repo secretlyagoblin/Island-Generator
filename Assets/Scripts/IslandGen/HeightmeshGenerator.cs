@@ -24,7 +24,10 @@ public class HeightmeshGenerator {
 
                 //Debug.Log("x: " + normalisedX + " y: " + heightMap[x, y] + " z: " + normalisedY);
 
-                heightmesh.AddUV(new Vector2(normalisedX, normalisedY), vertexIndex);
+                var texX = Mathf.Lerp(textureRect.min.x, textureRect.max.x,normalisedX);
+                var texY = Mathf.Lerp(textureRect.min.y, textureRect.max.y, normalisedY);
+
+                heightmesh.AddUV(new Vector2(texX, texY), vertexIndex);
 
                 if(x < sizeX-1 && y < sizeY - 1)
                 {
@@ -54,9 +57,6 @@ public class HeightmeshGenerator {
         var newCoordA = new Coord(0, 0);
         coordB = new Coord(coordB.TileX - coordA.TileX, coordB.TileY - coordA.TileY);
         coordA = new Coord(0, 0);
-
-
-
 
         Vector3[] seamA;
         Vector3[] seamB;

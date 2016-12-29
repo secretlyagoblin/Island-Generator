@@ -5,7 +5,7 @@ using UnityEngine;
 public class TextureManager {
 
     int _blockSize = 256;
-    int _totalSize = 4096;
+    int _totalSize = 4096/2;
 
     int _sizeX;
     int _sizeY;
@@ -29,19 +29,19 @@ public class TextureManager {
         _texture = new Texture2D(_totalSize, _totalSize);
     }
 
-    public Rect ApplyTextureAndReturnDomain(Map map, Coord coord)
+    public void ApplyTexture(Map map, Coord coord)
     {
         var ourMap = new Map(_blockSize, _blockSize);
-        ourMap.WarpMapToMatch(map).Normalise();        
+        ourMap.WarpMapToMatch(map);        
 
         _texture.SetPixels(coord.TileX * _blockSize, coord.TileY * _blockSize, _blockSize, _blockSize, ourMap.GetColours());
         _texture.Apply();
-
-        return new Rect();
     }
 
     public Coord RequestCoord()
     {
+        var oldCoord = _currentCoord;
+
         var x = _currentCoord.TileX + 1;
         var y = _currentCoord.TileY;
 
@@ -59,19 +59,19 @@ public class TextureManager {
 
         _currentCoord = new Coord(x, y);
 
-        return _currentCoord;       
+        return oldCoord;       
     }
 
     public Rect RequestRect(Coord coord)
     {
         var pos = new Vector2(
             Mathf.InverseLerp(0, _sizeX, coord.TileX), 
-            Mathf.InverseLerp(0, _sizeX, coord.TileX)
+            Mathf.InverseLerp(0, _sizeY, coord.TileY)
             );
 
         var size = new Vector2(
-            Mathf.InverseLerp(1, _sizeX, coord.TileX),
-            Mathf.InverseLerp(1, _sizeX, coord.TileX)
+            Mathf.InverseLerp(0, _sizeX, 1),
+            Mathf.InverseLerp(0, _sizeY, 1)
             );
 
         return new Rect(pos, size);

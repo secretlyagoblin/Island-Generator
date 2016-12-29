@@ -329,9 +329,9 @@ public partial class Map
     {
         var list = new List<float>();
 
-        for (int x = 0; x < SizeX; x++)
+        for (int y = 0; y < SizeY; y++)
         {
-            list.AddRange(GetColumn(x));
+            list.AddRange(GetRow(y));
         }
 
         var colours = new Color[list.Count];
@@ -340,7 +340,7 @@ public partial class Map
 
         for (int i = 0; i < list.Count; i++)
         {
-            colours[i] = new Color(list[i], list[i], list[i]);
+            colours[i] = new Color(0.2f, list[i], list[i]);
             //Debug.Log(colours[i].grayscale);
         }
 
