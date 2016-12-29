@@ -14,8 +14,9 @@ public class TextureManagerTester : MonoBehaviour {
         var blurt = MapPattern.MajorMap(400);
         var gurt = MapPattern.SimpleIsland(400,400);
 
-        textureManager.ApplyTextureAndReturnDomain(blurt);
-        textureManager.ApplyTextureAndReturnDomain(gurt);
+        
+        textureManager.ApplyTextureAndReturnDomain(blurt,textureManager.RequestCoord());
+        textureManager.ApplyTextureAndReturnDomain(gurt, textureManager.RequestCoord());
         //textureManager.ApplyTextureAndReturnDomain(blurt.GetMap(MapType.WalkableMap));
 
         var material = new Material(BaseMaterial);

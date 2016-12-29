@@ -18,7 +18,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public float RenderDistance = 1000;
 
-
+    TextureManager _textureManager = new TextureManager();
 
     public static Vector2 _viewerPosition;
     public static Vector2 _oldPosition;
@@ -47,6 +47,9 @@ public class InfiniteTerrain : MonoBehaviour {
         _oldPosition = new Vector2(float.MaxValue, float.MaxValue);
 
         var stack = new MeshDebugStack(TerrainMaterial);
+        TerrainMaterial = new Material(TerrainMaterial);
+        TerrainMaterial.mainTexture = _textureManager.Texture;
+
         _baseMap.GetMap(MapType.HeightMap).AddToStack(stack);
         _baseMap.GetMap(MapType.WalkableMap).AddToStack(stack);
 
@@ -165,7 +168,7 @@ public class InfiniteTerrain : MonoBehaviour {
                 }
                 else
                 {
-                    terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, _chunkSize, transform, TerrainMaterial, _baseMap));
+                    terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, _chunkSize, transform, TerrainMaterial, _baseMap, _textureManager));
                 }
             }
         }
@@ -235,7 +238,9 @@ public class InfiniteTerrain : MonoBehaviour {
         MeshFilter _filter;
         MeshCollider _collider;
 
-        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, MapCollection baseMap)
+        TextureManager _manager;
+
+        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, MapCollection baseMap, TextureManager _manager)
         {
             CurrentLod = -1;
 
@@ -389,7 +394,9 @@ public class InfiniteTerrain : MonoBehaviour {
 
             var rect = new Rect(_position, Vector2.one * _size);
 
-            RequestMap(ImplimentLOD, mapSize, rect, _baseMap, LOD);
+            var coord = _manager.RequestCoord();
+
+            RequestMap(ImplimentLOD, mapSize, new MapData(rect, _manager.RequestRect(coord), coord), _baseMap, LOD);
             
         }
 
@@ -408,45 +415,44 @@ public class InfiniteTerrain : MonoBehaviour {
             _lodStatus[mapCreationData.LOD] = LODstatus.Created;
             _markedForUpdate = true;
 
+            
+
             //SetVisible(false);
         }
 
-        void RequestMap(Action<MapCreationData> callback, int mapSize, Rect mapPhysicalLocationAndSize, MapCollection mapToSample, int lod)
+        void RequestMap(Action<MapCreationData> callback, int mapSize, MapData mapData, MapCollection mapToSample, int lod)
         {
             ThreadStart threadStart = delegate
              {
-                 MapThread(callback, mapSize, mapPhysicalLocationAndSize, mapToSample, lod);
+                 MapThread(callback, mapSize, mapData, mapToSample, lod);
              };
 
             new Thread(threadStart).Start();
         }
 
-        void MapThread(Action<MapCreationData> callback, int mapSize,Rect mapPhysicalLocationAndSize,MapCollection mapToSample, int lod)
+        void MapThread(Action<MapCreationData> callback, int mapSize, MapData mapData,MapCollection mapToSample, int lod)
         {
             var map = new Map(mapSize, mapSize);
                 //.PerlinFillMap(3, new Domain(0.3f, 1.8f), _coord, new Vector2(0.5f, 0.5f), _offsetSeed, 7, 0.5f, 1.87f)
                 //.Clamp(1, 2f);
-            map = map.ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample[MapType.HeightMap]).ToMap();
+            map = map.ToPhysical(mapData.Rect).Add(mapToSample[MapType.HeightMap]).ToMap();
 
             var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
 
-            var diffMap = voronoi.GetVoronoiBoolMap(new Map(mapSize, mapSize).ToPhysical(mapPhysicalLocationAndSize).Add(mapToSample[MapType.WalkableMap]).ToMap());
+            var diffMap = voronoi.GetVoronoiBoolMap(new Map(mapSize, mapSize).ToPhysical(mapData.Rect).Add(mapToSample[MapType.WalkableMap]).ToMap());
 
             var heightMap = map + voronoi.GetHeightMap(map);
             heightMap.Multiply(0.5f);
 
-            map = Map.Blend(heightMap, map, diffMap);
-
-            
-
+            map = Map.Blend(heightMap, map, diffMap);     
 
             var heightMeshGenerator = new HeightmeshGenerator();
-            var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)));
+            var meshPatch = heightMeshGenerator.GenerateHeightmeshPatch(map, new MeshLens(new Vector3(_size, _size, _size)), mapData.TextureRect);
             //var mesh = new HeightmeshGenerator()
             //Should generate mesh in here
             lock (_mapThread)
             {
-                _mapThread.Enqueue(new ThreadData<MapCreationData>(callback, new MapCreationData(lod,map, meshPatch)));
+                _mapThread.Enqueue(new ThreadData<MapCreationData>(callback, new MapCreationData(lod,map, meshPatch, mapData.Coord)));
             }
         }
 
@@ -613,12 +619,28 @@ public class InfiniteTerrain : MonoBehaviour {
         public readonly int LOD;
         public readonly HeightmeshPatch MeshPatch;
         public readonly Map Map;
+        public readonly Coord TextureCoord;
 
-        public MapCreationData(int lod, Map map, HeightmeshPatch meshPatch)
+        public MapCreationData(int lod, Map map, HeightmeshPatch meshPatch, Coord textureCoord)
         {
             LOD = lod;
             Map = map;
             MeshPatch = meshPatch;
+            TextureCoord = textureCoord;
+        }
+    }
+
+    class MapData{
+
+        public Rect Rect { get; private set; }
+        public Rect TextureRect { get; private set; }
+        public Coord Coord { get; private set; }
+
+        public MapData(Rect rect, Rect textureRect, Coord coord)
+        {
+            Rect = rect;
+            Coord = coord;
+            TextureRect = textureRect;
         }
     }
 

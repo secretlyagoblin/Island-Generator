@@ -29,20 +29,18 @@ public class TextureManager {
         _texture = new Texture2D(_totalSize, _totalSize);
     }
 
-    public Rect ApplyTextureAndReturnDomain(Map map)
+    public Rect ApplyTextureAndReturnDomain(Map map, Coord coord)
     {
         var ourMap = new Map(_blockSize, _blockSize);
         ourMap.WarpMapToMatch(map).Normalise();        
 
-        _texture.SetPixels(_currentCoord.TileX * _blockSize, _currentCoord.TileY * _blockSize, _blockSize, _blockSize, ourMap.GetColours());
+        _texture.SetPixels(coord.TileX * _blockSize, coord.TileY * _blockSize, _blockSize, _blockSize, ourMap.GetColours());
         _texture.Apply();
-
-        GetNextCoord();
 
         return new Rect();
     }
 
-    Coord GetNextCoord()
+    public Coord RequestCoord()
     {
         var x = _currentCoord.TileX + 1;
         var y = _currentCoord.TileY;
@@ -64,5 +62,19 @@ public class TextureManager {
         return _currentCoord;       
     }
 
+    public Rect RequestRect(Coord coord)
+    {
+        var pos = new Vector2(
+            Mathf.InverseLerp(0, _sizeX, coord.TileX), 
+            Mathf.InverseLerp(0, _sizeX, coord.TileX)
+            );
+
+        var size = new Vector2(
+            Mathf.InverseLerp(1, _sizeX, coord.TileX),
+            Mathf.InverseLerp(1, _sizeX, coord.TileX)
+            );
+
+        return new Rect(pos, size);
+    }
 
 }

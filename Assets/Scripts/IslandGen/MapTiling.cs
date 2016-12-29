@@ -57,7 +57,7 @@ public class MapTiling : MonoBehaviour {
             {
                 if (x != mapCount - 1 & y != mapCount - 1)
                 {
-                    var meshBase = heightmeshGenerator.GenerateHeightmeshPatch(MapArray[x, y], lens).CreateMesh();
+                    var meshBase = heightmeshGenerator.GenerateHeightmeshPatch(MapArray[x, y], lens, new Rect(Vector2.zero,Vector2.one)).CreateMesh();
                     var meshSeamA = heightmeshGenerator.GenerateMeshSeam(MapArray[x, y], new Coord(x, y), MapArray[x + 1, y], new Coord(x + 1, y), lens).CreateMesh();
                     var meshSeamB = heightmeshGenerator.GenerateMeshSeam(MapArray[x, y], new Coord(x, y), MapArray[x , y+1], new Coord(x, y+1), lens).CreateMesh();
 

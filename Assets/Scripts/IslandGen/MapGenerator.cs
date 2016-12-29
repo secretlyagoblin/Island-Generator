@@ -381,7 +381,7 @@ public class MapGenerator
 
         var heightmeshGenerator = new HeightmeshGenerator();
 
-        var distanceHeightMap = heightmeshGenerator.GenerateHeightmeshPatch(terrain, _lens);
+        var distanceHeightMap = heightmeshGenerator.GenerateHeightmeshPatch(terrain, _lens, new Rect(Vector2.zero,Vector2.one));
         var heightObject = CreateHeightMesh(distanceHeightMap, texture);
 
         //var couldBeBetterMesh = heightObject.GetComponent<MeshFilter>().mesh;

@@ -5,7 +5,7 @@ using System;
 
 public class HeightmeshGenerator {
 
-    public HeightmeshPatch GenerateHeightmeshPatch(Map heightMap, MeshLens lens)
+    public HeightmeshPatch GenerateHeightmeshPatch(Map heightMap, MeshLens lens, Rect textureRect)
     {
         var sizeX = heightMap.SizeX;
         var sizeY = heightMap.SizeY;
