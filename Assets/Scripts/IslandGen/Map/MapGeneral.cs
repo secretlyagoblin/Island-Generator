@@ -325,13 +325,37 @@ public partial class Map
         return outputFloat;
     }
 
-    public Vector3 GetNormalisedVectorIndex(int xIndex, int yIndex)
+    public Color[] GetColours()
     {
-        
-        return new Vector3(xIndex / (float)SizeX, _map[xIndex, yIndex], yIndex / (float)SizeY);
+        var list = new List<float>();
+
+        for (int x = 0; x < SizeX; x++)
+        {
+            list.AddRange(GetColumn(x));
+        }
+
+        var colours = new Color[list.Count];
+
+        Debug.Log("Colour Array: ");
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            colours[i] = new Color(list[i], list[i], list[i]);
+            Debug.Log(colours[i].grayscale);
+        }
+
+        return colours;
     }
 
-    public float BilinearSampleFromNormalisedVector(Vector2 normalisedVector){
+    public Vector3 GetNormalisedVector3FromIndex(int xIndex, int yIndex)
+    {
+        var x = Mathf.InverseLerp(0, SizeX, xIndex);
+        var y = Mathf.InverseLerp(0, SizeY, yIndex);
+
+        return new Vector3(x, _map[xIndex, yIndex], y);
+    }
+
+    public float BilinearSampleFromNormalisedVector2(Vector2 normalisedVector){
 
         if(normalisedVector.x>1 | normalisedVector.y>1 |normalisedVector.x<0 | normalisedVector.y<0){
             Debug.Log("You aren't normal and as such are not welcome here, in this debug log");
@@ -1319,9 +1343,7 @@ public partial class Map
         }
 
         return count;
-    }
-
-    
+    }    
 
     //Texture Modifications
 
@@ -1367,6 +1389,23 @@ public partial class Map
         }
 
         return texture;
+    }
+
+    public Map WarpMapToMatch(Map mapToWarp)
+    {
+        for (int x = 0; x < SizeX; x++)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                var point = GetNormalisedVector3FromIndex(x, y);         
+
+                _map[x, y] = mapToWarp.BilinearSampleFromNormalisedVector2(new Vector2(point.x, point.z));
+
+                //Debug.Log("Normalised Point: " + point + ", Value: " + _map[x, y]);
+            }
+        }
+
+        return this;
     }
 
     public Map AddToStack(MeshDebugStack stack){

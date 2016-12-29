@@ -57,7 +57,7 @@ public class PhysicalMap
     Vector2 ArrayIndexToWorldContext(int x, int y)
     {
 
-        var point = _map.GetNormalisedVectorIndex(x, y);
+        var point = _map.GetNormalisedVector3FromIndex(x, y);
 
         return new Vector2(_xRange.Lerp(point.x), _yRange.Lerp(point.z));
     }
@@ -150,7 +150,7 @@ public class PhysicalMap
                 var point = ArrayIndexToWorldContext(x, y);
                 var otherPoint = mapB.NormalisedVectorFromWorldContext(point);
 
-                _map[x, y] = transformationToApply(_map[x, y], mapB._map.BilinearSampleFromNormalisedVector(otherPoint));    
+                _map[x, y] = transformationToApply(_map[x, y], mapB._map.BilinearSampleFromNormalisedVector2(otherPoint));    
             }
         }
     }

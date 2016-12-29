@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapCollection : MonoBehaviour {
+public class MapCollection {
 
     Dictionary<MapType, MapPair> _maps = new Dictionary<MapType, MapPair>();
 
