@@ -6,9 +6,9 @@ public class ObjectPooling : MonoBehaviour {
 
 	public GameObject TestPoint;
 
-	Bucket _bucket;
+	Bucket<Vector3> _bucket;
 
-	Bucket[] _previousBuckets;
+	Bucket<Vector3>[] _previousBuckets;
 
 	Queue<GameObject> _freeObjects = new Queue<GameObject>();
 
@@ -17,13 +17,14 @@ public class ObjectPooling : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		_bucket = new Bucket (0, Vector2.zero, new Vector2 (30, 30));
+		_bucket = new Bucket<Vector3> (0, Vector2.zero, new Vector2 (30, 30));
 
 		for (int i = 0; i < 5000; i++) {
-			_bucket.AddPoint (new Vector3 (Random.Range (0, 30f), Random.Range (0, 30f), Random.Range (0, 0f)));
+            var vec = new Vector3(Random.Range(0, 30f), Random.Range(0, 30f), Random.Range(0, 0f));
+            _bucket.AddElement (vec, vec);
 		}
 
-		_previousBuckets = new Bucket[0];
+		_previousBuckets = new Bucket<Vector3>[0];
 	}
 	
 	// Update is called once per frame

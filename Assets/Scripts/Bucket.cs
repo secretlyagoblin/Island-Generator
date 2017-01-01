@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class Bucket {
+class Bucket<T> {
+
     public Rect Rect;
     public Vector2 LowerBounds;
     public Vector2 UpperBounds;
@@ -12,10 +13,9 @@ class Bucket {
 
     public List<Vector3> Points;
 
-    public List<Bucket> Buckets;
+    public List<Bucket<T>> Buckets;
 
     bool Filled = false;
-
 
     public int Layer;
     public int MaxLayer = 12;
@@ -32,19 +32,19 @@ class Bucket {
 
         Filled = false;
         Points = new List<Vector3>();
-        Buckets = new List<Bucket>();
+        Buckets = new List<Bucket<T>>();
     }
 
-    public bool IsIn(Vector3 test)
+    bool IsIn(Vector3 test)
     {
         return Rect.Contains(test);
     }
 
-    public void AddPoint(Vector3 vector3)
+    public void AddElement(T element, Vector3 position)
     {
         if (!Filled)
         {
-            Points.Add(vector3);
+            Points.Add(position);
             if (Points.Count > 1 && Layer < MaxLayer)
             {
                 var CellSize = UpperBounds - LowerBounds;
@@ -55,10 +55,10 @@ class Bucket {
                 var startC = LowerBounds + new Vector2(0, CellSize.y);
                 var startD = LowerBounds + new Vector2(CellSize.x, CellSize.y);
 
-                Buckets.Add(new Bucket(Layer + 1, startA, startA + CellSize));
-                Buckets.Add(new Bucket(Layer + 1, startB, startB + CellSize));
-                Buckets.Add(new Bucket(Layer + 1, startC, startC + CellSize));
-                Buckets.Add(new Bucket(Layer + 1, startD, startD + CellSize));
+                Buckets.Add(new Bucket<T>(Layer + 1, startA, startA + CellSize));
+                Buckets.Add(new Bucket<T>(Layer + 1, startB, startB + CellSize));
+                Buckets.Add(new Bucket<T>(Layer + 1, startC, startC + CellSize));
+                Buckets.Add(new Bucket<T>(Layer + 1, startD, startD + CellSize));
 
                 for (int i = 0; i < Points.Count; i++)
                 {
@@ -66,7 +66,7 @@ class Bucket {
                     {
                         if (Buckets[x].IsIn(Points[i]))
                         {
-                            Buckets[x].AddPoint(Points[i]);
+                            Buckets[x].AddElement(element, Points[i]);
                             goto End;
 
                         }
@@ -82,9 +82,9 @@ class Bucket {
         {
             for (int x = 0; x < Buckets.Count; x++)
             {
-                if (Buckets[x].IsIn(vector3))
+                if (Buckets[x].IsIn(position))
                 {
-                    Buckets[x].AddPoint(vector3);
+                    Buckets[x].AddElement(element, position);
                     return;
                 }
             }
@@ -92,10 +92,10 @@ class Bucket {
         return;
     }
 
-    public Bucket[] GetBuckets(Vector2 testPoint, float testDistance)
+    public Bucket<T>[] GetBuckets(Vector2 testPoint, float testDistance)
     {
-        var distance = Bucket.DistancePointToRectangle(testPoint, Rect);
-        var allBuckets = new List<Bucket>();
+        var distance = DistancePointToRectangle(testPoint, Rect);
+        var allBuckets = new List<Bucket<T>>();
 
         if (distance < testDistance)
         {
@@ -116,7 +116,7 @@ class Bucket {
         return allBuckets.ToArray();
     }
 
-    public static float DistancePointToRectangle(Vector2 point, Rect rect)
+    static float DistancePointToRectangle(Vector2 point, Rect rect)
     {
         //  Calculate a distance between a point and a rectangle.
         //  The area around/in the rectangle is defined in terms of
