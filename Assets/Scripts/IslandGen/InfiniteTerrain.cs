@@ -5,7 +5,7 @@ using System.Threading;
 
 public class InfiniteTerrain : MonoBehaviour {
 
-    public const float MaxViewDistance = 1600;
+    public const float MaxViewDistance = 1700;
     public Transform Viewer;
 
     static Vector2 _offsetSeed = Vector2.zero;
@@ -14,7 +14,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
     MapCollection _baseMap = MapPattern.CliffHillDiffMap(400);
 
-    public const bool IncludeColliders = false;
+    public const bool IncludeColliders = true;
 
     TextureManager _textureManager;
 

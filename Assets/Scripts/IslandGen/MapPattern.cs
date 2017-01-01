@@ -184,8 +184,6 @@ public static class MapPattern  {
             .Clamp(0.5f, 1f)
             .Normalise();
 
-
-
         var waterFalloff = Map.Blend(walkableAreaFalloffMap, new Map(size, size, 0f), oceanFalloffMap);
 
         var deepWaterFalloff = waterFalloff
