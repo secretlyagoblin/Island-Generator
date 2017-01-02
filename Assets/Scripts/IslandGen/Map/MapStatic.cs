@@ -319,6 +319,39 @@ public partial class Map
         return outputMap;
     }
 
+    public static Map CreateMapFromSubMapsAssumingOnePixelOverlap(Map[,] mapArray)
+    {
+        var finalMap = new Map(mapArray[0, 0]);
+
+        var trueLength = finalMap.SizeX - 1;
+
+        for (int arrayX = 0; arrayX < 2; arrayX++)
+        {
+            for (int arrayY = 0; arrayY < 2; arrayY++)
+            {
+                var currentMap = mapArray[arrayX, arrayY];
+
+                var trueX = arrayX * trueLength;
+                var trueY = arrayY * trueLength;
+
+                for (int x = 0; x < trueLength; x += 2)
+                {
+                    for (int y = 0; y < trueLength; y += 2)
+                    {
+                        finalMap[trueX, trueY] = currentMap[x, y];
+                        trueY++;
+                    }
+                    trueX++;
+                }
+            }
+        }
+
+        //Handle Edges Here
+
+        return finalMap;
+
+    }
+
 
     // Map Photoshop Functions
 

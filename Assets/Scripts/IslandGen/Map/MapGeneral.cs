@@ -1408,10 +1408,14 @@ public partial class Map
         return this;
     }
 
+
+
     public Map AddToStack(MeshDebugStack stack){
         stack.RecordMapStateToStack(this);
         return this;
     }
+
+
 
 
 
