@@ -29,9 +29,9 @@ public class TextureManager {
         _texture = new Texture2D(_totalSize, _totalSize);
     }
 
-    public void ApplyTexture(Map map, Coord coord)
+    public void ApplyTexture(Layer map, Coord coord)
     {
-        var ourMap = new Map(_blockSize, _blockSize);
+        var ourMap = new Layer(_blockSize, _blockSize);
         ourMap.WarpMapToMatch(map);        
 
         _texture.SetPixels(coord.TileX * _blockSize, coord.TileY * _blockSize, _blockSize, _blockSize, ourMap.GetColours());

@@ -1,19 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Map;
 
-public static class MapPattern  {
+public static class HeightmapPattern  {
 
-    public static Map SimpleIsland(int sizeX, int sizeY)
+    /*
+
+    public static Layer SimpleIsland(int sizeX, int sizeY)
     {
         RNG.DateTimeInit();
 
-        var map = Map.BlankMap(sizeX, sizeY)
+        var map = Layer.BlankMap(sizeX, sizeY)
             .CreateCircularFalloff(sizeX * 0.3f)
             .SmoothMap(25)
             .Invert();
 
-        map += Map.BlankMap(sizeX, sizeY)
+        map += Layer.BlankMap(sizeX, sizeY)
             .PerlinFillOctaves(50, 0, 0, RNG.NextFloat(0, 1000), 3, 0.5f, 2f)
             .Remap(-0.6f, 0.3f);
 
@@ -22,23 +25,23 @@ public static class MapPattern  {
         return map;
     }
 
-    public static Map MajorMap(int size)
+    public static Layer MajorMap(int size)
     {
         RNG.DateTimeInit();
 
-        var map = new Map(size, size);
+        var map = new Layer(size, size);
 
         map.RandomFillMap(0.51f, 0, 0)
             //.AddToStack(stack)
-            .ApplyMask(Map.BlankMap(map)
-                .ApplyMask(Map.BlankMap(map)
+            .ApplyMask(Layer.BlankMap(map)
+                .ApplyMask(Layer.BlankMap(map)
                     .CreateCircularFalloff(size * 0.25f))
-                .ApplyMask(Map.BlankMap(map)
+                .ApplyMask(Layer.BlankMap(map)
                     .CreateCircularFalloff(size * 0.23f)
                     .Invert())
                  .Invert())
             .Invert()
-            .ApplyMask(Map.BlankMap(map)
+            .ApplyMask(Layer.BlankMap(map)
                     .CreateCircularFalloff(size * 0.45f))
             //.AddToStack(stack)
             .BoolSmoothOperation(4)
@@ -51,22 +54,22 @@ public static class MapPattern  {
             .AddRoomLogic();
         //.AddToStack(stack);
 
-        var distanceMap = Map.Clone(map)
+        var distanceMap = Layer.Clone(map)
             .GetDistanceMap(15)
             .Clamp(0.5f, 1f)
             .Normalise();
             //.AddToStack(stack);
 
-        var blendMap = Map.Clone(distanceMap)
+        var blendMap = Layer.Clone(distanceMap)
             //.Clamp(0.5f, 1)
             .Normalise()
             .Invert();
 
-        var perlinMap = Map.BlankMap(size, size)
+        var perlinMap = Layer.BlankMap(size, size)
             .PerlinFillMap(10, new Domain(0f, 5f), new Coord(0, 0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000, 1000), 7, 0.5f, 1.87f);
             //.AddToStack(stack);
 
-        var finalMap = Map.Blend(distanceMap.Normalise(), perlinMap.Normalise(), blendMap);
+        var finalMap = Layer.Blend(distanceMap.Normalise(), perlinMap.Normalise(), blendMap);
         //finalMap.AddToStack(stack);
 
         var heightMap = CreateHeightMap(map);
@@ -92,25 +95,15 @@ public static class MapPattern  {
         return finalMap;
     }
 
-    public static Map IslandMap(int size)
+    public static Layer IslandMap(int size)
     {
         RNG.DateTimeInit();
 
-        var map = new Map(size, size);
+        var map = new Layer(size, size);
 
         map.RandomFillMap(0.51f, 0, 0)
             //.AddToStack(stack)
-            /*
-            .ApplyMask(Map.BlankMap(map)
-                .ApplyMask(Map.BlankMap(map)
-                    .CreateCircularFalloff(size * 0.25f))
-                .ApplyMask(Map.BlankMap(map)
-                    .CreateCircularFalloff(size * 0.23f)
-                    .Invert())
-                 .Invert())
-            .Invert()
-            */
-            .ApplyMask(Map.BlankMap(map)
+            .ApplyMask(Layer.BlankMap(map)
                     .CreateCircularFalloff(size * 0.45f))
             //.AddToStack(stack)
             .BoolSmoothOperation(4)
@@ -125,13 +118,13 @@ public static class MapPattern  {
 
         var difference = map.GetFootprintOutline();
 
-        var distanceMap = Map.Clone(map)
+        var distanceMap = Layer.Clone(map)
             .GetDistanceMap(15)
             .Clamp(0.5f, 1f)
             .Normalise();
 
-        var waterFalloff = Map.Blend(distanceMap, new Map(size, size, 0f), difference);
-        var cliffsFalloff = Map.Blend(distanceMap.Invert(), new Map(size, size, 1f), difference.Invert());
+        var waterFalloff = Layer.Blend(distanceMap, new Layer(size, size, 0f), difference);
+        var cliffsFalloff = Layer.Blend(distanceMap.Invert(), new Layer(size, size, 1f), difference.Invert());
 
         distanceMap.Invert();
 
@@ -139,7 +132,7 @@ public static class MapPattern  {
 
         finalFalloffMap.Invert().Normalise();
 
-        var blendMap = Map.Clone(distanceMap)
+        var blendMap = Layer.Clone(distanceMap)
             //.Clamp(0.5f, 1)
             .Normalise()
             .Invert();
@@ -150,7 +143,7 @@ public static class MapPattern  {
             .SmoothMap(10)
             .Normalise();
 
-        var blenmer = Map.Blend(heightMap, new Map(size, size).FillWith(0), Map.Clone(waterFalloff).Invert());
+        var blenmer = Layer.Blend(heightMap, new Layer(size, size).FillWith(0), Layer.Clone(waterFalloff).Invert());
 
         var goof = blenmer + cliffsFalloff.Invert();
         //goof.SmoothMap(1);
@@ -158,17 +151,19 @@ public static class MapPattern  {
         return goof;
     }
 
-    public static MapCollection CliffHillDiffMap(int size)
+    */
+
+    public static Stack CliffHillDiffMap(int size, Rect rect)
     {
         RNG.DateTimeInit();
         var seed = RNG.NextFloat(0, 1000);
 
         //CreateWalkableSpace
 
-        var walkableAreaMap = new Map(size, size);
+        var walkableAreaMap = new Layer(size, size);
 
         walkableAreaMap.RandomFillMap(0.5f, 0, 0)
-            .ApplyMask(Map.BlankMap(walkableAreaMap)
+            .ApplyMask(Layer.BlankMap(walkableAreaMap)
                     .CreateCircularFalloff(size * 0.45f))
             .BoolSmoothOperation(4)
             .RemoveSmallRegions(600)
@@ -179,12 +174,12 @@ public static class MapPattern  {
 
         var oceanFalloffMap = walkableAreaMap.GetFootprintOutline();
 
-        var walkableAreaFalloffMap = Map.Clone(walkableAreaMap)
+        var walkableAreaFalloffMap = Layer.Clone(walkableAreaMap)
             .GetDistanceMap(15)
             .Clamp(0.5f, 1f)
             .Normalise();
 
-        var waterFalloff = Map.Blend(walkableAreaFalloffMap, new Map(size, size, 0f), oceanFalloffMap);
+        var waterFalloff = Layer.Blend(walkableAreaFalloffMap, new Layer(size, size, 0f), oceanFalloffMap);
 
         var deepWaterFalloff = waterFalloff
             .Clone()
@@ -194,9 +189,9 @@ public static class MapPattern  {
             .Clamp(0.75f, 1f)
             .Normalise();
 
-        var finalWaterFalloff = Map.Blend(new Map(size, size, 0).Remap(0, 0.5f), waterFalloff, deepWaterFalloff);
+        var finalWaterFalloff = Layer.Blend(new Layer(size, size, 0).Remap(0, 0.5f), waterFalloff, deepWaterFalloff);
 
-        var cliffsFalloff = Map.Blend(new Map(size, size, 0f), walkableAreaFalloffMap, finalWaterFalloff.Clone().Normalise().Clamp(0f, 0.1f).Normalise());
+        var cliffsFalloff = Layer.Blend(new Layer(size, size, 0f), walkableAreaFalloffMap, finalWaterFalloff.Clone().Normalise().Clamp(0f, 0.1f).Normalise());
 
         // HERE TODAY: need to get identify inner cliffs.
 
@@ -214,9 +209,9 @@ public static class MapPattern  {
             .Normalise()
             .Remap(0.1f,1f);
 
-        heightMap = Map.Blend(new Map(size, size, 0f), heightMap, finalWaterFalloff.Clone().Clamp(0, 0.5f).Normalise());
+        heightMap = Layer.Blend(new Layer(size, size, 0f), heightMap, finalWaterFalloff.Clone().Clamp(0, 0.5f).Normalise());
 
-        var heightMapSlope = Map.Clone(heightMap).GetAbsoluteBumpMap().Normalise().Clamp(0.12f, 0.2f).Normalise();
+        var heightMapSlope = Layer.Clone(heightMap).GetAbsoluteBumpMap().Normalise().Clamp(0.12f, 0.2f).Normalise();
 
         totalFalloffMap.Normalise();
 
@@ -227,23 +222,25 @@ public static class MapPattern  {
             .Multiply(0.5f)
             + heightMap;
 
-        var realFinalMap = Map.Blend(heightMap, finalMap, heightMapSlope);
+        var realFinalMap = Layer.Blend(heightMap, finalMap, heightMapSlope);
 
         //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-        var maps = new MapCollection();
+        var maps = new Map.Stack(rect);
 
         maps.AddMap(MapType.WalkableMap, walkableAreaMap);
         //maps.AddMap(MapType.HeightMap, realFinalMap);
         maps.AddMap(MapType.HeightMap, realFinalMap);
 
+
+
         return maps;
     }
 
-    static Map CreateHeightMap(Map unionMap)
+    static Layer CreateHeightMap(Layer unionMap)
     {
         var subMaps = unionMap.GenerateSubMaps(6, 12);
-        var heightmap = Map.CreateHeightMap(subMaps);
+        var heightmap = Layer.CreateHeightMap(subMaps);
 
         var allRegions = new List<List<Coord>>();
 
@@ -253,12 +250,12 @@ public static class MapPattern  {
             allRegions.AddRange(subMap.GetRegions(0));
         }
 
-        var finalSubMaps = Map.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
-        heightmap = Map.CreateHeightMap(finalSubMaps);
+        var finalSubMaps = Layer.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
+        heightmap = Layer.CreateHeightMap(finalSubMaps);
 
         return heightmap;
     }
-
-
 }
+
+
 

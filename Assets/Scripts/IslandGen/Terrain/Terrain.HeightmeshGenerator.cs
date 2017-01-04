@@ -3,15 +3,34 @@ using System.Collections.Generic;
 using System.Threading;
 using System;
 
+namespace Terrain{
+
 public class HeightmeshGenerator {
 
-    public HeightmeshPatch GenerateHeightmeshPatch(Map heightMap, MeshLens lens, Rect textureRect)
-    {
-        var sizeX = heightMap.SizeX;
-        var sizeY = heightMap.SizeY;
+        static HeightmeshGenerator _heightMeshGenerator = new HeightmeshGenerator();
 
-        var heightmesh = new HeightmeshPatch(sizeX, sizeY);
+        public static Mesh GenerateMesh(HeightmapData data)
+        {
+            return _heightMeshGenerator.GenerateHeightmeshPatch(data).CreateMesh();
+        }
+
+        public HeightMeshData GenerateHeightmesh(HeightmapData data)
+        {
+            return GenerateHeightmeshPatch(data);
+        }
+
+
+        HeightMeshData GenerateHeightmeshPatch(HeightmapData data)
+    {
+        var map = data.GetFloatArray();
+
+        var sizeX = map.GetLength(0);
+        var sizeY = map.GetLength(1);
+
+        var heightmesh = new HeightMeshData(sizeX, sizeY);
         var vertexIndex = 0;
+
+        var lens = new MeshLens(new Vector3(data.Rect.size.x, 1, data.Rect.size.y));
 
         for (int x = 0; x < sizeX; x++)
         {
@@ -20,14 +39,16 @@ public class HeightmeshGenerator {
                 var normalisedX = x / (float)(sizeX);
                 var normalisedY = y / (float)(sizeY);
 
-                heightmesh.AddVertex(lens.TransformNormalisedPosition(normalisedX, heightMap[x, y], normalisedY), vertexIndex);
+                heightmesh.AddVertex(lens.TransformNormalisedPosition(normalisedX, map[x, y], normalisedY), vertexIndex);
 
                 //Debug.Log("x: " + normalisedX + " y: " + heightMap[x, y] + " z: " + normalisedY);
 
-                var texX = Mathf.Lerp(textureRect.min.x, textureRect.max.x,normalisedX);
-                var texY = Mathf.Lerp(textureRect.min.y, textureRect.max.y, normalisedY);
+                    //TODO: Use mesh colours here
 
-                heightmesh.AddUV(new Vector2(texX, texY), vertexIndex);
+                //var texX = Mathf.Lerp(textureRect.min.x, textureRect.max.x,normalisedX);
+                //var texY = Mathf.Lerp(textureRect.min.y, textureRect.max.y, normalisedY);
+
+                heightmesh.AddUV(new Vector2(normalisedX, normalisedY), vertexIndex);
 
                 if(x < sizeX-1 && y < sizeY - 1)
                 {
@@ -40,7 +61,9 @@ public class HeightmeshGenerator {
         return heightmesh;
     }
 
-    public HeightmeshSeam GenerateMeshSeam(Map mapA, Coord coordA, Map mapB,Coord coordB, MeshLens lens)
+        /*
+
+    public HeightmeshSeam GenerateMeshSeam(Layer mapA, Coord coordA, Layer mapB,Coord coordB, MeshLens lens)
     {
         if (coordA.TileX == coordB.TileX && coordA.TileY == coordB.TileY)
         {
@@ -184,7 +207,7 @@ public class HeightmeshGenerator {
         return seam;
     }
 
-    public HeightmeshQuad GenerateMeshCorner(Map startMap, Map upMap, Map rightMap,Map diagonalMap, MeshLens lens)
+    public HeightmeshQuad GenerateMeshCorner(Layer startMap, Layer upMap, Layer rightMap,Layer diagonalMap, MeshLens lens)
     {
         var a = startMap.GetNormalisedVector3FromIndex(startMap.SizeX - 1, startMap.SizeY - 1);
         var b = upMap.GetNormalisedVector3FromIndex(upMap.SizeX - 1, 0) + Vector3.forward;
@@ -203,9 +226,11 @@ public class HeightmeshGenerator {
 
 
     }
+
+    */
 }
 
-public class HeightmeshPatch {
+public class HeightMeshData {
 
     public Vector3[] Vertices
     { get; private set; }
@@ -216,7 +241,7 @@ public class HeightmeshPatch {
 
     int _triangleIndex = 0;
 
-    public HeightmeshPatch(int meshWidth, int meshHeight)
+    public HeightMeshData(int meshWidth, int meshHeight)
     {
         Vertices = new Vector3[meshWidth * meshHeight];
         UVs = new Vector2[meshWidth * meshHeight];
@@ -352,4 +377,5 @@ public class HeightmeshQuad {
         mesh.RecalculateBounds();
         return mesh;
     }
+}
 }

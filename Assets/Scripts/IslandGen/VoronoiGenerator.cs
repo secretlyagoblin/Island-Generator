@@ -1,20 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Map;
 
 public class VoronoiGenerator {
 
-    Map _map;
-    Map _distanceMap;
-    Map _heightMap;
-    Map _falloffMap;
+    Layer _map;
+    Layer _distanceMap;
+    Layer _heightMap;
+    Layer _falloffMap;
     List<VoronoiCell> _pointList;
 
     Coord _coord;
 
     float _seed;
 
-    public VoronoiGenerator(Map map, int mapCoordinateX, int mapCoordinateY, float relativeDensity, float seed)
+    public VoronoiGenerator(Layer map, int mapCoordinateX, int mapCoordinateY, float relativeDensity, float seed)
     {
         _map = map;
         _seed = seed;
@@ -27,14 +28,14 @@ public class VoronoiGenerator {
 
     }
 
-    public Map GetDistanceMap()
+    public Layer GetDistanceMap()
     {
-        return Map.Clone(_distanceMap);
+        return Layer.Clone(_distanceMap);
     }
 
-    public Map GetSmattering(int chance)
+    public Layer GetSmattering(int chance)
     {
-        var map = new Map(_map.SizeX, _map.SizeY, 1);
+        var map = new Layer(_map.SizeX, _map.SizeY, 1);
 
         _distanceMap.Normalise();
 
@@ -59,9 +60,9 @@ public class VoronoiGenerator {
         return map;
     }
 
-    public Map GetVoronoiBoolMap(Map insideMap)
+    public Layer GetVoronoiBoolMap(Layer insideMap)
     {
-        var map = new Map(_map.SizeX, _map.SizeY, 1);
+        var map = new Layer(_map.SizeX, _map.SizeY, 1);
 
         for (int i = 0; i < _pointList.Count; i++)
         {
@@ -166,7 +167,7 @@ public class VoronoiGenerator {
 
     void LinkMapPointsToCells()
     {
-        var distanceMap = Map.Clone(_map);
+        var distanceMap = Layer.Clone(_map);
 
         for (int x = 0; x < _map.SizeX; x++)
         {
@@ -201,9 +202,9 @@ public class VoronoiGenerator {
         _distanceMap = distanceMap;
     }
 
-    public Map GetHeightMap(Map sampleMap)
+    public Layer GetHeightMap(Layer sampleMap)
     {
-        _heightMap = new Map(_map);
+        _heightMap = new Layer(_map);
 
         for (int i = 0; i < _pointList.Count; i++)
         {
@@ -222,12 +223,12 @@ public class VoronoiGenerator {
             }
         }
 
-        return Map.Clone(_heightMap);
+        return Layer.Clone(_heightMap);
     }
 
-    public Map GetFalloffMap(int searchDistance)
+    public Layer GetFalloffMap(int searchDistance)
     {
-        _falloffMap = new Map(_map);
+        _falloffMap = new Layer(_map);
 
         for (int i = 0; i < _pointList.Count; i++)
         {
@@ -239,7 +240,7 @@ public class VoronoiGenerator {
             cell.SetFalloff(_falloffMap, searchDistance);
         }
 
-        return Map.Clone(_falloffMap);
+        return Layer.Clone(_falloffMap);
     }
 
 
@@ -301,13 +302,13 @@ public class VoronoiGenerator {
             MapPoints = new List<Coord>();
         }
 
-        public void Sort(Map _distanceMap)
+        public void Sort(Layer _distanceMap)
         {
             var points = MapPoints.OrderBy(x => _distanceMap[x.TileX, x.TileY]).ToList();
             Center = points.First();
         }
 
-        public void SetFalloff(Map bigMap, int searchDistance)
+        public void SetFalloff(Layer bigMap, int searchDistance)
         {
             var minX = int.MaxValue;
             var maxX = int.MinValue;
@@ -332,7 +333,7 @@ public class VoronoiGenerator {
                     minY = p.TileY;
             }
 
-            var map = new Map(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
+            var map = new Layer(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
 
             for (int i = 0; i < MapPoints.Count; i++)
             {

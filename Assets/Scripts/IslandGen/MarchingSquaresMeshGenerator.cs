@@ -23,7 +23,7 @@ public class MarchingSquaresMeshGenerator {
     int _wallHeightPerlinSeed;
 
 
-    public Mesh GenerateMesh(Map map, MeshLens lens, int seed)
+    public Mesh GenerateMesh(Layer map, MeshLens lens, int seed)
     {
         _outlines.Clear();
         _checkedVerts.Clear();
@@ -155,7 +155,7 @@ public class MarchingSquaresMeshGenerator {
         public Square[,] Squares
         { get; private set; }
 
-        public SquareGrid(Map map, MeshLens lens)
+        public SquareGrid(Layer map, MeshLens lens)
         {
             int nodeCountX = map.SizeX;
             int nodeCountY = map.SizeY;

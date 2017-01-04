@@ -4,7 +4,7 @@ using System.Collections;
 public class UnityTerrainGenerator {
 
 	// Use this for initialization
-	static GameObject CreateTerrain (Map map, Vector3 size) {
+	static GameObject CreateTerrain (Layer map, Vector3 size) {
 
         GameObject TerrainObj = new GameObject("TerrainObj");
 

@@ -12,7 +12,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
     public Material TerrainMaterial;
 
-    MapCollection _baseMap = MapPattern.CliffHillDiffMap(400);
+    global::MapData _baseMap = HeightmapPattern.CliffHillDiffMap(400);
 
     public const bool IncludeColliders = true;
 
@@ -197,7 +197,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         int _size;
 
-        public Map CurrentMap{
+        public Layer CurrentMap{
             get
             {
                 if (CurrentLod == -1)
@@ -220,7 +220,7 @@ public class InfiniteTerrain : MonoBehaviour {
         int _mapSize = 240;
         int _mapMinSize = 60;
 
-        Map[] _maps;
+        Layer[] _maps;
 
         Mesh[] _lods;
         LODstatus[] _lodStatus;
@@ -231,7 +231,7 @@ public class InfiniteTerrain : MonoBehaviour {
         TerrainChunk _rightChunk;
         TerrainChunk _diagonalChunk;
 
-        MapCollection _baseMap;      
+        global::MapData _baseMap;      
 
 
         MeshFilter _filter;
@@ -239,7 +239,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         TextureManager _manager;
 
-        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, MapCollection baseMap, TextureManager manager)
+        public TerrainChunk(Coord coord, int size, Transform transform, Material terrainMaterial, global::MapData baseMap, TextureManager manager)
         {
             CurrentLod = -1;
 
@@ -252,7 +252,7 @@ public class InfiniteTerrain : MonoBehaviour {
             _size = size;
             _lods = new Mesh[_totalLODS];
             _lodStatus = new LODstatus[_totalLODS];
-            _maps = new Map[_totalLODS];
+            _maps = new Layer[_totalLODS];
 
             Links = new bool[] { false, false, false };
 
@@ -421,7 +421,7 @@ public class InfiniteTerrain : MonoBehaviour {
             //SetVisible(false);
         }
 
-        void RequestMap(Action<MapCreationData> callback, int mapSize, MapData mapData, MapCollection mapToSample, int lod)
+        void RequestMap(Action<MapCreationData> callback, int mapSize, MapData mapData, global::MapData mapToSample, int lod)
         {
             ThreadStart threadStart = delegate
              {
@@ -431,20 +431,20 @@ public class InfiniteTerrain : MonoBehaviour {
             new Thread(threadStart).Start();
         }
 
-        void MapThread(Action<MapCreationData> callback, int mapSize, MapData mapData,MapCollection mapToSample, int lod)
+        void MapThread(Action<MapCreationData> callback, int mapSize, MapData mapData, global::MapData mapToSample, int lod)
         {
-            var map = new Map(mapSize, mapSize);   
+            var map = new Layer(mapSize, mapSize);   
             map = map.ToPhysical(mapData.Rect).Add(mapToSample[MapType.HeightMap]).ToMap();            
 
             var voronoi = new VoronoiGenerator(map, _coord.TileX, _coord.TileX, 0.05f, 23245.2344335454f);
 
-            var diffMap = voronoi.GetVoronoiBoolMap(new Map(mapSize, mapSize).ToPhysical(mapData.Rect).Add(mapToSample[MapType.WalkableMap]).ToMap());
+            var diffMap = voronoi.GetVoronoiBoolMap(new Layer(mapSize, mapSize).ToPhysical(mapData.Rect).Add(mapToSample[MapType.WalkableMap]).ToMap());
             var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.05f);
 
             var heightMap = map + voronoi.GetHeightMap(map) + distanceMap;
             heightMap.Multiply(0.5f);
 
-            map = Map.Blend(heightMap, map, diffMap);
+            map = Layer.Blend(heightMap, map, diffMap);
 
             //map.SmoothMap();
 
@@ -460,7 +460,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         // Mesh Seam Data
 
-        void UpdateTopSeam(Map mapB, int LOD)
+        void UpdateTopSeam(Layer mapB, int LOD)
         {
             //if (CurrentMap == null | mapB == null)
                // return;
@@ -472,7 +472,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         }
 
-        void UpdateRightSeam(Map mapB, int LOD)
+        void UpdateRightSeam(Layer mapB, int LOD)
         {
             //if (CurrentMap == null | mapB == null)
                // return;
@@ -483,7 +483,7 @@ public class InfiniteTerrain : MonoBehaviour {
             //}
         }
 
-        void UpdateSeam(Map mapB, Coord coordB, MeshSeam seam)
+        void UpdateSeam(Layer mapB, Coord coordB, MeshSeam seam)
         {
             //Debug.Log("Seam needs updating");
 
@@ -618,10 +618,10 @@ public class InfiniteTerrain : MonoBehaviour {
     struct MapCreationData {
         public readonly int LOD;
         public readonly HeightmeshPatch MeshPatch;
-        public readonly Map Map;
+        public readonly Layer Map;
         public readonly Coord TextureCoord;
 
-        public MapCreationData(int lod, Map map, HeightmeshPatch meshPatch, Coord textureCoord)
+        public MapCreationData(int lod, Layer map, HeightmeshPatch meshPatch, Coord textureCoord)
         {
             LOD = lod;
             Map = map;

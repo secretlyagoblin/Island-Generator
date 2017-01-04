@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 public class MeshDebugStack {
 
-    List<Map> _maps;
+    List<Layer> _maps;
 
     Material _defaultMaterial;
 
     public MeshDebugStack(Material baseMaterial)
     {
         _defaultMaterial = baseMaterial;
-        _maps = new List<Map>();
+        _maps = new List<Layer>();
     }
 
-    public void RecordMapStateToStack(Map map)
+    public void RecordMapStateToStack(Layer map)
     {
-        _maps.Add(Map.Clone(map));
+        _maps.Add(Layer.Clone(map));
     }
 
     public void CreateDebugStack(Transform parent)
@@ -26,7 +26,7 @@ public class MeshDebugStack {
         }
     }
 
-    GameObject CreateDebugLayer(Map map, int layer, float heightMultiplier, Transform parent)
+    GameObject CreateDebugLayer(Layer map, int layer, float heightMultiplier, Transform parent)
     {
         map.Normalise();
 

@@ -7,9 +7,9 @@ public class MassInstantiate : MonoBehaviour {
     public Rect MainRect;
     public int Divisions;
 
-    DataBlock[,] _dataBlock;
+    RegionChunk[,] _dataBlock;
 
-    DataBlock[,] _lastBlock = new DataBlock[3, 3];
+    RegionChunk[,] _lastBlock = new RegionChunk[3, 3];
 
     public int MassiveMapResolution;
     public int MapResolution;
@@ -26,7 +26,7 @@ public class MassInstantiate : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-        _dataBlock = new DataBlock[Divisions,Divisions];
+        _dataBlock = new RegionChunk[Divisions,Divisions];
 
         var positionSize = MainRect.height / Divisions;
         _offsetSize = positionSize + (positionSize * (1f / MapResolution));
@@ -34,7 +34,7 @@ public class MassInstantiate : MonoBehaviour {
 
         var moddedResolution = MapResolution + 1;
 
-        var totalMap = MapPattern.CliffHillDiffMap(MassiveMapResolution);
+        var totalMap = HeightmapPattern.CliffHillDiffMap(MassiveMapResolution);
         totalMap.SetRect(MainRect);
 
         var heightmeshGenerator = new HeightmeshGenerator();
@@ -51,10 +51,10 @@ public class MassInstantiate : MonoBehaviour {
 
                 
 
-                dataBlock.itsTheMap = new Map(moddedResolution, moddedResolution).ToPhysical(dataBlock.baseRect).Add(totalMap[MapType.HeightMap]).ToMap();
+                dataBlock.itsTheMap = new Layer(moddedResolution, moddedResolution).ToPhysical(dataBlock.baseRect).Add(totalMap[MapType.HeightMap]).ToMap();
                 var patch = heightmeshGenerator.GenerateHeightmeshPatch(dataBlock.itsTheMap, lens, dataBlock.baseRect);
 
-                var physBlock = new Map(moddedResolution/8, moddedResolution/8).ToPhysical(dataBlock.baseRect).Add(totalMap[MapType.HeightMap]).ToMap();
+                var physBlock = new Layer(moddedResolution/8, moddedResolution/8).ToPhysical(dataBlock.baseRect).Add(totalMap[MapType.HeightMap]).ToMap();
                 var physPatch = heightmeshGenerator.GenerateHeightmeshPatch(physBlock, lens, dataBlock.baseRect);
                 var physMesh = physPatch.CreateMesh();
 
@@ -145,10 +145,4 @@ public class MassInstantiate : MonoBehaviour {
 
     }
 
-    public class DataBlock {
-
-        public Rect baseRect;
-        public Map itsTheMap;
-        public GameObject goblet;
-    }
 }

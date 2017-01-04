@@ -37,14 +37,14 @@ public class MapTiling : MonoBehaviour {
 
         var mapCount = 6;
 
-        var MapArray = new Map[mapCount, mapCount];
+        var MapArray = new Layer[mapCount, mapCount];
 
         for (int x = 0; x < mapCount; x++)
         {
             for (int y = 0; y < mapCount; y++)
             {
 
-                MapArray[x,y] = new Map(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1,2f);        
+                MapArray[x,y] = new Layer(size, size).PerlinFillMap(perlinScale, new Domain(0.3f, 1.8f), new Coord(x, y), new Vector2(0.5f, 0.5f), new Vector2(0, 0), 7, 0.5f, 1.87f).Clamp(1,2f);        
                 //size += 5;
             }
         }

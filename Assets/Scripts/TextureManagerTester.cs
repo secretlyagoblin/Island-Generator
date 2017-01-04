@@ -11,8 +11,8 @@ public class TextureManagerTester : MonoBehaviour {
 
         var textureManager = new TextureManager();
 
-        var blurt = MapPattern.MajorMap(400);
-        var gurt = MapPattern.SimpleIsland(400,400);
+        var blurt = HeightmapPattern.MajorMap(400);
+        var gurt = HeightmapPattern.SimpleIsland(400,400);
 
         
         textureManager.ApplyTexture(blurt,textureManager.RequestCoord());

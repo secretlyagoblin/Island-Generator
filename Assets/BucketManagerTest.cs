@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BucketManagerTest : MonoBehaviour {
 
-    TerrainBucketManager bucks = new TerrainBucketManager();
+    RegionBucketManager bucks = new RegionBucketManager();
     public GameObject testObj;
 
     public int Size;
@@ -13,17 +13,9 @@ public class BucketManagerTest : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-        var totalData = new FinalChunk[Size, Size];
+        //Here I be. Working on the buckets
 
-        for (int x = 0; x < Size; x++)
-        {
-            for (int y = 0; y < Size; y++)
-            {
-                totalData[x, y] = new FinalChunk();
-            }
-        }
-
-        bucks.CreateBucketSystem(Rect, totalData);		
+        bucks.CreateBucketSystem();		
 	}
 	
 	// Update is called once per frame

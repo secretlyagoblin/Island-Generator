@@ -81,7 +81,7 @@ public class MapGenerator
 
         var stack = new MeshDebugStack(Material);
 
-        var map = new Map(width, height);
+        var map = new Layer(width, height);
 
         //var unionMap = CreateWalkableMap(map);
         //unionMap.AddRoomLogic();
@@ -89,28 +89,28 @@ public class MapGenerator
 
         var perlinSeed = RNG.NextFloat(-1000f, 1000f);
 
-        var unionMap = new Map(width, height).PerlinFillMap(3, new Domain(0.3f, 1.8f), new Coord(0,0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000,1000), 7, 0.5f, 1.87f);
+        var unionMap = new Layer(width, height).PerlinFillMap(3, new Domain(0.3f, 1.8f), new Coord(0,0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000,1000), 7, 0.5f, 1.87f);
         unionMap.BooleanMapFromThreshold(1f);
 
-        var distanceMap = Map.Clone(unionMap).GetDistanceMap(15).Normalise();
-        var validStartPoint = Map.Clone(distanceMap).Clamp(0.1f, 1).Normalise().GetValidStartLocation();
-        var cameraPosition = Map.Clone(distanceMap).Normalise().Clamp(0.3f, 1f).Normalise().GetValidStartLocation();
+        var distanceMap = Layer.Clone(unionMap).GetDistanceMap(15).Normalise();
+        var validStartPoint = Layer.Clone(distanceMap).Clamp(0.1f, 1).Normalise().GetValidStartLocation();
+        var cameraPosition = Layer.Clone(distanceMap).Normalise().Clamp(0.3f, 1f).Normalise().GetValidStartLocation();
 
 
         distanceMap.Clamp(0.5f,1f);
         distanceMap.Normalise();
         stack.RecordMapStateToStack(distanceMap);
 
-        var cutoffMap = Map.Clone(distanceMap).Clamp(0.5f, 1f);
+        var cutoffMap = Layer.Clone(distanceMap).Clamp(0.5f, 1f);
         cutoffMap.Normalise();
         stack.RecordMapStateToStack(cutoffMap);
 
-        var perlinMap = Map.BlankMap(Size, Size).PerlinFillMap(7, new Domain(0f, 5f), new Coord(0, 0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000, 1000), 7, 0.5f, 1.87f);
+        var perlinMap = Layer.BlankMap(Size, Size).PerlinFillMap(7, new Domain(0f, 5f), new Coord(0, 0), new Vector2(0.5f, 0.5f), RNG.NextVector2(-1000, 1000), 7, 0.5f, 1.87f);
         stack.RecordMapStateToStack(perlinMap);
 
         //var cliffHeightMap = distanceMap;
 
-        var cliffHeightMap = Map.Blend(perlinMap, distanceMap, Map.Clone(cutoffMap).Clamp(0f, 1f).Normalise());
+        var cliffHeightMap = Layer.Blend(perlinMap, distanceMap, Layer.Clone(cutoffMap).Clamp(0f, 1f).Normalise());
         stack.RecordMapStateToStack(cliffHeightMap);
 
 
@@ -126,10 +126,10 @@ public class MapGenerator
         var mountainMap = voronoiGenerator.GetHeightMap(cliffHeightMap).Normalise();
         stack.RecordMapStateToStack(mountainMap);
 
-        var blurMap = Map.Clone(mountainMap).SmoothMap(2);
+        var blurMap = Layer.Clone(mountainMap).SmoothMap(2);
         stack.RecordMapStateToStack(blurMap);
 
-        mountainMap = blurMap + (Map.Clone(voronoiMap).Clamp(0, 0.9f).Remap(0, 0.3f));
+        mountainMap = blurMap + (Layer.Clone(voronoiMap).Clamp(0, 0.9f).Remap(0, 0.3f));
         mountainMap.Normalise();
         stack.RecordMapStateToStack(mountainMap);
 
@@ -144,7 +144,7 @@ public class MapGenerator
         var hillVoronoiFalloffMap = hillVoronoiGenerator.GetFalloffMap(3).Normalise();
         stack.RecordMapStateToStack(hillVoronoiFalloffMap);
 
-        var hillMap = Map.BlankMap(Size,Size).FillWith(0f) + (Map.Clone(hillVoronoiMap).Remap(0, 0.07f));
+        var hillMap = Layer.BlankMap(Size,Size).FillWith(0f) + (Layer.Clone(hillVoronoiMap).Remap(0, 0.07f));
         stack.RecordMapStateToStack(hillMap);
 
         var isInside = voronoiGenerator.GetVoronoiBoolMap(unionMap);
@@ -153,7 +153,7 @@ public class MapGenerator
         
 
 
-        var terrain = Map.Blend(mountainMap.Clamp(0.15f,1f).Normalise(), hillMap, Map.Clone(isInside).SmoothMap(1));
+        var terrain = Layer.Blend(mountainMap.Clamp(0.15f,1f).Normalise(), hillMap, Layer.Clone(isInside).SmoothMap(1));
         stack.RecordMapStateToStack(terrain);
 
         /*
@@ -325,20 +325,20 @@ public class MapGenerator
         var texture = new Texture2D(Size, Size);
 
         //var textureStuff = isInside + (Map.BlankMap(Size,Size).RandomFillMap().Remap(0,0.05f) + (Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.05f))) + voronoiMap + Map.Clone(voronoiMap).Clamp(0,0.5f).Normalise();
-        var textureStuff = Map.Clone(cellEdgeMap).Clamp(0.25f, 1f).Normalise();
+        var textureStuff = Layer.Clone(cellEdgeMap).Clamp(0.25f, 1f).Normalise();
         //textureStuff += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.2f);
         textureStuff.Normalise();
 
         var secondTexture = hillVoronoiGenerator.GetDistanceMap().Invert().Normalise();
 
         //var secondTexture = Map.Clone(hillVoronoiFalloffMap).Clamp(0.2f, 0.8f).Normalise();
-        secondTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
+        secondTexture += Layer.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Layer.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
         secondTexture.Normalise();
 
         stack.RecordMapStateToStack(secondTexture);
 
         textureStuff.ApplyTexture(texture, stoneGradient);
-        secondTexture.ApplyTexture(texture, grassGradient, Map.Clone(isInside).ThickenOutline(0).Invert());
+        secondTexture.ApplyTexture(texture, grassGradient, Layer.Clone(isInside).ThickenOutline(0).Invert());
         //textureStuff.ApplyTexture(texture);
         texture.Apply();
 
@@ -347,13 +347,13 @@ public class MapGenerator
 
         var sampleTexture = new Texture2D(Size, Size);
 
-        var secondSampleTexture = Map.Clone(hillVoronoiFalloffMap).Clamp(0.2f, 0.8f).Normalise();
-        secondSampleTexture += Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Map.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
+        var secondSampleTexture = Layer.Clone(hillVoronoiFalloffMap).Clamp(0.2f, 0.8f).Normalise();
+        secondSampleTexture += Layer.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f) + Layer.BlankMap(Size, Size).RandomFillMap().Remap(0, 0.1f);
         secondSampleTexture.Normalise();
 
 
         textureStuff.ApplyTexture(sampleTexture, stoneGradient);
-        secondSampleTexture.ApplyTexture(sampleTexture, stoneGradient, Map.Clone(isInside).ThickenOutline(0).Invert());
+        secondSampleTexture.ApplyTexture(sampleTexture, stoneGradient, Layer.Clone(isInside).ThickenOutline(0).Invert());
         //textureStuff.ApplyTexture(texture);
         sampleTexture.Apply();
 
@@ -371,7 +371,7 @@ public class MapGenerator
         //}
 
         var insideTexture = new Texture2D(Size, Size);
-        var circleMap = Map.BlankMap(Size,Size).CreateCircularFalloff(Size*0.42f);
+        var circleMap = Layer.BlankMap(Size,Size).CreateCircularFalloff(Size*0.42f);
         circleMap.ApplyTexture(insideTexture);
         stack.RecordMapStateToStack(circleMap);
 
@@ -479,10 +479,10 @@ public class MapGenerator
 
     //Subdividing Map
 
-    Map CreateHeightMap(Map unionMap)
+    Layer CreateHeightMap(Layer unionMap)
     {
         var subMaps = unionMap.GenerateSubMaps(6, 12);
-        var heightmap = Map.CreateHeightMap(subMaps);
+        var heightmap = Layer.CreateHeightMap(subMaps);
 
         var allRegions = new List<List<Coord>>();
 
@@ -492,8 +492,8 @@ public class MapGenerator
             allRegions.AddRange(subMap.GetRegions(0));
         }
 
-        var finalSubMaps = Map.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
-        heightmap = Map.CreateHeightMap(finalSubMaps);
+        var finalSubMaps = Layer.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
+        heightmap = Layer.CreateHeightMap(finalSubMaps);
 
         return heightmap;
     }
@@ -508,7 +508,7 @@ public class MapGenerator
         stack.CreateDebugStack(gameObject.transform);
     }
 
-    void CreateMesh(Map map, int height)
+    void CreateMesh(Layer map, int height)
     {
         var mesh = _meshGen.GenerateMesh(map, _lens, RNG.Next());
 
@@ -553,35 +553,35 @@ public class MapGenerator
 
     }
 
-    Map CreateWalkableMap(Map map)
+    Layer CreateWalkableMap(Layer map)
     {
         //CreateWalkableSpace
 
         map.RandomFillMap(RandomFillPercent, NoiseIntensity, RandomMapPerlinScale);
         //stack.RecordMapStateToStack(map);
-        map.ApplyMask(Map.BlankMap(map).CreateCircularFalloff(Size * 0.4f));
+        map.ApplyMask(Layer.BlankMap(map).CreateCircularFalloff(Size * 0.4f));
         //stack.RecordMapStateToStack(map);
         map.BoolSmoothOperation(4);
         //stack.RecordMapStateToStack(map);
         map.RemoveSmallRegions(RegionSizeCutoff);
         //stack.RecordMapStateToStack(map);
 
-        var roomMap = Map.Clone(map).AddRoomLogic();
+        var roomMap = Layer.Clone(map).AddRoomLogic();
         //stack.RecordMapStateToStack(roomMap);
 
-        var thickMap = Map.Clone(roomMap).Invert().ThickenOutline(1).Invert();
+        var thickMap = Layer.Clone(roomMap).Invert().ThickenOutline(1).Invert();
         //stack.RecordMapStateToStack(thickMap);
 
-        var differenceMap = Map.BooleanDifference(roomMap, thickMap);
+        var differenceMap = Layer.BooleanDifference(roomMap, thickMap);
         //stack.RecordMapStateToStack(differenceMap);
 
-        var staticMap = new Map(map);
+        var staticMap = new Layer(map);
         staticMap.RandomFillMap(0.4f);
 
-        differenceMap = Map.BooleanIntersection(differenceMap, staticMap);
+        differenceMap = Layer.BooleanIntersection(differenceMap, staticMap);
         //stack.RecordMapStateToStack(differenceMap);
 
-        var unionMap = Map.BooleanUnion(roomMap, differenceMap);
+        var unionMap = Layer.BooleanUnion(roomMap, differenceMap);
         //stack.RecordMapStateToStack(unionMap);
 
         unionMap.BoolSmoothOperation(4);
@@ -595,7 +595,7 @@ public class MapGenerator
 
     //Prop Placement
 
-    void CreateTrees(Map heightMap, Map mask,float perlinScale, float treeCutoff)
+    void CreateTrees(Layer heightMap, Layer mask,float perlinScale, float treeCutoff)
     {
         var width = heightMap.SizeX;
         var length = heightMap.SizeY;
