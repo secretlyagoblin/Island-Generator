@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Terrain;
 
 public class RegionController : MonoBehaviour {
 
@@ -11,7 +12,7 @@ public class RegionController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        _region = new Terrain.Region(HeightmapData.RegionIsland(400, new Rect(Vector2.zero, Vector2.one * 1000f)));
+        _region = new Region(HeightmapData.RegionIsland(400, new Rect(Vector2.zero, Vector2.one * 1000f)));
         _region.InstantiateRegionCells(transform, material);
 
         var obj = new GameObject();

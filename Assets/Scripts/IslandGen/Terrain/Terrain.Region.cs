@@ -59,9 +59,9 @@ namespace Terrain {
                 {                    
                     var pos = new Vector2(x * positionSize, y * positionSize);
                     var rect = new Rect(pos, offsetVector);
-                    var mapData = HeightmapData.ChunkVoronoi(_data, mapSize, rect);
+                    var mapData = HeightmapData.ChunkVoronoi(_data, new Coord(x,y), mapSize, rect);
 
-                    var chunk = new Chunk(mapData, new Coord(x,y));
+                    var chunk = new Chunk(mapData);
                     _chunks[x, y] = chunk;
                 }
             }
