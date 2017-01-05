@@ -162,11 +162,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   TestTransform: {fileID: 1742181801}
-  RegionResolution: 200
+  RegionResolution: 400
   RegionSize: 1500
   ChunkUpdateDistance: 300
   NumberOfChunksInRow: 16
-  ChunkResolution: 60
+  ChunkResolution: 224
+  GenerateCollision: 1
+  CollisionDecimationFactor: 8
 --- !u!4 &577911235
 Transform:
   m_ObjectHideFlags: 0
@@ -326,6 +328,8 @@ MonoBehaviour:
   ChunkUpdateDistance: 0
   NumberOfChunksInRow: 0
   ChunkResolution: 0
+  GenerateCollision: 0
+  CollisionDecimationFactor: 0
 --- !u!4 &1493124461
 Transform:
   m_ObjectHideFlags: 0
@@ -373,6 +377,8 @@ MonoBehaviour:
   ChunkUpdateDistance: 0
   NumberOfChunksInRow: 0
   ChunkResolution: 0
+  GenerateCollision: 0
+  CollisionDecimationFactor: 0
 --- !u!4 &1529064490
 Transform:
   m_ObjectHideFlags: 0
@@ -483,6 +489,8 @@ MonoBehaviour:
   ChunkUpdateDistance: 0
   NumberOfChunksInRow: 0
   ChunkResolution: 0
+  GenerateCollision: 0
+  CollisionDecimationFactor: 0
 --- !u!4 &1702406545
 Transform:
   m_ObjectHideFlags: 0

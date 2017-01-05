@@ -16,6 +16,8 @@ public class RegionController : MonoBehaviour {
 
     public int NumberOfChunksInRow;
     public int ChunkResolution;
+    public bool GenerateCollision;
+    public int CollisionDecimationFactor;
 
     Region _region;
 
@@ -35,7 +37,9 @@ public class RegionController : MonoBehaviour {
 
         //Create Heightmap Data
 
-        var heightMap = HeightmapData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
+        //var heightMap = HeightmapData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
+        var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
+
         time = Time.realtimeSinceStartup;
         Debug.Log("Generating Heightmap: " + time + " seconds");
         lastTime = time;
@@ -73,12 +77,20 @@ public class RegionController : MonoBehaviour {
 
         //Add Collision To Regions
 
-        _region.InstantiateCollision(4);
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Instantiating COllision: " + (time - lastTime) + " seconds");
-        lastTime = time;
-        yield return null;
+        if (GenerateCollision)
+        {
+            _region.InstantiateCollision(CollisionDecimationFactor);
+            time = Time.realtimeSinceStartup;
+            Debug.Log("Instantiating Collision: " + (time - lastTime) + " seconds");
+            lastTime = time;
+            yield return null;
 
+            _region.EnableCollision();
+            time = Time.realtimeSinceStartup;
+            Debug.Log("Enabling Collision: " + (time - lastTime) + " seconds");
+            lastTime = time;
+            yield return null;
+        }
         //Create and Instantiate Far Landscape Cells
 
         obj = new GameObject();
@@ -108,9 +120,4 @@ public class RegionController : MonoBehaviour {
             _region.Update(transform.InverseTransformPoint(pos), ChunkUpdateDistance);
         }
     }
-
-    
-
-
-
 }

@@ -176,10 +176,24 @@ namespace Terrain {
         public static HeightmapData CreateCollisionData(HeightmapData cellData, int descimationFactor, Rect rect)
         {
 
-            var map = Layer.DecimateMap(cellData._stack.GetMap(Map.MapType.HeightMap),4);
+            //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white,100f);
+            //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.max.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
+
+            var map = Layer.DecimateMap(cellData._stack.GetMap(MapType.HeightMap), descimationFactor);
+            rect = GrowRectByOne(rect, map.SizeX-1);
+            //rect.position
+
 
             var data = new HeightmapData();
             data.Rect = rect;
+
+            Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white, 100f);
+            Debug.DrawLine(new Vector3(rect.min.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.max.y), Color.white, 100f);
+            Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
+            Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
+
             data._stack = new Map.Stack(rect);
             data._stack.AddMap(MapType.HeightMap, map);
 
@@ -239,7 +253,6 @@ namespace Terrain {
 
             return new Rect(rect.position, offsetVector);
         }
-
     }
 
 }

@@ -11,6 +11,8 @@ namespace Terrain {
         Coord _coord;
 
         GameObject _object;
+        MeshCollider _collider;
+        Mesh _collisionMesh;
 
         public HeightmapData GetHeightmapData() {
             return _data;        
@@ -28,18 +30,22 @@ namespace Terrain {
             var gobject = new GameObject();
             gobject.transform.parent = parent;
             gobject.name = "TerrainChunk";
-            gobject.transform.localPosition = new Vector3(_data.Rect.center.x, 0, _data.Rect.center.y);
+            gobject.transform.localPosition = new Vector3(_data.Rect.position.x, 0, _data.Rect.position.y);
             gobject.AddComponent<MeshRenderer>().sharedMaterial = material;
             gobject.AddComponent<MeshFilter>().sharedMesh = finalMesh;
             _object = gobject;
         }
 
-        public void AddCollision(int decimationFactor)
+        public void AddCollision(int decimationFactor, Rect rect)
         {
-            var collisionData = HeightmapData.CreateCollisionData(_data, decimationFactor, _data.Rect);
+            var collisionData = HeightmapData.CreateCollisionData(_data, decimationFactor, rect);
+            _collisionMesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(collisionData);
+        }
 
-            var mesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(collisionData);
-            _object.AddComponent<MeshCollider>().sharedMesh = mesh;
+        public void EnableCollision()
+        {
+            _collider = _object.AddComponent<MeshCollider>();
+            _collider.sharedMesh = _collisionMesh;
         }
 
         public void InstantiateDummy(Transform parent, Material material)
@@ -49,7 +55,7 @@ namespace Terrain {
             var gobject = new GameObject();
             gobject.transform.parent = parent;
             gobject.name = "DummyTerrain";
-            gobject.transform.localPosition = new Vector3(_data.Rect.center.x, 0, _data.Rect.center.y);
+            gobject.transform.localPosition = new Vector3(_data.Rect.position.x, 0, _data.Rect.position.y);
 
 
             var meshRenderer = gobject.AddComponent<MeshRenderer>();
@@ -70,8 +76,6 @@ namespace Terrain {
         {
             _object.SetActive(true);
         }
-
-
     }
 }
 

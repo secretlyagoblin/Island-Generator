@@ -10,6 +10,7 @@ namespace Terrain {
         HeightmapData _data;
         RegionBucketManager _bucks;
         Chunk[,] _chunks;
+        Rect[,] _rects;
 
         public Region(HeightmapData data)
         {
@@ -19,6 +20,7 @@ namespace Terrain {
         public void CreateChunks(int divisions, int mapSize)
         {
             _chunks = new Chunk[divisions, divisions];
+            _rects = new Rect[divisions, divisions];
 
             var positionSize = _data.Rect.height / divisions;
             var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
@@ -34,6 +36,7 @@ namespace Terrain {
 
                     var chunk = new Chunk(mapData);
                     _chunks[x, y] = chunk;
+                    _rects[x, y] = rect;
                 }
             }
         }
@@ -61,7 +64,18 @@ namespace Terrain {
             {
                 for (int y = 0; y < _chunks.GetLength(1); y++)
                 {
-                    _chunks[x, y].AddCollision(decimationFactor);
+                    _chunks[x, y].AddCollision(decimationFactor, _rects[x,y]);
+                }
+            }
+        }
+
+        public void EnableCollision()
+        {
+            for (int x = 0; x < _chunks.GetLength(0); x++)
+            {
+                for (int y = 0; y < _chunks.GetLength(1); y++)
+                {
+                    _chunks[x, y].EnableCollision();
                 }
             }
         }

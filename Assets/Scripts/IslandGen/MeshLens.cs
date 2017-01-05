@@ -26,10 +26,10 @@ public class MeshLens {
         return returnVector;
     }
 
-
     public Vector3 TransformNormalisedPosition(float x, float y, float z)
     {
-        var returnVector = new Vector3(x - 0.5f, y, z - 0.5f);
+        //var returnVector = new Vector3(x - 0.5f, y, z - 0.5f);
+        var returnVector = new Vector3(x, y, z);
         returnVector.Scale(_mapScale);
         return returnVector;
     }
@@ -51,5 +51,4 @@ public class MeshLens {
     {
         return new Vector3(vector.x - (_mapScale.x*0.5f), vector.y, vector.z - (_mapScale.z * 0.5f));
     }
-
 }

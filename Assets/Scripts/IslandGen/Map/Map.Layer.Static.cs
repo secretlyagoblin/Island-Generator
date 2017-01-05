@@ -388,20 +388,19 @@ namespace Map {
         public static Layer DecimateMap(Layer map, int decimationFactor)
         {
             var length = map.SizeX;
+
             var trueLength = length - 1;
             var arraySize = (trueLength / decimationFactor) + 1;
 
             var finalMap = new Layer(arraySize, arraySize);
 
-
-
             var trueX = 0;
             var trueY = 0;
 
-            for (int x = 0; x < trueLength; x += 2)
+            for (int x = 0; x < trueLength; x += decimationFactor)
             {
-                trueY = trueLength / decimationFactor;
-                for (int y = 0; y < trueLength; y += 2)
+                trueY = 0;
+                for (int y = 0; y < trueLength; y += decimationFactor)
                 {
                     finalMap[trueX, trueY] = map[x, y];
                     trueY++;
@@ -411,21 +410,21 @@ namespace Map {
 
             trueY = 0;
 
-            for (int y = 0; y < trueLength; y += 2)
+            for (int y = 0; y < trueLength; y += decimationFactor)
             {
-                finalMap[arraySize, trueY] = map[trueLength, y];
+                finalMap[arraySize-1, trueY] = map[trueLength, y];
                 trueY++;
             }
 
             trueX = 0;
 
-            for (int x = 0; x < trueLength; x += 2)
+            for (int x = 0; x < trueLength; x += decimationFactor)
             {
-                finalMap[trueX, arraySize] = map[x, trueLength];
+                finalMap[trueX, arraySize-1] = map[x, trueLength];
                 trueX++;
             }
 
-            finalMap[arraySize, arraySize] = map[trueLength, trueLength];
+            finalMap[arraySize-1, arraySize-1] = map[trueLength, trueLength];
 
             //Handle Edges Here
 
