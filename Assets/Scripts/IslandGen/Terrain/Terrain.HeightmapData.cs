@@ -24,6 +24,21 @@ namespace Terrain {
             return _stack.GetMap(MapType.HeightMap).FloatArray;
         }
 
+        public static HeightmapData BlankMap(int size, Rect rect, float value)
+        {
+            var data = new HeightmapData();
+            data.Rect = rect;
+            data._stack = new Map.Stack(rect);
+
+            var parentHeightmap = new Layer(size, size, value);
+            var parentWalkablemap = new Layer(size, size, value*2);
+
+            data._stack.AddMap(MapType.HeightMap, parentHeightmap);
+            data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
+
+            return data;
+        }
+
         public static HeightmapData RegionIsland(int size, Rect rect)
         {
             RNG.DateTimeInit();
@@ -101,9 +116,12 @@ namespace Terrain {
 
             maps.AddMap(MapType.WalkableMap, walkableAreaMap);
             //maps.AddMap(MapType.HeightMap, realFinalMap);
-            maps.AddMap(MapType.HeightMap, realFinalMap);
+            maps.AddMap(MapType.HeightMap, realFinalMap.Multiply(100f));
+            maps.SetRect(rect);
 
             var mapData = new HeightmapData();
+            mapData.Rect = rect;
+            
             mapData._stack = maps;
 
 
@@ -114,30 +132,73 @@ namespace Terrain {
 
         public static HeightmapData ChunkVoronoi(HeightmapData parentData, Coord coord, int size, Rect rect)
         {
+
+            rect = GrowRectByOne(rect, size);
+            size = size + 1;
+
             var data = new HeightmapData();
             data.Rect = rect;
             data._stack = new Map.Stack(rect);
 
-            var parentHeightmap = parentData._stack[MapType.HeightMap].Add(new Layer(size, size, 0).ToPhysical(rect)).ToMap();
+            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
             var parentWalkablemap = parentData._stack[MapType.WalkableMap].Add(new Layer(size, size, 0).ToPhysical(rect)).ToMap();
 
-            var voronoi = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.05f, 23245.2344335454f);
+            //var voronoi = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.05f, 23245.2344335454f);
 
-            var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
-            var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.05f);
+            //var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
+            //var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.05f);
 
-            var heightMap = parentHeightmap + voronoi.GetHeightMap(parentHeightmap) + distanceMap;
-            heightMap.Multiply(0.5f);
+            //var heightMap = parentHeightmap + voronoi.GetHeightMap(parentHeightmap) + distanceMap;
+            //heightMap.Multiply(0.5f);
 
-            data._stack.AddMap(MapType.HeightMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
-            data._stack.AddMap(MapType.WalkableMap, diffMap);
+            //data._stack.AddMap(MapType.HeightMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
+            //data._stack.AddMap(MapType.WalkableMap, diffMap);
+
+            data._stack.AddMap(MapType.HeightMap, parentHeightmap);
+            data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
 
             return data;
+
+            /*
+            
+
+            var _stack = new Map.Stack(rect);
+            _stack.AddMap(MapType.HeightMap, new Layer(size, size, 0f).PerlinFill(7,coord.TileX,coord.TileY,456.1234f).Multiply(100f));
+            _stack.AddMap(MapType.WalkableMap, new Layer(size, size, 0f));
+
+            var data = new HeightmapData();
+            data.Rect = rect;
+            data._stack = _stack;
+
+    */
+
+            //return data;
         }
 
-        public static HeightmapData DummyMap(HeightmapData[,] dummyMaps)
+        public static HeightmapData DummyMap(HeightmapData[,] dummyMaps, Rect rect)
         {
-            return new HeightmapData();
+            rect = GrowRectByOne(rect, dummyMaps[0,0]._stack.GetMap(MapType.HeightMap).SizeX-1);
+
+            var layers = new Layer[2,2];
+
+            for (int x = 0; x < 2; x++)
+            {
+                for (int y = 0; y < 2; y++)
+                {
+                    layers[x, y] = dummyMaps[x, y]._stack.GetMap(MapType.HeightMap);
+                }
+            }
+
+            var heightMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+
+            var _stack = new Map.Stack(rect);
+            _stack.AddMap(MapType.HeightMap, heightMap);
+
+            var data = new HeightmapData();
+            data.Rect = rect;
+            data._stack = _stack;
+
+            return data;
         }
 
         static Layer CreateHeightMap(Layer unionMap)
@@ -157,6 +218,15 @@ namespace Terrain {
             heightmap = Layer.CreateHeightMap(finalSubMaps);
 
             return heightmap;
+        }
+
+        static Rect GrowRectByOne(Rect rect, int mapSize)
+        {
+            var positionSize = rect.height;
+            var offsetSize = positionSize + (positionSize * (1f / mapSize));
+            var offsetVector = new Vector2(offsetSize, offsetSize);
+
+            return new Rect(rect.position, offsetVector);
         }
 
     }

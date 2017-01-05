@@ -15,7 +15,7 @@ namespace Map {
         float[,] _map;
 
         public float[,] FloatArray
-        { get { return Clone(this).Normalise()._map; } }
+        { get { return Clone(this)._map; } }
 
         public Layer(Layer mapTemplate)
         {
@@ -332,11 +332,11 @@ namespace Map {
                 {
                     var currentMap = mapArray[arrayX, arrayY];
 
-                    var trueX = arrayX * trueLength;
-                    var trueY = arrayY * trueLength;
+                    var trueX = arrayX * trueLength / 2;                   
 
                     for (int x = 0; x < trueLength; x += 2)
                     {
+                        var trueY = arrayY * trueLength / 2;
                         for (int y = 0; y < trueLength; y += 2)
                         {
                             finalMap[trueX, trueY] = currentMap[x, y];
@@ -346,6 +346,38 @@ namespace Map {
                     }
                 }
             }
+
+            for (int arrayX = 1; arrayX < 2; arrayX++)
+            {
+                for (int arrayY = 0; arrayY < 2; arrayY++)
+                {
+                    var currentMap = mapArray[arrayX, arrayY];
+                    var trueY = arrayY * trueLength / 2;
+
+                    for (int y = 0; y < trueLength; y += 2)
+                    {
+                        finalMap[trueLength, trueY] = currentMap[trueLength, y];
+                        trueY++;
+                    }
+                }
+            }
+
+            for (int arrayX = 0; arrayX < 2; arrayX++)
+            {
+                for (int arrayY = 1; arrayY < 2; arrayY++)
+                {
+                    var currentMap = mapArray[arrayX, arrayY];
+                    var trueX = arrayX * trueLength / 2;
+
+                    for (int x = 0; x < trueLength; x += 2)
+                    {
+                        finalMap[trueX, trueLength] = currentMap[x, trueLength];
+                        trueX++;
+                    }
+                }
+            }
+
+            finalMap[trueLength, trueLength] = mapArray[1, 1][trueLength, trueLength];
 
             //Handle Edges Here
 

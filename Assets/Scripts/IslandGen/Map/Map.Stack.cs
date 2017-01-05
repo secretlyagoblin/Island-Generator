@@ -19,7 +19,7 @@ namespace Map {
         {
             if (_maps.ContainsKey(type))
             {
-                return new Layer(_maps[type].Map);
+                return _maps[type].Map;
             }
             else
             {

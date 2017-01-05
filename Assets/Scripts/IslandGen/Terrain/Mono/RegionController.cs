@@ -5,26 +5,36 @@ using Terrain;
 
 public class RegionController : MonoBehaviour {
 
-    public Material material;
+    public Material Material;
+    public Transform TestTransform;
 
-    Terrain.Region _region;
-    GameObject _regionObject;
+    Region _region;
+
+    
 
 	// Use this for initialization
 	void Start () {
-        _region = new Region(HeightmapData.RegionIsland(400, new Rect(Vector2.zero, Vector2.one * 1000f)));
-        _region.InstantiateRegionCells(transform, material);
+        _region = new Region(HeightmapData.BlankMap(400, new Rect(Vector2.zero, Vector2.one * 1000f),32f));
 
         var obj = new GameObject();
         obj.transform.parent = transform;
+        obj.transform.localPosition = Vector3.zero;
+        obj.name = "CollisionCells";
+
+        _region.InstantiateRegionCells(obj.transform, Material);
+
+        obj = new GameObject();
+        obj.transform.parent = transform;
+        obj.transform.localPosition = Vector3.zero;
         obj.name = "DummyCells";
 
-        _region.InstantiateDummyCells(obj.transform, material);
+        _region.InstantiateDummyCells(obj.transform, Material);
     }
 
     void Update()
     {
-        _region.Update(Vector3.zero, 20);
+        var pos = TestTransform.position;
+        _region.Update(transform.InverseTransformPoint(pos), 150);
     }
 
 

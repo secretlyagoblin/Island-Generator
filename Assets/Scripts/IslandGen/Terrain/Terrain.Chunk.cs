@@ -26,7 +26,9 @@ namespace Terrain {
             var finalMesh = HeightmeshGenerator.GenerateMesh(_data);
 
             var gobject = new GameObject();
-            gobject.transform.position = new Vector3(_data.Rect.position.x, 0, _data.Rect.position.y);
+            gobject.transform.parent = parent;
+            gobject.name = "TerrainChunk";
+            gobject.transform.localPosition = new Vector3(_data.Rect.center.x, 0, _data.Rect.center.y);
             gobject.AddComponent<MeshRenderer>().sharedMaterial = material;
             gobject.AddComponent<MeshFilter>().sharedMesh = finalMesh;
             var col = gobject.AddComponent<MeshCollider>();
@@ -39,8 +41,16 @@ namespace Terrain {
             var finalMesh = HeightmeshGenerator.GenerateMesh(_data);
 
             var gobject = new GameObject();
-            gobject.transform.position = new Vector3(_data.Rect.position.x, 0, _data.Rect.position.y);
-            gobject.AddComponent<MeshRenderer>().sharedMaterial = material;
+            gobject.transform.parent = parent;
+            gobject.name = "DummyTerrain";
+            gobject.transform.localPosition = new Vector3(_data.Rect.center.x, 0, _data.Rect.center.y);
+
+
+            var meshRenderer = gobject.AddComponent<MeshRenderer>();
+            meshRenderer.sharedMaterial = material;
+            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            meshRenderer.receiveShadows = false;
             gobject.AddComponent<MeshFilter>().sharedMesh = finalMesh;
             _object = gobject;
         }

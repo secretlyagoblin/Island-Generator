@@ -17,8 +17,10 @@ namespace Terrain {
 
         public void CreateBucketSystem(Chunk[,] chunkData, Rect rect)
         {
+            _chunkData = chunkData;
 
             var count = 0;
+
             var heightTest = _chunkData.GetLength(0);
 
 
@@ -34,7 +36,8 @@ namespace Terrain {
             }
             else
             {
-                _bucket = new RegionBucket(chunkData, rect);
+                //Debug.Log(count);
+                _bucket = new RegionBucket(chunkData, count, rect);
             }
         }
 
@@ -74,9 +77,9 @@ namespace Terrain {
             int _layer;
             int _maxLayer;
            
-            public RegionBucket(Chunk[,] chunks, Rect rect)
+            public RegionBucket(Chunk[,] chunks, int maxLayer, Rect rect)
             {
-                _maxLayer = chunks.GetLength(0);
+                _maxLayer = maxLayer;
                 Instantiate(0, _maxLayer, rect);
                 DistributeCellsDownward(chunks);
             }
@@ -135,10 +138,15 @@ namespace Terrain {
 
             public void DistributeCellsDownward(Chunk[,] chunks)
             {
-                var size = chunks.GetLength(0);
-                var split = (int)(size * 0.25);
+                //We aren't linking up the right data here
 
-                if (size == 1)
+                var size = chunks.GetLength(0);
+                var split = size / 2;
+
+                //Debug.Log("Size: "+ size);
+                //Debug.Log("Split: " + split);
+
+                if (_layer == _maxLayer)
                 {
                     Chunk = chunks[0, 0]; 
                 }
@@ -157,14 +165,9 @@ namespace Terrain {
                                     chunk[x, y] = chunks[x + (sectionX * split), y + (sectionY * split)];
                                 }
                             }
-                            try
-                            {
+
                                 _children[sectionX, sectionY].DistributeCellsDownward(chunk);
-                            }
-                            catch
-                            {
-                                //Debug.Log("Woo!");
-                            }
+
                         }
                     }
                 }
@@ -191,7 +194,7 @@ namespace Terrain {
                         data[x,y] = _children[x, y].Chunk.GetHeightmapData();
                     }
                 }
-                Chunk = new Chunk(HeightmapData.DummyMap(data));
+                Chunk = new Chunk(HeightmapData.DummyMap(data,_rect));
                 Chunk.InstantiateDummy(transform, material);
             }
 
@@ -213,7 +216,7 @@ namespace Terrain {
                     {
                         for (int y = 0; y < 2; y++)
                         {
-                            _children[x, y].UpdateGraphics(testPoint, testDistance);
+                            _children[x, y].UpdateGraphics(testPoint, testDistance *0.5f);
                         }
                     }
 

@@ -15,10 +15,10 @@ namespace Terrain {
         {
             _data = data;
 
-            var divisions = 4;
-            var mapSize = 240;
+            var divisions = 8;
+            var mapSize = 70;
 
-            CreateChunks(divisions, mapSize);
+            _chunks = CreateChunks(divisions, mapSize);
 
             _bucks = new RegionBucketManager();
             _bucks.CreateBucketSystem(_chunks, _data.Rect);
@@ -45,12 +45,12 @@ namespace Terrain {
             _bucks.Update(testPosition, distance);
         }
 
-        void CreateChunks(int divisions, int mapSize)
+        Chunk[,] CreateChunks(int divisions, int mapSize)
         {
-            _chunks = new Chunk[divisions, divisions];
+            var chunks = new Chunk[divisions, divisions];
 
             var positionSize = _data.Rect.height / divisions;
-            var offsetSize = positionSize + (positionSize * (1f / mapSize));
+            var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
             var offsetVector = new Vector2(offsetSize, offsetSize);
 
             for (int x = 0; x < divisions; x++)
@@ -62,9 +62,11 @@ namespace Terrain {
                     var mapData = HeightmapData.ChunkVoronoi(_data, new Coord(x,y), mapSize, rect);
 
                     var chunk = new Chunk(mapData);
-                    _chunks[x, y] = chunk;
+                    chunks[x, y] = chunk;
                 }
             }
+
+            return chunks;
         }
     }
 }
