@@ -216,7 +216,7 @@ namespace Terrain {
                     {
                         for (int y = 0; y < 2; y++)
                         {
-                            _children[x, y].UpdateGraphics(testPoint, testDistance *0.5f);
+                            _children[x, y].UpdateGraphics(testPoint, testDistance *0.75f);
                         }
                     }
 

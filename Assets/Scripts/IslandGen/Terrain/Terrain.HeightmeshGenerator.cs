@@ -9,20 +9,19 @@ public class HeightmeshGenerator {
 
         static HeightmeshGenerator _heightMeshGenerator = new HeightmeshGenerator();
 
-        public static Mesh GenerateMesh(HeightmapData data)
+        public static Mesh GenerateAndFinaliseHeightMesh(HeightmapData data)
         {
-            return _heightMeshGenerator.GenerateHeightmeshPatch(data).CreateMesh();
+            return _heightMeshGenerator.GenerateHeightmeshPatch(data, Map.MapType.HeightMap).CreateMesh();
         }
 
         public HeightMeshData GenerateHeightmesh(HeightmapData data)
         {
-            return GenerateHeightmeshPatch(data);
+            return GenerateHeightmeshPatch(data, Map.MapType.HeightMap);
         }
 
-
-        HeightMeshData GenerateHeightmeshPatch(HeightmapData data)
+        HeightMeshData GenerateHeightmeshPatch(HeightmapData data, Map.MapType type)
     {
-        var map = data.GetFloatArray();
+        var map = data.GetFloatArray(type);
 
         var sizeX = map.GetLength(0);
         var sizeY = map.GetLength(1);

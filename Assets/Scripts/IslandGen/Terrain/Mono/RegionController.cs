@@ -7,7 +7,15 @@ public class RegionController : MonoBehaviour {
 
     public Material Material;
     public Transform TestTransform;
+
+    
+    public int RegionResolution;
+    public float RegionSize;
+
     public int ChunkUpdateDistance;
+
+    public int NumberOfChunksInRow;
+    public int ChunkResolution;
 
     Region _region;
 
@@ -25,25 +33,32 @@ public class RegionController : MonoBehaviour {
         var lastTime = 0f;
         var time = 0f;
 
-        var heightMap = HeightmapData.RegionIsland(400, new Rect(Vector2.zero, Vector2.one * 1000f));
+        //Create Heightmap Data
+
+        var heightMap = HeightmapData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
         time = Time.realtimeSinceStartup;
         Debug.Log("Generating Heightmap: " + time + " seconds");
         lastTime = time;
         yield return null;
 
+        //Create Region, Instantiate Chunks
+
         _region = new Region(heightMap);
-        _region.CreateChunks(16, 100);
+        _region.CreateChunks(NumberOfChunksInRow, ChunkResolution);
         time = Time.realtimeSinceStartup;
         Debug.Log("Creating Chunks: " + (time-lastTime) + " seconds");
         lastTime = time;
-
         yield return null;
+
+        //Create Bucket System
 
         _region.CreateBucketSystem();
         time = Time.realtimeSinceStartup;
         Debug.Log("Creating Bucket System: " + (time - lastTime) + " seconds");
         lastTime = time;
         yield return null;
+
+        //Create and Instantiate Individual Regions
 
         var obj = new GameObject();
         obj.transform.parent = transform;
@@ -52,9 +67,19 @@ public class RegionController : MonoBehaviour {
 
         _region.InstantiateRegionCells(obj.transform, Material);
         time = Time.realtimeSinceStartup;
-        Debug.Log("Instantiating Collision: " + (time - lastTime) + " seconds");
+        Debug.Log("Instantiating Meshes: " + (time - lastTime) + " seconds");
         lastTime = time;
         yield return null;
+
+        //Add Collision To Regions
+
+        _region.InstantiateCollision(4);
+        time = Time.realtimeSinceStartup;
+        Debug.Log("Instantiating COllision: " + (time - lastTime) + " seconds");
+        lastTime = time;
+        yield return null;
+
+        //Create and Instantiate Far Landscape Cells
 
         obj = new GameObject();
         obj.transform.parent = transform;
@@ -66,6 +91,9 @@ public class RegionController : MonoBehaviour {
         time = Time.realtimeSinceStartup;
         Debug.Log("Instantiating Far Landscape: " + (time - lastTime) + " seconds");
         lastTime = time;
+        yield return null;
+
+        //Clean Up, set loaded as true
 
         Debug.Log("Total Load Time : " + Time.realtimeSinceStartup        + " seconds");
 

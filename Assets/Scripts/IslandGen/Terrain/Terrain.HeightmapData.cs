@@ -19,9 +19,9 @@ namespace Terrain {
 
         }
 
-        public float[,] GetFloatArray()
+        public float[,] GetFloatArray(MapType type)
         {
-            return _stack.GetMap(MapType.HeightMap).FloatArray;
+            return _stack.GetMap(type).FloatArray;
         }
 
         public static HeightmapData BlankMap(int size, Rect rect, float value)
@@ -132,7 +132,6 @@ namespace Terrain {
 
         public static HeightmapData ChunkVoronoi(HeightmapData parentData, Coord coord, int size, Rect rect)
         {
-
             rect = GrowRectByOne(rect, size);
             size = size + 1;
 
@@ -141,7 +140,7 @@ namespace Terrain {
             data._stack = new Map.Stack(rect);
 
             var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
-            var parentWalkablemap = parentData._stack[MapType.WalkableMap].Add(new Layer(size, size, 0).ToPhysical(rect)).ToMap();
+            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.WalkableMap]).ToMap();
 
             //var voronoi = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.05f, 23245.2344335454f);
 
@@ -159,8 +158,7 @@ namespace Terrain {
 
             return data;
 
-            /*
-            
+            /*            
 
             var _stack = new Map.Stack(rect);
             _stack.AddMap(MapType.HeightMap, new Layer(size, size, 0f).PerlinFill(7,coord.TileX,coord.TileY,456.1234f).Multiply(100f));
@@ -170,9 +168,22 @@ namespace Terrain {
             data.Rect = rect;
             data._stack = _stack;
 
-    */
+            */
 
             //return data;
+        }
+
+        public static HeightmapData CreateCollisionData(HeightmapData cellData, int descimationFactor, Rect rect)
+        {
+
+            var map = Layer.DecimateMap(cellData._stack.GetMap(Map.MapType.HeightMap),4);
+
+            var data = new HeightmapData();
+            data.Rect = rect;
+            data._stack = new Map.Stack(rect);
+            data._stack.AddMap(MapType.HeightMap, map);
+
+            return data;
         }
 
         public static HeightmapData DummyMap(HeightmapData[,] dummyMaps, Rect rect)

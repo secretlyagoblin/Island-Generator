@@ -55,6 +55,17 @@ namespace Terrain {
             }
         }
 
+        public void InstantiateCollision(int decimationFactor)
+        {
+            for (int x = 0; x < _chunks.GetLength(0); x++)
+            {
+                for (int y = 0; y < _chunks.GetLength(1); y++)
+                {
+                    _chunks[x, y].AddCollision(decimationFactor);
+                }
+            }
+        }
+
         public void InstantiateDummyCells(Transform transform, Material material)
         {
             _bucks.InstantiateDummyRegions(transform, material);

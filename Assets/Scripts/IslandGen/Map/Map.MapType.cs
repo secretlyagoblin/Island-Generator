@@ -7,7 +7,7 @@ namespace Map {
     public enum MapType {
 
         WalkableMap,
-        HeightMap
+        HeightMap,
 
     }
 }

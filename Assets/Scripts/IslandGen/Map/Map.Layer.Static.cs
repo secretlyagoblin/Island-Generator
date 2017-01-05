@@ -385,6 +385,54 @@ namespace Map {
 
         }
 
+        public static Layer DecimateMap(Layer map, int decimationFactor)
+        {
+            var length = map.SizeX;
+            var trueLength = length - 1;
+            var arraySize = (trueLength / decimationFactor) + 1;
+
+            var finalMap = new Layer(arraySize, arraySize);
+
+
+
+            var trueX = 0;
+            var trueY = 0;
+
+            for (int x = 0; x < trueLength; x += 2)
+            {
+                trueY = trueLength / decimationFactor;
+                for (int y = 0; y < trueLength; y += 2)
+                {
+                    finalMap[trueX, trueY] = map[x, y];
+                    trueY++;
+                }
+                trueX++;
+            }
+
+            trueY = 0;
+
+            for (int y = 0; y < trueLength; y += 2)
+            {
+                finalMap[arraySize, trueY] = map[trueLength, y];
+                trueY++;
+            }
+
+            trueX = 0;
+
+            for (int x = 0; x < trueLength; x += 2)
+            {
+                finalMap[trueX, arraySize] = map[x, trueLength];
+                trueX++;
+            }
+
+            finalMap[arraySize, arraySize] = map[trueLength, trueLength];
+
+            //Handle Edges Here
+
+            return finalMap;
+
+        }
+
 
         // Map Photoshop Functions
 

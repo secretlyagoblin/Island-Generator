@@ -23,7 +23,7 @@ namespace Terrain {
 
         public void Instantiate(Transform parent, Material material)
         {
-            var finalMesh = HeightmeshGenerator.GenerateMesh(_data);
+            var finalMesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(_data);
 
             var gobject = new GameObject();
             gobject.transform.parent = parent;
@@ -31,14 +31,20 @@ namespace Terrain {
             gobject.transform.localPosition = new Vector3(_data.Rect.center.x, 0, _data.Rect.center.y);
             gobject.AddComponent<MeshRenderer>().sharedMaterial = material;
             gobject.AddComponent<MeshFilter>().sharedMesh = finalMesh;
-            var col = gobject.AddComponent<MeshCollider>();
-            col.sharedMesh = finalMesh;
             _object = gobject;
+        }
+
+        public void AddCollision(int decimationFactor)
+        {
+            var collisionData = HeightmapData.CreateCollisionData(_data, decimationFactor, _data.Rect);
+
+            var mesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(collisionData);
+            _object.AddComponent<MeshCollider>().sharedMesh = mesh;
         }
 
         public void InstantiateDummy(Transform parent, Material material)
         {
-            var finalMesh = HeightmeshGenerator.GenerateMesh(_data);
+            var finalMesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(_data);
 
             var gobject = new GameObject();
             gobject.transform.parent = parent;
