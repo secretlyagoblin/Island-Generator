@@ -14,12 +14,32 @@ namespace Terrain {
         public Region(HeightmapData data)
         {
             _data = data;
+        }
 
-            var divisions = 8;
-            var mapSize = 70;
+        public void CreateChunks(int divisions, int mapSize)
+        {
+            _chunks = new Chunk[divisions, divisions];
 
-            _chunks = CreateChunks(divisions, mapSize);
+            var positionSize = _data.Rect.height / divisions;
+            var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
+            var offsetVector = new Vector2(offsetSize, offsetSize);
 
+            for (int x = 0; x < divisions; x++)
+            {
+                for (int y = 0; y < divisions; y++)
+                {
+                    var pos = new Vector2(x * positionSize, y * positionSize);
+                    var rect = new Rect(pos, offsetVector);
+                    var mapData = HeightmapData.ChunkVoronoi(_data, new Coord(x, y), mapSize, rect);
+
+                    var chunk = new Chunk(mapData);
+                    _chunks[x, y] = chunk;
+                }
+            }
+        }
+
+        public void CreateBucketSystem()
+        {
             _bucks = new RegionBucketManager();
             _bucks.CreateBucketSystem(_chunks, _data.Rect);
         }
@@ -43,30 +63,6 @@ namespace Terrain {
         public void Update(Vector3 testPosition, float distance)
         {
             _bucks.Update(testPosition, distance);
-        }
-
-        Chunk[,] CreateChunks(int divisions, int mapSize)
-        {
-            var chunks = new Chunk[divisions, divisions];
-
-            var positionSize = _data.Rect.height / divisions;
-            var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
-            var offsetVector = new Vector2(offsetSize, offsetSize);
-
-            for (int x = 0; x < divisions; x++)
-            {
-                for (int y = 0; y < divisions; y++)
-                {                    
-                    var pos = new Vector2(x * positionSize, y * positionSize);
-                    var rect = new Rect(pos, offsetVector);
-                    var mapData = HeightmapData.ChunkVoronoi(_data, new Coord(x,y), mapSize, rect);
-
-                    var chunk = new Chunk(mapData);
-                    chunks[x, y] = chunk;
-                }
-            }
-
-            return chunks;
         }
     }
 }
