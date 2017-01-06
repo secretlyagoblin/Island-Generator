@@ -8,6 +8,22 @@ public struct Coord {
     public int TileY
     { get; set; }
 
+    public Vector3 Vector3
+    {
+        get
+        {
+            return new Vector3(TileX, 0, TileY);
+        }
+    }
+
+    public Vector2 Vector2
+    {
+        get
+        {
+            return new Vector2(TileX, TileY);
+        }
+    }
+
     public Coord(int x, int y)
     {
         TileX = x;

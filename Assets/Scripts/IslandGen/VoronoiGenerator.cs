@@ -1,32 +1,43 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Map;
 
 public class VoronoiGenerator {
 
-    Map _map;
-    Map _distanceMap;
-    Map _heightMap;
-    Map _falloffMap;
+    Layer _map;
+    Layer _distanceMap;
+    Layer _heightMap;
+    Layer _falloffMap;
     List<VoronoiCell> _pointList;
 
-    public VoronoiGenerator(Map map, int mapCoordinateX, int mapCoordinateY, float relativeDensity)
+    Coord _coord;
+
+    float _seed;
+
+    public static VoronoiGenerator Generator = null; 
+
+    public VoronoiGenerator(Layer map, int mapCoordinateX, int mapCoordinateY, float relativeDensity, float seed)
     {
         _map = map;
+        _seed = seed;
+        _coord = new Coord(mapCoordinateX, mapCoordinateY);
 
-        RandomlyDistributeCells(relativeDensity);
+        GetPointsIgnoringResolution(relativeDensity, 2, relativeDensity*0.75f);
+
+        //RandomlyDistributeCells(relativeDensity);
         LinkMapPointsToCells();
 
     }
 
-    public Map GetDistanceMap()
+    public Layer GetDistanceMap()
     {
-        return Map.Clone(_distanceMap);
+        return Layer.Clone(_distanceMap);
     }
 
-    public Map GetSmattering(int chance)
+    public Layer GetSmattering(int chance)
     {
-        var map = new Map(_map.SizeX, _map.SizeY, 1);
+        var map = new Layer(_map.SizeX, _map.SizeY, 1);
 
         _distanceMap.Normalise();
 
@@ -51,9 +62,9 @@ public class VoronoiGenerator {
         return map;
     }
 
-    public Map GetVoronoiBoolMap(Map insideMap)
+    public Layer GetVoronoiBoolMap(Layer insideMap)
     {
-        var map = new Map(_map.SizeX, _map.SizeY, 1);
+        var map = new Layer(_map.SizeX, _map.SizeY, 1);
 
         for (int i = 0; i < _pointList.Count; i++)
         {
@@ -99,7 +110,7 @@ public class VoronoiGenerator {
         var voronoiStepX = _map.SizeX / (float)voronoiCountX;
         var voronoiStepY = _map.SizeY / (float)voronoiCountY;
 
-        var distribution = 2f;
+        var distribution = 1.5f;
         distribution = 0.5f * distribution;
         distribution = 0.5f * distribution * voronoiStepX;
 
@@ -113,11 +124,22 @@ public class VoronoiGenerator {
             {
                 evenY = evenY ? false : true;
 
+                var perlin = Mathf.PerlinNoise(x + _seed, y + _seed)*Mathf.PI*2;
+
+                var moveX = Mathf.Sin(perlin)*distribution;
+                var moveY = Mathf.Cos(perlin)*distribution;
+
+                outputList.Add(new VoronoiCell(new Vector2(x + moveX, y + moveY)));
+
+                Debug.Log(new Vector2(moveX, moveY));
+                Debug.Log(new Vector2(moveX, moveY).magnitude);
+
+                /*
                 if (yOdd)
                 {
                     if (evenY == true)
                     {
-                        outputList.Add(new VoronoiCell(new Vector2(x + RNG.NextFloat(-distribution, distribution), y + RNG.NextFloat(-distribution, distribution))));
+                        outputList.Add(new VoronoiCell(new Vector2(x + Mathf.Sin(Mathf.PerlinNoise(x+_seed,y+_seed)),y + Mathf.Cos(Mathf.PerlinNoise(x + _seed, y + _seed)))));
                     }
                 }
                 else
@@ -126,7 +148,8 @@ public class VoronoiGenerator {
                     {
                         if (evenY)
                         {
-                            outputList.Add(new VoronoiCell(new Vector2(x + RNG.NextFloat(-distribution, distribution), y + RNG.NextFloat(-distribution, distribution))));
+                            //outputList.Add(new VoronoiCell(new Vector2(x + RNG.NextFloat(-distribution, distribution), y + RNG.NextFloat(-distribution, distribution))));
+                            outputList.Add(new VoronoiCell(new Vector2(x + Mathf.Sin(Mathf.PerlinNoise(x + _seed, y + _seed)), y + Mathf.Cos(Mathf.PerlinNoise(x + _seed, y + _seed)))));
                         }
                     }
                     else
@@ -137,6 +160,7 @@ public class VoronoiGenerator {
                         }
                     }
                 }
+                */
             }
         }
 
@@ -145,7 +169,7 @@ public class VoronoiGenerator {
 
     void LinkMapPointsToCells()
     {
-        var distanceMap = Map.Clone(_map);
+        var distanceMap = Layer.Clone(_map);
 
         for (int x = 0; x < _map.SizeX; x++)
         {
@@ -180,9 +204,9 @@ public class VoronoiGenerator {
         _distanceMap = distanceMap;
     }
 
-    public Map GetHeightMap(Map sampleMap)
+    public Layer GetHeightMap(Layer sampleMap)
     {
-        _heightMap = new Map(_map);
+        _heightMap = new Layer(_map);
 
         for (int i = 0; i < _pointList.Count; i++)
         {
@@ -201,12 +225,12 @@ public class VoronoiGenerator {
             }
         }
 
-        return Map.Clone(_heightMap);
+        return Layer.Clone(_heightMap);
     }
 
-    public Map GetFalloffMap(int searchDistance)
+    public Layer GetFalloffMap(int searchDistance)
     {
-        _falloffMap = new Map(_map);
+        _falloffMap = new Layer(_map);
 
         for (int i = 0; i < _pointList.Count; i++)
         {
@@ -218,9 +242,51 @@ public class VoronoiGenerator {
             cell.SetFalloff(_falloffMap, searchDistance);
         }
 
-        return Map.Clone(_falloffMap);
+        return Layer.Clone(_falloffMap);
     }
 
+
+    void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer, float percentageWarped)
+    {
+        _pointList = new List<VoronoiCell>();
+        var cellStep = 1f / sizeRelativeTo;
+
+        var intStartX = Mathf.FloorToInt(cellStep * _coord.TileX) - buffer;
+        var intStartY = Mathf.FloorToInt(cellStep * _coord.TileY) - buffer;
+
+        var intEndX = Mathf.CeilToInt(cellStep * (_coord.TileX+1)) + buffer;
+        var intEndY = Mathf.CeilToInt(cellStep * (_coord.TileY+1)) + buffer;
+
+        for (int x = intStartX; x < intEndX; x++)
+        {
+            for (int y = intStartY; y < intEndY; y++)
+            {
+                var vector = new Vector2(x * sizeRelativeTo, y * sizeRelativeTo);
+
+                var offset = Mathf.PerlinNoise(x + _seed, y + _seed);
+
+                var offsetVector = Vector2.zero;
+
+                offsetVector.x = Mathf.Cos(offset * Mathf.PI * 2);
+                offsetVector.x = Mathf.Sin(offset * Mathf.PI * 2);
+
+                vector += (offsetVector * percentageWarped);
+
+                vector.x -= _coord.TileX;
+                vector.y -= _coord.TileY;
+
+                vector.x *= _map.SizeX;
+                vector.y *= _map.SizeY;
+
+
+
+
+
+
+                _pointList.Add(new VoronoiCell(vector));
+            }
+        }
+    }
 
     class VoronoiCell {
 
@@ -238,13 +304,13 @@ public class VoronoiGenerator {
             MapPoints = new List<Coord>();
         }
 
-        public void Sort(Map _distanceMap)
+        public void Sort(Layer _distanceMap)
         {
             var points = MapPoints.OrderBy(x => _distanceMap[x.TileX, x.TileY]).ToList();
             Center = points.First();
         }
 
-        public void SetFalloff(Map bigMap, int searchDistance)
+        public void SetFalloff(Layer bigMap, int searchDistance)
         {
             var minX = int.MaxValue;
             var maxX = int.MinValue;
@@ -269,7 +335,7 @@ public class VoronoiGenerator {
                     minY = p.TileY;
             }
 
-            var map = new Map(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
+            var map = new Layer(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
 
             for (int i = 0; i < MapPoints.Count; i++)
             {

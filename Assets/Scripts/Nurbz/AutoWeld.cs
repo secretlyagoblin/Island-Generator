@@ -80,7 +80,7 @@ namespace MeshMasher
             mesh.vertices = finalVertices;
             mesh.triangles = newTris;
             mesh.RecalculateNormals();
-            mesh.Optimize();
+            ;
 
             return mesh;
         }

@@ -1,21 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Map;
 
 public class MeshDebugStack {
 
-    List<Map> _maps;
+    List<Layer> _maps;
 
     Material _defaultMaterial;
 
     public MeshDebugStack(Material baseMaterial)
     {
         _defaultMaterial = baseMaterial;
-        _maps = new List<Map>();
+        _maps = new List<Layer>();
     }
 
-    public void RecordMapStateToStack(Map map)
+    public void RecordMapStateToStack(Layer map)
     {
-        _maps.Add(Map.Clone(map));
+        _maps.Add(Layer.Clone(map));
     }
 
     public void CreateDebugStack(Transform parent)
@@ -26,28 +27,10 @@ public class MeshDebugStack {
         }
     }
 
-    GameObject CreateDebugLayer(Map map, int layer, float heightMultiplier, Transform parent)
+    GameObject CreateDebugLayer(Layer map, int layer, float heightMultiplier, Transform parent)
     {
-        //Iterate through grid to get colours
+        map.Normalise();
 
-        var biggestValue = 0;
-
-        for (int x = 0; x < map.SizeX; x++)
-        {
-            for (int y = 0; y < map.SizeY; y++)
-            {
-                var value = Mathf.RoundToInt(map[x, y]);
-                if (biggestValue < value)
-                    biggestValue = value;
-            }
-        }
-
-        var multiplier = 0f;
-
-        if(biggestValue != 0)
-        {
-            multiplier = 1f / biggestValue;
-        }
 
         var colors = new List<Color>(map.SizeX * map.SizeY);
 
@@ -56,7 +39,7 @@ public class MeshDebugStack {
             for (int y = 0; y < map.SizeY; y++)
             {
                 var value = map[x, y];
-                colors.Add(new Color(value* multiplier, value * multiplier, value * multiplier));
+                colors.Add(new Color(value,value,value));
             }
         }
 
@@ -84,11 +67,21 @@ public class MeshDebugStack {
         obj.transform.parent = parent;
         obj.name = "Layer " + layer;
         obj.layer = parent.gameObject.layer;
-        obj.transform.localPosition =(Vector3.left * layer * heightMultiplier);
+        obj.transform.localPosition =(Vector3.right * layer * heightMultiplier);
         
 
         return obj;
 
+    }
+
+    public void CreateDebugStack(float height)
+    {
+        var gameObject = new GameObject();
+        gameObject.transform.Translate(Vector3.up * (height));
+        gameObject.name = "Debug Stack";
+        gameObject.layer = 5;
+
+        CreateDebugStack(gameObject.transform);
     }
 
 

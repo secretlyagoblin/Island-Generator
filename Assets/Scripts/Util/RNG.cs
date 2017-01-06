@@ -6,6 +6,16 @@ public static class RNG {
     static System.Random _pseudoRandom;
     static bool _initialised = false;
 
+    public static void DateTimeInit(){
+        if (_initialised)
+        {
+        }
+        else
+        {
+            Init(System.DateTime.Now.ToString());
+        }
+    }
+
     public static void Init(string seed)
     {
         if (_initialised)
@@ -60,6 +70,11 @@ public static class RNG {
     {
         return (float)(_pseudoRandom.NextDouble());
 
+    }
+
+    public static Vector2 NextVector2(float minValue, float maxValue)
+    {
+        return new Vector2(NextFloat(minValue, maxValue), NextFloat(minValue, maxValue));
     }
 
     public static float NextFloat(float maxValue)
