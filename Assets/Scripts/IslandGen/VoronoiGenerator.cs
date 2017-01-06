@@ -15,6 +15,8 @@ public class VoronoiGenerator {
 
     float _seed;
 
+    public static VoronoiGenerator Generator = null; 
+
     public VoronoiGenerator(Layer map, int mapCoordinateX, int mapCoordinateY, float relativeDensity, float seed)
     {
         _map = map;

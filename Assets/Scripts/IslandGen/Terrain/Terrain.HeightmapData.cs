@@ -116,7 +116,7 @@ namespace Terrain {
 
             maps.AddMap(MapType.WalkableMap, walkableAreaMap);
             //maps.AddMap(MapType.HeightMap, realFinalMap);
-            maps.AddMap(MapType.HeightMap, realFinalMap.Multiply(100f));
+            maps.AddMap(MapType.HeightMap, realFinalMap.Multiply(200f));
             maps.SetRect(rect);
 
             var mapData = new HeightmapData();
@@ -142,19 +142,28 @@ namespace Terrain {
             var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
             var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.WalkableMap]).ToMap();
 
-            //var voronoi = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.05f, 23245.2344335454f);
+            var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
+            
 
-            //var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
-            //var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.05f);
+            if (VoronoiGenerator.Generator == null)
+            {
+                VoronoiGenerator.Generator = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.075f, 23245.2344335454f);
+            }
 
-            //var heightMap = parentHeightmap + voronoi.GetHeightMap(parentHeightmap) + distanceMap;
-            //heightMap.Multiply(0.5f);
+            var voronoi = VoronoiGenerator.Generator;
 
-            //data._stack.AddMap(MapType.HeightMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
-            //data._stack.AddMap(MapType.WalkableMap, diffMap);
+            var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
+            var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.2f);
 
-            data._stack.AddMap(MapType.HeightMap, parentHeightmap);
-            data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
+            var heightMap = parentHeightmap + voronoi.GetHeightMap(parentHeightmap+noiseMap) + distanceMap;
+            heightMap.Multiply(0.5f);
+            //heightMap.SmoothMap(3);
+
+            data._stack.AddMap(MapType.HeightMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
+            data._stack.AddMap(MapType.WalkableMap, diffMap);
+
+            //data._stack.AddMap(MapType.HeightMap, parentHeightmap);
+            //data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
 
             return data;
 
@@ -173,7 +182,7 @@ namespace Terrain {
             //return data;
         }
 
-        public static HeightmapData CreateCollisionData(HeightmapData cellData, int descimationFactor, Rect rect)
+        public static HeightmapData CreateCollisionData(HeightmapData cellData, int decimationFactor, Rect rect)
         {
 
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white,100f);
@@ -181,7 +190,7 @@ namespace Terrain {
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
 
-            var map = Layer.DecimateMap(cellData._stack.GetMap(MapType.HeightMap), descimationFactor);
+            var map = Layer.DecimateMap(cellData._stack.GetMap(MapType.HeightMap), decimationFactor);
             rect = GrowRectByOne(rect, map.SizeX-1);
             //rect.position
 
@@ -189,10 +198,10 @@ namespace Terrain {
             var data = new HeightmapData();
             data.Rect = rect;
 
-            Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white, 100f);
-            Debug.DrawLine(new Vector3(rect.min.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.max.y), Color.white, 100f);
-            Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
-            Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.max.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
 
             data._stack = new Map.Stack(rect);
             data._stack.AddMap(MapType.HeightMap, map);

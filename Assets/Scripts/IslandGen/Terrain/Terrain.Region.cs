@@ -69,13 +69,13 @@ namespace Terrain {
             }
         }
 
-        public void EnableCollision()
+        public void EnableCollision(Transform transform)
         {
             for (int x = 0; x < _chunks.GetLength(0); x++)
             {
                 for (int y = 0; y < _chunks.GetLength(1); y++)
                 {
-                    _chunks[x, y].EnableCollision();
+                    _chunks[x, y].EnableCollision(transform);
                 }
             }
         }

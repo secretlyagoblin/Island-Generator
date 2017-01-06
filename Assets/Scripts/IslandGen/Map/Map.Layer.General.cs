@@ -236,6 +236,19 @@ namespace Map {
             return RandomFillMap(randomFillPercent, 0, 1);
         }
 
+        public Layer FillWithNoise()
+        {
+            for (int x = 0; x < SizeX; x++)
+            {
+                for (int y = 0; y < SizeY; y++)
+                {
+                    _map[x, y] = RNG.NextFloat(0, 1);
+                }
+            }
+
+            return this;
+        }
+
 
         public Layer RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
         {
@@ -1088,20 +1101,17 @@ namespace Map {
                     {
                         for (int y = gridY - 1; y <= gridY + 1; y++)
                         {
-                            if (IsInMapRange(x, y))
+                            var localX = Mathf.Clamp(x, 0, SizeX-1);
+                            var localY = Mathf.Clamp(y, 0, SizeY-1);
+
+                            var weight = 0.7f;
+
+                            if (localX != gridX || localY != gridY)
                             {
-                                var weight = 0.7f;
-
-                                if (x != gridX || y != gridY)
-                                {
-                                    weight = 1;
-                                }
-
-                                totalValue += (this[x, y] * weight);
-
-
-
+                                weight = 1;
                             }
+
+                            totalValue += (this[localX, localY] * weight);                            
 
                             count++;
                         }

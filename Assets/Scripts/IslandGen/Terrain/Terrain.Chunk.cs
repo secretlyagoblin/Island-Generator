@@ -6,11 +6,12 @@ namespace Terrain {
 
     public class Chunk {
 
-        bool _walkableTerrain;
+        bool _walkableTerrain = false;
         HeightmapData _data;
         Coord _coord;
 
         GameObject _object;
+        GameObject _colliderObject;
         MeshCollider _collider;
         Mesh _collisionMesh;
 
@@ -42,10 +43,18 @@ namespace Terrain {
             _collisionMesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(collisionData);
         }
 
-        public void EnableCollision()
+        public void EnableCollision(Transform parent)
         {
-            _collider = _object.AddComponent<MeshCollider>();
+            var gobject = new GameObject();
+            gobject.transform.parent = parent;
+            gobject.name = "TerrainCollision";
+            gobject.transform.localPosition = new Vector3(_data.Rect.position.x, 0, _data.Rect.position.y);
+            _colliderObject = gobject;
+
+            _collider = _colliderObject.AddComponent<MeshCollider>();
             _collider.sharedMesh = _collisionMesh;
+
+            _walkableTerrain = true;
         }
 
         public void InstantiateDummy(Transform parent, Material material)
@@ -70,11 +79,21 @@ namespace Terrain {
         public void Hide()
         {
             _object.SetActive(false);
+
+            if (_walkableTerrain)
+            {
+                _colliderObject.SetActive(false);
+            }
         }
 
         public void Show()
         {
             _object.SetActive(true);
+
+            if (_walkableTerrain)
+            {
+                _colliderObject.SetActive(true);
+            }
         }
     }
 }

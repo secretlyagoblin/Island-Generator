@@ -20,10 +20,7 @@ public class RegionController : MonoBehaviour {
     public int CollisionDecimationFactor;
 
     Region _region;
-
-    bool _loaded = false;
-
-    
+    bool _loaded = false;    
 
 	// Use this for initialization
 	void Start () {
@@ -37,8 +34,8 @@ public class RegionController : MonoBehaviour {
 
         //Create Heightmap Data
 
-        //var heightMap = HeightmapData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
-        var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
+        var heightMap = HeightmapData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
+        //var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
 
         time = Time.realtimeSinceStartup;
         Debug.Log("Generating Heightmap: " + time + " seconds");
@@ -67,7 +64,7 @@ public class RegionController : MonoBehaviour {
         var obj = new GameObject();
         obj.transform.parent = transform;
         obj.transform.localPosition = Vector3.zero;
-        obj.name = "CollisionCells";
+        obj.name = "HighResolutionMap";
 
         _region.InstantiateRegionCells(obj.transform, Material);
         time = Time.realtimeSinceStartup;
@@ -85,7 +82,12 @@ public class RegionController : MonoBehaviour {
             lastTime = time;
             yield return null;
 
-            _region.EnableCollision();
+            obj = new GameObject();
+            obj.transform.parent = transform;
+            obj.transform.localPosition = Vector3.zero;
+            obj.name = "CollisionMap";
+
+            _region.EnableCollision(obj.transform);
             time = Time.realtimeSinceStartup;
             Debug.Log("Enabling Collision: " + (time - lastTime) + " seconds");
             lastTime = time;
