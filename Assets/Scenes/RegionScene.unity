@@ -168,7 +168,7 @@ MonoBehaviour:
   NumberOfChunksInRow: 16
   ChunkResolution: 112
   GenerateCollision: 1
-  CollisionDecimationFactor: 4
+  CollisionDecimationFactor: 2
 --- !u!4 &577911235
 Transform:
   m_ObjectHideFlags: 0
