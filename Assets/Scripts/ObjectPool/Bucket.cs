@@ -2,203 +2,206 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class Bucket<T> {
+namespace Buckets {
 
-    public Rect Rect;
-    public Vector2 LowerBounds;
-    public Vector2 UpperBounds;
+    class Bucket<T> {
 
-    public bool CurrentIteration = false;
-    public bool PreviousIteration = false;
+        public Rect Rect;
+        public Vector2 LowerBounds;
+        public Vector2 UpperBounds;
 
-    List<BucketData> ElementList;
-    public List<T> Elements;
+        public bool CurrentIteration = false;
+        public bool PreviousIteration = false;
 
-    public List<Bucket<T>> Buckets;
+        List<BucketData> ElementList;
+        public List<T> Elements;
 
-    bool Filled = false;
+        public List<Bucket<T>> Buckets;
 
-    public int Layer;
-    public int MaxLayer = 6;
+        bool Filled = false;
 
-    public Bucket(int layer, Vector2 lowerBounds, Vector2 upperBounds)
-    {
-        Rect = new Rect(lowerBounds, upperBounds - lowerBounds);
-        Layer = layer;
+        public int Layer;
+        public int MaxLayer = 6;
 
-        var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
-
-        LowerBounds = lowerBounds;
-        UpperBounds = upperBounds;
-
-        Filled = false;
-        ElementList = new List<BucketData>();
-        Elements = new List<T>();
-        Buckets = new List<Bucket<T>>();
-    }
-
-    bool IsIn(Vector2 test)
-    {
-        return Rect.Contains(test);
-    }
-
-    public void AddElement(T element, Vector2 position)
-    {
-        if (!Filled)
+        public Bucket(int layer, Vector2 lowerBounds, Vector2 upperBounds)
         {
-            ElementList.Add(new BucketData(element,position));
-            Elements.Add(element);
-            if (ElementList.Count > 1 && Layer < MaxLayer)
+            Rect = new Rect(lowerBounds, upperBounds - lowerBounds);
+            Layer = layer;
+
+            var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
+
+            LowerBounds = lowerBounds;
+            UpperBounds = upperBounds;
+
+            Filled = false;
+            ElementList = new List<BucketData>();
+            Elements = new List<T>();
+            Buckets = new List<Bucket<T>>();
+        }
+
+        bool IsIn(Vector2 test)
+        {
+            return Rect.Contains(test);
+        }
+
+        public void AddElement(T element, Vector2 position)
+        {
+            if (!Filled)
             {
-                var CellSize = UpperBounds - LowerBounds;
-                CellSize = CellSize * 0.5f;
-
-                var startA = LowerBounds;
-                var startB = LowerBounds + new Vector2(CellSize.x, 0);
-                var startC = LowerBounds + new Vector2(0, CellSize.y);
-                var startD = LowerBounds + new Vector2(CellSize.x, CellSize.y);
-
-                Buckets.Add(new Bucket<T>(Layer + 1, startA, startA + CellSize));
-                Buckets.Add(new Bucket<T>(Layer + 1, startB, startB + CellSize));
-                Buckets.Add(new Bucket<T>(Layer + 1, startC, startC + CellSize));
-                Buckets.Add(new Bucket<T>(Layer + 1, startD, startD + CellSize));
-
-                for (int i = 0; i < ElementList.Count; i++)
+                ElementList.Add(new BucketData(element, position));
+                Elements.Add(element);
+                if (ElementList.Count > 1 && Layer < MaxLayer)
                 {
-                    for (int x = 0; x < Buckets.Count; x++)
+                    var CellSize = UpperBounds - LowerBounds;
+                    CellSize = CellSize * 0.5f;
+
+                    var startA = LowerBounds;
+                    var startB = LowerBounds + new Vector2(CellSize.x, 0);
+                    var startC = LowerBounds + new Vector2(0, CellSize.y);
+                    var startD = LowerBounds + new Vector2(CellSize.x, CellSize.y);
+
+                    Buckets.Add(new Bucket<T>(Layer + 1, startA, startA + CellSize));
+                    Buckets.Add(new Bucket<T>(Layer + 1, startB, startB + CellSize));
+                    Buckets.Add(new Bucket<T>(Layer + 1, startC, startC + CellSize));
+                    Buckets.Add(new Bucket<T>(Layer + 1, startD, startD + CellSize));
+
+                    for (int i = 0; i < ElementList.Count; i++)
                     {
-                        if (Buckets[x].IsIn(ElementList[i].Position))
+                        for (int x = 0; x < Buckets.Count; x++)
                         {
-                            Buckets[x].AddElement(ElementList[i].Element, ElementList[i].Position);
-                            goto End;
+                            if (Buckets[x].IsIn(ElementList[i].Position))
+                            {
+                                Buckets[x].AddElement(ElementList[i].Element, ElementList[i].Position);
+                                goto End;
 
+                            }
                         }
+                        End:
+                        ;
                     }
-                End:
-                    ;
+                    Filled = true;
+                    ElementList.Clear();
+                    Elements.Clear();
                 }
-                Filled = true;
-                ElementList.Clear();
-                Elements.Clear();
             }
-        }
-        else
-        {
-            for (int x = 0; x < Buckets.Count; x++)
+            else
             {
-                if (Buckets[x].IsIn(position))
+                for (int x = 0; x < Buckets.Count; x++)
                 {
-                    Buckets[x].AddElement(element, position);
-                    return;
+                    if (Buckets[x].IsIn(position))
+                    {
+                        Buckets[x].AddElement(element, position);
+                        return;
+                    }
                 }
             }
+            return;
         }
-        return;
-    }
 
-    public Bucket<T>[] GetBuckets(Vector2 testPoint, float testDistance)
-    {
-        var distance = DistancePointToRectangle(testPoint, Rect);
-        var allBuckets = new List<Bucket<T>>();
-
-        if (distance < testDistance)
+        public Bucket<T>[] GetBuckets(Vector2 testPoint, float testDistance)
         {
-            if (Filled)
+            var distance = DistancePointToRectangle(testPoint, Rect);
+            var allBuckets = new List<Bucket<T>>();
+
+            if (distance < testDistance)
             {
-                for (int i = 0; i < Buckets.Count; i++)
+                if (Filled)
                 {
-                    allBuckets.AddRange(Buckets[i].GetBuckets(testPoint, testDistance));
+                    for (int i = 0; i < Buckets.Count; i++)
+                    {
+                        allBuckets.AddRange(Buckets[i].GetBuckets(testPoint, testDistance));
+                    }
+                }
+                else
+                {
+                    CurrentIteration = true;
+                    allBuckets.Add(this);
+                }
+            }
+
+            return allBuckets.ToArray();
+        }
+
+        static float DistancePointToRectangle(Vector2 point, Rect rect)
+        {
+            //  Calculate a distance between a point and a rectangle.
+            //  The area around/in the rectangle is defined in terms of
+            //  several regions:
+            //
+            //  O--x
+            //  |
+            //  y
+            //
+            //
+            //        I   |    II    |  III
+            //      ======+==========+======   --yMin
+            //       VIII |  IX (in) |  IV
+            //      ======+==========+======   --yMax
+            //       VII  |    VI    |   V
+            //
+            //
+            //  Note that the +y direction is down because of Unity's GUI coordinates.
+
+            if (point.x < rect.xMin)
+            { // Region I, VIII, or VII
+                if (point.y < rect.yMin)
+                { // I
+                    Vector2 diff = point - new Vector2(rect.xMin, rect.yMin);
+                    return diff.magnitude;
+                }
+                else if (point.y > rect.yMax)
+                { // VII
+                    Vector2 diff = point - new Vector2(rect.xMin, rect.yMax);
+                    return diff.magnitude;
+                }
+                else
+                { // VIII
+                    return rect.xMin - point.x;
+                }
+            }
+            else if (point.x > rect.xMax)
+            { // Region III, IV, or V
+                if (point.y < rect.yMin)
+                { // III
+                    Vector2 diff = point - new Vector2(rect.xMax, rect.yMin);
+                    return diff.magnitude;
+                }
+                else if (point.y > rect.yMax)
+                { // V
+                    Vector2 diff = point - new Vector2(rect.xMax, rect.yMax);
+                    return diff.magnitude;
+                }
+                else
+                { // IV
+                    return point.x - rect.xMax;
                 }
             }
             else
+            { // Region II, IX, or VI
+                if (point.y < rect.yMin)
+                { // II
+                    return rect.yMin - point.y;
+                }
+                else if (point.y > rect.yMax)
+                { // VI
+                    return point.y - rect.yMax;
+                }
+                else
+                { // IX
+                    return 0f;
+                }
+            }
+        }
+
+        struct BucketData {
+            public T Element;
+            public Vector2 Position;
+
+            public BucketData(T element, Vector2 position)
             {
-                CurrentIteration = true;
-                allBuckets.Add(this);
+                Element = element;
+                Position = position;
             }
-        }
-
-        return allBuckets.ToArray();
-    }
-
-    static float DistancePointToRectangle(Vector2 point, Rect rect)
-    {
-        //  Calculate a distance between a point and a rectangle.
-        //  The area around/in the rectangle is defined in terms of
-        //  several regions:
-        //
-        //  O--x
-        //  |
-        //  y
-        //
-        //
-        //        I   |    II    |  III
-        //      ======+==========+======   --yMin
-        //       VIII |  IX (in) |  IV
-        //      ======+==========+======   --yMax
-        //       VII  |    VI    |   V
-        //
-        //
-        //  Note that the +y direction is down because of Unity's GUI coordinates.
-
-        if (point.x < rect.xMin)
-        { // Region I, VIII, or VII
-            if (point.y < rect.yMin)
-            { // I
-                Vector2 diff = point - new Vector2(rect.xMin, rect.yMin);
-                return diff.magnitude;
-            }
-            else if (point.y > rect.yMax)
-            { // VII
-                Vector2 diff = point - new Vector2(rect.xMin, rect.yMax);
-                return diff.magnitude;
-            }
-            else
-            { // VIII
-                return rect.xMin - point.x;
-            }
-        }
-        else if (point.x > rect.xMax)
-        { // Region III, IV, or V
-            if (point.y < rect.yMin)
-            { // III
-                Vector2 diff = point - new Vector2(rect.xMax, rect.yMin);
-                return diff.magnitude;
-            }
-            else if (point.y > rect.yMax)
-            { // V
-                Vector2 diff = point - new Vector2(rect.xMax, rect.yMax);
-                return diff.magnitude;
-            }
-            else
-            { // IV
-                return point.x - rect.xMax;
-            }
-        }
-        else
-        { // Region II, IX, or VI
-            if (point.y < rect.yMin)
-            { // II
-                return rect.yMin - point.y;
-            }
-            else if (point.y > rect.yMax)
-            { // VI
-                return point.y - rect.yMax;
-            }
-            else
-            { // IX
-                return 0f;
-            }
-        }
-    }
-
-    struct BucketData {
-        public T Element;
-        public Vector2 Position;
-
-        public BucketData(T element, Vector2 position)
-        {
-            Element = element;
-            Position = position;
         }
     }
 }
