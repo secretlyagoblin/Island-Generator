@@ -107,6 +107,15 @@ public class RegionController : MonoBehaviour {
         lastTime = time;
         yield return null;
 
+        var pool = GetComponent<DetailObjectPool>();
+        pool.SetPhysicalMap(heightMap);
+        pool.InitPositions();
+
+        time = Time.realtimeSinceStartup;
+        Debug.Log("Instantiating Props: " + (time - lastTime) + " seconds");
+        lastTime = time;
+        yield return null;
+
         //Clean Up, set loaded as true
 
         Debug.Log("Total Load Time : " + Time.realtimeSinceStartup        + " seconds");

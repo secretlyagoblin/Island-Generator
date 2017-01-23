@@ -29,10 +29,13 @@ public class DetailObjectBucketManager<T> {
 
     public void Update(Vector2 testPosition, float testDistance)
     {
-        var currentBuckets = _bucket.GetBuckets(testPosition, testDistance);
+
+        _currentBuckets = _bucket.GetBuckets(testPosition, testDistance);
 
         GetObjectsExitingPool();
         GetObjectsEnteringPool();
+
+        _previousBuckets = _currentBuckets;
     }
 
     void GetObjectsExitingPool()

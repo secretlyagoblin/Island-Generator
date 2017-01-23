@@ -24,6 +24,11 @@ namespace Terrain {
             return _stack.GetMap(type).FloatArray;
         }
 
+        public Layer GetHeightmapLayer(MapType type)
+        {
+            return _stack.GetMap(type);
+        }
+
         public static HeightmapData BlankMap(int size, Rect rect, float value)
         {
             var data = new HeightmapData();
@@ -180,6 +185,24 @@ namespace Terrain {
             */
 
             //return data;
+        }
+
+        public static HeightmapData PassThroughUntouched(HeightmapData parentData, Coord coord, int size, Rect rect)
+        {
+            rect = GrowRectByOne(rect, size);
+            size = size + 1;
+
+            var data = new HeightmapData();
+            data.Rect = rect;
+            data._stack = new Map.Stack(rect);
+
+            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
+            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.WalkableMap]).ToMap();
+
+            data._stack.AddMap(MapType.HeightMap, parentHeightmap);
+            data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
+
+            return data;
         }
 
         public static HeightmapData CreateCollisionData(HeightmapData cellData, int decimationFactor, Rect rect)

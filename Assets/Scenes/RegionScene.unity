@@ -100,15 +100,15 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4495503312771702, guid: da1c2475ac497424c81fbf40c0b259ef, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 500.3093
+      value: 750
       objectReference: {fileID: 0}
     - target: {fileID: 4495503312771702, guid: da1c2475ac497424c81fbf40c0b259ef, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 150.44437
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 4495503312771702, guid: da1c2475ac497424c81fbf40c0b259ef, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 499.6346
+      value: 750
       objectReference: {fileID: 0}
     - target: {fileID: 4495503312771702, guid: da1c2475ac497424c81fbf40c0b259ef, type: 2}
       propertyPath: m_LocalRotation.x
@@ -138,6 +138,11 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: da1c2475ac497424c81fbf40c0b259ef, type: 2}
   m_IsPrefabParent: 0
+--- !u!1 &463890328 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1329327749178214, guid: da1c2475ac497424c81fbf40c0b259ef,
+    type: 2}
+  m_PrefabInternal: {fileID: 463890327}
 --- !u!1 &577911233
 GameObject:
   m_ObjectHideFlags: 0
@@ -147,6 +152,7 @@ GameObject:
   m_Component:
   - component: {fileID: 577911235}
   - component: {fileID: 577911234}
+  - component: {fileID: 577911236}
   m_Layer: 0
   m_Name: Region
   m_TagString: Untagged
@@ -167,10 +173,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   TestTransform: {fileID: 1209126686}
-  RegionResolution: 200
+  RegionResolution: 250
   RegionSize: 1500
   ChunkUpdateDistance: 500
-  NumberOfChunksInRow: 16
+  NumberOfChunksInRow: 8
   ChunkResolution: 168
   GenerateCollision: 1
   CollisionDecimationFactor: 2
@@ -187,55 +193,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &636400300
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 636400302}
-  - component: {fileID: 636400301}
-  m_Layer: 0
-  m_Name: Region (2)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &636400301
+--- !u!114 &577911236
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 636400300}
+  m_GameObject: {fileID: 577911233}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f51131923db13c348ae6d2dc11b6bc42, type: 3}
+  m_Script: {fileID: 11500000, guid: 28e1ba7d5e215474e8d99adfe3623d62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
-  TestTransform: {fileID: 1209126686}
-  RegionResolution: 300
+  TestPoint: {fileID: 463890328}
+  GrassObject: {fileID: 1145727348350262, guid: 6814b2e75f3cdd54ea6d06e0d547dbfa,
+    type: 2}
+  PropCount: 2000000
   RegionSize: 1500
-  ChunkUpdateDistance: 500
-  NumberOfChunksInRow: 16
-  ChunkResolution: 224
-  GenerateCollision: 1
-  CollisionDecimationFactor: 4
---- !u!4 &636400302
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 636400300}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1500, y: 0, z: 1500}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  TestDistance: 150
+  NoiseScale: 0.1
 --- !u!1001 &966052892
 Prefab:
   m_ObjectHideFlags: 0
@@ -294,109 +269,11 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
   m_IsPrefabParent: 0
---- !u!1 &1189141855
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 1189141857}
-  - component: {fileID: 1189141856}
-  m_Layer: 0
-  m_Name: Region (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &1189141856
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1189141855}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f51131923db13c348ae6d2dc11b6bc42, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
-  TestTransform: {fileID: 1209126686}
-  RegionResolution: 300
-  RegionSize: 1500
-  ChunkUpdateDistance: 500
-  NumberOfChunksInRow: 16
-  ChunkResolution: 224
-  GenerateCollision: 1
-  CollisionDecimationFactor: 4
---- !u!4 &1189141857
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1189141855}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1500, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1209126686 stripped
 Transform:
   m_PrefabParentObject: {fileID: 4495503312771702, guid: da1c2475ac497424c81fbf40c0b259ef,
     type: 2}
   m_PrefabInternal: {fileID: 463890327}
---- !u!1 &1546728063
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 1546728065}
-  - component: {fileID: 1546728064}
-  m_Layer: 0
-  m_Name: Region (3)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &1546728064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1546728063}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f51131923db13c348ae6d2dc11b6bc42, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
-  TestTransform: {fileID: 1209126686}
-  RegionResolution: 300
-  RegionSize: 1500
-  ChunkUpdateDistance: 500
-  NumberOfChunksInRow: 16
-  ChunkResolution: 224
-  GenerateCollision: 1
-  CollisionDecimationFactor: 4
---- !u!4 &1546728065
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1546728063}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1500}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1612210374
 GameObject:
   m_ObjectHideFlags: 0

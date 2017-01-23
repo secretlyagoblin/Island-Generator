@@ -1,13 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Terrain;
 using System.Linq;
 
 public class DetailObjectPool : MonoBehaviour {
 
 	public GameObject TestPoint;
     public GameObject GrassObject;
+    public int PropCount;
     public float RegionSize;
-    public int VectorCount;
     public float TestDistance;
     public float NoiseScale;
 
@@ -27,15 +28,42 @@ public class DetailObjectPool : MonoBehaviour {
 
         //Add a bunch of DetailObjects to the manager
 
-		for (int i = 0; i < VectorCount; i++) {
-            var vec = new Vector3(RNG.NextFloat(0, RegionSize), RNG.NextFloat(0, RegionSize), RNG.NextFloat(0, RegionSize));
-
-            if (Mathf.PerlinNoise(vec.x * NoiseScale, vec.z * NoiseScale) < 0.5f & (Mathf.PerlinNoise(vec.x * (NoiseScale * 4), vec.z * (NoiseScale * 4)) < 0.5f | RNG.Next(0, 100) < 0.5f))
-            {
-                _detailObjectManager.AddElement(CreateGrassData(vec), new Vector2(vec.x, vec.z));
-            }       
-		}
 	}
+
+    Map.Layer _walkableMap;
+    Map.Layer _heightMap;
+
+    public void SetPhysicalMap(HeightmapData data)
+    {
+        _walkableMap = data.GetHeightmapLayer(Map.MapType.WalkableMap);
+        _heightMap = data.GetHeightmapLayer(Map.MapType.HeightMap);
+    }
+
+    public void InitPositions()
+    {
+        for (int i = 0; i < PropCount; i++)
+        {
+            var vec2 = new Vector2(RNG.NextFloat(0, 1), RNG.NextFloat(0, 1));
+
+            if (_walkableMap.BilinearSampleFromNormalisedVector2(vec2) != 0)
+            {
+                continue;
+            }
+
+            var vec = new Vector3(vec2.x*RegionSize, _heightMap.BilinearSampleFromNormalisedVector2(vec2), vec2.y* RegionSize);
+
+            if (Mathf.PerlinNoise(vec.x * 0.1f, vec.z * 0.1f) < 0.5f & (Mathf.PerlinNoise(vec.x * (0.1f * 4), vec.z * (0.1f * 4)) < 0.5f | RNG.Next(0, 100) < 0.5f))
+            {
+                AddPosition(vec);
+                //Debug.DrawRay(vec, Vector3.right, Color.green, 100f);
+            }
+        }
+    }
+
+    public void AddPosition(Vector3 position)
+    {
+        _detailObjectManager.AddElement(CreateGrassData(position), new Vector2(position.x, position.z));
+    }
 
 
 	// Update is called once per frame
@@ -60,7 +88,7 @@ public class DetailObjectPool : MonoBehaviour {
 
         for (int i = 0; i < _detailObjectManager.ObjectsEnteringPool.Count; i++)
         {
-            var objectData = _detailObjectManager.ObjectsExitingPool[i];
+            var objectData = _detailObjectManager.ObjectsEnteringPool[i];
 
             if (_freeObjects.Count > 0)
             {
@@ -74,7 +102,7 @@ public class DetailObjectPool : MonoBehaviour {
             }
             else
             {
-                var obj = objectData.Instantiate(GrassObject);
+                var obj = objectData.Instantiate(GrassObject, transform);
                 objectData.ApplyColorData(obj.transform, _block);
 
                 _dict.Add(objectData, obj);
@@ -85,7 +113,7 @@ public class DetailObjectPool : MonoBehaviour {
 
     DetailObjectData CreateGrassData(Vector3 position)
     {
-        var pos = new Vector3(position.x, 0, position.z);
+        var pos = position;
         var rot = RNG.NextFloat(0, 360);
 
         var scale = (RNG.NextFloat(0.6f, 1.4f));
@@ -98,7 +126,8 @@ public class DetailObjectPool : MonoBehaviour {
         }
 
         var tint = Mathf.PerlinNoise(pos.x * 0.4f, pos.z * 0.4f);
-        var color = new Color(tint * 0.5f, tint, -tint + 1f);
+        tint = (tint * 0.5f) + 0.5f;
+        var color = new Color(tint, tint, tint);
 
         return new DetailObjectData(pos, Quaternion.AngleAxis(rot, Vector3.up), new Vector3(scale, scale, scale), color);
 
@@ -134,9 +163,9 @@ public class DetailObjectPool : MonoBehaviour {
             transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
         }
 
-        public GameObject Instantiate(GameObject baseObject)
+        public GameObject Instantiate(GameObject baseObject, Transform parent)
         {
-            var obj = Object.Instantiate(baseObject, _positon,_rotation);
+            var obj = Object.Instantiate(baseObject, _positon,_rotation, parent);
             obj.transform.localScale = _scale;
 
             return obj;
