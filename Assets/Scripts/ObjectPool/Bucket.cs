@@ -11,14 +11,15 @@ class Bucket<T> {
     public bool CurrentIteration = false;
     public bool PreviousIteration = false;
 
-    public List<Vector3> Points;
+    List<BucketData> ElementList;
+    public List<T> Elements;
 
     public List<Bucket<T>> Buckets;
 
     bool Filled = false;
 
     public int Layer;
-    public int MaxLayer = 12;
+    public int MaxLayer = 6;
 
     public Bucket(int layer, Vector2 lowerBounds, Vector2 upperBounds)
     {
@@ -31,21 +32,23 @@ class Bucket<T> {
         UpperBounds = upperBounds;
 
         Filled = false;
-        Points = new List<Vector3>();
+        ElementList = new List<BucketData>();
+        Elements = new List<T>();
         Buckets = new List<Bucket<T>>();
     }
 
-    bool IsIn(Vector3 test)
+    bool IsIn(Vector2 test)
     {
         return Rect.Contains(test);
     }
 
-    public void AddElement(T element, Vector3 position)
+    public void AddElement(T element, Vector2 position)
     {
         if (!Filled)
         {
-            Points.Add(position);
-            if (Points.Count > 1 && Layer < MaxLayer)
+            ElementList.Add(new BucketData(element,position));
+            Elements.Add(element);
+            if (ElementList.Count > 1 && Layer < MaxLayer)
             {
                 var CellSize = UpperBounds - LowerBounds;
                 CellSize = CellSize * 0.5f;
@@ -60,13 +63,13 @@ class Bucket<T> {
                 Buckets.Add(new Bucket<T>(Layer + 1, startC, startC + CellSize));
                 Buckets.Add(new Bucket<T>(Layer + 1, startD, startD + CellSize));
 
-                for (int i = 0; i < Points.Count; i++)
+                for (int i = 0; i < ElementList.Count; i++)
                 {
                     for (int x = 0; x < Buckets.Count; x++)
                     {
-                        if (Buckets[x].IsIn(Points[i]))
+                        if (Buckets[x].IsIn(ElementList[i].Position))
                         {
-                            Buckets[x].AddElement(element, Points[i]);
+                            Buckets[x].AddElement(ElementList[i].Element, ElementList[i].Position);
                             goto End;
 
                         }
@@ -75,7 +78,8 @@ class Bucket<T> {
                     ;
                 }
                 Filled = true;
-                Points.Clear();
+                ElementList.Clear();
+                Elements.Clear();
             }
         }
         else
@@ -184,6 +188,17 @@ class Bucket<T> {
             { // IX
                 return 0f;
             }
+        }
+    }
+
+    struct BucketData {
+        public T Element;
+        public Vector2 Position;
+
+        public BucketData(T element, Vector2 position)
+        {
+            Element = element;
+            Position = position;
         }
     }
 }
