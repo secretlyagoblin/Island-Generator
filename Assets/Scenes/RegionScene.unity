@@ -153,6 +153,7 @@ GameObject:
   - component: {fileID: 577911235}
   - component: {fileID: 577911234}
   - component: {fileID: 577911236}
+  - component: {fileID: 577911237}
   m_Layer: 0
   m_Name: Region
   m_TagString: Untagged
@@ -173,13 +174,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   TestTransform: {fileID: 1209126686}
-  RegionResolution: 250
+  RegionResolution: 300
   RegionSize: 1500
   ChunkUpdateDistance: 500
-  NumberOfChunksInRow: 8
+  NumberOfChunksInRow: 16
   ChunkResolution: 168
   GenerateCollision: 1
   CollisionDecimationFactor: 2
+  DetailObjectPools:
+  - {fileID: 577911236}
+  - {fileID: 577911237}
 --- !u!4 &577911235
 Transform:
   m_ObjectHideFlags: 0
@@ -211,6 +215,24 @@ MonoBehaviour:
   RegionSize: 1500
   TestDistance: 150
   NoiseScale: 0.1
+--- !u!114 &577911237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 577911233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28e1ba7d5e215474e8d99adfe3623d62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TestPoint: {fileID: 463890328}
+  GrassObject: {fileID: 1967940712903694, guid: 9d3c4fe55f92ee24a83dadd5502cef94,
+    type: 2}
+  PropCount: 20000
+  RegionSize: 1500
+  TestDistance: 400
+  NoiseScale: 0.01
 --- !u!1001 &966052892
 Prefab:
   m_ObjectHideFlags: 0

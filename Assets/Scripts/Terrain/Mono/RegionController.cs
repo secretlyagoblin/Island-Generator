@@ -19,6 +19,8 @@ public class RegionController : MonoBehaviour {
     public bool GenerateCollision;
     public int CollisionDecimationFactor;
 
+    public DetailObjectPool[] DetailObjectPools;
+
     Region _region;
     bool _loaded = false;    
 
@@ -107,9 +109,11 @@ public class RegionController : MonoBehaviour {
         lastTime = time;
         yield return null;
 
-        var pool = GetComponent<DetailObjectPool>();
-        pool.SetPhysicalMap(heightMap);
-        pool.InitPositions();
+        for (int i = 0; i < DetailObjectPools.Length; i++)
+        {
+            DetailObjectPools[i].SetPhysicalMap(heightMap);
+            DetailObjectPools[i].InitPositions();
+        }
 
         time = Time.realtimeSinceStartup;
         Debug.Log("Instantiating Props: " + (time - lastTime) + " seconds");
