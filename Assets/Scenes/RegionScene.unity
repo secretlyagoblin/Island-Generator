@@ -177,7 +177,7 @@ MonoBehaviour:
   RegionResolution: 300
   RegionSize: 1500
   ChunkUpdateDistance: 500
-  NumberOfChunksInRow: 16
+  NumberOfChunksInRow: 8
   ChunkResolution: 168
   GenerateCollision: 1
   CollisionDecimationFactor: 2
@@ -209,11 +209,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TestPoint: {fileID: 463890328}
-  GrassObject: {fileID: 1145727348350262, guid: 6814b2e75f3cdd54ea6d06e0d547dbfa,
+  GrassObject: {fileID: 1660809846557206, guid: 491f35ab1932fd2488e0d99dd946eec1,
     type: 2}
   PropCount: 2000000
   RegionSize: 1500
-  TestDistance: 150
+  TestDistance: 50
   NoiseScale: 0.1
 --- !u!114 &577911237
 MonoBehaviour:
@@ -227,8 +227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TestPoint: {fileID: 463890328}
-  GrassObject: {fileID: 1967940712903694, guid: 9d3c4fe55f92ee24a83dadd5502cef94,
-    type: 2}
+  GrassObject: {fileID: 100000, guid: 6b4b29e49f76c9f46b7f3594d299d8d9, type: 2}
   PropCount: 20000
   RegionSize: 1500
   TestDistance: 400
