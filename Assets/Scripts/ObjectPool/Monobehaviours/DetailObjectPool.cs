@@ -12,6 +12,8 @@ public class DetailObjectPool : MonoBehaviour {
     public float TestDistance;
     public float NoiseScale;
 
+    public Gradient ColourGradient;
+
     DetailObjectBucketManager<DetailObjectData> _detailObjectManager;
 
 
@@ -52,7 +54,7 @@ public class DetailObjectPool : MonoBehaviour {
 
             var vec = new Vector3(vec2.x*RegionSize, _heightMap.BilinearSampleFromNormalisedVector2(vec2), vec2.y* RegionSize);
 
-            if (Mathf.PerlinNoise(vec.x * 0.1f, vec.z * 0.1f) < 0.5f & (Mathf.PerlinNoise(vec.x * (0.1f * 4), vec.z * (0.1f * 4)) < 0.5f | RNG.Next(0, 100) < 0.5f))
+            if (Mathf.PerlinNoise(vec.x * NoiseScale, vec.z * NoiseScale) < 0.5f & (Mathf.PerlinNoise(vec.x * (NoiseScale * 4), vec.z * (NoiseScale * 4)) < 0.5f | RNG.Next(0, 100) < 1f))
             {
                 AddPosition(vec);
                 //Debug.DrawRay(vec, Vector3.right, Color.green, 100f);
@@ -122,12 +124,13 @@ public class DetailObjectPool : MonoBehaviour {
 
         if (RNG.Next(0, 1000) < 1)
         {
-            scale = scale * 2f;
+            scale = scale * 3f;
         }
 
-        var tint = Mathf.PerlinNoise(pos.x * 0.4f, pos.z * 0.4f);
-        tint = (tint * 0.5f) + 0.5f;
-        var color = new Color(tint, tint, tint);
+        //var tint = ColourGradient.Evaluate(Mathf.PerlinNoise(pos.x * 0.4454f, pos.z * 0.435435f));
+        //tint = (tint * 0.5f) + 0.5f;
+
+        var color = ColourGradient.Evaluate(Mathf.PerlinNoise(pos.x * 0.14454f, pos.z * 0.1435435f));
 
         return new DetailObjectData(pos, Quaternion.AngleAxis(rot, Vector3.up), new Vector3(scale, scale, scale), color);
 
@@ -159,8 +162,8 @@ public class DetailObjectPool : MonoBehaviour {
 
         public void ApplyColorData(Transform transform, MaterialPropertyBlock block)
         {
-            block.SetColor("_Color", _color);
-            transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
+            //block.SetColor("_Color", _color);
+            //transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
         }
 
         public GameObject Instantiate(GameObject baseObject, Transform parent)

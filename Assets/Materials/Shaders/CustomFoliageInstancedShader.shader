@@ -2,11 +2,12 @@
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
-		_Glossiness ("Smoothness", Range(0,1)) = 0.5
-		_Metallic ("Metallic", Range(0,1)) = 0.0
+		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+		//_Glossiness ("Smoothness", Range(0,1)) = 0.5
+		//_Metallic ("Metallic", Range(0,1)) = 0.0
 	}
 	SubShader {
-		Tags { "RenderType"="Opaque" }
+		Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		LOD 200
 		
 		CGPROGRAM
@@ -24,13 +25,15 @@
 		// #pragma instancing_options
 
 		sampler2D _MainTex;
+		//uniform float _CutOff;
 
 		struct Input {
 			float2 uv_MainTex;
 		};
 
-		half _Glossiness;
-		half _Metallic;
+		//half _Glossiness;
+		//half _Metallic;
+		half _Cutoff;
 
 		// Declare instanced properties inside a cbuffer.
 		// Each instanced property is an array of by default 500(D3D)/128(GL) elements. Since D3D and GL imposes a certain limitation
@@ -44,11 +47,18 @@
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			// Albedo comes from a texture tinted by color
 			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * UNITY_ACCESS_INSTANCED_PROP(_Color);
+			float ca = tex2D(_MainTex, IN.uv_MainTex).a;
+			
 			o.Albedo = c.rgb;
 			// Metallic and smoothness come from slider variables
-			o.Metallic = _Metallic;
-			o.Smoothness = _Glossiness;
-			o.Alpha = c.a;
+			//o.Metallic = _Metallic;
+			//o.Smoothness = _Glossiness;
+
+			if (ca < _Cutoff)
+				discard;
+				//o.Alpha = c.a;
+			//else
+				
 		}
 		ENDCG
 	}

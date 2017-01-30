@@ -209,12 +209,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TestPoint: {fileID: 463890328}
-  GrassObject: {fileID: 1660809846557206, guid: 491f35ab1932fd2488e0d99dd946eec1,
+  GrassObject: {fileID: 1819576917715930, guid: 4ba73827c27fd4e47b85fc4f81cd0e84,
     type: 2}
   PropCount: 2000000
   RegionSize: 1500
-  TestDistance: 50
+  TestDistance: 120
   NoiseScale: 0.1
+  ColourGradient:
+    key0:
+      serializedVersion: 2
+      rgba: 4283387727
+    key1:
+      serializedVersion: 2
+      rgba: 4290559164
+    key2:
+      serializedVersion: 2
+      rgba: 16514043
+    key3:
+      serializedVersion: 2
+      rgba: 16514043
+    key4:
+      serializedVersion: 2
+      rgba: 0
+    key5:
+      serializedVersion: 2
+      rgba: 0
+    key6:
+      serializedVersion: 2
+      rgba: 0
+    key7:
+      serializedVersion: 2
+      rgba: 0
+    ctime0: 0
+    ctime1: 20624
+    ctime2: 65535
+    ctime3: 65535
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 3
+    m_NumAlphaKeys: 2
 --- !u!114 &577911237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,11 +271,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TestPoint: {fileID: 463890328}
-  GrassObject: {fileID: 100000, guid: 6b4b29e49f76c9f46b7f3594d299d8d9, type: 2}
-  PropCount: 20000
+  GrassObject: {fileID: 1843271488461220, guid: 085877f63f2dc8246bbbbf9bba28f625,
+    type: 2}
+  PropCount: 30000
   RegionSize: 1500
   TestDistance: 400
   NoiseScale: 0.01
+  ColourGradient:
+    key0:
+      serializedVersion: 2
+      rgba: 4283387727
+    key1:
+      serializedVersion: 2
+      rgba: 4290559164
+    key2:
+      serializedVersion: 2
+      rgba: 16514043
+    key3:
+      serializedVersion: 2
+      rgba: 16514043
+    key4:
+      serializedVersion: 2
+      rgba: 0
+    key5:
+      serializedVersion: 2
+      rgba: 0
+    key6:
+      serializedVersion: 2
+      rgba: 0
+    key7:
+      serializedVersion: 2
+      rgba: 0
+    ctime0: 0
+    ctime1: 20624
+    ctime2: 65535
+    ctime3: 65535
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 3
+    m_NumAlphaKeys: 2
 --- !u!1001 &966052892
 Prefab:
   m_ObjectHideFlags: 0
@@ -295,6 +384,37 @@ Transform:
   m_PrefabParentObject: {fileID: 4495503312771702, guid: da1c2475ac497424c81fbf40c0b259ef,
     type: 2}
   m_PrefabInternal: {fileID: 463890327}
+--- !u!1 &1549316129 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1731278034081556, guid: da1c2475ac497424c81fbf40c0b259ef,
+    type: 2}
+  m_PrefabInternal: {fileID: 463890327}
+--- !u!114 &1549316135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1549316129}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 646b5bc27a658f447b1d929fd5ffbd70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mode: 2
+  showGeneratedNormals: 0
+  offsetScale: 0.2
+  blurRadius: 18
+  edgeThresholdMin: 0.05
+  edgeThreshold: 0.2
+  edgeSharpness: 4
+  dlaaSharp: 0
+  ssaaShader: {fileID: 4800000, guid: b3728d1488b02490cbd196c7941bf1f8, type: 3}
+  dlaaShader: {fileID: 4800000, guid: 017ca72b9e8a749058d13ebd527e98fa, type: 3}
+  nfaaShader: {fileID: 4800000, guid: ce0cb2621f6d84e21a87414e471a3cce, type: 3}
+  shaderFXAAPreset2: {fileID: 4800000, guid: 6f1418cffd12146f2a83be795f6fa5a7, type: 3}
+  shaderFXAAPreset3: {fileID: 4800000, guid: c182fa94a5a0a4c02870641efcd38cd5, type: 3}
+  shaderFXAAII: {fileID: 4800000, guid: cd5b323dcc592457790ff18b528f5e67, type: 3}
+  shaderFXAAIII: {fileID: 4800000, guid: c547503fff0e8482ea5793727057041c, type: 3}
 --- !u!1 &1612210374
 GameObject:
   m_ObjectHideFlags: 0
