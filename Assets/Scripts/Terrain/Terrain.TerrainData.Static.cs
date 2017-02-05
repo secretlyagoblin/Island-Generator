@@ -145,7 +145,7 @@ namespace Terrain {
             var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
             var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
-            var colorLayer = new ColorLayer(parentWalkablemap);
+            var colorLayer = new ColorLayer(parentWalkablemap.Clone().Invert().Remap(0.1f,1f));
 
             return new TerrainData(rect, parentWalkablemap, parentHeightmap, colorLayer);
         }

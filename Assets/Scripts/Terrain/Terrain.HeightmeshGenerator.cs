@@ -281,6 +281,7 @@ namespace Terrain {
             Mesh mesh = new Mesh();
             mesh.vertices = Vertices;
             mesh.uv = UVs;
+            mesh.colors = Colors;
             mesh.triangles = Triangles;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
