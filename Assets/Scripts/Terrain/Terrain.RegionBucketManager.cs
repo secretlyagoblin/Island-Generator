@@ -180,7 +180,7 @@ namespace Terrain {
                     return;
                 }
 
-                var data = new HeightmapData[2, 2];
+                var data = new TerrainData[2, 2];
 
                 for (int x = 0; x < 2; x++)
                 {
@@ -194,7 +194,7 @@ namespace Terrain {
                         data[x,y] = _children[x, y].Chunk.GetHeightmapData();
                     }
                 }
-                Chunk = new Chunk(HeightmapData.DummyMap(data,_rect));
+                Chunk = new Chunk(TerrainData.DummyMap(data,_rect));
                 Chunk.InstantiateDummy(transform, material);
             }
 

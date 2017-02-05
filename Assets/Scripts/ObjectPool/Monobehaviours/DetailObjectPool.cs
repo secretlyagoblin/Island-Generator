@@ -35,7 +35,7 @@ public class DetailObjectPool : MonoBehaviour {
     Map.Layer _walkableMap;
     Map.Layer _heightMap;
 
-    public void SetPhysicalMap(HeightmapData data)
+    public void SetPhysicalMap(Terrain.TerrainData data)
     {
         _walkableMap = data.GetHeightmapLayer(Map.MapType.WalkableMap);
         _heightMap = data.GetHeightmapLayer(Map.MapType.HeightMap);

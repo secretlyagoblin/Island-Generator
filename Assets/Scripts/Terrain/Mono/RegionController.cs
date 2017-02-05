@@ -36,7 +36,7 @@ public class RegionController : MonoBehaviour {
 
         //Create Heightmap Data
 
-        var heightMap = HeightmapData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
+        var heightMap = Terrain.TerrainData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
         //var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
 
         time = Time.realtimeSinceStartup;

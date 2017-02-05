@@ -7,12 +7,12 @@ namespace Terrain {
 
     public class Region {
 
-        HeightmapData _data;
+        TerrainData _data;
         RegionBucketManager _bucks;
         Chunk[,] _chunks;
         Rect[,] _rects;
 
-        public Region(HeightmapData data)
+        public Region(TerrainData data)
         {
             _data = data;
         }
@@ -32,7 +32,7 @@ namespace Terrain {
                 {
                     var pos = new Vector2(x * positionSize, y * positionSize);
                     var rect = new Rect(pos, offsetVector);
-                    var mapData = HeightmapData.ChunkVoronoi(_data, new Coord(x, y), mapSize, rect);
+                    var mapData = TerrainData.ChunkVoronoi(_data, new Coord(x, y), mapSize, rect);
 
                     var chunk = new Chunk(mapData);
                     _chunks[x, y] = chunk;

@@ -5,33 +5,11 @@ using Map;
 
 namespace Terrain {
 
-    public class HeightmapData {
+    public partial class TerrainData {
 
-        public Rect Rect
+        public static TerrainData BlankMap(int size, Rect rect, float value)
         {
-            get; private set;
-        }
-
-        Map.Stack _stack;
-
-        private HeightmapData()
-        {
-
-        }
-
-        public float[,] GetFloatArray(MapType type)
-        {
-            return _stack.GetMap(type).FloatArray;
-        }
-
-        public Layer GetHeightmapLayer(MapType type)
-        {
-            return _stack.GetMap(type);
-        }
-
-        public static HeightmapData BlankMap(int size, Rect rect, float value)
-        {
-            var data = new HeightmapData();
+            var data = new TerrainData();
             data.Rect = rect;
             data._stack = new Map.Stack(rect);
 
@@ -44,7 +22,7 @@ namespace Terrain {
             return data;
         }
 
-        public static HeightmapData RegionIsland(int size, Rect rect)
+        public static TerrainData RegionIsland(int size, Rect rect)
         {
             RNG.DateTimeInit();
             var seed = RNG.NextFloat(0, 1000);
@@ -124,7 +102,7 @@ namespace Terrain {
             maps.AddMap(MapType.HeightMap, realFinalMap.Multiply(200f));
             maps.SetRect(rect);
 
-            var mapData = new HeightmapData();
+            var mapData = new TerrainData();
             mapData.Rect = rect;
             
             mapData._stack = maps;
@@ -135,12 +113,12 @@ namespace Terrain {
             return mapData;
         }
 
-        public static HeightmapData ChunkVoronoi(HeightmapData parentData, Coord coord, int size, Rect rect)
+        public static TerrainData ChunkVoronoi(TerrainData parentData, Coord coord, int size, Rect rect)
         {
             rect = GrowRectByOne(rect, size);
             size = size + 1;
 
-            var data = new HeightmapData();
+            var data = new TerrainData();
             data.Rect = rect;
             data._stack = new Map.Stack(rect);
 
@@ -187,12 +165,12 @@ namespace Terrain {
             //return data;
         }
 
-        public static HeightmapData PassThroughUntouched(HeightmapData parentData, Coord coord, int size, Rect rect)
+        public static TerrainData PassThroughUntouched(TerrainData parentData, Coord coord, int size, Rect rect)
         {
             rect = GrowRectByOne(rect, size);
             size = size + 1;
 
-            var data = new HeightmapData();
+            var data = new TerrainData();
             data.Rect = rect;
             data._stack = new Map.Stack(rect);
 
@@ -205,7 +183,7 @@ namespace Terrain {
             return data;
         }
 
-        public static HeightmapData CreateCollisionData(HeightmapData cellData, int decimationFactor, Rect rect)
+        public static TerrainData CreateCollisionData(TerrainData cellData, int decimationFactor, Rect rect)
         {
 
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white,100f);
@@ -218,7 +196,7 @@ namespace Terrain {
             //rect.position
 
 
-            var data = new HeightmapData();
+            var data = new TerrainData();
             data.Rect = rect;
 
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white, 100f);
@@ -232,7 +210,7 @@ namespace Terrain {
             return data;
         }
 
-        public static HeightmapData DummyMap(HeightmapData[,] dummyMaps, Rect rect)
+        public static TerrainData DummyMap(TerrainData[,] dummyMaps, Rect rect)
         {
             rect = GrowRectByOne(rect, dummyMaps[0,0]._stack.GetMap(MapType.HeightMap).SizeX-1);
 
@@ -251,7 +229,7 @@ namespace Terrain {
             var _stack = new Map.Stack(rect);
             _stack.AddMap(MapType.HeightMap, heightMap);
 
-            var data = new HeightmapData();
+            var data = new TerrainData();
             data.Rect = rect;
             data._stack = _stack;
 
