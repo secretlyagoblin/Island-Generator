@@ -96,8 +96,8 @@ namespace Terrain {
             rect = GrowRectByOne(rect, size);
             size = size + 1;     
 
-            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
-            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.WalkableMap]).ToMap();
+            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
             var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
             
@@ -119,7 +119,8 @@ namespace Terrain {
             //data._stack.AddMap(MapType.HeightMap, parentHeightmap);
             //data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
 
-            return new TerrainData(rect, Layer.Blend(heightMap, parentHeightmap, diffMap), diffMap);
+            //return new TerrainData(rect, Layer.Blend(heightMap, parentHeightmap, diffMap), diffMap);
+            return new TerrainData(rect, diffMap, heightMap);
 
             /*            
 
@@ -141,17 +142,10 @@ namespace Terrain {
             rect = GrowRectByOne(rect, size);
             size = size + 1;
 
-            var data = new TerrainData();
-            data.Rect = rect;
-            data._stack = new Map.Stack(rect);
+            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
-            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
-            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.WalkableMap]).ToMap();
-
-            data._stack.AddMap(MapType.HeightMap, parentHeightmap);
-            data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
-
-            return data;
+            return new TerrainData(rect, parentWalkablemap, parentHeightmap);
         }
 
         public static TerrainData CreateCollisionData(TerrainData cellData, int decimationFactor, Rect rect)
@@ -162,28 +156,22 @@ namespace Terrain {
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
 
-            var map = Layer.DecimateMap(cellData._stack.GetMap(MapType.HeightMap), decimationFactor);
+            var map = Layer.DecimateMap(cellData.HeightMap, decimationFactor);
             rect = GrowRectByOne(rect, map.SizeX-1);
             //rect.position
-
-
-            var data = new TerrainData();
-            data.Rect = rect;
 
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white, 100f);
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.max.y), Color.white, 100f);
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
 
-            data._stack = new Map.Stack(rect);
-            data._stack.AddMap(MapType.HeightMap, map);
 
-            return data;
+            return new TerrainData(rect,Layer.BlankMap(map), map);
         }
 
         public static TerrainData DummyMap(TerrainData[,] dummyMaps, Rect rect)
         {
-            rect = GrowRectByOne(rect, dummyMaps[0,0]._stack.GetMap(MapType.HeightMap).SizeX-1);
+            rect = GrowRectByOne(rect, dummyMaps[0,0].HeightMap.SizeX-1);
 
             var layers = new Layer[2,2];
 
@@ -191,20 +179,13 @@ namespace Terrain {
             {
                 for (int y = 0; y < 2; y++)
                 {
-                    layers[x, y] = dummyMaps[x, y]._stack.GetMap(MapType.HeightMap);
+                    layers[x, y] = dummyMaps[x, y].HeightMap;
                 }
             }
 
             var heightMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
 
-            var _stack = new Map.Stack(rect);
-            _stack.AddMap(MapType.HeightMap, heightMap);
-
-            var data = new TerrainData();
-            data.Rect = rect;
-            data._stack = _stack;
-
-            return data;
+            return new TerrainData(rect,Layer.BlankMap(heightMap), heightMap);
         }
 
         static Layer CreateHeightMap(Layer unionMap)

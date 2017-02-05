@@ -174,7 +174,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Material: {fileID: 2100000, guid: 946df60b16d9c2d4fbd3dbd8ab98bce5, type: 2}
   TestTransform: {fileID: 1209126686}
-  RegionResolution: 300
+  RegionResolution: 115
   RegionSize: 1500
   ChunkUpdateDistance: 500
   NumberOfChunksInRow: 8

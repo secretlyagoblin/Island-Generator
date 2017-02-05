@@ -14,19 +14,19 @@ public class HeightmeshGenerator {
             return _heightMeshGenerator.GenerateHeightmeshPatch(data).CreateMesh();
         }
 
-        public HeightMeshData GenerateHeightmesh(TerrainData data)
+        public TerrainMesh GenerateHeightmesh(TerrainData data)
         {
             return GenerateHeightmeshPatch(data);
         }
 
-        HeightMeshData GenerateHeightmeshPatch(TerrainData data)
+        TerrainMesh GenerateHeightmeshPatch(TerrainData data)
     {
         var map = data.HeightMap.FloatArray;
 
         var sizeX = map.GetLength(0);
         var sizeY = map.GetLength(1);
 
-        var heightmesh = new HeightMeshData(sizeX, sizeY);
+        var heightmesh = new TerrainMesh(sizeX, sizeY);
         var vertexIndex = 0;
 
         var lens = new MeshLens(new Vector3(data.Rect.size.x, 1, data.Rect.size.y));
@@ -229,7 +229,7 @@ public class HeightmeshGenerator {
     */
 }
 
-public class HeightMeshData {
+public class TerrainMesh {
 
     public Vector3[] Vertices
     { get; private set; }
@@ -240,7 +240,7 @@ public class HeightMeshData {
 
     int _triangleIndex = 0;
 
-    public HeightMeshData(int meshWidth, int meshHeight)
+    public TerrainMesh(int meshWidth, int meshHeight)
     {
         Vertices = new Vector3[meshWidth * meshHeight];
         UVs = new Vector2[meshWidth * meshHeight];
