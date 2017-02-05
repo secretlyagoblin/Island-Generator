@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Terrain;
 using System.Linq;
+using U3D.Threading.Tasks;
 
 public class DetailObjectPool : MonoBehaviour {
 
@@ -15,7 +16,6 @@ public class DetailObjectPool : MonoBehaviour {
     public Gradient ColourGradient;
 
     DetailObjectBucketManager<DetailObjectData> _detailObjectManager;
-
 
 	Queue<GameObject> _freeObjects = new Queue<GameObject>();
 	Dictionary<DetailObjectData,GameObject> _dict = new Dictionary<DetailObjectData, GameObject>();
@@ -65,17 +65,77 @@ public class DetailObjectPool : MonoBehaviour {
         _detailObjectManager.AddElement(CreateGrassData(position), new Vector2(position.x, position.z));
     }
 
+    bool _needsUpdate = true;
+    Vector2 _testVector;
+    Vector2 _previousTestVector = Vector2.zero;
 
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update () {
 
         //Update the detail object manager
 
-		_detailObjectManager.Update (new Vector2 (TestPoint.transform.position.x,TestPoint.transform.position.z), TestDistance);
+        _testVector = new Vector2(TestPoint.transform.position.x, TestPoint.transform.position.z);
 
-        // Hide the objects exiting the pool and remove them from the dict
+        if (_needsUpdate && _testVector != _previousTestVector )
+        {
+            _needsUpdate = false;
+            _previousTestVector = _testVector;
+            
+            var task = Task.Run(UpdateDetailObjectManager).ContinueInMainThreadWith(ApplyObjectManagerChanges);
+        }
+	}
 
-        for (int i = 0; i < _detailObjectManager.ObjectsExitingPool.Count; i++)
+    void UpdateDetailObjectManager()
+    {
+        _detailObjectManager.Update(_testVector, TestDistance);
+    }
+
+    void ApplyObjectManagerChanges(Task t) // Modify to happen in batches
+    {
+        StartCoroutine(ApplyObjectManagerChangesCoroutine(1000,150));
+    }
+
+    System.Collections.IEnumerator ApplyObjectManagerChangesCoroutine(int iterationSizeRemove, int iterationSizeAdd)
+    {
+        var listComplete = false;
+        var startIndex = 0;
+
+        while (!listComplete)
+        {
+            listComplete = RemoveOldObjects(startIndex, iterationSizeRemove);
+            startIndex += iterationSizeRemove;
+            yield return null;
+        }
+
+        listComplete = false;
+        startIndex = 0;
+
+        while (!listComplete)
+        {
+            listComplete = AddNewObjects(startIndex, iterationSizeAdd);
+            startIndex += iterationSizeAdd;
+            yield return null;
+        }
+
+        //Debug.Log("Created all grass, retriggering update...");
+
+        _needsUpdate = true;
+    }
+
+    bool RemoveOldObjects(int startIndex, int iterations)
+    {
+        var maxCount = startIndex + iterations;
+        var exitPoolCount = _detailObjectManager.ObjectsExitingPool.Count;
+
+        var isWholeListIteratedOver = false;
+
+        if (startIndex + iterations >= exitPoolCount)
+        {
+            maxCount = exitPoolCount;
+            isWholeListIteratedOver = true;
+        }
+
+        for (int i = startIndex; i < maxCount; i++)
         {
             var objectData = _detailObjectManager.ObjectsExitingPool[i];
             var obj = _dict[objectData];
@@ -84,9 +144,23 @@ public class DetailObjectPool : MonoBehaviour {
             _dict.Remove(objectData);
         }
 
-        // Either show or instantiate new detail objects
+        return isWholeListIteratedOver;
+    }
 
-        for (int i = 0; i < _detailObjectManager.ObjectsEnteringPool.Count; i++)
+    bool AddNewObjects(int startIndex, int iterations)
+    {
+        var maxCount = startIndex + iterations;
+        var entryPoolCount = _detailObjectManager.ObjectsEnteringPool.Count;
+
+        var isWholeListIteratedOver = false;
+
+        if (startIndex + iterations >= entryPoolCount)
+        {
+            maxCount = entryPoolCount;
+            isWholeListIteratedOver = true;
+        }
+
+        for (int i = startIndex; i < maxCount; i++)
         {
             var objectData = _detailObjectManager.ObjectsEnteringPool[i];
 
@@ -107,9 +181,10 @@ public class DetailObjectPool : MonoBehaviour {
 
                 _dict.Add(objectData, obj);
             }
-            
         }
-	}
+
+        return isWholeListIteratedOver;
+    }
 
     DetailObjectData CreateGrassData(Vector3 position)
     {
@@ -166,7 +241,7 @@ public class DetailObjectPool : MonoBehaviour {
 
         public GameObject Instantiate(GameObject baseObject, Transform parent)
         {
-            var obj = Object.Instantiate(baseObject, _positon,_rotation, parent);
+            var obj = Object.Instantiate(baseObject, _positon, _rotation, parent);
             obj.transform.localScale = _scale;
 
             return obj;

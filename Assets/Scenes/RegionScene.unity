@@ -135,6 +135,11 @@ Prefab:
       propertyPath: m_Downforce
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: 54117788325731878, guid: da1c2475ac497424c81fbf40c0b259ef,
+        type: 2}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: da1c2475ac497424c81fbf40c0b259ef, type: 2}
   m_IsPrefabParent: 0
@@ -183,7 +188,6 @@ MonoBehaviour:
   CollisionDecimationFactor: 2
   DetailObjectPools:
   - {fileID: 577911236}
-  - {fileID: 577911237}
 --- !u!4 &577911235
 Transform:
   m_ObjectHideFlags: 0
@@ -265,7 +269,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 577911233}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28e1ba7d5e215474e8d99adfe3623d62, type: 3}
   m_Name: 
