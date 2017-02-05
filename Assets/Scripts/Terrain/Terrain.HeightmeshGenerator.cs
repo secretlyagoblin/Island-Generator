@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System;
 
-namespace Terrain{
+namespace Terrain {
 
-public class HeightmeshGenerator {
+    public class HeightmeshGenerator {
 
         static HeightmeshGenerator _heightMeshGenerator = new HeightmeshGenerator();
 
@@ -20,45 +20,47 @@ public class HeightmeshGenerator {
         }
 
         TerrainMesh GenerateHeightmeshPatch(TerrainData data)
-    {
-        var map = data.HeightMap.FloatArray;
-
-        var sizeX = map.GetLength(0);
-        var sizeY = map.GetLength(1);
-
-        var heightmesh = new TerrainMesh(sizeX, sizeY);
-        var vertexIndex = 0;
-
-        var lens = new MeshLens(new Vector3(data.Rect.size.x, 1, data.Rect.size.y));
-
-        for (int x = 0; x < sizeX; x++)
         {
-            for (int y = 0; y < sizeY; y++)
+            var map = data.HeightMap.FloatArray;
+            var colorMap = data.ColorMap;
+
+            var sizeX = map.GetLength(0);
+            var sizeY = map.GetLength(1);
+
+            var heightmesh = new TerrainMesh(sizeX, sizeY);
+            var vertexIndex = 0;
+
+            var lens = new MeshLens(new Vector3(data.Rect.size.x, 1, data.Rect.size.y));
+
+            for (int x = 0; x < sizeX; x++)
             {
-                var normalisedX = x / (float)(sizeX);
-                var normalisedY = y / (float)(sizeY);
+                for (int y = 0; y < sizeY; y++)
+                {
+                    var normalisedX = x / (float)(sizeX);
+                    var normalisedY = y / (float)(sizeY);
 
-                heightmesh.AddVertex(lens.TransformNormalisedPosition(normalisedX, map[x, y], normalisedY), vertexIndex);
+                    heightmesh.AddVertex(lens.TransformNormalisedPosition(normalisedX, map[x, y], normalisedY), vertexIndex);
 
-                //Debug.Log("x: " + normalisedX + " y: " + heightMap[x, y] + " z: " + normalisedY);
+                    //Debug.Log("x: " + normalisedX + " y: " + heightMap[x, y] + " z: " + normalisedY);
 
                     //TODO: Use mesh colours here
 
-                //var texX = Mathf.Lerp(textureRect.min.x, textureRect.max.x,normalisedX);
-                //var texY = Mathf.Lerp(textureRect.min.y, textureRect.max.y, normalisedY);
+                    //var texX = Mathf.Lerp(textureRect.min.x, textureRect.max.x,normalisedX);
+                    //var texY = Mathf.Lerp(textureRect.min.y, textureRect.max.y, normalisedY);
 
-                heightmesh.AddUV(new Vector2(normalisedX, normalisedY), vertexIndex);
+                    heightmesh.AddUV(new Vector2(normalisedX, normalisedY), vertexIndex);
+                    heightmesh.AddColor(colorMap[x,y], vertexIndex);
 
-                if(x < sizeX-1 && y < sizeY - 1)
-                {
-                    heightmesh.AddTriangle(vertexIndex, vertexIndex + sizeX + 1, vertexIndex + sizeX);
-                    heightmesh.AddTriangle(vertexIndex+sizeX+1, vertexIndex, vertexIndex + 1);
+                    if (x < sizeX - 1 && y < sizeY - 1)
+                    {
+                        heightmesh.AddTriangle(vertexIndex, vertexIndex + sizeX + 1, vertexIndex + sizeX);
+                        heightmesh.AddTriangle(vertexIndex + sizeX + 1, vertexIndex, vertexIndex + 1);
+                    }
+                    vertexIndex++;
                 }
-                vertexIndex++;
             }
+            return heightmesh;
         }
-        return heightmesh;
-    }
 
         /*
 
@@ -227,154 +229,163 @@ public class HeightmeshGenerator {
     }
 
     */
-}
-
-public class TerrainMesh {
-
-    public Vector3[] Vertices
-    { get; private set; }
-    public Vector2[] UVs
-    { get; private set; }
-    public int[] Triangles
-    { get; private set; }
-
-    int _triangleIndex = 0;
-
-    public TerrainMesh(int meshWidth, int meshHeight)
-    {
-        Vertices = new Vector3[meshWidth * meshHeight];
-        UVs = new Vector2[meshWidth * meshHeight];
-        Triangles = new int[(meshWidth - 1) * (meshHeight - 1) * 6];
     }
 
-    public void AddTriangle(int a, int b, int c)
-    {
-        Triangles[_triangleIndex] = a;
-        Triangles[_triangleIndex+1] = b;
-        Triangles[_triangleIndex+2] = c;
+    public class TerrainMesh {
 
-        _triangleIndex += 3;
-    }
+        public Vector3[] Vertices
+        { get; private set; }
+        public Vector2[] UVs
+        { get; private set; }
+        public Color[] Colors
+        { get; private set; }
+        public int[] Triangles
+        { get; private set; }
 
-    public void AddVertex(Vector3 vector, int index)
-    {
-        Vertices[index] = vector;
-    }
+        int _triangleIndex = 0;
 
-    public void AddUV(Vector2 vector, int index)
-    {
-        UVs[index] = vector;
-    }
-
-    public Mesh CreateMesh()
-    {
-        Mesh mesh = new Mesh();
-        mesh.vertices = Vertices;
-        mesh.uv = UVs;
-        mesh.triangles = Triangles;
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-        return mesh;
-    }
-
-}
-
-public class HeightmeshSeam {
-
-    public Vector3[] Vertices
-    { get; private set; }
-    public Vector2[] UVs
-    { get; private set; }
-    public List<int> Triangles
-    { get; private set; }
-
-    public HeightmeshSeam(Vector3[] longArray,Coord longCoord, Vector3[] shortArray, Coord shortCoord,  MeshLens lens)
-    {
-        Vertices = new Vector3[longArray.Length+shortArray.Length];
-        UVs = new Vector2[longArray.Length + shortArray.Length];
-
-        CalculateVectorArray(longArray, 0, longCoord, lens);
-        CalculateVectorArray(shortArray, longArray.Length, shortCoord, lens);
-        Triangles = new List<int>();
-
-        
-    }
-
-    void CalculateVectorArray(Vector3[] array, int startIndex, Coord coord, MeshLens lens)
-    {
-        for (int i = 0; i < array.Length; i++)
+        public TerrainMesh(int meshWidth, int meshHeight)
         {
-            Vertices[i+startIndex] = lens.TransformNormalisedPosition(array[i] + coord.Vector3);
+            Vertices = new Vector3[meshWidth * meshHeight];
+            UVs = new Vector2[meshWidth * meshHeight];
+            Colors = new Color[meshWidth * meshHeight];
+            Triangles = new int[(meshWidth - 1) * (meshHeight - 1) * 6];
+        }
 
-            var uvx = array[i].x;
-            if (uvx == 0)
-                uvx = 1;
+        public void AddTriangle(int a, int b, int c)
+        {
+            Triangles[_triangleIndex] = a;
+            Triangles[_triangleIndex + 1] = b;
+            Triangles[_triangleIndex + 2] = c;
 
-            var uvy = array[i].z;
-            if (uvy == 0)
-                uvy = 1;
+            _triangleIndex += 3;
+        }
 
-            UVs[i + startIndex] = new Vector2(uvx, uvy);
+        public void AddVertex(Vector3 vector, int index)
+        {
+            Vertices[index] = vector;
+        }
+
+        public void AddUV(Vector2 vector, int index)
+        {
+            UVs[index] = vector;
+        }
+
+        public void AddColor(Color color, int index)
+        {
+            Colors[index] = color;
+        }
+
+        public Mesh CreateMesh()
+        {
+            Mesh mesh = new Mesh();
+            mesh.vertices = Vertices;
+            mesh.uv = UVs;
+            mesh.triangles = Triangles;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+    }
+
+    public class HeightmeshSeam {
+
+        public Vector3[] Vertices
+        { get; private set; }
+        public Vector2[] UVs
+        { get; private set; }
+        public List<int> Triangles
+        { get; private set; }
+
+        public HeightmeshSeam(Vector3[] longArray, Coord longCoord, Vector3[] shortArray, Coord shortCoord, MeshLens lens)
+        {
+            Vertices = new Vector3[longArray.Length + shortArray.Length];
+            UVs = new Vector2[longArray.Length + shortArray.Length];
+
+            CalculateVectorArray(longArray, 0, longCoord, lens);
+            CalculateVectorArray(shortArray, longArray.Length, shortCoord, lens);
+            Triangles = new List<int>();
+
+
+        }
+
+        void CalculateVectorArray(Vector3[] array, int startIndex, Coord coord, MeshLens lens)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                Vertices[i + startIndex] = lens.TransformNormalisedPosition(array[i] + coord.Vector3);
+
+                var uvx = array[i].x;
+                if (uvx == 0)
+                    uvx = 1;
+
+                var uvy = array[i].z;
+                if (uvy == 0)
+                    uvy = 1;
+
+                UVs[i + startIndex] = new Vector2(uvx, uvy);
+            }
+        }
+
+
+
+
+
+        public void AddTriangle(int a, int b, int c)
+        {
+            Triangles.Add(a);
+            Triangles.Add(b);
+            Triangles.Add(c);
+        }
+
+        public Mesh CreateMesh()
+        {
+            Mesh mesh = new Mesh();
+            mesh.vertices = Vertices;
+            mesh.uv = UVs;
+            mesh.SetTriangles(Triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+
+    }
+
+    public class HeightmeshQuad {
+
+        public Vector3[] Vertices
+        { get; private set; }
+        public Vector2[] UVs
+        { get; private set; }
+        public List<int> Triangles
+        { get; private set; }
+
+        public void AddTriangle(int a, int b, int c)
+        {
+            Triangles.Add(a);
+            Triangles.Add(b);
+            Triangles.Add(c);
+        }
+
+        public HeightmeshQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, MeshLens lens)
+        {
+            Vertices = new Vector3[] { lens.TransformNormalisedPosition(a), lens.TransformNormalisedPosition(b), lens.TransformNormalisedPosition(c), lens.TransformNormalisedPosition(d) };
+            UVs = new Vector2[] { a, b, c, d };
+
+            Triangles = new List<int>();
+        }
+
+        public Mesh CreateMesh()
+        {
+            Mesh mesh = new Mesh();
+            mesh.vertices = Vertices;
+            mesh.uv = UVs;
+            mesh.SetTriangles(Triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
         }
     }
-
-
-
-    
-
-    public void AddTriangle(int a, int b, int c)
-    {
-        Triangles.Add(a);
-        Triangles.Add(b);
-        Triangles.Add(c);
-    }
-
-    public Mesh CreateMesh()
-    {
-        Mesh mesh = new Mesh();
-        mesh.vertices = Vertices;
-        mesh.uv = UVs;
-        mesh.SetTriangles(Triangles,0);
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-        return mesh;
-    }
-
-
-}
-
-public class HeightmeshQuad {
-
-    public Vector3[] Vertices
-    { get; private set; }
-    public Vector2[] UVs
-    { get; private set; }
-    public List<int> Triangles
-    { get; private set; }
-
-    public void AddTriangle(int a, int b, int c)
-    {
-        Triangles.Add(a);
-        Triangles.Add(b);
-        Triangles.Add(c);
-    }
-
-    public HeightmeshQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, MeshLens lens)
-    {
-        Vertices = new Vector3[] { lens.TransformNormalisedPosition(a), lens.TransformNormalisedPosition(b), lens.TransformNormalisedPosition(c), lens.TransformNormalisedPosition(d) };
-        UVs = new Vector2[] {a,b,c,d};
-
-        Triangles = new List<int>();    }
-
-    public Mesh CreateMesh()
-    {
-        Mesh mesh = new Mesh();
-        mesh.vertices = Vertices;
-        mesh.uv = UVs;
-        mesh.SetTriangles(Triangles,0);
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-        return mesh;
-    }
-}
 }

@@ -145,7 +145,9 @@ namespace Terrain {
             var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
             var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
-            return new TerrainData(rect, parentWalkablemap, parentHeightmap);
+            var colorLayer = new ColorLayer(parentWalkablemap);
+
+            return new TerrainData(rect, parentWalkablemap, parentHeightmap, colorLayer);
         }
 
         public static TerrainData CreateCollisionData(TerrainData cellData, int decimationFactor, Rect rect)

@@ -72,14 +72,25 @@ namespace Terrain {
 
         public ColorLayer(Layer baseMap)
         {
-            R = Layer.BlankMap(baseMap);
-            G = Layer.BlankMap(baseMap);
-            B = Layer.BlankMap(baseMap);
+            R = Layer.Clone(baseMap);
+            G = Layer.Clone(baseMap);
+            B = Layer.Clone(baseMap);
         }
 
         public Color[,] GetColorArray()
         {
-            return new Color[1,1];
+            var colors = new Color[R.SizeX, R.SizeY];
+
+            for (int x = 0; x < R.SizeX; x++)
+            {
+                for (int y = 0; y < R.SizeY; y++)
+                {
+                    colors[x, y] = new Color(R[x, y], G[x, y], B[x, y]);
+                }
+            }
+
+
+            return colors;
         } 
     }
 }
