@@ -120,7 +120,7 @@ namespace Terrain {
             //data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
 
             //return new TerrainData(rect, Layer.Blend(heightMap, parentHeightmap, diffMap), diffMap);
-            return new TerrainData(rect, diffMap, heightMap);
+            return new TerrainData(rect, diffMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
 
             /*            
 
