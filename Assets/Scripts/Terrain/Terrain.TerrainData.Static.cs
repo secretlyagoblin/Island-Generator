@@ -9,17 +9,10 @@ namespace Terrain {
 
         public static TerrainData BlankMap(int size, Rect rect, float value)
         {
-            var data = new TerrainData();
-            data.Rect = rect;
-            data._stack = new Map.Stack(rect);
-
             var parentHeightmap = new Layer(size, size, value);
             var parentWalkablemap = new Layer(size, size, value*2);
 
-            data._stack.AddMap(MapType.HeightMap, parentHeightmap);
-            data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
-
-            return data;
+            return new TerrainData(rect, parentWalkablemap,parentHeightmap);
         }
 
         public static TerrainData RegionIsland(int size, Rect rect)
@@ -95,32 +88,13 @@ namespace Terrain {
 
             //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-            var maps = new Map.Stack(rect);
-
-            maps.AddMap(MapType.WalkableMap, walkableAreaMap);
-            //maps.AddMap(MapType.HeightMap, realFinalMap);
-            maps.AddMap(MapType.HeightMap, realFinalMap.Multiply(200f));
-            maps.SetRect(rect);
-
-            var mapData = new TerrainData();
-            mapData.Rect = rect;
-            
-            mapData._stack = maps;
-
-
-
-
-            return mapData;
+            return new TerrainData(rect,walkableAreaMap, realFinalMap.Multiply(200f));
         }
 
         public static TerrainData ChunkVoronoi(TerrainData parentData, Coord coord, int size, Rect rect)
         {
             rect = GrowRectByOne(rect, size);
-            size = size + 1;
-
-            var data = new TerrainData();
-            data.Rect = rect;
-            data._stack = new Map.Stack(rect);
+            size = size + 1;     
 
             var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.HeightMap]).ToMap();
             var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData._stack[MapType.WalkableMap]).ToMap();
@@ -142,13 +116,10 @@ namespace Terrain {
             heightMap.Multiply(0.5f);
             //heightMap.SmoothMap(3);
 
-            data._stack.AddMap(MapType.HeightMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
-            data._stack.AddMap(MapType.WalkableMap, diffMap);
-
             //data._stack.AddMap(MapType.HeightMap, parentHeightmap);
             //data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
 
-            return data;
+            return new TerrainData(rect, Layer.Blend(heightMap, parentHeightmap, diffMap), diffMap);
 
             /*            
 

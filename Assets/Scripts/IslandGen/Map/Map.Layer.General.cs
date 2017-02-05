@@ -339,28 +339,6 @@ namespace Map {
             return outputFloat;
         }
 
-        public Color[] GetColours()
-        {
-            var list = new List<float>();
-
-            for (int y = 0; y < SizeY; y++)
-            {
-                list.AddRange(GetRow(y));
-            }
-
-            var colours = new Color[list.Count];
-
-            //Debug.Log("Colour Array: ");
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                colours[i] = new Color(0.2f, list[i], list[i]);
-                //Debug.Log(colours[i].grayscale);
-            }
-
-            return colours;
-        }
-
         public Vector3 GetNormalisedVector3FromIndex(int xIndex, int yIndex)
         {
             var x = Mathf.InverseLerp(0, SizeX, xIndex);

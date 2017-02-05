@@ -11,17 +11,17 @@ public class HeightmeshGenerator {
 
         public static Mesh GenerateAndFinaliseHeightMesh(TerrainData data)
         {
-            return _heightMeshGenerator.GenerateHeightmeshPatch(data, Map.MapType.HeightMap).CreateMesh();
+            return _heightMeshGenerator.GenerateHeightmeshPatch(data).CreateMesh();
         }
 
         public HeightMeshData GenerateHeightmesh(TerrainData data)
         {
-            return GenerateHeightmeshPatch(data, Map.MapType.HeightMap);
+            return GenerateHeightmeshPatch(data);
         }
 
-        HeightMeshData GenerateHeightmeshPatch(TerrainData data, Map.MapType type)
+        HeightMeshData GenerateHeightmeshPatch(TerrainData data)
     {
-        var map = data.GetFloatArray(type);
+        var map = data.HeightMap.FloatArray;
 
         var sizeX = map.GetLength(0);
         var sizeY = map.GetLength(1);

@@ -32,13 +32,11 @@ public class DetailObjectPool : MonoBehaviour {
 
 	}
 
-    Map.Layer _walkableMap;
-    Map.Layer _heightMap;
+    Terrain.TerrainData _terrainData;
 
     public void SetPhysicalMap(Terrain.TerrainData data)
     {
-        _walkableMap = data.GetHeightmapLayer(Map.MapType.WalkableMap);
-        _heightMap = data.GetHeightmapLayer(Map.MapType.HeightMap);
+        _terrainData = data;
     }
 
     public void InitPositions()
@@ -47,12 +45,12 @@ public class DetailObjectPool : MonoBehaviour {
         {
             var vec2 = new Vector2(RNG.NextFloat(0, 1), RNG.NextFloat(0, 1));
 
-            if (_walkableMap.BilinearSampleFromNormalisedVector2(vec2) != 0)
+            if (_terrainData.WalkableMap.BilinearSampleFromNormalisedVector2(vec2) != 0)
             {
                 continue;
             }
 
-            var vec = new Vector3(vec2.x*RegionSize, _heightMap.BilinearSampleFromNormalisedVector2(vec2), vec2.y* RegionSize);
+            var vec = new Vector3(vec2.x*RegionSize, _terrainData.HeightMap.BilinearSampleFromNormalisedVector2(vec2), vec2.y* RegionSize);
 
             if (Mathf.PerlinNoise(vec.x * NoiseScale, vec.z * NoiseScale) < 0.5f & (Mathf.PerlinNoise(vec.x * (NoiseScale * 4), vec.z * (NoiseScale * 4)) < 0.5f | RNG.Next(0, 100) < 1f))
             {
