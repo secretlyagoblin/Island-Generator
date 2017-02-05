@@ -117,18 +117,17 @@ namespace Terrain {
 
             //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-            var stack = new Map.Stack(rect);
+            var maps = new Map.Stack(rect);
 
-            stack.AddMap(MapType.WalkableMap, walkableAreaMap);
+            maps.AddMap(MapType.WalkableMap, walkableAreaMap);
             //maps.AddMap(MapType.HeightMap, realFinalMap);
-            stack.AddMap(MapType.HeightMap, realFinalMap.Multiply(200f));
-
-            stack.SetRect(rect);
+            maps.AddMap(MapType.HeightMap, realFinalMap.Multiply(200f));
+            maps.SetRect(rect);
 
             var mapData = new HeightmapData();
             mapData.Rect = rect;
             
-            mapData._stack = stack;
+            mapData._stack = maps;
 
 
 
@@ -249,21 +248,8 @@ namespace Terrain {
 
             var heightMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
 
-            layers = new Layer[2, 2];
-
-            for (int x = 0; x < 2; x++)
-            {
-                for (int y = 0; y < 2; y++)
-                {
-                    layers[x, y] = dummyMaps[x, y]._stack.GetMap(MapType.WalkableMap);
-                }
-            }
-
-            var walkableMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
-
             var _stack = new Map.Stack(rect);
             _stack.AddMap(MapType.HeightMap, heightMap);
-            _stack.AddMap(MapType.WalkableMap, walkableMap);
 
             var data = new HeightmapData();
             data.Rect = rect;

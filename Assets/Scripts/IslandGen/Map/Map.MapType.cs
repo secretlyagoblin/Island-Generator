@@ -8,8 +8,6 @@ namespace Map {
 
         WalkableMap,
         HeightMap,
-        ColorR,
-        ColorB,
-        ColorG
+
     }
 }
