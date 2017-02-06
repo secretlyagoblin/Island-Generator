@@ -88,7 +88,7 @@ namespace Terrain {
 
             //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-            return new TerrainData(rect,walkableAreaMap, realFinalMap.Multiply(200f));
+            return new TerrainData(rect,walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
         }
 
         public static TerrainData ChunkVoronoi(TerrainData parentData, Coord coord, int size, Rect rect)

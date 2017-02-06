@@ -54,15 +54,17 @@ public class DetailObjectPool : MonoBehaviour {
 
             if (Mathf.PerlinNoise(vec.x * NoiseScale, vec.z * NoiseScale) < 0.5f & (Mathf.PerlinNoise(vec.x * (NoiseScale * 4), vec.z * (NoiseScale * 4)) < 0.5f | RNG.Next(0, 100) < 1f))
             {
-                AddPosition(vec);
+                var color = _terrainData.ColorSampleAtPoint(vec2);
+
+                AddPosition(vec,color.grayscale);
                 //Debug.DrawRay(vec, Vector3.right, Color.green, 100f);
             }
         }
     }
 
-    public void AddPosition(Vector3 position)
+    public void AddPosition(Vector3 position, float gradientPosition)
     {
-        _detailObjectManager.AddElement(CreateGrassData(position), new Vector2(position.x, position.z));
+        _detailObjectManager.AddElement(CreateGrassData(position, gradientPosition), new Vector2(position.x, position.z));
     }
 
     bool _needsUpdate = true;
@@ -186,7 +188,7 @@ public class DetailObjectPool : MonoBehaviour {
         return isWholeListIteratedOver;
     }
 
-    DetailObjectData CreateGrassData(Vector3 position)
+    DetailObjectData CreateGrassData(Vector3 position, float gradientPosition)
     {
         var pos = position;
         var rot = RNG.NextFloat(0, 360);
@@ -200,12 +202,10 @@ public class DetailObjectPool : MonoBehaviour {
             scale = scale * 3f;
         }
 
-        //var tint = ColourGradient.Evaluate(Mathf.PerlinNoise(pos.x * 0.4454f, pos.z * 0.435435f));
+        var tint = ColourGradient.Evaluate(gradientPosition);
         //tint = (tint * 0.5f) + 0.5f;
 
-        var color = ColourGradient.Evaluate(Mathf.PerlinNoise(pos.x * 0.14454f, pos.z * 0.1435435f));
-
-        return new DetailObjectData(pos, Quaternion.AngleAxis(rot, Vector3.up), new Vector3(scale, scale, scale), color);
+        return new DetailObjectData(pos, Quaternion.AngleAxis(rot, Vector3.up), new Vector3(scale, scale, scale), tint);
 
     }
 
@@ -235,8 +235,8 @@ public class DetailObjectPool : MonoBehaviour {
 
         public void ApplyColorData(Transform transform, MaterialPropertyBlock block)
         {
-            //block.SetColor("_Color", _color);
-            //transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
+            block.SetColor("_Color", _color);
+            transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
         }
 
         public GameObject Instantiate(GameObject baseObject, Transform parent)

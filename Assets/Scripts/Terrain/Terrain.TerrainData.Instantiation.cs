@@ -63,6 +63,16 @@ namespace Terrain {
             return new TerrainData(rect, walkableMap, heightMap, new ColorLayer(r, g, b));
         }
 
+
+        public Color ColorSampleAtPoint(Vector2 vec)
+        {
+            var r = _colorLayer.R.BilinearSampleFromNormalisedVector2(vec);
+            var g = _colorLayer.G.BilinearSampleFromNormalisedVector2(vec);
+            var b = _colorLayer.B.BilinearSampleFromNormalisedVector2(vec);
+
+            return new Color(r, g, b);
+        }
+
         public static TerrainData CreateSubMap(Rect rect, TerrainData[,] terrainData)
         {
             //WalkableMap
@@ -121,13 +131,15 @@ namespace Terrain {
             get; private set;
         }
 
+        
+
         Gradient _gradient;
 
         public ColorLayer(Layer baseMap)
         {
-            R = Layer.BlankMap(baseMap);
-            G = Layer.BlankMap(baseMap);
-            B = Layer.BlankMap(baseMap);
+            R = Layer.Clone(baseMap);
+            G = Layer.Clone(baseMap);
+            B = Layer.Clone(baseMap);
 
             _gradient = new Gradient();
         }
