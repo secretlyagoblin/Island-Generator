@@ -188,6 +188,7 @@ MonoBehaviour:
   CollisionDecimationFactor: 2
   DetailObjectPools:
   - {fileID: 577911236}
+  - {fileID: 577911237}
 --- !u!4 &577911235
 Transform:
   m_ObjectHideFlags: 0
@@ -269,7 +270,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 577911233}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28e1ba7d5e215474e8d99adfe3623d62, type: 3}
   m_Name: 

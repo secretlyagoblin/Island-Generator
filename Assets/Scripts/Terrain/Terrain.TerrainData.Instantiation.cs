@@ -51,6 +51,57 @@ namespace Terrain {
             HeightMap = heightMap;
             _colorLayer = new ColorLayer(heightMap.Clone().Remap(0.1f,1f));
         }
+
+        public static TerrainData Decimate(Rect rect, TerrainData terrainData, int decimationFactor)
+        {
+            var walkableMap = Layer.DecimateMap(terrainData.WalkableMap, decimationFactor);
+            var heightMap = Layer.DecimateMap(terrainData.HeightMap, decimationFactor);
+            var r = Layer.DecimateMap(terrainData._colorLayer.R, decimationFactor);
+            var g = Layer.DecimateMap(terrainData._colorLayer.G, decimationFactor);
+            var b = Layer.DecimateMap(terrainData._colorLayer.B, decimationFactor);
+
+            return new TerrainData(rect, walkableMap, heightMap, new ColorLayer(r, g, b));
+        }
+
+        public static TerrainData CreateSubMap(Rect rect, TerrainData[,] terrainData)
+        {
+            //WalkableMap
+            var layers = new Layer[2, 2];
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    layers[x, y] = terrainData[x, y].WalkableMap; 
+            var walkableMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+
+            //HeightMap
+            layers = new Layer[2, 2];
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    layers[x, y] = terrainData[x, y].HeightMap;
+            var heightMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+
+            //R
+            layers = new Layer[2, 2];
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    layers[x, y] = terrainData[x, y]._colorLayer.R;
+            var r = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+
+            //G
+            layers = new Layer[2, 2];
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    layers[x, y] = terrainData[x, y]._colorLayer.G;
+            var g = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+
+            //B
+            layers = new Layer[2, 2];
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    layers[x, y] = terrainData[x, y]._colorLayer.B;
+            var b = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+
+            return new TerrainData(rect, walkableMap, heightMap, new ColorLayer(r, g, b));
+        }
     }
 
     class ColorLayer {
@@ -81,19 +132,30 @@ namespace Terrain {
             _gradient = new Gradient();
         }
 
+        public ColorLayer(Layer r, Layer g, Layer b)
+        {
+            R = r;
+            G = g;
+            B = b;
+
+            _gradient = new Gradient();
+        }
+
         public ColorLayer SetGradient(Gradient gradient)
         {
             _gradient = gradient;
             return this;
         }
 
-        public ColorLayer ApplyMap(Layer Map)
+        public ColorLayer ApplyMap(Layer map)
         {
-            for (int x = 0; x < Map.SizeX; x++)
+            
+
+            for (int x = 0; x < map.SizeX; x++)
             {
-                for (int y = 0; y < Map.SizeY; y++)
+                for (int y = 0; y < map.SizeY; y++)
                 {
-                    var color = _gradient.Evaluate(Map[x,y]);
+                    var color = _gradient.Evaluate(map[x,y]);
                     R[x,y] = color.r;
                     G[x, y] = color.g;
                     B[x, y] = color.b;

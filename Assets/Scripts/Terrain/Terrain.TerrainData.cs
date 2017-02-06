@@ -9,7 +9,7 @@ namespace Terrain {
 
         public Rect Rect
         {
-            get; private set;
+            get; set;
         }
 
     }

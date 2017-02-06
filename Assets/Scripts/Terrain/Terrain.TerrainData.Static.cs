@@ -120,7 +120,14 @@ namespace Terrain {
             //data._stack.AddMap(MapType.WalkableMap, parentWalkablemap);
 
             //return new TerrainData(rect, Layer.Blend(heightMap, parentHeightmap, diffMap), diffMap);
-            return new TerrainData(rect, diffMap, Layer.Blend(heightMap, parentHeightmap, diffMap));
+
+            var colorMap = new ColorLayer(heightMap);
+            colorMap.SetGradient(PaletteManager.GetPalette().GroundColor);
+            colorMap.ApplyMap(parentHeightmap.Clone().Multiply(1f/200f));
+            colorMap.SetGradient(PaletteManager.GetPalette().CliffColor);
+            colorMap.ApplyMapWithMask(heightMap.Clone().Multiply(1f / 200f),diffMap);
+
+            return new TerrainData(rect, diffMap, Layer.Blend(heightMap, parentHeightmap, diffMap), colorMap);
 
             /*            
 
@@ -156,10 +163,12 @@ namespace Terrain {
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white,100f);
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.max.y), Color.white, 100f);
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.max.y), new Vector3(rect.max.x, 0, rect.min.y), Color.white, 100f);
-            //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
+            //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);            
 
-            var map = Layer.DecimateMap(cellData.HeightMap, decimationFactor);
-            rect = GrowRectByOne(rect, map.SizeX-1);
+            var data = Decimate(rect, cellData, decimationFactor);
+            rect = GrowRectByOne(rect, data.HeightMap.SizeX - 1);
+            data.Rect = rect;
+
             //rect.position
 
             //Debug.DrawLine(new Vector3(rect.min.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.max.y), Color.white, 100f);
@@ -168,7 +177,7 @@ namespace Terrain {
             //Debug.DrawLine(new Vector3(rect.max.x, 0, rect.min.y), new Vector3(rect.min.x, 0, rect.min.y), Color.white, 100f);
 
 
-            return new TerrainData(rect,Layer.BlankMap(map), map);
+            return data;
         }
 
         public static TerrainData DummyMap(TerrainData[,] dummyMaps, Rect rect)
@@ -178,16 +187,12 @@ namespace Terrain {
             var layers = new Layer[2,2];
 
             for (int x = 0; x < 2; x++)
-            {
                 for (int y = 0; y < 2; y++)
-                {
                     layers[x, y] = dummyMaps[x, y].HeightMap;
-                }
-            }
 
-            var heightMap = Layer.CreateMapFromSubMapsAssumingOnePixelOverlap(layers);
+            var newMap = CreateSubMap(rect, dummyMaps);
 
-            return new TerrainData(rect,Layer.BlankMap(heightMap), heightMap);
+            return newMap;
         }
 
         static Layer CreateHeightMap(Layer unionMap)
