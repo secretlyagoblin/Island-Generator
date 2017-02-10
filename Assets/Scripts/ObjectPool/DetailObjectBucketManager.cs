@@ -6,8 +6,8 @@ using Buckets;
 public class DetailObjectBucketManager<T> {
 
     Bucket<T> _bucket;
-    Bucket<T>[] _previousBuckets;
-    Bucket<T>[] _currentBuckets;
+    List<Bucket<T>> _previousBuckets;
+    List<Bucket<T>> _currentBuckets;
 
     public List<T> ObjectsExitingPool;
     public List<T> ObjectsEnteringPool;
@@ -16,7 +16,7 @@ public class DetailObjectBucketManager<T> {
     {
 
         _bucket = new Bucket<T>(divisions, lowerBounds, upperBounds);
-        _previousBuckets = new Bucket<T>[0];
+        _previousBuckets = new List<Bucket<T>>();
 
         ObjectsEnteringPool = new List<T>();
         ObjectsExitingPool = new List<T>();
@@ -44,7 +44,7 @@ public class DetailObjectBucketManager<T> {
     {
         ObjectsExitingPool.Clear();
 
-        for (int i = 0; i < _previousBuckets.Length; i++)
+        for (int i = 0; i < _previousBuckets.Count; i++)
         {
             if (_previousBuckets[i].PreviousIteration && _previousBuckets[i].CurrentIteration)
             {
@@ -65,7 +65,7 @@ public class DetailObjectBucketManager<T> {
     {
         ObjectsEnteringPool.Clear();
 
-        for (int i = 0; i < _currentBuckets.Length; i++)
+        for (int i = 0; i < _currentBuckets.Count; i++)
         {
             var bucket = _currentBuckets[i];
 

@@ -116,7 +116,7 @@ namespace Buckets {
             return;
         }
 
-        public Bucket<T>[] GetBucketsWithinRangeOfPoint(Vector2 testPoint, float testDistance)
+        public List<Bucket<T>> GetBucketsWithinRangeOfPoint(Vector2 testPoint, float testDistance)
         {
             var distance = DistancePointToRectangle(testPoint, Rect);
             var allBuckets = new List<Bucket<T>>();
@@ -137,15 +137,15 @@ namespace Buckets {
                 }
             }
 
-            return allBuckets.ToArray();
+            return allBuckets;
         }
 
-        public Bucket<T>[] GetPartialTree(Rect testRect, int depth)
+        public List<Bucket<T>> GetPartialTree(Rect testRect, int depth)
         {
             return GetPartialTree(testRect, depth, 0);
         }
 
-        Bucket<T>[] GetPartialTree(Rect testRect, int depth, int currentDepth)
+        List<Bucket<T>> GetPartialTree(Rect testRect, int depth, int currentDepth)
         {
             var overlap = Rect.Overlaps(testRect);
             var allBuckets = new List<Bucket<T>>();
@@ -166,7 +166,7 @@ namespace Buckets {
                 }
             }
 
-            return allBuckets.ToArray();
+            return allBuckets;
         }
 
         static float DistancePointToRectangle(Vector2 point, Rect rect)
