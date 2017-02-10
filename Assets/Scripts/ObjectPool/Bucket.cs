@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Buckets {
 
-    class Bucket<T> {
+    public class Bucket<T> {
 
         public Rect Rect;
         public Vector2 LowerBounds;
