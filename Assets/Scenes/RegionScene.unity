@@ -216,7 +216,8 @@ MonoBehaviour:
   TestPoint: {fileID: 463890328}
   GrassObject: {fileID: 1819576917715930, guid: 4ba73827c27fd4e47b85fc4f81cd0e84,
     type: 2}
-  PropCount: 2000000
+  PropCount: 1000000
+  DetailDivisions: 8
   RegionSize: 1500
   TestDistance: 120
   NoiseScale: 0.1
@@ -278,7 +279,8 @@ MonoBehaviour:
   TestPoint: {fileID: 463890328}
   GrassObject: {fileID: 1843271488461220, guid: 085877f63f2dc8246bbbbf9bba28f625,
     type: 2}
-  PropCount: 30000
+  PropCount: 20000
+  DetailDivisions: 6
   RegionSize: 1500
   TestDistance: 400
   NoiseScale: 0.01
@@ -380,6 +382,10 @@ Prefab:
     - target: {fileID: 11400000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
       propertyPath: textureSize
       value: 512
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
+      propertyPath: reflectLayers.m_Bits
+      value: 4294967039
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}

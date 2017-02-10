@@ -20,13 +20,31 @@ namespace Buckets {
 
         bool Filled = false;
 
-        public int Layer;
-        public int MaxLayer = 6;
+        int _layer;
+        int _maxLayer = 6;
 
-        public Bucket(int layer, Vector2 lowerBounds, Vector2 upperBounds)
+        public Bucket(int maxLayer, Vector2 lowerBounds, Vector2 upperBounds)
         {
             Rect = new Rect(lowerBounds, upperBounds - lowerBounds);
-            Layer = layer;
+            _layer = 0;
+            _maxLayer = maxLayer;
+
+            var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
+
+            LowerBounds = lowerBounds;
+            UpperBounds = upperBounds;
+
+            Filled = false;
+            ElementList = new List<BucketData>();
+            Elements = new List<T>();
+            Buckets = new List<Bucket<T>>();
+        }
+
+        Bucket(int layer, int maxLayer, Vector2 lowerBounds, Vector2 upperBounds)
+        {
+            Rect = new Rect(lowerBounds, upperBounds - lowerBounds);
+            _layer = layer;
+            _maxLayer = maxLayer;
 
             var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
 
@@ -50,7 +68,7 @@ namespace Buckets {
             {
                 ElementList.Add(new BucketData(element, position));
                 Elements.Add(element);
-                if (ElementList.Count > 1 && Layer < MaxLayer)
+                if (ElementList.Count > 1 && _layer < _maxLayer)
                 {
                     var CellSize = UpperBounds - LowerBounds;
                     CellSize = CellSize * 0.5f;
@@ -60,10 +78,10 @@ namespace Buckets {
                     var startC = LowerBounds + new Vector2(0, CellSize.y);
                     var startD = LowerBounds + new Vector2(CellSize.x, CellSize.y);
 
-                    Buckets.Add(new Bucket<T>(Layer + 1, startA, startA + CellSize));
-                    Buckets.Add(new Bucket<T>(Layer + 1, startB, startB + CellSize));
-                    Buckets.Add(new Bucket<T>(Layer + 1, startC, startC + CellSize));
-                    Buckets.Add(new Bucket<T>(Layer + 1, startD, startD + CellSize));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startA, startA + CellSize));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startB, startB + CellSize));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startC, startC + CellSize));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startD, startD + CellSize));
 
                     for (int i = 0; i < ElementList.Count; i++)
                     {
@@ -98,7 +116,7 @@ namespace Buckets {
             return;
         }
 
-        public Bucket<T>[] GetBuckets(Vector2 testPoint, float testDistance)
+        public Bucket<T>[] GetBucketsWithinRangeOfPoint(Vector2 testPoint, float testDistance)
         {
             var distance = DistancePointToRectangle(testPoint, Rect);
             var allBuckets = new List<Bucket<T>>();
@@ -109,7 +127,36 @@ namespace Buckets {
                 {
                     for (int i = 0; i < Buckets.Count; i++)
                     {
-                        allBuckets.AddRange(Buckets[i].GetBuckets(testPoint, testDistance));
+                        allBuckets.AddRange(Buckets[i].GetBucketsWithinRangeOfPoint(testPoint, testDistance));
+                    }
+                }
+                else
+                {
+                    CurrentIteration = true;
+                    allBuckets.Add(this);
+                }
+            }
+
+            return allBuckets.ToArray();
+        }
+
+        public Bucket<T>[] GetPartialTree(Rect testRect, int depth)
+        {
+            return GetPartialTree(testRect, depth, 0);
+        }
+
+        Bucket<T>[] GetPartialTree(Rect testRect, int depth, int currentDepth)
+        {
+            var overlap = Rect.Overlaps(testRect);
+            var allBuckets = new List<Bucket<T>>();
+
+            if (overlap)
+            {
+                if (currentDepth != depth)
+                {
+                    for (int i = 0; i < Buckets.Count; i++)
+                    {
+                        allBuckets.AddRange(Buckets[i].GetPartialTree(testRect, depth, currentDepth++));
                     }
                 }
                 else

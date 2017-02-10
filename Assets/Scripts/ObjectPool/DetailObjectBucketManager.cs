@@ -12,10 +12,10 @@ public class DetailObjectBucketManager<T> {
     public List<T> ObjectsExitingPool;
     public List<T> ObjectsEnteringPool;
 
-    public DetailObjectBucketManager(Vector2 lowerBounds, Vector2 upperBounds)
+    public DetailObjectBucketManager(int divisions, Vector2 lowerBounds, Vector2 upperBounds)
     {
 
-        _bucket = new Bucket<T>(0, lowerBounds, upperBounds);
+        _bucket = new Bucket<T>(divisions, lowerBounds, upperBounds);
         _previousBuckets = new Bucket<T>[0];
 
         ObjectsEnteringPool = new List<T>();
@@ -30,7 +30,7 @@ public class DetailObjectBucketManager<T> {
     public void Update(Vector2 testPosition, float testDistance)
     {
 
-        _currentBuckets = _bucket.GetBuckets(testPosition, testDistance);
+        _currentBuckets = _bucket.GetBucketsWithinRangeOfPoint(testPosition, testDistance);
 
         GetObjectsExitingPool();
         GetObjectsEnteringPool();

@@ -9,6 +9,7 @@ public class DetailObjectPool : MonoBehaviour {
 	public GameObject TestPoint;
     public GameObject GrassObject;
     public int PropCount;
+    public int DetailDivisions;
     public float RegionSize;
     public float TestDistance;
     public float NoiseScale;
@@ -26,7 +27,7 @@ public class DetailObjectPool : MonoBehaviour {
 
         RNG.DateTimeInit();
         _block = new MaterialPropertyBlock();
-        _detailObjectManager = new DetailObjectBucketManager<DetailObjectData> (Vector2.zero, new Vector2 (RegionSize, RegionSize));
+        _detailObjectManager = new DetailObjectBucketManager<DetailObjectData> (DetailDivisions, Vector2.zero, new Vector2 (RegionSize, RegionSize));
 
         //Add a bunch of DetailObjects to the manager
 

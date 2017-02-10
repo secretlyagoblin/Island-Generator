@@ -122,7 +122,15 @@ namespace Terrain {
             //return new TerrainData(rect, Layer.Blend(heightMap, parentHeightmap, diffMap), diffMap);
 
             var colorMap = new ColorLayer(heightMap);
-            colorMap.SetGradient(PaletteManager.GetPalette().GroundColor);
+
+            var manager = PaletteManager.GetPalette();
+
+            if(manager == null)
+            {
+                Debug.Log("No Colour Palette!");
+            }
+
+            colorMap.SetGradient(manager.GroundColor);
             colorMap.ApplyMap(parentHeightmap.Clone().Multiply(1f/200f));
             colorMap.SetGradient(PaletteManager.GetPalette().CliffColor);
             colorMap.ApplyMapWithMask(heightMap.Clone().Multiply(1f / 200f),diffMap);
