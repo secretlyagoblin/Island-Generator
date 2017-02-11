@@ -27,7 +27,7 @@ public class DetailObjectPool : MonoBehaviour {
 
         RNG.DateTimeInit();
         _block = new MaterialPropertyBlock();
-        _detailObjectManager = new DetailObjectBucketManager<DetailObjectData> (DetailDivisions, Vector2.zero, new Vector2 (RegionSize, RegionSize));
+        _detailObjectManager = new DetailObjectBucketManager<DetailObjectData> (DetailDivisions, new Rect(Vector2.zero, new Vector2 (RegionSize, RegionSize)));
 
         //Add a bunch of DetailObjects to the manager
 

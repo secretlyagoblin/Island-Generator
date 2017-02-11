@@ -12,10 +12,10 @@ public class DetailObjectBucketManager<T> {
     public List<T> ObjectsExitingPool;
     public List<T> ObjectsEnteringPool;
 
-    public DetailObjectBucketManager(int divisions, Vector2 lowerBounds, Vector2 upperBounds)
+    public DetailObjectBucketManager(int divisions, Rect rect)
     {
 
-        _bucket = new Bucket<T>(divisions, lowerBounds, upperBounds);
+        _bucket = new Bucket<T>(divisions, rect);
         _previousBuckets = new List<Bucket<T>>();
 
         ObjectsEnteringPool = new List<T>();

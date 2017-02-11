@@ -104,7 +104,7 @@ namespace Terrain {
 
             if (VoronoiGenerator.Generator == null)
             {
-                VoronoiGenerator.Generator = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.075f, 23245.2344335454f);
+                VoronoiGenerator.Generator = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.04f, 23245.2344335454f);
             }
 
             var voronoi = VoronoiGenerator.Generator;

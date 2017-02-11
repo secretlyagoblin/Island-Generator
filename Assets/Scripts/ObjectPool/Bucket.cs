@@ -23,16 +23,16 @@ namespace Buckets {
         int _layer;
         int _maxLayer = 6;
 
-        public Bucket(int maxLayer, Vector2 lowerBounds, Vector2 upperBounds)
+        public Bucket(int maxLayer, Rect rect)
         {
-            Rect = new Rect(lowerBounds, upperBounds - lowerBounds);
+            Rect = rect;
             _layer = 0;
             _maxLayer = maxLayer;
 
             var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
 
-            LowerBounds = lowerBounds;
-            UpperBounds = upperBounds;
+            LowerBounds = rect.position;
+            UpperBounds = rect.size + LowerBounds;
 
             Filled = false;
             ElementList = new List<BucketData>();
@@ -40,16 +40,16 @@ namespace Buckets {
             Buckets = new List<Bucket<T>>();
         }
 
-        Bucket(int layer, int maxLayer, Vector2 lowerBounds, Vector2 upperBounds)
+        Bucket(int layer, int maxLayer, Rect rect)
         {
-            Rect = new Rect(lowerBounds, upperBounds - lowerBounds);
+            Rect = rect;
             _layer = layer;
             _maxLayer = maxLayer;
 
             var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
 
-            LowerBounds = lowerBounds;
-            UpperBounds = upperBounds;
+            LowerBounds = rect.position;
+            UpperBounds = rect.size + LowerBounds;
 
             Filled = false;
             ElementList = new List<BucketData>();
@@ -78,10 +78,10 @@ namespace Buckets {
                     var startC = LowerBounds + new Vector2(0, CellSize.y);
                     var startD = LowerBounds + new Vector2(CellSize.x, CellSize.y);
 
-                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startA, startA + CellSize));
-                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startB, startB + CellSize));
-                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startC, startC + CellSize));
-                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, startD, startD + CellSize));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, new Rect(startA,CellSize)));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, new Rect(startB, CellSize)));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, new Rect(startC, CellSize)));
+                    Buckets.Add(new Bucket<T>(_layer + 1, _maxLayer, new Rect(startD, CellSize)));
 
                     for (int i = 0; i < ElementList.Count; i++)
                     {
@@ -128,6 +128,30 @@ namespace Buckets {
                     for (int i = 0; i < Buckets.Count; i++)
                     {
                         allBuckets.AddRange(Buckets[i].GetBucketsWithinRangeOfPoint(testPoint, testDistance));
+                    }
+                }
+                else
+                {
+                    CurrentIteration = true;
+                    allBuckets.Add(this);
+                }
+            }
+
+            return allBuckets;
+        }
+
+        public List<Bucket<T>> GetBucketsIntersectingWithRect(Rect testRect)
+        {
+            var overlaps = Rect.Overlaps(testRect);
+            var allBuckets = new List<Bucket<T>>();
+
+            if (overlaps)
+            {
+                if (Filled)
+                {
+                    for (int i = 0; i < Buckets.Count; i++)
+                    {
+                        allBuckets.AddRange(Buckets[i].GetBucketsIntersectingWithRect(testRect));
                     }
                 }
                 else

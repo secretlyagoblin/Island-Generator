@@ -287,80 +287,78 @@ public class VoronoiGenerator {
             }
         }
     }
+    
+}
 
-    class VoronoiCell {
+class VoronoiCell {
 
-        public Vector2 Position
-        { get; private set; }
-        public List<Coord> MapPoints
-        { get; private set; }
-        public Coord Center
-        { get; private set; }
-
-
-        public VoronoiCell(Vector2 position)
-        {
-            Position = position;
-            MapPoints = new List<Coord>();
-        }
-
-        public void Sort(Layer _distanceMap)
-        {
-            var points = MapPoints.OrderBy(x => _distanceMap[x.TileX, x.TileY]).ToList();
-            Center = points.First();
-        }
-
-        public void SetFalloff(Layer bigMap, int searchDistance)
-        {
-            var minX = int.MaxValue;
-            var maxX = int.MinValue;
-
-            var minY = int.MaxValue;
-            var maxY = int.MinValue;
-
-            var buffer = 3;
-
-            for (int i = 0; i < MapPoints.Count; i++)
-            {
-                var p = MapPoints[i];
-
-                if (p.TileX > maxX)
-                    maxX = p.TileX;
-                if (p.TileX < minX)
-                    minX = p.TileX;
-
-                if (p.TileY > maxY)
-                    maxY = p.TileY;
-                if (p.TileY < minY)
-                    minY = p.TileY;
-            }
-
-            var map = new Layer(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
-
-            for (int i = 0; i < MapPoints.Count; i++)
-            {
-                var p = MapPoints[i];
-
-                map[p.TileX - minX + buffer, p.TileY - minY + buffer] = 1;
-
-            }
-
-            map.SmoothMap(searchDistance);
-
-            //map.GetDistanceMap(searchDistance);
-
-            for (int i = 0; i < MapPoints.Count; i++)
-            {
-                var p = MapPoints[i];
-                bigMap[p.TileX, p.TileY] = map[p.TileX - minX + buffer, p.TileY - minY + buffer];
-
-            }
+    public Vector2 Position
+    { get; private set; }
+    public List<Coord> MapPoints
+    { get; private set; }
+    public Coord Center
+    { get; private set; }
 
 
-
-        }
+    public VoronoiCell(Vector3 position)
+    {
+        Position = position;
+        MapPoints = new List<Coord>();
     }
 
+    public void Sort(Layer _distanceMap)
+    {
+        var points = MapPoints.OrderBy(x => _distanceMap[x.TileX, x.TileY]).ToList();
+        Center = points.First();
+    }
+
+    public void SetFalloff(Layer bigMap, int searchDistance)
+    {
+        var minX = int.MaxValue;
+        var maxX = int.MinValue;
+
+        var minY = int.MaxValue;
+        var maxY = int.MinValue;
+
+        var buffer = 3;
+
+        for (int i = 0; i < MapPoints.Count; i++)
+        {
+            var p = MapPoints[i];
+
+            if (p.TileX > maxX)
+                maxX = p.TileX;
+            if (p.TileX < minX)
+                minX = p.TileX;
+
+            if (p.TileY > maxY)
+                maxY = p.TileY;
+            if (p.TileY < minY)
+                minY = p.TileY;
+        }
+
+        var map = new Layer(maxX - minX + 1 + buffer, maxY - minY + 1 + buffer, 0);
+
+        for (int i = 0; i < MapPoints.Count; i++)
+        {
+            var p = MapPoints[i];
+
+            map[p.TileX - minX + buffer, p.TileY - minY + buffer] = 1;
+
+        }
+
+        map.SmoothMap(searchDistance);
+
+        //map.GetDistanceMap(searchDistance);
+
+        for (int i = 0; i < MapPoints.Count; i++)
+        {
+            var p = MapPoints[i];
+            bigMap[p.TileX, p.TileY] = map[p.TileX - minX + buffer, p.TileY - minY + buffer];
+
+        }
 
 
+
+    }
 }
