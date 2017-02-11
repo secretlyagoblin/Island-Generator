@@ -193,6 +193,25 @@ namespace Buckets {
             return allBuckets;
         }
 
+        public List<T> GetAllElementsInTree()
+        {
+            var allBuckets = new List<T>();
+
+                if (Filled)
+                {
+                    for (int i = 0; i < Buckets.Count; i++)
+                    {
+                        allBuckets.AddRange(Buckets[i].GetAllElementsInTree());
+                    }
+                }
+                else
+                {
+                    allBuckets.AddRange(Elements);
+                }
+
+            return allBuckets;
+        }
+
         static float DistancePointToRectangle(Vector2 point, Rect rect)
         {
             //  Calculate a distance between a point and a rectangle.

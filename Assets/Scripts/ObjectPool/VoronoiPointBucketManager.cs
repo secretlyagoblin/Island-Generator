@@ -30,13 +30,13 @@ public class VoronoiPointBucketManager {
         _bucket = new Bucket<Vector3>(20, rect);
     }
 
-    public void AddRegion(Map.Layer region, int pointCount, Rect rect)
+    public void AddRegion(Terrain.TerrainData region, int pointCount, Rect rect)
     {
         for (int i = 0; i < pointCount; i++)
         {
             var x = RNG.NextFloat();
             var z = RNG.NextFloat();
-            var y = region.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
+            var y = region.HeightMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
 
             x = Mathf.Lerp(rect.position.x, rect.size.x, x);
             z = Mathf.Lerp(rect.position.y, rect.size.y, z);
@@ -46,7 +46,7 @@ public class VoronoiPointBucketManager {
     }
 
     // Ready for the Voronoi System!
-    Bucket<VoronoiCell> GetSubChunk(Rect rect)
+    public Bucket<VoronoiCell> GetSubChunk(Rect rect)
     {
         var points = _bucket.GetBucketsIntersectingWithRect(rect);
         var bucket = new Bucket<VoronoiCell>(6, rect);

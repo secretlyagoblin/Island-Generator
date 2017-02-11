@@ -36,7 +36,9 @@ public class RegionController : MonoBehaviour {
 
         //Create Heightmap Data
 
-        var heightMap = Terrain.TerrainData.RegionIsland(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize));
+        var regionRect = new Rect(Vector2.zero, Vector2.one * RegionSize);
+
+        var heightMap = Terrain.TerrainData.RegionIsland(RegionResolution, regionRect);
         //var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
 
         time = Time.realtimeSinceStartup;
@@ -44,9 +46,17 @@ public class RegionController : MonoBehaviour {
         lastTime = time;
         yield return null;
 
+        var voronoiPointBucketManager = new VoronoiPointBucketManager(regionRect);
+        voronoiPointBucketManager.AddRegion(heightMap, 10000, regionRect);
+
+        time = Time.realtimeSinceStartup;
+        Debug.Log("Generating Voronoi Cells: " + time + " seconds");
+        lastTime = time;
+        yield return null;
+
         //Create Region, Instantiate Chunks
 
-        _region = new Region(heightMap);
+        _region = new Region(heightMap, voronoiPointBucketManager);
         _region.CreateChunks(NumberOfChunksInRow, ChunkResolution);
         time = Time.realtimeSinceStartup;
         Debug.Log("Creating Chunks: " + (time-lastTime) + " seconds");

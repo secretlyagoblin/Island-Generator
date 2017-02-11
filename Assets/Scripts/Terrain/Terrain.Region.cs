@@ -7,14 +7,16 @@ namespace Terrain {
 
     public class Region {
 
-        TerrainData _data;
+        TerrainData _terrainData;
+        VoronoiPointBucketManager _voronoiData;
         RegionBucketManager _bucks;
         Chunk[,] _chunks;
         Rect[,] _rects;
 
-        public Region(TerrainData data)
+        public Region(TerrainData terrainData, VoronoiPointBucketManager voronoiData)
         {
-            _data = data;
+            _terrainData = terrainData;
+            _voronoiData = voronoiData;
         }
 
         public void CreateChunks(int divisions, int mapSize)
@@ -22,7 +24,7 @@ namespace Terrain {
             _chunks = new Chunk[divisions, divisions];
             _rects = new Rect[divisions, divisions];
 
-            var positionSize = _data.Rect.height / divisions;
+            var positionSize = _terrainData.Rect.height / divisions;
             var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
             var offsetVector = new Vector2(offsetSize, offsetSize);
 
@@ -32,7 +34,9 @@ namespace Terrain {
                 {
                     var pos = new Vector2(x * positionSize, y * positionSize);
                     var rect = new Rect(pos, offsetVector);
-                    var mapData = TerrainData.ChunkVoronoi(_data, new Coord(x, y), mapSize, rect);
+                    var cellData = _voronoiData.GetSubChunk(rect);
+
+                    var mapData = TerrainData.ChunkVoronoi(_terrainData, cellData, mapSize, rect);
 
                     var chunk = new Chunk(mapData);
                     _chunks[x, y] = chunk;
@@ -44,7 +48,7 @@ namespace Terrain {
         public void CreateBucketSystem()
         {
             _bucks = new RegionBucketManager();
-            _bucks.CreateBucketSystem(_chunks, _data.Rect);
+            _bucks.CreateBucketSystem(_chunks, _terrainData.Rect);
         }
 
         public void InstantiateRegionCells(Transform transform, Material material)

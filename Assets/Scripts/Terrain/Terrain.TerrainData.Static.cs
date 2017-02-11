@@ -91,23 +91,20 @@ namespace Terrain {
             return new TerrainData(rect,walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
         }
 
-        public static TerrainData ChunkVoronoi(TerrainData parentData, Coord coord, int size, Rect rect)
+        public static TerrainData ChunkVoronoi(TerrainData parentData, Buckets.Bucket<VoronoiCell> voronoiCells, int size, Rect rect)
         {
             rect = GrowRectByOne(rect, size);
             size = size + 1;     
 
+
+            //This shit here prevents multithreading as it references parent map
             var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
             var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
             var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
             
 
-            if (VoronoiGenerator.Generator == null)
-            {
-                VoronoiGenerator.Generator = new VoronoiGenerator(parentHeightmap, coord.TileX, coord.TileY, 0.04f, 23245.2344335454f);
-            }
-
-            var voronoi = VoronoiGenerator.Generator;
+            var voronoi = new VoronoiGenerator(parentHeightmap);
 
             var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
             var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.2f);
