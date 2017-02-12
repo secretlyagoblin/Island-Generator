@@ -37,11 +37,14 @@ namespace Terrain {
 
                     var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
 
-                    var cellData = _voronoiData.GetSubChunk(new Rect(pos - voronoiOffset, offsetVector+voronoiOffset + voronoiOffset));
+                    var voronoiRect = new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset);
+
+                    var cellData = _voronoiData.GetSubChunk(voronoiRect);
+                    var voronoiList = GetVoronoiCellsFromBuckets(cellData, voronoiRect);
 
                     var prebakeMapData = TerrainData.VoronoiPreBake(_terrainData, mapSize, rect);
 
-                    var mapData = TerrainData.ChunkVoronoi(prebakeMapData, cellData, mapSize, rect);
+                    var mapData = TerrainData.ChunkVoronoi(prebakeMapData, voronoiList, mapSize, rect);
                     //var mapData = TerrainData.PassThroughUntouched(_terrainData, new Coord(0, 0), mapSize, rect);
 
                     var chunk = new Chunk(mapData);
@@ -53,7 +56,7 @@ namespace Terrain {
 
         public void CreateMultithreadedChunks(int divisions, int mapSize, System.Action<Task> callback)
         {
-            List <Task<ChunkObject>> tasks = new List<Task<ChunkObject>>();
+            List <Task> tasks = new List<Task>();
 
             _chunks = new Chunk[divisions, divisions];
             _rects = new Rect[divisions, divisions];
@@ -71,28 +74,32 @@ namespace Terrain {
 
                     var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
 
-                    var cellData = _voronoiData.GetSubChunk(new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset));
+
+                    var voronoiRect = new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset);
+
+                    var cellData = _voronoiData.GetSubChunk(voronoiRect);
 
                     var prebakeMapData = TerrainData.VoronoiPreBake(_terrainData, mapSize, rect);
 
-                    tasks.Add(Task<ChunkObject>.Run(() => {                
+                    var localX = x;
+                    var localY = y;
 
-                        var data = TerrainData.ChunkVoronoi(prebakeMapData, cellData, mapSize, rect);
+                    tasks.Add(Task.Run(() => {
+
+                        var voronoiList = GetVoronoiCellsFromBuckets(cellData, voronoiRect);
+
+                        var data = TerrainData.ChunkVoronoi(prebakeMapData, voronoiList, mapSize, rect);
                         var chunk = new Chunk(data);
 
-                        var obj = new ChunkObject();
-                        obj.x = x;
-                        obj.y = y;
-                        obj.chunk = chunk;
+                        lock (_chunks)
+                        {
+                            _chunks[localX, localY] = chunk;
+                        }
 
-                           return obj;
+
                     }
                     
-                    ).ContinueInMainThreadWith((t) => {
-                        var obj = t.Result;
-                        _chunks[obj.x, obj.y] = obj.chunk;
-                    }));
-
+                    ));
 
                     _rects[x, y] = rect;
                 }
@@ -101,11 +108,32 @@ namespace Terrain {
             Task.WhenAll(tasks.ToArray()).ContinueInMainThreadWith(callback);
         }
 
-        class ChunkObject {
-            public int x;
-            public int y;
-            public Chunk chunk;
+        List<VoronoiCell> GetVoronoiCellsFromBuckets(List<Buckets.Bucket<VoronoiCell>> points, Rect rect)
+        {
+            var outputCells = new List<VoronoiCell>();
 
+            for (int i = 0; i < points.Count; i++)
+            {
+                var p = points[i];
+            
+                for (int u = 0; u < p.Elements.Count; u++)
+                {
+                    var point = p.Elements[u];
+            
+                    //Debug.DrawRay(point, Vector3.up*100f, color,100f);                
+            
+                    var x = Util.InverseLerpUnclamped(rect.position.x, rect.size.x, point.Position.x);
+                    var z = Util.InverseLerpUnclamped(rect.position.y, rect.size.y, point.Position.y);
+
+                    var cell = new VoronoiCell(new Vector3(x,point.Height, z));
+                    cell.Inside = point.Inside;
+
+
+                    outputCells.Add(cell);
+                }
+            }
+
+            return outputCells;
         }
 
 

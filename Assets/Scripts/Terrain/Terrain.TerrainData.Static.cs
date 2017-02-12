@@ -109,8 +109,6 @@ namespace Terrain {
             var grownRect = GrowRectByOne(rect, size);
             size = size + 1;     
 
-
-            //This shit here prevents multithreading as it references parent map
             var parentHeightmap = prebakeData[0];
             var parentWalkablemap = prebakeData[1];
 

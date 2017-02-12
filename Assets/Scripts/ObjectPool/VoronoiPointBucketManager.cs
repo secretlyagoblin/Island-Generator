@@ -5,7 +5,7 @@ using Buckets;
 
 public class VoronoiPointBucketManager {
 
-    Bucket<Vector3> _bucket;
+    Bucket<VoronoiCell> _bucket;
 
 
 
@@ -27,7 +27,7 @@ public class VoronoiPointBucketManager {
 
     public VoronoiPointBucketManager(Rect rect)
     {
-        _bucket = new Bucket<Vector3>(10, rect);
+        _bucket = new Bucket<VoronoiCell>(10, rect);
     }
 
     public void AddRegion(Terrain.TerrainData region, int pointCount, Rect rect)
@@ -37,42 +37,47 @@ public class VoronoiPointBucketManager {
             var x = RNG.NextFloat();
             var z = RNG.NextFloat();
             var y = region.HeightMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
+            var inside = region.WalkableMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
+
 
             x = Mathf.Lerp(rect.position.x, rect.size.x, x);
             z = Mathf.Lerp(rect.position.y, rect.size.y, z);
 
             //Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 100f);
 
-            _bucket.AddElement(new Vector3(x, y,z),new Vector2(x,z));
+            var voronoi = new VoronoiCell(new Vector3(x, y, z));
+            voronoi.Inside = inside >0.5f?true:false;
+
+            _bucket.AddElement(voronoi, new Vector2(x,z));
         }        
     }
 
     // Ready for the Voronoi System!
-    public List<VoronoiCell> GetSubChunk(Rect rect)
+    public List<Bucket<VoronoiCell>> GetSubChunk(Rect rect)
     {
         var points = _bucket.GetBucketsIntersectingWithRect(rect);
 
-        List<VoronoiCell> outputCells = new List<VoronoiCell>();
+        //List<VoronoiCell> outputCells = new List<VoronoiCell>();
 
-        var color = RNG.GetRandomColor();
+        //var color = RNG.GetRandomColor();
 
-        for (int i = 0; i < points.Count; i++)
-        {
-            var p = points[i];
-
-            for (int u = 0; u < p.Elements.Count; u++)
-            {
-                var point = p.Elements[u];
-
-                //Debug.DrawRay(point, Vector3.up*100f, color,100f);                
-
-                var x = Util.InverseLerpUnclamped(rect.position.x, rect.size.x, point.x);
-                var z = Util.InverseLerpUnclamped(rect.position.y, rect.size.y, point.z);
-
-                outputCells.Add(new VoronoiCell(new Vector3(x,point.y,z)));
-            }
-        }
-        return outputCells;
+        //for (int i = 0; i < points.Count; i++)
+        //{
+        //    var p = points[i];
+        //
+        //    for (int u = 0; u < p.Elements.Count; u++)
+        //    {
+        //        var point = p.Elements[u];
+        //
+        //        //Debug.DrawRay(point, Vector3.up*100f, color,100f);                
+        //
+        //        var x = Util.InverseLerpUnclamped(rect.position.x, rect.size.x, point.x);
+        //        var z = Util.InverseLerpUnclamped(rect.position.y, rect.size.y, point.z);
+        //
+        //        outputCells.Add(new VoronoiCell(new Vector3(x,point.y,z)));
+        //    }
+        //}
+        return points;
     }
 
 }

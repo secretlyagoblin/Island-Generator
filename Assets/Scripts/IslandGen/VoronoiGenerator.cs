@@ -86,11 +86,7 @@ public class VoronoiGenerator {
             if (cell.MapPoints.Count == 0)
                 continue;
 
-            cell.Sort(_distanceMap);
-
-            var center = cell.Center;
-
-            if(Mathf.Abs(insideMap[center.TileX,center.TileY]) <0.00001)
+            if(!cell.Inside)
             {
                 for (int p = 0; p < cell.MapPoints.Count; p++)
                 {
@@ -301,6 +297,8 @@ public class VoronoiCell {
     { get; private set; }
     public List<Coord> MapPoints
     { get; private set; }
+    public bool Inside
+    { get; set; }
     public Coord Center
     { get; private set; }
 
@@ -310,6 +308,7 @@ public class VoronoiCell {
         Position = new Vector2(position.x, position.z);
         Height = position.y;
         MapPoints = new List<Coord>();
+        Inside = false;
     }
 
     public void Sort(Layer _distanceMap)
