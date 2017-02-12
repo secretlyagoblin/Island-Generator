@@ -47,10 +47,10 @@ public class RegionController : MonoBehaviour {
         yield return null;
 
         var voronoiPointBucketManager = new VoronoiPointBucketManager(regionRect);
-        voronoiPointBucketManager.AddRegion(heightMap, 10000, regionRect);
+        voronoiPointBucketManager.AddRegion(heightMap, 5000, regionRect);
 
         time = Time.realtimeSinceStartup;
-        Debug.Log("Generating Voronoi Cells: " + time + " seconds");
+        Debug.Log("Generating Voronoi Cells: " + (time - lastTime) + " seconds");
         lastTime = time;
         yield return null;
 

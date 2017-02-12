@@ -34,9 +34,13 @@ namespace Terrain {
                 {
                     var pos = new Vector2(x * positionSize, y * positionSize);
                     var rect = new Rect(pos, offsetVector);
-                    var cellData = _voronoiData.GetSubChunk(rect);
+
+                    var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
+
+                    var cellData = _voronoiData.GetSubChunk(new Rect(pos - voronoiOffset, offsetVector+voronoiOffset + voronoiOffset));
 
                     var mapData = TerrainData.ChunkVoronoi(_terrainData, cellData, mapSize, rect);
+                    //var mapData = TerrainData.PassThroughUntouched(_terrainData, new Coord(0, 0), mapSize, rect);
 
                     var chunk = new Chunk(mapData);
                     _chunks[x, y] = chunk;

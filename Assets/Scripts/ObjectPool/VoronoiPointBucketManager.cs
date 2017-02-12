@@ -27,7 +27,7 @@ public class VoronoiPointBucketManager {
 
     public VoronoiPointBucketManager(Rect rect)
     {
-        _bucket = new Bucket<Vector3>(20, rect);
+        _bucket = new Bucket<Vector3>(10, rect);
     }
 
     public void AddRegion(Terrain.TerrainData region, int pointCount, Rect rect)
@@ -40,6 +40,8 @@ public class VoronoiPointBucketManager {
 
             x = Mathf.Lerp(rect.position.x, rect.size.x, x);
             z = Mathf.Lerp(rect.position.y, rect.size.y, z);
+
+            //Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 100f);
 
             _bucket.AddElement(new Vector3(x, y,z),new Vector2(x,z));
         }        

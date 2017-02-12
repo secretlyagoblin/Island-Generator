@@ -93,18 +93,19 @@ namespace Terrain {
 
         public static TerrainData ChunkVoronoi(TerrainData parentData, Buckets.Bucket<VoronoiCell> voronoiCells, int size, Rect rect)
         {
-            rect = GrowRectByOne(rect, size);
+            var originalRect = rect;
+            var grownRect = GrowRectByOne(rect, size);
             size = size + 1;     
 
 
             //This shit here prevents multithreading as it references parent map
-            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
-            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentHeightmap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
             var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
             
 
-            var voronoi = new VoronoiGenerator(parentHeightmap);
+            var voronoi = new VoronoiGenerator(parentHeightmap, originalRect,grownRect.size.x*0.2f, voronoiCells);
 
             var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
             var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.2f);
@@ -132,7 +133,7 @@ namespace Terrain {
             colorMap.SetGradient(PaletteManager.GetPalette().CliffColor);
             colorMap.ApplyMapWithMask(heightMap.Clone().Multiply(1f / 200f),diffMap);
 
-            return new TerrainData(rect, diffMap, Layer.Blend(heightMap, parentHeightmap, diffMap), colorMap);
+            return new TerrainData(grownRect, diffMap, Layer.Blend(heightMap, parentHeightmap, diffMap), colorMap);
 
             /*            
 

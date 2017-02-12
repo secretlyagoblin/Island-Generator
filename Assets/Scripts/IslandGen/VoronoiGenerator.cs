@@ -12,6 +12,7 @@ public class VoronoiGenerator {
     Layer _falloffMap;
     Bucket<VoronoiCell> _cells;
     List<VoronoiCell> _allElements;
+    Rect _rect;
 
     Coord _coord;
 
@@ -19,14 +20,22 @@ public class VoronoiGenerator {
 
     public static VoronoiGenerator Generator = null; 
 
-    public VoronoiGenerator(Layer map, Bucket<VoronoiCell> cells)
+    public VoronoiGenerator(Layer map, Rect rect, float searchDistance, Bucket<VoronoiCell> cells)
     {
         _map = map;
         _cells = cells;
         _allElements = _cells.GetAllElementsInTree();
 
+        var color = new Color(RNG.NextFloat(), RNG.NextFloat(), RNG.NextFloat());
+
+        for (int i = 0; i < _allElements.Count; i++)
+        {
+            var cell = _allElements[i];
+            Debug.DrawRay(new Vector3(cell.Position.x, cell.Height, cell.Position.y), Vector3.up * 100f, color, 100f);
+        }
+
         //RandomlyDistributeCells(relativeDensity);
-        LinkMapPointsToCells();
+        LinkMapPointsToCells(searchDistance);
 
     }
 
@@ -167,50 +176,84 @@ public class VoronoiGenerator {
         _cells = outputList;
     }
     */
-    void LinkMapPointsToCells()
+    void LinkMapPointsToCells(float searchDistance)
     {
         var distanceMap = Layer.Clone(_map);
+        var lastPos = new Vector2(float.MaxValue, float.MaxValue);
+        var lastPosDistance = searchDistance * 0.1f;
+        List<Bucket<VoronoiCell>> lastCells = new List<Bucket<VoronoiCell>>();
 
         for (int x = 0; x < _map.SizeX; x++)
         {
 
             for (int y = 0; y < _map.SizeY; y++)
             {
+                List<Bucket<VoronoiCell>> bucketList;
 
-                var currentPos = new Vector2(x, y);
+                var pos = _map.GetNormalisedVector3FromIndex(x, y);
+                var cellX = Mathf.Lerp(_rect.position.x, _rect.size.x, pos.x);
+                var cellY = Mathf.Lerp(_rect.position.y, _rect.size.y, pos.z);
 
-                //this needs to be a voronoiData object so we can put a recommended test distance in here
-                var bucketList = _cells.GetBucketsWithinRangeOfPoint(currentPos, 10f);
+                var currentPos = new Vector2(cellX, cellY);
 
+                //if (Vector2.Distance(currentPos,lastPos) < lastPosDistance)
+                //{
+                //    currentPos = lastPos;
+                //    bucketList = lastCells;
+                //}
+                //else
+                //{
+                //    bucketList = _cells.GetBucketsWithinRangeOfPoint(currentPos, searchDistance);
+                //}
 
+                lastPos = currentPos;
 
                 var minDist = Mathf.Infinity;
                 var closest = new VoronoiCell(new Vector2(float.MaxValue, float.MaxValue));
 
-                for (int b = 0; b < bucketList.Count; b++)
-                {
-                    var bucket = bucketList[b];
+                //for (int b = 0; b < bucketList.Count; b++)
+                //{
+                //    var bucket = bucketList[b];
 
-                    for (var i = 0; i < bucket.Elements.Count; i++)
+                    for (var i = 0; i < _allElements.Count; i++)
                     {
-                        var cell = bucket.Elements[i];
+                        var cell = _allElements[i];
                         var dist = Vector2.Distance(cell.Position, currentPos);
                         if (dist < minDist)
                         {
                             closest = cell;
+
                             minDist = dist;
                         }
                     }
-                }
+                //}
 
 
+                //if (!closestDistanceAssigned)
+                //{
+                //    closestDistanceAssigned = true;
+                //    closestDistanceAverage = minDist;
+                //}
+                //else
+                //{
+                //    closestDistanceAverage += minDist;
+                //    closestDistanceCount++;
+                //}
 
                 closest.MapPoints.Add(new Coord(x, y));
+
+                if (minDist == Mathf.Infinity)
+                {
+                    minDist = 0;
+                    Debug.Log("Warning: Voronoi Cells are too sparse");
+                }
 
                 distanceMap[x, y] = minDist;
 
             }
         }
+
+        //Debug.Log("Average Distance " + closestDistanceAverage);
 
         _distanceMap = distanceMap;
     }
