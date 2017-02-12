@@ -54,6 +54,8 @@ public class VoronoiPointBucketManager {
 
         List<VoronoiCell> outputCells = new List<VoronoiCell>();
 
+        var color = RNG.GetRandomColor();
+
         for (int i = 0; i < points.Count; i++)
         {
             var p = points[i];
@@ -62,8 +64,10 @@ public class VoronoiPointBucketManager {
             {
                 var point = p.Elements[u];
 
-                var x = Mathf.Lerp(rect.position.x, rect.size.x, point.x);
-                var z = Mathf.Lerp(rect.position.y, rect.size.y, point.z);
+                //Debug.DrawRay(point, Vector3.up*100f, color,100f);                
+
+                var x = Util.InverseLerpUnclamped(rect.position.x, rect.size.x, point.x);
+                var z = Util.InverseLerpUnclamped(rect.position.y, rect.size.y, point.z);
 
                 outputCells.Add(new VoronoiCell(new Vector3(x,point.y,z)));
             }

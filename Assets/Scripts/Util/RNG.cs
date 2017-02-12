@@ -101,4 +101,10 @@ public static class RNG {
         return array[item];
     }
 
+    public static Color GetRandomColor()
+    {
+        return new Color(NextFloat(), NextFloat(), NextFloat());
+
+    }
+
 }

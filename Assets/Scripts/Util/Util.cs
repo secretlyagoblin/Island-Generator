@@ -107,4 +107,9 @@ public static class Util {
         EditorUtility.FocusProjectWindow();
         Selection.activeObject = asset;
     }
+
+    public static float InverseLerpUnclamped(float from, float to, float value)
+    {
+        return (value - from) / (to - from);
+    }
 }

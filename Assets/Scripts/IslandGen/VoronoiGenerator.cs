@@ -11,6 +11,7 @@ public class VoronoiGenerator {
     Layer _heightMap;
     Layer _falloffMap;
     List<VoronoiCell> _allElements;
+    Bucket<VoronoiCell> _buckets;
 
     Coord _coord;
 
@@ -25,11 +26,16 @@ public class VoronoiGenerator {
 
         var color = new Color(RNG.NextFloat(), RNG.NextFloat(), RNG.NextFloat());
 
+        _buckets = new Bucket<VoronoiCell>(10, new Rect(new Vector2(-0.5f, -0.5f), new Vector2(2f, 2f)));
+
         for (int i = 0; i < _allElements.Count; i++)
         {
             var cell = _allElements[i];
-            Debug.DrawRay(new Vector3(cell.Position.x, cell.Height, cell.Position.y), Vector3.up * 100f, color, 100f);
+            //Debug.DrawRay(new Vector3(cell.Position.x, cell.Height, cell.Position.y), Vector3.up * 100f, color, 100f);
+            _buckets.AddElement(cell, cell.Position);
         }
+
+
 
         //RandomlyDistributeCells(relativeDensity);
         LinkMapPointsToCells();
@@ -192,19 +198,19 @@ public class VoronoiGenerator {
                 //}
                 //else
                 //{
-                //    bucketList = _cells.GetBucketsWithinRangeOfPoint(currentPos, searchDistance);
+                var    bucketList = _buckets.GetBucketsWithinRangeOfPoint(currentPos, 0.05f);
                 //}
 
                 var minDist = Mathf.Infinity;
                 var closest = new VoronoiCell(new Vector2(float.MaxValue, float.MaxValue));
 
-                //for (int b = 0; b < bucketList.Count; b++)
-                //{
-                //    var bucket = bucketList[b];
+                for (int b = 0; b < bucketList.Count; b++)
+                {
+                    var bucket = bucketList[b];
 
-                    for (var i = 0; i < _allElements.Count; i++)
+                    for (var i = 0; i < bucket.Elements.Count; i++)
                     {
-                        var cell = _allElements[i];
+                        var cell = bucket.Elements[i];
                         var dist = Vector2.Distance(cell.Position, currentPos);
                         if (dist < minDist)
                         {
@@ -213,7 +219,7 @@ public class VoronoiGenerator {
                             minDist = dist;
                         }
                     }
-                //}
+                }
 
 
                 //if (!closestDistanceAssigned)
@@ -232,7 +238,7 @@ public class VoronoiGenerator {
                 if (minDist == Mathf.Infinity)
                 {
                     minDist = 0;
-                    Debug.Log("Warning: Voronoi Cells are too sparse");
+                    //Debug.Log("Warning: Voronoi Cells are too sparse");
                 }
 
                 distanceMap[x, y] = minDist;

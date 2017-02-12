@@ -54,6 +54,8 @@ public class RegionController : MonoBehaviour {
         lastTime = time;
         yield return null;
 
+
+
         //Create Region, Instantiate Chunks
 
         _region = new Region(heightMap, voronoiPointBucketManager);
@@ -62,6 +64,9 @@ public class RegionController : MonoBehaviour {
         Debug.Log("Creating Chunks: " + (time-lastTime) + " seconds");
         lastTime = time;
         yield return null;
+
+        //Debug.Log("CANCEL LOAD");
+        //yield break;
 
         //Create Bucket System
 
