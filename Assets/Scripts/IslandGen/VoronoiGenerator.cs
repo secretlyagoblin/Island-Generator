@@ -186,6 +186,7 @@ public class VoronoiGenerator {
             for (int y = 0; y < _map.SizeY; y++)
             {
                 var currentPos = _map.GetNormalisedVector3FromIndex(x, y);
+                var current2dPos = new Vector2(currentPos.x, currentPos.z);
 
                 //if (Vector2.Distance(currentPos,lastPos) < lastPosDistance)
                 //{
@@ -194,7 +195,7 @@ public class VoronoiGenerator {
                 //}
                 //else
                 //{
-                var    bucketList = _buckets.GetBucketsWithinRangeOfPoint(currentPos, 0.05f);
+                var    bucketList = _buckets.GetBucketsWithinRangeOfPoint(current2dPos, 0.1f);
                 //}
 
                 var minDist = Mathf.Infinity;
@@ -207,7 +208,7 @@ public class VoronoiGenerator {
                     for (var i = 0; i < bucket.Elements.Count; i++)
                     {
                         var cell = bucket.Elements[i];
-                        var dist = Vector2.Distance(cell.Position, currentPos);
+                        var dist = Vector2.Distance(cell.Position, current2dPos);
                         if (dist < minDist)
                         {
                             closest = cell;
@@ -231,6 +232,8 @@ public class VoronoiGenerator {
 
                 closest.MapPoints.Add(new Coord(x, y));
 
+                //Debug.DrawLine(current2dPos, closest.Position,Color.white,100f);
+
                 if (minDist == Mathf.Infinity)
                 {
                     minDist = 0;
@@ -249,17 +252,17 @@ public class VoronoiGenerator {
 
     public Layer GetHeightMap(Layer sampleMap)
     {
-        _heightMap = new Layer(_map);
+        _heightMap = new Layer(_map,0);
 
 
-            for (var i = 0; i < _allElements.Count; i++)
-            {
-
-                var cell = _allElements[i];
-                if (cell.MapPoints.Count == 0)
+        for (var i = 0; i < _allElements.Count; i++)
+        {
+        
+            var cell = _allElements[i];
+            if (cell.MapPoints.Count == 0)
                 continue;
-
-
+        
+        
             for (int p = 0; p < cell.MapPoints.Count; p++)
             {
                 var point = cell.MapPoints[p];

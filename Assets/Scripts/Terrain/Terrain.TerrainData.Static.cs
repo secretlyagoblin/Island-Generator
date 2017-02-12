@@ -121,7 +121,7 @@ namespace Terrain {
             var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.2f);
 
             var heightMap = parentHeightmap + voronoi.GetHeightMap(parentHeightmap+noiseMap) + distanceMap;
-            heightMap.Multiply(0.5f);
+            //heightMap.Multiply(0.5f);
             //heightMap.SmoothMap(3);
 
             //data._stack.AddMap(MapType.HeightMap, parentHeightmap);

@@ -43,10 +43,21 @@ public class VoronoiPointBucketManager {
             x = Mathf.Lerp(rect.position.x, rect.size.x, x);
             z = Mathf.Lerp(rect.position.y, rect.size.y, z);
 
-            //Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 100f);
+            var insideBool = inside > 0.5f ? true : false;
+
+            if (insideBool)
+            {
+                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 25f);
+            }
+            else
+            {
+                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.green, 25f);
+            }
+
+            
 
             var voronoi = new VoronoiCell(new Vector3(x, y, z));
-            voronoi.Inside = inside >0.5f?true:false;
+            voronoi.Inside = insideBool;
 
             _bucket.AddElement(voronoi, new Vector2(x,z));
         }        
