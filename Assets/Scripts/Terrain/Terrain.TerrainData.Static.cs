@@ -91,7 +91,19 @@ namespace Terrain {
             return new TerrainData(rect,walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
         }
 
-        public static TerrainData ChunkVoronoi(TerrainData parentData, List<VoronoiCell> voronoiCells, int size, Rect rect)
+        public static Layer[] VoronoiPreBake(TerrainData parentData, int size, Rect rect)
+        {
+            var grownRect = GrowRectByOne(rect, size);
+
+            var parentHeightmap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
+
+            return new Layer[] { parentHeightmap, parentWalkablemap };
+
+
+        }
+
+        public static TerrainData ChunkVoronoi(Layer[] prebakeData, List<VoronoiCell> voronoiCells, int size, Rect rect)
         {
             var originalRect = rect;
             var grownRect = GrowRectByOne(rect, size);
@@ -99,8 +111,8 @@ namespace Terrain {
 
 
             //This shit here prevents multithreading as it references parent map
-            var parentHeightmap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
-            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentHeightmap = prebakeData[0];
+            var parentWalkablemap = prebakeData[1];
 
             var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
             

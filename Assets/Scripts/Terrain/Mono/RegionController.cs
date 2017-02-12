@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using U3D.Threading.Tasks;
 using Terrain;
 
 public class RegionController : MonoBehaviour {
@@ -22,58 +23,74 @@ public class RegionController : MonoBehaviour {
     public DetailObjectPool[] DetailObjectPools;
 
     Region _region;
-    bool _loaded = false;    
+    bool _loaded = false;
+    Terrain.TerrainData _heightMap;
 
-	// Use this for initialization
-	void Start () {
-        StartCoroutine(Load());
+    float _timeSinceStartup = 0;
+    float _previousTimeSinceStartup = 0;
+
+    // Use this for initialization
+    void Start () {
+
+        RNG.DateTimeInit();
+        PaletteManager.GetPalette();
+
+        StartCoroutine(LoadPart1());
     }
 
-    IEnumerator Load()
+    IEnumerator LoadPart1()
     {
-        var lastTime = 0f;
-        var time = 0f;
+        _previousTimeSinceStartup = 0f;
+        _timeSinceStartup = 0f;
 
         //Create Heightmap Data
 
         var regionRect = new Rect(Vector2.zero, Vector2.one * RegionSize);
 
-        var heightMap = Terrain.TerrainData.RegionIsland(RegionResolution, regionRect);
+        _heightMap = Terrain.TerrainData.RegionIsland(RegionResolution, regionRect);
         //var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
 
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Generating Heightmap: " + time + " seconds");
-        lastTime = time;
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Generating Heightmap: " + _timeSinceStartup + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
         var voronoiPointBucketManager = new VoronoiPointBucketManager(regionRect);
-        voronoiPointBucketManager.AddRegion(heightMap, 5000, regionRect);
+        voronoiPointBucketManager.AddRegion(_heightMap, 5000, regionRect);
 
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Generating Voronoi Cells: " + (time - lastTime) + " seconds");
-        lastTime = time;
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Generating Voronoi Cells: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
 
 
         //Create Region, Instantiate Chunks
 
-        _region = new Region(heightMap, voronoiPointBucketManager);
-        _region.CreateChunks(NumberOfChunksInRow, ChunkResolution);
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Creating Chunks: " + (time-lastTime) + " seconds");
-        lastTime = time;
+        _region = new Region(_heightMap, voronoiPointBucketManager);
+        _region.CreateMultithreadedChunks(NumberOfChunksInRow, ChunkResolution,ReturnedTask);
+        //_region.CreateChunks(NumberOfChunksInRow, ChunkResolution);
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Starting to Create Chunks: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
-        //Debug.Log("CANCEL LOAD");
-        //yield break;
+        //StartCoroutine(LoadPart2());
+
+        Debug.Log("CANCEL LOAD");
+        yield break;
 
         //Create Bucket System
 
+       
+    }
+
+    IEnumerator LoadPart2()
+    {
         _region.CreateBucketSystem();
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Creating Bucket System: " + (time - lastTime) + " seconds");
-        lastTime = time;
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Creating Bucket System: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
         //Create and Instantiate Individual Regions
@@ -84,9 +101,9 @@ public class RegionController : MonoBehaviour {
         obj.name = "HighResolutionMap";
 
         _region.InstantiateRegionCells(obj.transform, Material);
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Instantiating Meshes: " + (time - lastTime) + " seconds");
-        lastTime = time;
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Instantiating Meshes: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
         //Add Collision To Regions
@@ -94,9 +111,9 @@ public class RegionController : MonoBehaviour {
         if (GenerateCollision)
         {
             _region.InstantiateCollision(CollisionDecimationFactor);
-            time = Time.realtimeSinceStartup;
-            Debug.Log("Instantiating Collision: " + (time - lastTime) + " seconds");
-            lastTime = time;
+            _timeSinceStartup = Time.realtimeSinceStartup;
+            Debug.Log("Instantiating Collision: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+            _previousTimeSinceStartup = _timeSinceStartup;
             yield return null;
 
             obj = new GameObject();
@@ -105,9 +122,9 @@ public class RegionController : MonoBehaviour {
             obj.name = "CollisionMap";
 
             _region.EnableCollision(obj.transform);
-            time = Time.realtimeSinceStartup;
-            Debug.Log("Enabling Collision: " + (time - lastTime) + " seconds");
-            lastTime = time;
+            _timeSinceStartup = Time.realtimeSinceStartup;
+            Debug.Log("Enabling Collision: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+            _previousTimeSinceStartup = _timeSinceStartup;
             yield return null;
         }
         //Create and Instantiate Far Landscape Cells
@@ -115,29 +132,29 @@ public class RegionController : MonoBehaviour {
         obj = new GameObject();
         obj.transform.parent = transform;
         obj.transform.localPosition = Vector3.zero;
-        lastTime = time;
+        _previousTimeSinceStartup = _timeSinceStartup;
         obj.name = "DummyCells";
 
         _region.InstantiateDummyCells(obj.transform, Material);
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Instantiating Far Landscape: " + (time - lastTime) + " seconds");
-        lastTime = time;
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Instantiating Far Landscape: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
         for (int i = 0; i < DetailObjectPools.Length; i++)
         {
-            DetailObjectPools[i].SetPhysicalMap(heightMap);
+            DetailObjectPools[i].SetPhysicalMap(_heightMap);
             DetailObjectPools[i].InitPositions();
         }
 
-        time = Time.realtimeSinceStartup;
-        Debug.Log("Instantiating Props: " + (time - lastTime) + " seconds");
-        lastTime = time;
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Instantiating Props: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
         yield return null;
 
         //Clean Up, set loaded as true
 
-        Debug.Log("Total Load Time : " + Time.realtimeSinceStartup        + " seconds");
+        Debug.Log("Total Load Time : " + Time.realtimeSinceStartup + " seconds");
 
         _loaded = true;
     }
@@ -149,5 +166,13 @@ public class RegionController : MonoBehaviour {
             var pos = TestTransform.position;
             _region.Update(transform.InverseTransformPoint(pos), ChunkUpdateDistance);
         }
+    }
+
+    void ReturnedTask(Task t)
+    {
+        _timeSinceStartup = Time.realtimeSinceStartup;
+        Debug.Log("Chunk Creation Finished: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+
+        StartCoroutine(LoadPart2());
     }
 }

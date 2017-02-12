@@ -29,7 +29,7 @@ namespace Buckets {
             _layer = 0;
             _maxLayer = maxLayer;
 
-            var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
+            //var Colour = RNG.GetRandomColor();
 
             LowerBounds = rect.position;
             UpperBounds = rect.size + LowerBounds;
@@ -46,7 +46,7 @@ namespace Buckets {
             _layer = layer;
             _maxLayer = maxLayer;
 
-            var Colour = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f));
+            //var Colour = RNG.GetRandomColor();
 
             LowerBounds = rect.position;
             UpperBounds = rect.size + LowerBounds;
