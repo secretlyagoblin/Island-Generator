@@ -48,10 +48,11 @@ public class VoronoiPointBucketManager {
     }
 
     // Ready for the Voronoi System!
-    public Bucket<VoronoiCell> GetSubChunk(Rect rect)
+    public List<VoronoiCell> GetSubChunk(Rect rect)
     {
         var points = _bucket.GetBucketsIntersectingWithRect(rect);
-        var bucket = new Bucket<VoronoiCell>(6, rect);
+
+        List<VoronoiCell> outputCells = new List<VoronoiCell>();
 
         for (int i = 0; i < points.Count; i++)
         {
@@ -60,10 +61,14 @@ public class VoronoiPointBucketManager {
             for (int u = 0; u < p.Elements.Count; u++)
             {
                 var point = p.Elements[u];
-                bucket.AddElement(new VoronoiCell(new Vector3(point.x,point.y,point.z)), new Vector2(point.x, point.z));
+
+                var x = Mathf.Lerp(rect.position.x, rect.size.x, point.x);
+                var z = Mathf.Lerp(rect.position.y, rect.size.y, point.z);
+
+                outputCells.Add(new VoronoiCell(new Vector3(x,point.y,z)));
             }
         }
-        return bucket;
+        return outputCells;
     }
 
 }

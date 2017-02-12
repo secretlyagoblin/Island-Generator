@@ -10,9 +10,7 @@ public class VoronoiGenerator {
     Layer _distanceMap;
     Layer _heightMap;
     Layer _falloffMap;
-    Bucket<VoronoiCell> _cells;
     List<VoronoiCell> _allElements;
-    Rect _rect;
 
     Coord _coord;
 
@@ -20,11 +18,10 @@ public class VoronoiGenerator {
 
     public static VoronoiGenerator Generator = null; 
 
-    public VoronoiGenerator(Layer map, Rect rect, float searchDistance, Bucket<VoronoiCell> cells)
+    public VoronoiGenerator(Layer map, List<VoronoiCell> cells)
     {
         _map = map;
-        _cells = cells;
-        _allElements = _cells.GetAllElementsInTree();
+        _allElements = cells;
 
         var color = new Color(RNG.NextFloat(), RNG.NextFloat(), RNG.NextFloat());
 
@@ -35,7 +32,7 @@ public class VoronoiGenerator {
         }
 
         //RandomlyDistributeCells(relativeDensity);
-        LinkMapPointsToCells(searchDistance);
+        LinkMapPointsToCells();
 
     }
 
@@ -176,25 +173,17 @@ public class VoronoiGenerator {
         _cells = outputList;
     }
     */
-    void LinkMapPointsToCells(float searchDistance)
+    void LinkMapPointsToCells()
     {
         var distanceMap = Layer.Clone(_map);
-        var lastPos = new Vector2(float.MaxValue, float.MaxValue);
-        var lastPosDistance = searchDistance * 0.1f;
-        List<Bucket<VoronoiCell>> lastCells = new List<Bucket<VoronoiCell>>();
+
 
         for (int x = 0; x < _map.SizeX; x++)
         {
 
             for (int y = 0; y < _map.SizeY; y++)
             {
-                List<Bucket<VoronoiCell>> bucketList;
-
-                var pos = _map.GetNormalisedVector3FromIndex(x, y);
-                var cellX = Mathf.Lerp(_rect.position.x, _rect.size.x, pos.x);
-                var cellY = Mathf.Lerp(_rect.position.y, _rect.size.y, pos.z);
-
-                var currentPos = new Vector2(cellX, cellY);
+                var currentPos = _map.GetNormalisedVector3FromIndex(x, y);
 
                 //if (Vector2.Distance(currentPos,lastPos) < lastPosDistance)
                 //{
@@ -205,8 +194,6 @@ public class VoronoiGenerator {
                 //{
                 //    bucketList = _cells.GetBucketsWithinRangeOfPoint(currentPos, searchDistance);
                 //}
-
-                lastPos = currentPos;
 
                 var minDist = Mathf.Infinity;
                 var closest = new VoronoiCell(new Vector2(float.MaxValue, float.MaxValue));

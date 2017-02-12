@@ -91,7 +91,7 @@ namespace Terrain {
             return new TerrainData(rect,walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
         }
 
-        public static TerrainData ChunkVoronoi(TerrainData parentData, Buckets.Bucket<VoronoiCell> voronoiCells, int size, Rect rect)
+        public static TerrainData ChunkVoronoi(TerrainData parentData, List<VoronoiCell> voronoiCells, int size, Rect rect)
         {
             var originalRect = rect;
             var grownRect = GrowRectByOne(rect, size);
@@ -105,7 +105,7 @@ namespace Terrain {
             var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
             
 
-            var voronoi = new VoronoiGenerator(parentHeightmap, originalRect,grownRect.size.x*0.2f, voronoiCells);
+            var voronoi = new VoronoiGenerator(parentHeightmap, voronoiCells);
 
             var diffMap = voronoi.GetVoronoiBoolMap(parentWalkablemap);
             var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.2f);
