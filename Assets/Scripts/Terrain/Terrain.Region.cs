@@ -73,10 +73,7 @@ namespace Terrain {
                     var rect = new Rect(pos, offsetVector);
 
                     var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
-
-
                     var voronoiRect = new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset);
-
                     var cellData = _voronoiData.GetSubChunk(voronoiRect);
 
                     var prebakeMapData = TerrainData.VoronoiPreBake(_terrainData, mapSize, rect);
@@ -122,8 +119,8 @@ namespace Terrain {
             
                     //Debug.DrawRay(point, Vector3.up*100f, color,100f);                
             
-                    var x = Util.InverseLerpUnclamped(rect.position.x, rect.size.x, point.Position.x);
-                    var z = Util.InverseLerpUnclamped(rect.position.y, rect.size.y, point.Position.y);
+                    var x = Util.InverseLerpUnclamped(rect.position.x, rect.position.x + rect.size.x, point.Position.x);
+                    var z = Util.InverseLerpUnclamped(rect.position.y, rect.position.y + rect.size.y, point.Position.y);
 
                     var cell = new VoronoiCell(new Vector3(x,point.Height, z));
                     cell.Inside = point.Inside;

@@ -34,24 +34,24 @@ public class VoronoiPointBucketManager {
     {
         for (int i = 0; i < pointCount; i++)
         {
-            var x = RNG.NextFloat();
-            var z = RNG.NextFloat();
+            var x = RNG.NextFloat(0,0.8f);
+            var z = RNG.NextFloat(0, 0.45f);
             var y = region.HeightMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
             var inside = region.WalkableMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
 
 
-            x = Mathf.Lerp(rect.position.x, rect.size.x, x);
-            z = Mathf.Lerp(rect.position.y, rect.size.y, z);
+            x = Mathf.Lerp(rect.position.x, rect.position.x+ rect.size.x, x);
+            z = Mathf.Lerp(rect.position.y, rect.position.x +rect.size.y, z);
 
             var insideBool = inside > 0.5f ? true : false;
 
             if (insideBool)
             {
-                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 25f);
+                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 20000f);
             }
             else
             {
-                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.green, 25f);
+                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.green, 20000f);
             }
 
             

@@ -88,7 +88,7 @@ namespace Terrain {
 
             //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-            return new TerrainData(rect,walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
+            return new TerrainData(rect,new Layer(size,size,1f), realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
         }
 
         public static Layer[] VoronoiPreBake(TerrainData parentData, int size, Rect rect)
@@ -121,7 +121,7 @@ namespace Terrain {
             var distanceMap = voronoi.GetDistanceMap().Invert().Remap(0f, 0.2f);
 
             var heightMap = parentHeightmap + voronoi.GetHeightMap(parentHeightmap+noiseMap) + distanceMap;
-            //heightMap.Multiply(0.5f);
+            heightMap.Multiply(0.5f);
             //heightMap.SmoothMap(3);
 
             //data._stack.AddMap(MapType.HeightMap, parentHeightmap);

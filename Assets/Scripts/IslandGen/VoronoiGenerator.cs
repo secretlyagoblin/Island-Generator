@@ -195,7 +195,7 @@ public class VoronoiGenerator {
                 //}
                 //else
                 //{
-                var    bucketList = _buckets.GetBucketsWithinRangeOfPoint(current2dPos, 0.1f);
+                var    bucketList = _buckets.GetBucketsWithinRangeOfPoint(current2dPos, 0.2f);
                 //}
 
                 var minDist = Mathf.Infinity;

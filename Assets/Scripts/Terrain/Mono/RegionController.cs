@@ -56,7 +56,7 @@ public class RegionController : MonoBehaviour {
         yield return null;
 
         var voronoiPointBucketManager = new VoronoiPointBucketManager(regionRect);
-        voronoiPointBucketManager.AddRegion(_heightMap, 5000, regionRect);
+        voronoiPointBucketManager.AddRegion(_heightMap, 1000, regionRect);
 
         _timeSinceStartup = Time.realtimeSinceStartup;
         Debug.Log("Generating Voronoi Cells: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
@@ -172,6 +172,7 @@ public class RegionController : MonoBehaviour {
     {
         _timeSinceStartup = Time.realtimeSinceStartup;
         Debug.Log("Chunk Creation Finished: " + (_timeSinceStartup - _previousTimeSinceStartup) + " seconds");
+        _previousTimeSinceStartup = _timeSinceStartup;
 
         StartCoroutine(LoadPart2());
     }
