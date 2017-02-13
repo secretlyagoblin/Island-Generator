@@ -383,6 +383,8 @@ namespace Map {
             float v = normalisedVector.y * (SizeY - 1);
             int x = (int)Mathf.Floor(u);
             int y = (int)Mathf.Floor(v);
+            if(u == x) x--;
+            if(v == y) y--;            
             float u_ratio = u - x;
             float v_ratio = v - y;
             float u_opposite = 1f - u_ratio;
