@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Map;
+using Maps;
 
 namespace Terrain {
 
@@ -9,8 +9,8 @@ namespace Terrain {
 
         public static TerrainData BlankMap(int size, Rect rect, float value)
         {
-            var parentHeightmap = new Layer(size, size, value);
-            var parentWalkablemap = new Layer(size, size, value*2);
+            var parentHeightmap = new Map(size, size, value);
+            var parentWalkablemap = new Map(size, size, value*2);
 
             return new TerrainData(rect, parentWalkablemap,parentHeightmap);
         }
@@ -22,10 +22,10 @@ namespace Terrain {
 
             //CreateWalkableSpace
 
-            var walkableAreaMap = new Layer(size, size);
+            var walkableAreaMap = new Map(size, size);
 
             walkableAreaMap.RandomFillMap(0.5f, 0, 0)
-                .ApplyMask(Layer.BlankMap(walkableAreaMap)
+                .ApplyMask(Map.BlankMap(walkableAreaMap)
                         .CreateCircularFalloff(size * 0.45f))
                 .BoolSmoothOperation(4)
                 .RemoveSmallRegions(600)
@@ -36,12 +36,12 @@ namespace Terrain {
 
             var oceanFalloffMap = walkableAreaMap.GetFootprintOutline();
 
-            var walkableAreaFalloffMap = Layer.Clone(walkableAreaMap)
+            var walkableAreaFalloffMap = Map.Clone(walkableAreaMap)
                 .GetDistanceMap(15)
                 .Clamp(0.5f, 1f)
                 .Normalise();
 
-            var waterFalloff = Layer.Blend(walkableAreaFalloffMap, new Layer(size, size, 0f), oceanFalloffMap);
+            var waterFalloff = Map.Blend(walkableAreaFalloffMap, new Map(size, size, 0f), oceanFalloffMap);
 
             var deepWaterFalloff = waterFalloff
                 .Clone()
@@ -51,9 +51,9 @@ namespace Terrain {
                 .Clamp(0.75f, 1f)
                 .Normalise();
 
-            var finalWaterFalloff = Layer.Blend(new Layer(size, size, 0).Remap(0, 0.5f), waterFalloff, deepWaterFalloff);
+            var finalWaterFalloff = Map.Blend(new Map(size, size, 0).Remap(0, 0.5f), waterFalloff, deepWaterFalloff);
 
-            var cliffsFalloff = Layer.Blend(new Layer(size, size, 0f), walkableAreaFalloffMap, finalWaterFalloff.Clone().Normalise().Clamp(0f, 0.1f).Normalise());
+            var cliffsFalloff = Map.Blend(new Map(size, size, 0f), walkableAreaFalloffMap, finalWaterFalloff.Clone().Normalise().Clamp(0f, 0.1f).Normalise());
 
             // HERE TODAY: need to get identify inner cliffs.
 
@@ -71,9 +71,9 @@ namespace Terrain {
                 .Normalise()
                 .Remap(0.1f, 1f);
 
-            heightMap = Layer.Blend(new Layer(size, size, 0f), heightMap, finalWaterFalloff.Clone().Clamp(0, 0.5f).Normalise());
+            heightMap = Map.Blend(new Map(size, size, 0f), heightMap, finalWaterFalloff.Clone().Clamp(0, 0.5f).Normalise());
 
-            var heightMapSlope = Layer.Clone(heightMap).GetAbsoluteBumpMap().Normalise().Clamp(0.12f, 0.2f).Normalise();
+            var heightMapSlope = Map.Clone(heightMap).GetAbsoluteBumpMap().Normalise().Clamp(0.12f, 0.2f).Normalise();
 
             totalFalloffMap.Normalise();
 
@@ -84,26 +84,26 @@ namespace Terrain {
                 .Multiply(0.5f)
                 + heightMap;
 
-            var realFinalMap = Layer.Blend(heightMap, finalMap, heightMapSlope);
+            var realFinalMap = Map.Blend(heightMap, finalMap, heightMapSlope);
 
             //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-            return new TerrainData(rect,new Layer(size,size,1f), realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
+            return new TerrainData(rect, walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
         }
 
-        public static Layer[] VoronoiPreBake(TerrainData parentData, int size, Rect rect)
+        public static Map[] VoronoiPreBake(TerrainData parentData, int size, Rect rect)
         {
             var grownRect = GrowRectByOne(rect, size);
 
-            var parentHeightmap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
-            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(grownRect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentHeightmap = new Map(size, size, 0).ToPhysical(grownRect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentWalkablemap = new Map(size, size, 0).ToPhysical(grownRect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
-            return new Layer[] { parentHeightmap, parentWalkablemap };
+            return new Map[] { parentHeightmap, parentWalkablemap };
 
 
         }
 
-        public static TerrainData ChunkVoronoi(Layer[] prebakeData, List<VoronoiCell> voronoiCells, int size, Rect rect)
+        public static TerrainData ChunkVoronoi(Map[] prebakeData, List<VoronoiCell> voronoiCells, int size, Rect rect)
         {
             var originalRect = rect;
             var grownRect = GrowRectByOne(rect, size);
@@ -112,7 +112,7 @@ namespace Terrain {
             var parentHeightmap = prebakeData[0];
             var parentWalkablemap = prebakeData[1];
 
-            var noiseMap = new Layer(size, size).FillWithNoise().Multiply(10f);
+            var noiseMap = new Map(size, size).FillWithNoise().Multiply(10f);
             
 
             var voronoi = new VoronoiGenerator(parentHeightmap, voronoiCells);
@@ -143,7 +143,7 @@ namespace Terrain {
             colorMap.SetGradient(PaletteManager.GetPalette().CliffColor);
             colorMap.ApplyMapWithMask(heightMap.Clone().Multiply(1f / 200f),diffMap);
 
-            return new TerrainData(grownRect, diffMap, Layer.Blend(heightMap, parentHeightmap, diffMap), colorMap);
+            return new TerrainData(grownRect, diffMap, Map.Blend(heightMap, parentHeightmap, diffMap), colorMap);
 
             /*            
 
@@ -165,8 +165,8 @@ namespace Terrain {
             rect = GrowRectByOne(rect, size);
             size = size + 1;
 
-            var parentHeightmap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
-            var parentWalkablemap = new Layer(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentHeightmap = new Map(size, size, 0).ToPhysical(rect).Add(parentData.HeightMap.ToPhysical(parentData.Rect)).ToMap();
+            var parentWalkablemap = new Map(size, size, 0).ToPhysical(rect).Add(parentData.WalkableMap.ToPhysical(parentData.Rect)).ToMap();
 
             var colorLayer = new ColorLayer(parentWalkablemap.Clone().Invert().Remap(0.1f,1f));
 
@@ -200,7 +200,7 @@ namespace Terrain {
         {
             rect = GrowRectByOne(rect, dummyMaps[0,0].HeightMap.SizeX-1);
 
-            var layers = new Layer[2,2];
+            var layers = new Map[2,2];
 
             for (int x = 0; x < 2; x++)
                 for (int y = 0; y < 2; y++)
@@ -211,10 +211,10 @@ namespace Terrain {
             return newMap;
         }
 
-        static Layer CreateHeightMap(Layer unionMap)
+        static Map CreateHeightMap(Map unionMap)
         {
             var subMaps = unionMap.GenerateSubMaps(6, 12);
-            var heightmap = Layer.CreateHeightMap(subMaps);
+            var heightmap = Map.CreateHeightMap(subMaps);
 
             var allRegions = new List<List<Coord>>();
 
@@ -224,13 +224,13 @@ namespace Terrain {
                 allRegions.AddRange(subMap.GetRegions(0));
             }
 
-            var finalSubMaps = Layer.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
-            heightmap = Layer.CreateHeightMap(finalSubMaps);
+            var finalSubMaps = Map.BlankMap(unionMap).CreateHeightSortedSubmapsFromDijkstrasAlgorithm(allRegions);
+            heightmap = Map.CreateHeightMap(finalSubMaps);
 
             return heightmap;
         }
 
-        static Rect GrowRectByOne(Rect rect, int mapSize)
+        public static Rect GrowRectByOne(Rect rect, int mapSize)
         {
             var positionSize = rect.height;
             var offsetSize = positionSize + (positionSize * (1f / mapSize));

@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace Map {
+namespace Maps {
 
     public class PhysicalMap {
 
-        Layer _map;
+        Map _map;
 
-        public Layer ToMap()
+        public Map ToMap()
         {
             return _map;
         }
@@ -24,7 +24,7 @@ namespace Map {
 
         protected Vector2 _size;
 
-        public PhysicalMap(Layer map, Rect rect)
+        public PhysicalMap(Map map, Rect rect)
         {
 
             _map = map;

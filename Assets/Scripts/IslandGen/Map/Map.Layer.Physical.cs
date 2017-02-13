@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace Map {
+namespace Maps {
 
-    public partial class Layer {
+    public partial class Map {
         public PhysicalMap ToPhysical(Rect rect)
         {
             return new PhysicalMap(this, rect);

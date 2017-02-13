@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Map;
+using Maps;
 using Buckets;
 
 public class VoronoiGenerator {
 
-    Layer _map;
-    Layer _distanceMap;
-    Layer _heightMap;
-    Layer _falloffMap;
+    Map _map;
+    Map _distanceMap;
+    Map _heightMap;
+    Map _falloffMap;
     List<VoronoiCell> _allElements;
     Bucket<VoronoiCell> _buckets;
 
@@ -19,14 +19,14 @@ public class VoronoiGenerator {
 
     public static VoronoiGenerator Generator = null; 
 
-    public VoronoiGenerator(Layer map, List<VoronoiCell> cells)
+    public VoronoiGenerator(Map map, List<VoronoiCell> cells)
     {
         _map = map;
         _allElements = cells;
 
         var color = new Color(RNG.NextFloat(), RNG.NextFloat(), RNG.NextFloat());
 
-        _buckets = new Bucket<VoronoiCell>(10, new Rect(new Vector2(-0.5f, -0.5f), new Vector2(2f, 2f)));
+        _buckets = new Bucket<VoronoiCell>(5, new Rect(new Vector2(-0.5f, -0.5f), new Vector2(2f, 2f)));
 
         for (int i = 0; i < _allElements.Count; i++)
         {
@@ -42,14 +42,14 @@ public class VoronoiGenerator {
 
     }
 
-    public Layer GetDistanceMap()
+    public Map GetDistanceMap()
     {
-        return Layer.Clone(_distanceMap);
+        return Map.Clone(_distanceMap);
     }
 
-    public Layer GetSmattering(int chance)
+    public Map GetSmattering(int chance)
     {
-        var map = new Layer(_map.SizeX, _map.SizeY, 1);
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
 
         _distanceMap.Normalise();
 
@@ -64,7 +64,7 @@ public class VoronoiGenerator {
                 {
                     var point = cell.MapPoints[p];
 
-                    map[point.TileX, point.TileY] = _distanceMap[point.TileX, point.TileY];
+                    map[point.x, point.y] = _distanceMap[point.x, point.y];
                 }
             }
 
@@ -74,9 +74,9 @@ public class VoronoiGenerator {
         return map;
     }
 
-    public Layer GetVoronoiBoolMap(Layer insideMap)
+    public Map GetVoronoiBoolMap(Map insideMap)
     {
-        var map = new Layer(_map.SizeX, _map.SizeY, 1);
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
 
         for (int i = 0; i < _allElements.Count; i++)
         {
@@ -93,7 +93,7 @@ public class VoronoiGenerator {
                     var point = cell.MapPoints[p];
 
 
-                    map[point.TileX, point.TileY] = 0;
+                    map[point.x, point.y] = 0;
                 }
             }
         }
@@ -177,7 +177,7 @@ public class VoronoiGenerator {
     */
     void LinkMapPointsToCells()
     {
-        var distanceMap = Layer.Clone(_map);
+        var distanceMap = Map.Clone(_map);
 
 
         for (int x = 0; x < _map.SizeX; x++)
@@ -250,9 +250,9 @@ public class VoronoiGenerator {
         _distanceMap = distanceMap;
     }
 
-    public Layer GetHeightMap(Layer sampleMap)
+    public Map GetHeightMap(Map sampleMap)
     {
-        _heightMap = new Layer(_map,0);
+        _heightMap = new Map(_map,0);
 
 
         for (var i = 0; i < _allElements.Count; i++)
@@ -266,16 +266,16 @@ public class VoronoiGenerator {
             for (int p = 0; p < cell.MapPoints.Count; p++)
             {
                 var point = cell.MapPoints[p];
-                _heightMap[point.TileX, point.TileY] = cell.Height;
+                _heightMap[point.x, point.y] = cell.Height;
             }
         }
 
-        return Layer.Clone(_heightMap);
+        return Map.Clone(_heightMap);
     }
 
-    public Layer GetFalloffMap(int searchDistance)
+    public Map GetFalloffMap(int searchDistance)
     {
-        _falloffMap = new Layer(_map);
+        _falloffMap = new Map(_map);
 
         for (int i = 0; i < _allElements.Count; i++)
         {
@@ -287,7 +287,7 @@ public class VoronoiGenerator {
             cell.SetFalloff(_falloffMap, searchDistance);
         }
 
-        return Layer.Clone(_falloffMap);
+        return Map.Clone(_falloffMap);
     }
 
 }
@@ -314,13 +314,13 @@ public class VoronoiCell {
         Inside = false;
     }
 
-    public void Sort(Layer _distanceMap)
+    public void Sort(Map _distanceMap)
     {
-        var points = MapPoints.OrderBy(x => _distanceMap[x.TileX, x.TileY]).ToList();
+        var points = MapPoints.OrderBy(x => _distanceMap[x.x, x.y]).ToList();
         Center = points.First();
     }
 
-    public void SetFalloff(Layer bigMap, int searchDistance)
+    public void SetFalloff(Map bigMap, int searchDistance)
     {
         var minX = int.MaxValue;
         var maxX = int.MinValue;
@@ -334,24 +334,24 @@ public class VoronoiCell {
         {
             var p = MapPoints[i];
 
-            if (p.TileX > maxX)
-                maxX = p.TileX;
-            if (p.TileX < minX)
-                minX = p.TileX;
+            if (p.x > maxX)
+                maxX = p.x;
+            if (p.x < minX)
+                minX = p.x;
 
-            if (p.TileY > maxY)
-                maxY = p.TileY;
-            if (p.TileY < minY)
-                minY = p.TileY;
+            if (p.y > maxY)
+                maxY = p.y;
+            if (p.y < minY)
+                minY = p.y;
         }
 
-        var map = new Layer(maxX - minX + 1 + buffer, maxY - minY + 1 + buffer, 0);
+        var map = new Map(maxX - minX + 1 + buffer, maxY - minY + 1 + buffer, 0);
 
         for (int i = 0; i < MapPoints.Count; i++)
         {
             var p = MapPoints[i];
 
-            map[p.TileX - minX + buffer, p.TileY - minY + buffer] = 1;
+            map[p.x - minX + buffer, p.y - minY + buffer] = 1;
 
         }
 
@@ -362,7 +362,7 @@ public class VoronoiCell {
         for (int i = 0; i < MapPoints.Count; i++)
         {
             var p = MapPoints[i];
-            bigMap[p.TileX, p.TileY] = map[p.TileX - minX + buffer, p.TileY - minY + buffer];
+            bigMap[p.x, p.y] = map[p.x - minX + buffer, p.y - minY + buffer];
 
         }
 

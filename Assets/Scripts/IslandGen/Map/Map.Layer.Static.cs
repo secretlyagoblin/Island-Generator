@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace Map {
+namespace Maps {
 
-    public partial class Layer {
+    public partial class Map {
         //Contains constructiors, accessors, static functions and math functions
 
         public int SizeX
@@ -17,21 +17,21 @@ namespace Map {
         public float[,] FloatArray
         { get { return Clone(this)._map; } }
 
-        public Layer(Layer mapTemplate)
+        public Map(Map mapTemplate)
         {
             SizeX = mapTemplate.SizeX;
             SizeY = mapTemplate.SizeY;
             _map = new float[SizeX, SizeY];
         }
 
-        public Layer(int sizeX, int sizeY)
+        public Map(int sizeX, int sizeY)
         {
             SizeX = sizeX;
             SizeY = sizeY;
             _map = new float[SizeX, SizeY];
         }
 
-        public Layer(Layer mapTemplate, float defaultValue)
+        public Map(Map mapTemplate, float defaultValue)
         {
             SizeX = mapTemplate.SizeX;
             SizeY = mapTemplate.SizeY;
@@ -46,7 +46,7 @@ namespace Map {
             }
         }
 
-        public Layer(int sizeX, int sizeY, float defaultValue)
+        public Map(int sizeX, int sizeY, float defaultValue)
         {
             SizeX = sizeX;
             SizeY = sizeY;
@@ -78,7 +78,7 @@ namespace Map {
             _stack = stack;
         }
 
-        public Layer AddToGlobalStack()
+        public Map AddToGlobalStack()
         {
             if (_stack != null)
             {
@@ -88,7 +88,7 @@ namespace Map {
             return this;
         }
 
-        public static Layer Clone(Layer map)
+        public static Map Clone(Map map)
         {
             return BlankMap(map).OverwriteMapWith(map);
         }
@@ -104,8 +104,8 @@ namespace Map {
 
                 for (int u = 0; u < coords[i].Count; u++)
                 {
-                    averageX += coords[i][u].TileX;
-                    averageY += coords[i][u].TileY;
+                    averageX += coords[i][u].x;
+                    averageY += coords[i][u].y;
                 }
 
                 averageX /= coords[i].Count;
@@ -117,33 +117,33 @@ namespace Map {
             return returnCoords;
         }
 
-        public static Layer BlankMap(Layer template)
+        public static Map BlankMap(Map template)
         {
-            return new Layer(template.SizeX, template.SizeY);
+            return new Map(template.SizeX, template.SizeY);
         }
 
-        public static Layer CreateHeightMap(Layer[] heightData)
+        public static Map CreateHeightMap(Map[] heightData)
         {
             return Clone(heightData[0]).AddHeightmapLayers(heightData, 0);
         }
 
-        public static Layer BlankMap(int sizeX, int sizeY)
+        public static Map BlankMap(int sizeX, int sizeY)
         {
-            return new Layer(sizeX, sizeY);
+            return new Map(sizeX, sizeY);
         }
 
-        public static Layer ApplyMask(Layer mapA, Layer mapB, Layer mask)
+        public static Map ApplyMask(Map mapA, Map mapB, Map mask)
         {
             return Clone(mapA).ApplyMask(mask, mapB);
         }
 
-        public static bool MapsAreSameDimensions(Layer mapA, Layer mapB)
+        public static bool MapsAreSameDimensions(Map mapA, Map mapB)
         {
             return mapA.SizeX == mapB.SizeX && mapA.SizeY == mapB.SizeY;
 
         }
 
-        public static Layer BooleanUnion(Layer mapA, Layer mapB)
+        public static Map BooleanUnion(Map mapA, Map mapB)
         {
             //Need a check here to avoid failure
 
@@ -153,7 +153,7 @@ namespace Map {
                 return null;
             }
 
-            var outputMap = new Layer(mapA);
+            var outputMap = new Map(mapA);
 
             for (int x = 0; x < mapA.SizeX; x++)
             {
@@ -165,7 +165,7 @@ namespace Map {
             return outputMap;
         }
 
-        public static Layer BooleanIntersection(Layer mapA, Layer mapB)
+        public static Map BooleanIntersection(Map mapA, Map mapB)
         {
             //Need a check here to avoid failure
 
@@ -175,7 +175,7 @@ namespace Map {
                 return null;
             }
 
-            var outputMap = new Layer(mapA);
+            var outputMap = new Map(mapA);
 
             for (int x = 0; x < mapA.SizeX; x++)
             {
@@ -187,7 +187,7 @@ namespace Map {
             return outputMap;
         }
 
-        public static Layer BooleanDifference(Layer mapA, Layer mapB)
+        public static Map BooleanDifference(Map mapA, Map mapB)
         {
             //Need a check here to avoid failure
 
@@ -197,7 +197,7 @@ namespace Map {
                 return null;
             }
 
-            var outputMap = new Layer(mapA);
+            var outputMap = new Map(mapA);
 
             for (int x = 0; x < mapA.SizeX; x++)
             {
@@ -209,7 +209,7 @@ namespace Map {
             return outputMap;
         }
 
-        public Layer BooleanMapFromThreshold(float threshold)
+        public Map BooleanMapFromThreshold(float threshold)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -222,12 +222,12 @@ namespace Map {
             return this;
         }
 
-        public static Layer GetInvertedMap(Layer map)
+        public static Map GetInvertedMap(Map map)
         {
             return Clone(map).Invert();
         }
 
-        public static Layer HigherResult(Layer mapA, Layer mapB)
+        public static Map HigherResult(Map mapA, Map mapB)
         {
             var map = Clone(mapA);
 
@@ -244,9 +244,9 @@ namespace Map {
 
         // Math Functions
 
-        public static Layer operator +(Layer a, Layer b)
+        public static Map operator +(Map a, Map b)
         {
-            var outputMap = new Layer(a);
+            var outputMap = new Map(a);
 
             for (int x = 0; x < a.SizeX; x++)
             {
@@ -259,9 +259,9 @@ namespace Map {
             return outputMap;
         }
 
-        public static Layer operator -(Layer a, Layer b)
+        public static Map operator -(Map a, Map b)
         {
-            var outputMap = new Layer(a);
+            var outputMap = new Map(a);
 
             for (int x = 0; x < a.SizeX; x++)
             {
@@ -274,9 +274,9 @@ namespace Map {
             return outputMap;
         }
 
-        public static Layer operator *(Layer a, Layer b)
+        public static Map operator *(Map a, Map b)
         {
-            var outputMap = new Layer(a);
+            var outputMap = new Map(a);
 
             for (int x = 0; x < a.SizeX; x++)
             {
@@ -289,9 +289,9 @@ namespace Map {
             return outputMap;
         }
 
-        public static Layer operator /(Layer a, Layer b)
+        public static Map operator /(Map a, Map b)
         {
-            var outputMap = new Layer(a);
+            var outputMap = new Map(a);
 
             for (int x = 0; x < a.SizeX; x++)
             {
@@ -305,9 +305,9 @@ namespace Map {
         }
 
 
-        public static Layer Blend(Layer mapA, Layer mapB, Layer blendMap)
+        public static Map Blend(Map mapA, Map mapB, Map blendMap)
         {
-            var outputMap = Layer.BlankMap(mapA);
+            var outputMap = Map.BlankMap(mapA);
 
             for (int x = 0; x < mapA.SizeX; x++)
             {
@@ -320,9 +320,9 @@ namespace Map {
             return outputMap;
         }
 
-        public static Layer CreateMapFromSubMapsAssumingOnePixelOverlap(Layer[,] mapArray)
+        public static Map CreateMapFromSubMapsAssumingOnePixelOverlap(Map[,] mapArray)
         {
-            var finalMap = new Layer(mapArray[0, 0]);
+            var finalMap = new Map(mapArray[0, 0]);
 
             var trueLength = finalMap.SizeX - 1;
 
@@ -385,14 +385,14 @@ namespace Map {
 
         }
 
-        public static Layer DecimateMap(Layer map, int decimationFactor)
+        public static Map DecimateMap(Map map, int decimationFactor)
         {
             var length = map.SizeX;
 
             var trueLength = length - 1;
             var arraySize = (trueLength / decimationFactor) + 1;
 
-            var finalMap = new Layer(arraySize, arraySize);
+            var finalMap = new Map(arraySize, arraySize);
 
             var trueX = 0;
             var trueY = 0;
@@ -435,7 +435,7 @@ namespace Map {
 
         // Map Photoshop Functions
 
-        public Layer Lighten(Layer other)
+        public Map Lighten(Map other)
         {
             for (int x = 0; x < SizeX; x++)
             {

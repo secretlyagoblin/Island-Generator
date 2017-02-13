@@ -1,22 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Map;
+using Maps;
 
 public class MeshDebugStack {
 
-    List<Layer> _maps;
+    List<Map> _maps;
 
     Material _defaultMaterial;
 
     public MeshDebugStack(Material baseMaterial)
     {
         _defaultMaterial = baseMaterial;
-        _maps = new List<Layer>();
+        _maps = new List<Map>();
     }
 
-    public void RecordMapStateToStack(Layer map)
+    public void RecordMapStateToStack(Map map)
     {
-        _maps.Add(Layer.Clone(map));
+        _maps.Add(Map.Clone(map));
     }
 
     public void CreateDebugStack(Transform parent)
@@ -27,7 +27,7 @@ public class MeshDebugStack {
         }
     }
 
-    GameObject CreateDebugLayer(Layer map, int layer, float heightMultiplier, Transform parent)
+    GameObject CreateDebugLayer(Map map, int layer, float heightMultiplier, Transform parent)
     {
         map.Normalise();
 

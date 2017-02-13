@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace Map {
+namespace Maps {
 
-    public partial class Layer {
+    public partial class Map {
         // GameLogic
 
         public Coord GetValidStartLocation()
@@ -13,9 +13,9 @@ namespace Map {
 
             var samplePoint = new Coord((int)(SizeX * 0.5f), (int)(SizeY * 0.5f));
 
-            if (_map[samplePoint.TileX, samplePoint.TileY] < 0.001f)
+            if (_map[samplePoint.x, samplePoint.y] < 0.001f)
             {
-                return new Coord(samplePoint.TileX, samplePoint.TileY);
+                return new Coord(samplePoint.x, samplePoint.y);
             }
 
             var iterationCount = 0;
@@ -33,14 +33,14 @@ namespace Map {
                 {
                     if (xNeg)
                     {
-                        samplePoint.TileX--;
+                        samplePoint.x--;
                     }
                     else
                     {
-                        samplePoint.TileX++;
+                        samplePoint.x++;
                     }
 
-                    if (_map[samplePoint.TileX, samplePoint.TileY] < 0.001f)
+                    if (_map[samplePoint.x, samplePoint.y] < 0.001f)
                     {
                         return samplePoint;
                     }
@@ -50,14 +50,14 @@ namespace Map {
                 {
                     if (yNeg)
                     {
-                        samplePoint.TileY--;
+                        samplePoint.y--;
                     }
                     else
                     {
-                        samplePoint.TileY++;
+                        samplePoint.y++;
                     }
 
-                    if (_map[samplePoint.TileX, samplePoint.TileY] < 0.001f)
+                    if (_map[samplePoint.x, samplePoint.y] < 0.001f)
                     {
                         return samplePoint;
                     }

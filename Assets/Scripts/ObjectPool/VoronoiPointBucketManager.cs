@@ -27,15 +27,15 @@ public class VoronoiPointBucketManager {
 
     public VoronoiPointBucketManager(Rect rect)
     {
-        _bucket = new Bucket<VoronoiCell>(10, rect);
+        _bucket = new Bucket<VoronoiCell>(6, rect);
     }
 
     public void AddRegion(Terrain.TerrainData region, int pointCount, Rect rect)
     {
         for (int i = 0; i < pointCount; i++)
         {
-            var x = RNG.NextFloat(0,0.8f);
-            var z = RNG.NextFloat(0, 0.45f);
+            var x = RNG.NextFloat(0,1f);
+            var z = RNG.NextFloat(0,1f);
             var y = region.HeightMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
             var inside = region.WalkableMap.BilinearSampleFromNormalisedVector2(new Vector2(x, z));
 
@@ -45,14 +45,14 @@ public class VoronoiPointBucketManager {
 
             var insideBool = inside > 0.5f ? true : false;
 
-            if (insideBool)
-            {
-                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 20000f);
-            }
-            else
-            {
-                Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.green, 20000f);
-            }
+            //if (insideBool)
+            //{
+            //    Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.red, 20000f);
+            //}
+            //else
+            //{
+            //    Debug.DrawRay(new Vector3(x, y, z), Vector3.up * 100f, Color.green, 20000f);
+            //}
 
             
 

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace Map {
+namespace Maps {
 
-    public partial class Layer {
-        public Layer RemoveSmallRegions(int regionSizeCutoff)
+    public partial class Map {
+        public Map RemoveSmallRegions(int regionSizeCutoff)
         {
 
             var wallRegions = GetRegions(1);
@@ -18,7 +18,7 @@ namespace Map {
                 {
                     for (int r = 0; r < wallRegions[i].Count; r++)
                     {
-                        _map[wallRegions[i][r].TileX, wallRegions[i][r].TileY] = 0;
+                        _map[wallRegions[i][r].x, wallRegions[i][r].y] = 0;
                     }
                 }
             }
@@ -33,14 +33,14 @@ namespace Map {
                 {
                     for (int r = 0; r < roomRegions[i].Count; r++)
                     {
-                        _map[roomRegions[i][r].TileX, roomRegions[i][r].TileY] = 1;
+                        _map[roomRegions[i][r].x, roomRegions[i][r].y] = 1;
                     }
                 }
             }
             return this;
         }
 
-        public Layer AddRoomLogic()
+        public Map AddRoomLogic()
         {
 
             //UnityEngine.Profiling.Profiler.BeginSample("Get Regions");
@@ -93,7 +93,7 @@ namespace Map {
                         for (int i = 0; i < newRegion.Count; i++)
                         {
                             var tile = newRegion[i];
-                            mapFlags[tile.TileX, tile.TileY] = 1;
+                            mapFlags[tile.x, tile.y] = 1;
                         }
                     }
                 }
@@ -104,7 +104,7 @@ namespace Map {
             return regions;
         }
 
-        public Layer GetFootprintOutline()
+        public Map GetFootprintOutline()
         {
             var coords = GetRegionTiles(0, 0);
             var fillValue = this[0, 0];
@@ -113,7 +113,7 @@ namespace Map {
             for (int i = 0; i < coords.Count; i++)
             {
                 var coord = coords[i];
-                newMap[coord.TileX, coord.TileY] = fillValue;
+                newMap[coord.x, coord.y] = fillValue;
             }
 
             return newMap;
@@ -135,11 +135,11 @@ namespace Map {
                 var tile = queue.Dequeue();
                 tiles.Add(tile);
 
-                for (int x = tile.TileX - 1; x <= tile.TileX + 1; x++)
+                for (int x = tile.x - 1; x <= tile.x + 1; x++)
                 {
-                    for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
+                    for (int y = tile.y - 1; y <= tile.y + 1; y++)
                     {
-                        if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
+                        if (IsInMapRange(x, y) && (y == tile.y || x == tile.x))
                         {
                             if (mapFlags[x, y] == 0 && _map[x, y] == tileType)
                             {
@@ -213,7 +213,7 @@ namespace Map {
                         {
                             var tileA = roomA.EdgeTiles[tileIndexA];
                             var tileB = roomB.EdgeTiles[tileIndexB];
-                            var distanceBetweenRooms = (int)(Mathf.Pow(tileA.TileX - tileB.TileX, 2) + Mathf.Pow(tileA.TileY - tileB.TileY, 2));
+                            var distanceBetweenRooms = (int)(Mathf.Pow(tileA.x - tileB.x, 2) + Mathf.Pow(tileA.y - tileB.y, 2));
 
                             if (distanceBetweenRooms < bestDistance || !possibleConnectionFound)
                             {
@@ -282,8 +282,8 @@ namespace Map {
                 {
                     if (x * x + y * y <= r * r)
                     {
-                        var drawX = c.TileX + x;
-                        var drawY = c.TileY + y;
+                        var drawX = c.x + x;
+                        var drawY = c.y + y;
                         if (IsInMapRange(drawX, drawY))
                         {
                             _map[drawX, drawY] = 0;
@@ -348,7 +348,7 @@ namespace Map {
 
             }
 
-            public Room(List<Coord> roomTiles, Layer map)
+            public Room(List<Coord> roomTiles, Map map)
             {
                 Tiles = roomTiles;
                 RoomSize = Tiles.Count;
@@ -358,11 +358,11 @@ namespace Map {
                 for (int i = 0; i < Tiles.Count; i++)
                 {
                     var tile = Tiles[i];
-                    for (int x = tile.TileX - 1; x < tile.TileX + 1; x++)
+                    for (int x = tile.x - 1; x < tile.x + 1; x++)
                     {
-                        for (int y = tile.TileY - 1; y < tile.TileY + 1; y++)
+                        for (int y = tile.y - 1; y < tile.y + 1; y++)
                         {
-                            if (x == tile.TileX || y == tile.TileY)
+                            if (x == tile.x || y == tile.y)
                             {
                                 if (map[x, y] == 1)
                                 {
@@ -429,8 +429,8 @@ namespace Map {
                         var coordA = Tiles[a];
                         var coordB = otherRoom.Tiles[b];
 
-                        var innerX = coordA.TileX - coordB.TileX;
-                        var innerY = coordA.TileY - coordB.TileY;
+                        var innerX = coordA.x - coordB.x;
+                        var innerY = coordA.y - coordB.y;
 
                         innerX = Math.Abs(innerX);
                         innerY = Math.Abs(innerY);
@@ -448,8 +448,8 @@ namespace Map {
                 var centerY = 0;
                 for (int i = 0; i < Tiles.Count; i++)
                 {
-                    centerX += Tiles[i].TileX;
-                    centerY += Tiles[i].TileY;
+                    centerX += Tiles[i].x;
+                    centerY += Tiles[i].y;
                 }
 
                 return new Vector3(-SizeX / 2 + .5f + ((float)centerX / Tiles.Count), 50, -SizeY / 2 + .5f + ((float)centerY / Tiles.Count));

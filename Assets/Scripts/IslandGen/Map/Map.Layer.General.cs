@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace Map {
+namespace Maps {
 
 
-    public partial class Layer {
+    public partial class Map {
         // General Functions
 
-        public Layer FillWith(float value)
+        public Map FillWith(float value)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -22,7 +22,7 @@ namespace Map {
             return this;
         }
 
-        public Layer OverwriteMapWith(Layer map)
+        public Map OverwriteMapWith(Map map)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -34,7 +34,7 @@ namespace Map {
             return this;
         }
 
-        public Layer ApplyMask(Layer maskToApply, Layer overlayMap)
+        public Map ApplyMask(Map maskToApply, Map overlayMap)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -48,12 +48,12 @@ namespace Map {
             return this;
         }
 
-        public Layer ApplyMask(Layer maskToApply)
+        public Map ApplyMask(Map maskToApply)
         {
             return ApplyMask(maskToApply, maskToApply);
         }
 
-        public Layer Normalise()
+        public Map Normalise()
         {
             var smallestValue = float.MaxValue;
             var biggestValue = float.MinValue;
@@ -82,7 +82,7 @@ namespace Map {
             return this;
         }
 
-        public Layer Remap(float min, float max)
+        public Map Remap(float min, float max)
         {
             var smallestValue = float.MaxValue;
             var biggestValue = float.MinValue;
@@ -111,7 +111,7 @@ namespace Map {
             return this;
         }
 
-        public Layer Remap(AnimationCurve curve)
+        public Map Remap(AnimationCurve curve)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -125,7 +125,7 @@ namespace Map {
             return this;
         }
 
-        public Layer Multiply(float value)
+        public Map Multiply(float value)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -139,7 +139,7 @@ namespace Map {
             return this;
         }
 
-        public Layer Multiply(Layer other)
+        public Map Multiply(Map other)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -153,7 +153,7 @@ namespace Map {
             return this;
         }
 
-        public Layer Add(Layer other)
+        public Map Add(Map other)
         {
 
             for (int x = 0; x < SizeX; x++)
@@ -167,12 +167,12 @@ namespace Map {
             return this;
         }
 
-        public Layer Clone()
+        public Map Clone()
         {
             return Clone(this);
         }
 
-        public Layer Clamp(float min, float max)
+        public Map Clamp(float min, float max)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -185,7 +185,7 @@ namespace Map {
             return this;
         }
 
-        public Layer ShiftLowestValueToZero()
+        public Map ShiftLowestValueToZero()
         {
             var smallestValue = float.MaxValue;
             var biggestValue = float.MinValue;
@@ -226,17 +226,17 @@ namespace Map {
 
         // Boolean Fill Functions
 
-        public Layer RandomFillMap()
+        public Map RandomFillMap()
         {
             return RandomFillMap(0.5f);
         }
 
-        public Layer RandomFillMap(float randomFillPercent)
+        public Map RandomFillMap(float randomFillPercent)
         {
             return RandomFillMap(randomFillPercent, 0, 1);
         }
 
-        public Layer FillWithNoise()
+        public Map FillWithNoise()
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -249,8 +249,7 @@ namespace Map {
             return this;
         }
 
-
-        public Layer RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
+        public Map RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
         {
             var perlinSeed = RNG.NextFloat(0, 10000f);
 
@@ -281,12 +280,12 @@ namespace Map {
             return this;
         }
 
-        public Layer CreateCircularFalloff()
+        public Map CreateCircularFalloff()
         {
             return CreateCircularFalloff(SizeX * 0.5f);
         }
 
-        public Layer CreateCircularFalloff(float radius)
+        public Map CreateCircularFalloff(float radius)
         {
             var centreX = (int)(SizeX * 0.5f);
             var centreY = (int)(SizeY * 0.5f);
@@ -400,7 +399,7 @@ namespace Map {
 
         // Iterative Functions that Require Bool
 
-        public Layer BoolSmoothOperation()
+        public Map BoolSmoothOperation()
         {
 
             for (int x = 0; x < SizeX; x++)
@@ -421,7 +420,7 @@ namespace Map {
             return this;
         }
 
-        public Layer BoolSmoothOperation(int iterations)
+        public Map BoolSmoothOperation(int iterations)
         {
             for (int i = 0; i < iterations; i++)
             {
@@ -430,19 +429,17 @@ namespace Map {
             return this;
         }
 
-
-
-        public Layer[] GenerateSubMaps(int divisions, float perlinScale)
+        public Map[] GenerateSubMaps(int divisions, float perlinScale)
         {
 
 
             var perlinSeed = RNG.Next(0, 1000);
 
-            var outputList = new List<Layer>();
+            var outputList = new List<Map>();
 
             for (int i = 0; i <= divisions; i++)
             {
-                outputList.Add(new Layer(this));
+                outputList.Add(new Map(this));
             }
 
             for (int x = 0; x < SizeX; x++)
@@ -472,7 +469,7 @@ namespace Map {
             return outputList.ToArray();
         }
 
-        public Layer Invert()
+        public Map Invert()
         {
             var smallestValue = float.MaxValue;
             var biggestValue = float.MinValue;
@@ -504,7 +501,7 @@ namespace Map {
 
         }
 
-        public Layer ThickenOutline(int iterations)
+        public Map ThickenOutline(int iterations)
         {
             for (int i = 0; i < iterations; i++)
             {
@@ -513,7 +510,7 @@ namespace Map {
             return this;
         }
 
-        public Layer ThickenOutline()
+        public Map ThickenOutline()
         {
             var currentSnapshot = Clone(this);
 
@@ -537,7 +534,7 @@ namespace Map {
 
         // Int Fill Functions    
 
-        public Layer AddHeightmapLayers(Layer[] subMaps, int offset)
+        public Map AddHeightmapLayers(Map[] subMaps, int offset)
         {
 
             for (int i = 0; i < subMaps.Length; i++)
@@ -562,12 +559,12 @@ namespace Map {
             return this;
         }
 
-        public Layer[] CreateHeightSortedSubmapsFromFloodFill(List<List<Coord>> regions)
+        public Map[] CreateHeightSortedSubmapsFromFloodFill(List<List<Coord>> regions)
         {
             return CreateHeightSortedSubmapsFromFloodFill(regions, regions[0][0]);
         }
 
-        public Layer[] CreateHeightSortedSubmapsFromFloodFill(List<List<Coord>> regions, Coord startPoint)
+        public Map[] CreateHeightSortedSubmapsFromFloodFill(List<List<Coord>> regions, Coord startPoint)
         {
             var sizeX = SizeX;
             var sizeY = SizeY;
@@ -592,14 +589,14 @@ namespace Map {
                 for (int u = 0; u < regions[i].Count; u++)
                 {
                     var coord = regions[i][u];
-                    mapRegions[coord.TileX, coord.TileY] = i;
-                    mapFlags[coord.TileX, coord.TileY] = 0;
+                    mapRegions[coord.x, coord.y] = i;
+                    mapFlags[coord.x, coord.y] = 0;
                 }
             }
 
             var queue = new Queue<Coord>();
-            var startX = startPoint.TileX;
-            var startY = startPoint.TileY;
+            var startX = startPoint.x;
+            var startY = startPoint.y;
 
             queue.Enqueue(new Coord(startX, startY));
             mapFlags[startX, startY] = 1;
@@ -609,17 +606,17 @@ namespace Map {
                 var tile = queue.Dequeue();
                 //tiles.Add(tile);
 
-                for (int x = tile.TileX - 1; x <= tile.TileX + 1; x++)
+                for (int x = tile.x - 1; x <= tile.x + 1; x++)
                 {
-                    for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
+                    for (int y = tile.y - 1; y <= tile.y + 1; y++)
                     {
-                        if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
+                        if (IsInMapRange(x, y) && (y == tile.y || x == tile.x))
                         {
                             if (mapFlags[x, y] == 0)
                             {
-                                if (mapRegions[x, y] != mapRegions[tile.TileX, tile.TileY] && regionHeights[mapRegions[x, y]] == -1)
+                                if (mapRegions[x, y] != mapRegions[tile.x, tile.y] && regionHeights[mapRegions[x, y]] == -1)
                                 {
-                                    regionHeights[mapRegions[x, y]] = regionHeights[mapRegions[tile.TileX, tile.TileY]] + 1;
+                                    regionHeights[mapRegions[x, y]] = regionHeights[mapRegions[tile.x, tile.y]] + 1;
                                 }
 
                                 mapFlags[x, y] = 1;
@@ -633,12 +630,12 @@ namespace Map {
 
             var heights = regionHeights.Distinct().ToList();
             heights.Sort();
-            var outputHeights = new List<Layer>();
+            var outputHeights = new List<Map>();
 
 
             for (int i = 0; i < heights.Count; i++)
             {
-                outputHeights.Add(new Layer(this, 1));
+                outputHeights.Add(new Map(this, 1));
             }
 
             for (int x = 0; x < sizeX; x++)
@@ -660,7 +657,7 @@ namespace Map {
             return outputHeights.ToArray();
         }
 
-        public Layer[] CreateHeightSortedSubmapsFromDijkstrasAlgorithm(List<List<Coord>> regions)
+        public Map[] CreateHeightSortedSubmapsFromDijkstrasAlgorithm(List<List<Coord>> regions)
         {
             var sizeX = SizeX;
             var sizeY = SizeY;
@@ -687,8 +684,8 @@ namespace Map {
                 for (int u = 0; u < regions[i].Count; u++)
                 {
                     var coord = regions[i][u];
-                    mapRegions[coord.TileX, coord.TileY] = i;
-                    mapFlags[coord.TileX, coord.TileY] = 0;
+                    mapRegions[coord.x, coord.y] = i;
+                    mapFlags[coord.x, coord.y] = 0;
 
                 }
                 var room = new Room(regions[i], this);
@@ -698,8 +695,8 @@ namespace Map {
 
             var startPoint = regions[0][0];
             var queue = new Queue<Coord>();
-            var startX = startPoint.TileX;
-            var startY = startPoint.TileY;
+            var startX = startPoint.x;
+            var startY = startPoint.y;
 
             queue.Enqueue(new Coord(startX, startY));
             mapFlags[startX, startY] = 1;
@@ -708,20 +705,20 @@ namespace Map {
             {
                 var tile = queue.Dequeue();
 
-                for (int x = tile.TileX - 1; x <= tile.TileX + 1; x++)
+                for (int x = tile.x - 1; x <= tile.x + 1; x++)
                 {
-                    for (int y = tile.TileY - 1; y <= tile.TileY + 1; y++)
+                    for (int y = tile.y - 1; y <= tile.y + 1; y++)
                     {
-                        if (IsInMapRange(x, y) && (y == tile.TileY || x == tile.TileX))
+                        if (IsInMapRange(x, y) && (y == tile.y || x == tile.x))
                         {
                             if (mapFlags[x, y] == 0)
                             {
-                                if (mapRegions[x, y] != mapRegions[tile.TileX, tile.TileY] && regionHeights[mapRegions[x, y]] == -1)
+                                if (mapRegions[x, y] != mapRegions[tile.x, tile.y] && regionHeights[mapRegions[x, y]] == -1)
                                 {
-                                    regionHeights[mapRegions[x, y]] = regionHeights[mapRegions[tile.TileX, tile.TileY]] + 1;
+                                    regionHeights[mapRegions[x, y]] = regionHeights[mapRegions[tile.x, tile.y]] + 1;
                                 }
                                 mapFlags[x, y] = 1;
-                                var roomA = rooms[mapRegions[tile.TileX, tile.TileY]];
+                                var roomA = rooms[mapRegions[tile.x, tile.y]];
                                 var roomB = rooms[mapRegions[x, y]];
                                 queue.Enqueue(new Coord(x, y));
 
@@ -814,13 +811,13 @@ namespace Map {
 
             var heights = outputRegionHeights.Distinct().ToList();
             heights.Sort();
-            var outputHeights = new List<Layer>();
-            var heightsDict = new Dictionary<int, Layer>();
+            var outputHeights = new List<Map>();
+            var heightsDict = new Dictionary<int, Map>();
 
 
             for (int i = 0; i < heights.Count; i++)
             {
-                var map = new Layer(this, 1);
+                var map = new Map(this, 1);
                 outputHeights.Add(map);
                 heightsDict.Add(heights[i], map);
 
@@ -832,7 +829,7 @@ namespace Map {
                 for (int u = 0; u < rooms[i].Tiles.Count; u++)
                 {
                     var coord = rooms[i].Tiles[u];
-                    map[coord.TileX, coord.TileY] = 0;
+                    map[coord.x, coord.y] = 0;
                 }
             }
 
@@ -844,9 +841,9 @@ namespace Map {
 
         // Float Fill Functions
 
-        public Layer GetDistanceMap(int searchDistance)
+        public Map GetDistanceMap(int searchDistance)
         {
-            var distanceMap = new Layer(SizeX, SizeY, 0);
+            var distanceMap = new Map(SizeX, SizeY, 0);
 
 
             var currentSnapshot = Clone(this);
@@ -925,7 +922,7 @@ namespace Map {
             return this;
         }
 
-        public Layer PerlinFill(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
+        public Map PerlinFill(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
         {
             var perlinSeed = RNG.NextFloat(0, 10000f);
 
@@ -949,7 +946,7 @@ namespace Map {
             return this;
         }
 
-        public Layer PerlinFillOctaves(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
+        public Map PerlinFillOctaves(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed, int octaves, float persistance, float lacunarity)
         {
 
             if (perlinScale <= 0)
@@ -1002,7 +999,7 @@ namespace Map {
             return this;
         }
 
-        public Layer PerlinFillMap(float perlinScale, Domain noiseDomain, Coord mapTile, Vector2 mapTileSize, Vector2 seedOffset, int octaves, float persistance, float lacunarity)
+        public Map PerlinFillMap(float perlinScale, Domain noiseDomain, Coord mapTile, Vector2 mapTileSize, Vector2 seedOffset, int octaves, float persistance, float lacunarity)
         {
 
             if (perlinScale <= 0)
@@ -1026,8 +1023,8 @@ namespace Map {
 
                         //offset by tile position, for example 0.332 -> 3.332
 
-                        localTilePositionX += mapTile.TileX;
-                        localTilePositionY += mapTile.TileY;
+                        localTilePositionX += mapTile.x;
+                        localTilePositionY += mapTile.y;
 
                         //multiply by scale of the mapTile in real space, i.e. 3.332 * 1.2 = 3.9984
 
@@ -1064,9 +1061,9 @@ namespace Map {
             return this;
         }
 
-        public Layer SmoothMap()
+        public Map SmoothMap()
         {
-            var nextMap = new Layer(this);
+            var nextMap = new Map(this);
 
             for (int gridX = 0; gridX < SizeX; gridX++)
             {
@@ -1105,7 +1102,7 @@ namespace Map {
             return this;
         }
 
-        public Layer SmoothMap(int iterations)
+        public Map SmoothMap(int iterations)
         {
             for (int i = 0; i < iterations; i++)
             {
@@ -1114,19 +1111,19 @@ namespace Map {
             return this;
         }
 
-        public Layer GetBumpMap()
+        public Map GetBumpMap()
         {
             return GetBumpMap(false);
         }
 
-        public Layer GetAbsoluteBumpMap()
+        public Map GetAbsoluteBumpMap()
         {
             return GetBumpMap(true);
         }
 
-        Layer GetBumpMap(bool absolute)
+        Map GetBumpMap(bool absolute)
         {
-            var nextMap = new Layer(this);
+            var nextMap = new Map(this);
 
             for (int gridX = 0; gridX < SizeX; gridX++)
             {
@@ -1186,9 +1183,9 @@ namespace Map {
             return this;
         }
 
-        public Layer LerpHeightMap(Layer mask, AnimationCurve falloffCurve)
+        public Map LerpHeightMap(Map mask, AnimationCurve falloffCurve)
         {
-            var outputMapY = new Layer(this);
+            var outputMapY = new Map(this);
 
             for (int x = 0; x < SizeX; x++)
             {
@@ -1198,7 +1195,7 @@ namespace Map {
                 outputMapY.ApplyHeightmapRow(heightmapRow, x, false);
             }
 
-            var outputMapX = new Layer(this);
+            var outputMapX = new Map(this);
 
 
             for (int y = 0; y < SizeY; y++)
@@ -1211,14 +1208,14 @@ namespace Map {
 
             var output = (outputMapX + outputMapY).Multiply(0.5f);
 
-            this._map = output._map;
+            _map = output._map;
 
             return this;
         }
 
         //LerpHeightmap Helper Functions
 
-        float[] GetGridColumn(Layer map, int index, bool columnA)
+        float[] GetGridColumn(Map map, int index, bool columnA)
         {
             if (!columnA)
             {
@@ -1286,7 +1283,7 @@ namespace Map {
             return heightmapRow;
         }
 
-        Layer ApplyHeightmapRow(float[] heightmapRow, int index, bool columnA)
+        Map ApplyHeightmapRow(float[] heightmapRow, int index, bool columnA)
         {
             if (!columnA)
             {
@@ -1315,9 +1312,9 @@ namespace Map {
             return x >= 0 && x < SizeX && y >= 0 && y < SizeY;
         }
 
-        Vector3 CoordToWorldPoint(Coord tile, Layer map)
+        Vector3 CoordToWorldPoint(Coord tile, Map map)
         {
-            return new Vector3(-map.SizeX / 2 + .5f + tile.TileX, 2, -map.SizeY / 2 + .5f + tile.TileY);
+            return new Vector3(-map.SizeX / 2 + .5f + tile.x, 2, -map.SizeY / 2 + .5f + tile.y);
         }
 
         int CountDensity()
@@ -1365,7 +1362,7 @@ namespace Map {
             return texture;
         }
 
-        public Texture2D ApplyTexture(Texture2D texture, Gradient gradient, Layer mask)
+        public Texture2D ApplyTexture(Texture2D texture, Gradient gradient, Map mask)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -1382,7 +1379,7 @@ namespace Map {
             return texture;
         }
 
-        public Layer WarpMapToMatch(Layer mapToWarp)
+        public Map WarpMapToMatch(Map mapToWarp)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -1401,7 +1398,7 @@ namespace Map {
 
 
 
-        public Layer AddToStack(MeshDebugStack stack)
+        public Map AddToStack(MeshDebugStack stack)
         {
             stack.RecordMapStateToStack(this);
             return this;

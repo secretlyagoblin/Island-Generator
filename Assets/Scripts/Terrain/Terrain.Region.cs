@@ -74,16 +74,18 @@ namespace Terrain {
 
                     var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
                     var voronoiRect = new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset);
+                    //voronoiRect = TerrainData.GrowRectByOne(voronoiRect, mapSize);
                     var cellData = _voronoiData.GetSubChunk(voronoiRect);
 
                     var prebakeMapData = TerrainData.VoronoiPreBake(_terrainData, mapSize, rect);
+                    
 
                     var localX = x;
                     var localY = y;
 
                     tasks.Add(Task.Run(() => {
 
-                        var voronoiList = GetVoronoiCellsFromBuckets(cellData, voronoiRect);
+                        var voronoiList = GetVoronoiCellsFromBuckets(cellData, rect);
 
                         var data = TerrainData.ChunkVoronoi(prebakeMapData, voronoiList, mapSize, rect);
                         var chunk = new Chunk(data);
