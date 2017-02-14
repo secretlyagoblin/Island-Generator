@@ -24,7 +24,7 @@ namespace Terrain {
 
             var walkableAreaMap = new Map(size, size);
 
-            walkableAreaMap.RandomFillMap(0.5f, 0, 0)
+            walkableAreaMap.FillWithBoolNoise(0.5f, 0, 0)
                 .ApplyMask(Map.BlankMap(walkableAreaMap)
                         .CreateCircularFalloff(size * 0.45f))
                 .BoolSmoothOperation(4)

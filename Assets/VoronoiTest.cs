@@ -16,15 +16,33 @@ public class VoronoiTest : MonoBehaviour {
         var stack = new MeshDebugStack(new Material(Shader.Find("Standard")));
         Map.SetGlobalStack(stack);
 
-        var mapSize = 256 / 2;
+        var mapSize = 256 ;
 
         var layer = new Map(mapSize, mapSize);
-        layer.FillWithNoise()
+        layer.FillWithBoolNoise(0.48f)
             .AddToGlobalStack()
-            .BoolSmoothOperation(7)
+            .BoolSmoothOperation(12)
+            .RemoveSmallRegions(400)
+            .Invert()
+            //.ThickenOutline()
+                        .Invert()
+            .AddToGlobalStack()
+            .SmoothMap(4)
+            .AddToGlobalStack()
+
+
+            .AddToGlobalStack()
+;
+
+        var arg = Map.BlankMap(new Map(5, 5))
+            .FillWithNoise()
+            .AddToGlobalStack()
+            .SmoothMap(1)
+            .AddToGlobalStack()
+            .Resize(512, 512)
             .AddToGlobalStack();
 
-        var divisions = 16;
+        var divisions = 8;
         var size = mapSize / divisions;
 
         for (int x = 0; x < divisions; x++)
@@ -34,6 +52,7 @@ public class VoronoiTest : MonoBehaviour {
                 var submap = layer.ExtractMap(x * size, y * size, size, size)
                     .AddToGlobalStack()
                     .Resize(256,256)
+                                .BooleanMapFromThreshold(0.5f)
                     .AddToGlobalStack();
             }
         }

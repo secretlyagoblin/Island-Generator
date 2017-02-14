@@ -226,14 +226,14 @@ namespace Maps {
 
         // Boolean Fill Functions
 
-        public Map RandomFillMap()
+        public Map FillWithBoolNoise()
         {
-            return RandomFillMap(0.5f);
+            return FillWithBoolNoise(0.5f);
         }
 
-        public Map RandomFillMap(float randomFillPercent)
+        public Map FillWithBoolNoise(float randomFillPercent)
         {
-            return RandomFillMap(randomFillPercent, 0, 1);
+            return FillWithBoolNoise(randomFillPercent, 0, 1);
         }
 
         public Map FillWithNoise()
@@ -249,7 +249,7 @@ namespace Maps {
             return this;
         }
 
-        public Map RandomFillMap(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
+        public Map FillWithBoolNoise(float randomFillPercent, float perlinNoiseIntensity, float perlinScale)
         {
             var perlinSeed = RNG.NextFloat(0, 10000f);
 
@@ -360,8 +360,10 @@ namespace Maps {
             float v = normalisedVector.y * (SizeY - 1);
             int x = (int)Mathf.Floor(u);
             int y = (int)Mathf.Floor(v);
-            if(u == x) x--;
-            if(v == y) y--;          
+            if(u == x && u!= 0)
+                x--;
+            if(v == y && v != 0)
+                y--;          
             float u_ratio = u - x;
             float v_ratio = v - y;
             float u_opposite = 1f - u_ratio;
@@ -533,6 +535,8 @@ namespace Maps {
 
             return this;
         }
+
+
 
         // Int Fill Functions    
 
