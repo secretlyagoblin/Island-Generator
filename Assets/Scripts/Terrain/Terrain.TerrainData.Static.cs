@@ -15,6 +15,8 @@ namespace Terrain {
             return new TerrainData(rect, parentWalkablemap,parentHeightmap);
         }
 
+
+
         public static TerrainData RegionIsland(int size, Rect rect)
         {
             RNG.DateTimeInit();

@@ -309,6 +309,21 @@ namespace Maps {
             return this;
         }
 
+        public Map CreateTerrainMap()
+        {
+            var newMap = new Map(SizeY, SizeX);
+
+            for (int x = 0; x < SizeX; x++)
+            {
+                for (int y = 0; y < SizeY; y++)
+                {
+                    newMap[y, x] = this[x, y];
+                }
+            }
+
+            return newMap;
+        }
+
         // Vector Functions
 
 
