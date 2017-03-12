@@ -245,6 +245,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DetailObjectPools:
   - {fileID: 546513072}
+  main: {fileID: 2800000, guid: a39f96ae41563433894cdbbfef321bce, type: 3}
+  nurm: {fileID: 2800000, guid: 48a2f20cdf2b44338953cadf4c0d7ebd, type: 3}
+  main2: {fileID: 2800000, guid: b9f9e496326194714b773a98ed5c91a7, type: 3}
+  nurm2: {fileID: 2800000, guid: f470c2e9298e8489993cd0ec5b7cd91e, type: 3}
 --- !u!4 &546513071
 Transform:
   m_ObjectHideFlags: 0

@@ -13,10 +13,17 @@ public class CreateStandardTerrain : MonoBehaviour {
     private int heightmapResoltion = 256 +1;
     private int detailResolution = 1024;
     private int detailResolutionPerPatch = 8;
-    private int controlTextureResolution = 512;
+    private int controlTextureResolution = 256;
     private int baseTextureReolution = 1024;
 
     public DetailObjectPool[] DetailObjectPools;
+
+    public Texture2D main;
+    public Texture2D nurm;
+    public Texture2D main2;
+    public Texture2D nurm2;
+
+
 
     Terrain.TerrainData _heightMap;
 
@@ -48,6 +55,14 @@ public class CreateStandardTerrain : MonoBehaviour {
         _heightMap = Terrain.TerrainData.RegionIsland(heightmapResoltion, new Rect());
         _heightMap.HeightMap.Remap(0, height);
 
+        var splat = new SplatPrototype();
+        splat.texture = main;
+        splat.normalMap = nurm;
+
+        var splat2 = new SplatPrototype();
+        splat2.texture = main2;
+        splat2.normalMap = nurm2;
+
 
         for (int x = 1; x <= tileAmount.x; x++)
         {
@@ -65,6 +80,8 @@ public class CreateStandardTerrain : MonoBehaviour {
                 terrainData.alphamapResolution = controlTextureResolution;
                 terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
                 terrainData.SetHeights(0, 0, _heightMap.HeightMap.CreateTerrainMap().Normalise().FloatArray);
+                //terrainData.set
+                terrainData.splatPrototypes = new SplatPrototype[] { splat, splat2 };
                 //terrainData.SetAlphamaps
 
 
