@@ -11,18 +11,17 @@ public class CreateStandardTerrain : MonoBehaviour {
     private static Vector2 tileAmount = Vector2.one;
 
     private int heightmapResoltion = 256 +1;
-    private int detailResolution = 1024;
+    private int detailResolution = 256;
     private int detailResolutionPerPatch = 8;
     private int controlTextureResolution = 256;
     private int baseTextureReolution = 1024;
 
     public DetailObjectPool[] DetailObjectPools;
 
-    public Texture2D main;
-    public Texture2D nurm;
-    public Texture2D main2;
-    public Texture2D nurm2;
+    public SplatCollection SplatCollection;
+    public DetailObjectCollection Details;
 
+    public GameObject RockToCreate;
 
 
     Terrain.TerrainData _heightMap;
@@ -55,46 +54,92 @@ public class CreateStandardTerrain : MonoBehaviour {
         _heightMap = Terrain.TerrainData.RegionIsland(heightmapResoltion, new Rect());
         _heightMap.HeightMap.Remap(0, height);
 
-        var splat = new SplatPrototype();
-        splat.texture = main;
-        splat.normalMap = nurm;
 
-        var splat2 = new SplatPrototype();
-        splat2.texture = main2;
-        splat2.normalMap = nurm2;
+        TerrainData terrainData = new TerrainData();
+
+        terrainData.size = new Vector3(width / 8f,
+                                        height,
+                                        lenght / 8f);
+
+        //terrainData.
+
+        terrainData.baseMapResolution = baseTextureReolution;
+        terrainData.heightmapResolution = heightmapResoltion;
+        terrainData.alphamapResolution = controlTextureResolution;
+        terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
+        terrainData.SetHeights(0, 0, _heightMap.HeightMap.CreateTerrainMap().Normalise().FloatArray);
+        //terrainData.set
+        terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
+        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_heightMap.WalkableMap.Clone().Resize(256, 256)));
+        terrainData.detailPrototypes = Details.GetDetailPrototypes();
 
 
-        for (int x = 1; x <= tileAmount.x; x++)
+
+        Details.SetDetails(terrainData, _heightMap.WalkableMap);
+
+
+        //terrainData.name = name;
+        GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
+        var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
+        terrain.detailObjectDistance = 100f;
+
+        //terrain.name = name;
+        //terrain.transform.parent = parent.transform;
+        terrainObj.transform.position = new Vector3(0, 0, 0);
+
+        var parent = new GameObject();
+
+        var propCount = 150f;
+
+
+        for (int x = 1; x < propCount; x++)
         {
-            for (int y = 1; y <= tileAmount.y; y++)
+            for (int y = 1; y < propCount; y++)
             {
+                var locX = (x ) / propCount;
+                var locY = (y) / propCount;
 
-                TerrainData terrainData = new TerrainData();
+                var innerHeight = terrainData.GetInterpolatedHeight(locX, locY);
 
-                terrainData.size = new Vector3(width/8f,
-                                                height,
-                                                lenght / 8f);
+                if (_heightMap.WalkableMap.BilinearSampleFromNormalisedVector2(new Vector2(locX, locY)) > 0.5f && innerHeight > 0.3f)
+                {
+                    
 
-                terrainData.baseMapResolution = baseTextureReolution;
-                terrainData.heightmapResolution = heightmapResoltion;
-                terrainData.alphamapResolution = controlTextureResolution;
-                terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
-                terrainData.SetHeights(0, 0, _heightMap.HeightMap.CreateTerrainMap().Normalise().FloatArray);
-                //terrainData.set
-                terrainData.splatPrototypes = new SplatPrototype[] { splat, splat2 };
-                //terrainData.SetAlphamaps
+                    var normal = terrainData.GetInterpolatedNormal(x / propCount, y / propCount);
+                    var forward = new Vector3(normal.x, 0, normal.z);
+                    var steepness = terrainData.GetSteepness(x / propCount, y / propCount);
+                    //steepness = Util.InverseLerpUnclamped(0f, 150f, steepness);
+                    //innerHeight -= (steepness*40);
+
+                    forward.Normalize();
+
+                    var rotation = Quaternion.identity;
+
+                    if(Vector3.Dot(normal,Vector3.up) > 0.05f)
+                    {
+                        rotation = Quaternion.LookRotation(Vector3.Lerp(normal, forward, 0.5f), Vector3.up);
+                    }
+
+                    var obj = Instantiate(RockToCreate, new Vector3(locX * width, innerHeight, locY * lenght), rotation, parent.transform);
+
+                    var scaleX = Random.Range(1.2f, 2f);
 
 
-                //terrainData.name = name;
-                GameObject terrain = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
 
-                //terrain.name = name;
-                //terrain.transform.parent = parent.transform;
-                terrain.transform.position = new Vector3(0,0,0);
+                    obj.transform.localScale = new Vector3(scaleX, scaleX*2, scaleX) *1.5f;
+
+                    //obj.transform.Translate(new Vector3(Random.Range(-0f, 1f), Random.Range(-1f, 1f) - (1f*scaleX*2), Random.Range(-1f, 1f)));
+                    obj.transform.Translate(Vector3.down * 15f);
+
+
+                }
+
 
 
             }
         }
+
+
 
 
 
