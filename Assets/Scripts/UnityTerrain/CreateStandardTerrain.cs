@@ -21,7 +21,8 @@ public class CreateStandardTerrain : MonoBehaviour {
     public SplatCollection SplatCollection;
     public DetailObjectCollection Details;
 
-    public GameObject RockToCreate;
+    public GameObject RockToCreateSteep;
+    public GameObject RockToCreateShallow;
 
 
     Terrain.TerrainData _heightMap;
@@ -89,7 +90,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         var parent = new GameObject();
 
-        var propCount = 150f;
+        var propCount = 130f;
 
 
         for (int x = 1; x < propCount; x++)
@@ -108,6 +109,8 @@ public class CreateStandardTerrain : MonoBehaviour {
                     var normal = terrainData.GetInterpolatedNormal(x / propCount, y / propCount);
                     var forward = new Vector3(normal.x, 0, normal.z);
                     var steepness = terrainData.GetSteepness(x / propCount, y / propCount);
+
+                    var RockToCreate = steepness < 62 | RNG.Next(0,50)<1 ? RockToCreateShallow : RockToCreateSteep;
                     //steepness = Util.InverseLerpUnclamped(0f, 150f, steepness);
                     //innerHeight -= (steepness*40);
 
@@ -118,18 +121,37 @@ public class CreateStandardTerrain : MonoBehaviour {
                     if(Vector3.Dot(normal,Vector3.up) > 0.05f)
                     {
                         rotation = Quaternion.LookRotation(Vector3.Lerp(normal, forward, 0.5f), Vector3.up);
+
+                        //rotation = Quaternion.LookRotation(forward, Vector3.up);
+
+                        //rotation = Quaternion.Euler(0, RNG.NextFloat(-180f, 180f), 0);
+
+                        var obj = Instantiate(RockToCreate, new Vector3(locX * width, innerHeight, locY * lenght), rotation, parent.transform);
+
+                        //obj.transform.RotateAroundLocal(obj.transform.up, RNG.NextFloat(-180f, 180f));
+
+
+                        var scaleX = Random.Range(1.3f, 2.2f);
+
+                        if (RNG.Next(0, 20) < 1)
+                        {
+                            scaleX = Random.Range(2.8f, 4.1f);
+                        } else if (RNG.Next(0, 20) < 3)
+                        {
+                            scaleX = Random.Range(1.8f, 3.5f);
+                        }
+
+
+
+
+                        obj.transform.localScale = new Vector3(scaleX, scaleX * 3, scaleX);
+
+                        obj.transform.Translate(new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f) - (1f * scaleX * 2), Random.Range(-0.2f, 0.2f)));
+                        //obj.transform.Translate(Vector3.down * 15f);
+
                     }
 
-                    var obj = Instantiate(RockToCreate, new Vector3(locX * width, innerHeight, locY * lenght), rotation, parent.transform);
 
-                    var scaleX = Random.Range(1.2f, 2f);
-
-
-
-                    obj.transform.localScale = new Vector3(scaleX, scaleX*2, scaleX) *1.5f;
-
-                    //obj.transform.Translate(new Vector3(Random.Range(-0f, 1f), Random.Range(-1f, 1f) - (1f*scaleX*2), Random.Range(-1f, 1f)));
-                    obj.transform.Translate(Vector3.down * 15f);
 
 
                 }

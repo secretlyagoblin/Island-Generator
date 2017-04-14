@@ -14,8 +14,8 @@ MonoBehaviour:
   DetailTexture: {fileID: 2800000, guid: a83050724f79b784d8dd1930069d24bc, type: 3}
   MinWidth: 0.3
   MaxWidth: 0.6
-  MinHeight: 0.4
-  MaxHeight: 0.7
+  MinHeight: 0.5
+  MaxHeight: 0.8
   NoiseSpread: 0.1
   HealthyColor: {r: 0.44214967, g: 0.6911765, b: 0.44214967, a: 1}
   DryColor: {r: 0.86764705, g: 0.8508716, b: 0.65711504, a: 1}

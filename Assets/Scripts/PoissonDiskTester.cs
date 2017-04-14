@@ -13,7 +13,7 @@ public class PoissonDiskTester : MonoBehaviour {
             //var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, 200, sample.x), Mathf.InverseLerp(0, 200, sample.y));
             //if (tex.grayscale > 0.5f)
             //{
-            Debug.DrawRay(new Vector3(sample.x, 0, sample.y), Vector3.up * 0.01f, Color.green, 100f);
+            Debug.DrawRay(new Vector3(sample.x, 0, sample.y), Vector3.up * 0.1f, Color.green, 100f);
             // }
 
         }

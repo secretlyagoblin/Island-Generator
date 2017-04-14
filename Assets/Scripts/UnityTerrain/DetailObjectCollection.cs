@@ -53,7 +53,7 @@ public class DetailObjectCollection : ScriptableObject {
 
 
 
-                    map[y, x] = baseMap[x, y] == z ? (int)(RNG.Next(200,300)* Mathf.Lerp(-0.2f,1.4f,(Mathf.PerlinNoise(x * 0.12342f, y * 0.12342f)))) : 0;
+                    map[y, x] = baseMap[x, y] == z ? (int)(RNG.Next(400,600)* Mathf.Lerp(-0.2f,1.4f,(Mathf.PerlinNoise(x * 0.12342f, y * 0.12342f)))) : 0;
                 }
             }
             terrainData.SetDetailLayer(0, 0, z, map);
