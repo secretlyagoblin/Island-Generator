@@ -108,48 +108,6 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &346854808
-Prefab:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: 832.21063
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: 313.20358
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: 1665.8492
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4445111222280100, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-      propertyPath: m_RootOrder
-      value: 3
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 100100000, guid: d08a2a327dd92a647bd5786fad4179fd, type: 2}
-  m_IsPrefabParent: 0
 --- !u!1 &348059177
 GameObject:
   m_ObjectHideFlags: 0
@@ -279,7 +237,7 @@ Transform:
   m_Children:
   - {fileID: 348059178}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1 &546513069
 GameObject:
@@ -309,14 +267,62 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9797973b83aecbb48b419d8ad422e774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Steepness:
+    serializedVersion: 2
+    key0: {r: 0.33823532, g: 0.33226416, b: 0.33077425, a: 1}
+    key1: {r: 0.9338235, g: 0.9338235, b: 0.9338235, a: 1}
+    key2: {r: 1, g: 0.9333334, b: 0.80392164, a: 0}
+    key3: {r: 0.9843137, g: 0.9843137, b: 0.9843137, a: 0}
+    key4: {r: 0, g: 0.38039216, b: 1, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 21395
+    ctime2: 65535
+    ctime3: 65535
+    ctime4: 65535
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 3
+    m_NumAlphaKeys: 2
+  Falloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+    - serializedVersion: 2
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
   DetailObjectPools:
   - {fileID: 546513072}
   SplatCollection: {fileID: 11400000, guid: b2393238c7b51e84b8f82a1d0820453c, type: 2}
   Details: {fileID: 11400000, guid: 3f6b8e4c23f49c946bec08041b9d0d39, type: 2}
-  RockToCreateSteep: {fileID: 1924632046752082, guid: c0177507359769940a1d34f01b65c20b,
+  RockToCreateSteep: {fileID: 1351811913816028, guid: a20b11f987433db4c98daac5def77d57,
     type: 2}
-  RockToCreateShallow: {fileID: 1351811913816028, guid: a20b11f987433db4c98daac5def77d57,
+  RockToCreateShallow: {fileID: 1547769206152344, guid: 854353dc7dafb8d43ba2eb5e3e926602,
     type: 2}
+  Sphere: {fileID: 1351811913816028, guid: a20b11f987433db4c98daac5def77d57, type: 2}
 --- !u!4 &546513071
 Transform:
   m_ObjectHideFlags: 0
@@ -328,7 +334,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &546513072
 MonoBehaviour:
@@ -342,9 +348,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TestPoint: {fileID: 1476605962}
-  GrassObject: {fileID: 1819576917715930, guid: 4ba73827c27fd4e47b85fc4f81cd0e84,
+  GrassObject: {fileID: 1491235207308838, guid: 364a3f6d4ba4b674a9b17f9ea8c5d667,
     type: 2}
-  PropCount: 1000000
+  PropCount: 300000
   DetailDivisions: 8
   RegionSize: 1500
   TestDistance: 120
@@ -435,7 +441,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 11400000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
       propertyPath: waterMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
@@ -466,7 +472,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1476605962 stripped
 GameObject:

@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class CreateStandardTerrain : MonoBehaviour {
 
+    public Gradient Steepness;
+    public AnimationCurve Falloff;
+
     private float width = 1500;
     private float lenght = 1500;
     private float height = 300;
@@ -23,13 +26,17 @@ public class CreateStandardTerrain : MonoBehaviour {
 
     public GameObject RockToCreateSteep;
     public GameObject RockToCreateShallow;
+    public GameObject Sphere;
 
 
-    Terrain.TerrainData _heightMap;
+    Terrain.TerrainData _map;
+
+    MaterialPropertyBlock _block;
 
     // Use this for initialization
     void Start()
     {
+        _block = new MaterialPropertyBlock();
         CreateTerrain();
 
     }
@@ -52,8 +59,8 @@ public class CreateStandardTerrain : MonoBehaviour {
         //GameObject parent = Instantiate(new GameObject("Boostr"));
         //parent.transform.position = new Vector3(0, 0, 0);
 
-        _heightMap = Terrain.TerrainData.RegionIsland(heightmapResoltion, new Rect());
-        _heightMap.HeightMap.Remap(0, height);
+        _map = Terrain.TerrainData.RegionIsland(heightmapResoltion, new Rect());
+        _map.HeightMap.Remap(0, height);
 
 
         TerrainData terrainData = new TerrainData();
@@ -68,15 +75,15 @@ public class CreateStandardTerrain : MonoBehaviour {
         terrainData.heightmapResolution = heightmapResoltion;
         terrainData.alphamapResolution = controlTextureResolution;
         terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
-        terrainData.SetHeights(0, 0, _heightMap.HeightMap.CreateTerrainMap().Normalise().FloatArray);
+        terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
         //terrainData.set
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
-        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_heightMap.WalkableMap.Clone().Resize(256, 256)));
+        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Resize(256, 256)));
         terrainData.detailPrototypes = Details.GetDetailPrototypes();
 
 
 
-        Details.SetDetails(terrainData, _heightMap.WalkableMap);
+        Details.SetDetails(terrainData, _map.WalkableMap);
 
 
         //terrainData.name = name;
@@ -90,9 +97,89 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         var parent = new GameObject();
 
+
+
+
+        var steepnessMap = Maps.Map.BlankMap(128, 128).GetSteepnessMapFromTerrain(terrainData).Normalise().Remap(Falloff).Invert().Normalise();
+
+        //for (int x = 0; x < steepnessMap.SizeX; x++)
+        //{
+        //    for (int y = 0; y < steepnessMap.SizeY; y++)
+        //    {
+        //        var steps = 12f;
+        //
+        //        var steep = Mathf.RoundToInt(steps * steepnessMap[x, y]) / steps;
+        //        var col = Steepness.Evaluate(steep);
+        //        
+        //        var height = 30f + (steep * 5);
+        //        var point = new Vector3(x, height, y);
+        //
+        //        if (steep > 0.01f)
+        //        {
+        //
+        //            Debug.DrawLine(point - (Vector3.left * 0.5f), point + (Vector3.left * 0.5f), col, 100f);
+        //            Debug.DrawLine(point - (Vector3.forward * 0.5f), point + (Vector3.forward * 0.5f), col, 100f);
+        //        }
+        //
+        //        //Debug.DrawRay(, Vector3.up, , 100f);
+        //    }
+        //}
+
+
+        var mapSize = (float)width;
+        var minSize = mapSize / 180f;
+        var maxSize = mapSize / (180+50f);
+
+        var propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
+        var spawnMap = _map.WalkableMap.Clone().ThickenOutline(1);
+
+
+        foreach (var sample in propMap.Samples())
+        {
+
+            //var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, 200, sample.x), Mathf.InverseLerp(0, 200, sample.y));
+            //if (tex.grayscale > 0.5f)
+            //{
+            //Debug.DrawRay(new Vector3(sample.Position.x, 30, sample.Position.y), Vector3.up * 0.1f, Steepness.Evaluate(Mathf.InverseLerp(minSize,maxSize,sample.Radius)), 100f);
+            // }
+
+            //var height = Steepness.Evaluate(Mathf.InverseLerp(minSize, maxSize, sample.Radius);
+
+
+            var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.Position.x), Mathf.InverseLerp(0, mapSize, sample.Position.y));
+            var height = terrainData.GetInterpolatedHeight(normalisedSample.x, normalisedSample.y);
+
+            if (height < 0.5f)
+                continue;
+
+
+
+            if (spawnMap.BilinearSampleFromNormalisedVector2(normalisedSample) < 0.5f)
+                continue;
+
+            var steepness = steepnessMap.BilinearSampleFromNormalisedVector2(normalisedSample) + RNG.NextFloat(-0.1f,0.1f);
+
+            var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
+
+
+
+            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), Quaternion.Euler(0, RNG.NextFloat(-180f, 180f),0), parent.transform);
+            obj.transform.localScale = Vector3.one * (sample.Radius);
+
+
+
+            _block.SetColor("_Color", Steepness.Evaluate(steepness));
+            obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(_block);
+
+
+        }
+
+
+        /*
+
         var propCount = 130f;
 
-
+        
         for (int x = 1; x < propCount; x++)
         {
             for (int y = 1; y < propCount; y++)
@@ -155,11 +242,15 @@ public class CreateStandardTerrain : MonoBehaviour {
 
 
                 }
+                
 
 
 
             }
+            
+            
         }
+        */
 
 
 
@@ -171,7 +262,7 @@ public class CreateStandardTerrain : MonoBehaviour {
     {
         for (int i = 0; i < DetailObjectPools.Length; i++)
         {
-            DetailObjectPools[i].SetPhysicalMap(_heightMap);
+            DetailObjectPools[i].SetPhysicalMap(_map);
             DetailObjectPools[i].InitPositions();
         }
     }

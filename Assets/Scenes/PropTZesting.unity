@@ -135,11 +135,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8280a95895a76fc43979238e057fb001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TestGradient:
+  Grad:
     serializedVersion: 2
     key0: {r: 1, g: 0, b: 0.7647059, a: 1}
     key1: {r: 0, g: 1, b: 1, a: 1}
-    key2: {r: 0, g: 0.38039216, b: 1, a: 0}
+    key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
@@ -147,7 +147,7 @@ MonoBehaviour:
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
     ctime1: 65535
-    ctime2: 65535
+    ctime2: 0
     ctime3: 0
     ctime4: 0
     ctime5: 0

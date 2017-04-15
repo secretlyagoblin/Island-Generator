@@ -1132,6 +1132,20 @@ namespace Maps {
             return this;
         }
 
+        public Map GetSteepnessMapFromTerrain(TerrainData data)
+        {
+            for (int gridX = 0; gridX < SizeX; gridX++)
+            {
+                for (int gridY = 0; gridY < SizeY; gridY++)
+                {
+                    var normalX = Mathf.InverseLerp(0, SizeX-1, gridX);
+                    var normalY = Mathf.InverseLerp(0, SizeY - 1, gridY);
+                    this[gridX,gridY] = data.GetSteepness(normalX, normalY);
+                }
+            }
+            return this;
+        }
+
         public Map GetBumpMap()
         {
             return GetBumpMap(false);

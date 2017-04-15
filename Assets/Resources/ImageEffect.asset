@@ -102,9 +102,9 @@ MonoBehaviour:
       bloom:
         intensity: 0.5
         threshold: 1.1
-        softKnee: 0.589
-        radius: 4.48
-        antiFlicker: 0
+        softKnee: 1
+        radius: 1.31
+        antiFlicker: 1
       lensDirt:
         texture: {fileID: 0}
         intensity: 3
@@ -120,7 +120,7 @@ MonoBehaviour:
         neutralWhiteLevel: 5.3
         neutralWhiteClip: 10
       basic:
-        postExposure: 0
+        postExposure: 1
         temperature: 0
         tint: 0
         hueShift: -17
@@ -305,7 +305,7 @@ MonoBehaviour:
       opacity: 1
       rounded: 0
   dithering:
-    m_Enabled: 0
+    m_Enabled: 1
   monitors:
     currentMonitorID: 0
     refreshOnPlay: 0

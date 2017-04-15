@@ -71,6 +71,8 @@ namespace Terrain {
                 .LerpHeightMap(walkableAreaMap, AnimationCurve.EaseInOut(0, 0, 1, 1))
                 .SmoothMap(10)
                 .Normalise()
+                .Add(Map.BlankMap(heightMap).PerlinFill(5,0,0,12003.123f).Remap(-0.02f,0.02f))
+                .Add(Map.BlankMap(heightMap).PerlinFill(15, 0, 0, 12003.123f).Remap(-0.04f, 0.04f))
                 .Remap(0.1f, 1f);
 
             heightMap = Map.Blend(new Map(size, size, 0f), heightMap, finalWaterFalloff.Clone().Clamp(0, 0.5f).Normalise());
