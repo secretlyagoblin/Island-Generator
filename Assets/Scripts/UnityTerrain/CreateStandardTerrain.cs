@@ -125,10 +125,11 @@ public class CreateStandardTerrain : MonoBehaviour {
         //    }
         //}
 
+        var propCount = 300f;
 
         var mapSize = (float)width;
-        var minSize = mapSize / 180f;
-        var maxSize = mapSize / (180+50f);
+        var minSize = mapSize / propCount;
+        var maxSize = mapSize / (propCount + 100f);
 
         var propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
         var spawnMap = _map.WalkableMap.Clone().ThickenOutline(1);
@@ -152,12 +153,15 @@ public class CreateStandardTerrain : MonoBehaviour {
             if (height < 0.5f)
                 continue;
 
+            if (RNG.NextFloat() < 0.35f)
+                continue;
+
 
 
             if (spawnMap.BilinearSampleFromNormalisedVector2(normalisedSample) < 0.5f)
                 continue;
 
-            var steepness = steepnessMap.BilinearSampleFromNormalisedVector2(normalisedSample) + RNG.NextFloat(-0.1f,0.1f);
+            var steepness = steepnessMap.BilinearSampleFromNormalisedVector2(normalisedSample);// + RNG.NextFloat(-0.1f,0.1f);
 
             var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
 

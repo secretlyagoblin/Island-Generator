@@ -14,10 +14,10 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 8
-  m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 0.8705883, g: 0.9843138, b: 0.9921569, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.01
+  m_FogDensity: 0.0014
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
@@ -51,8 +51,8 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 1
-    m_EnableRealtimeLightmaps: 1
+    m_EnableBakedLightmaps: 0
+    m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 8
     m_Resolution: 2
@@ -123,7 +123,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &348059178
 Transform:
   m_ObjectHideFlags: 0
@@ -254,7 +254,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!114 &546513070
 MonoBehaviour:
@@ -269,16 +269,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Steepness:
     serializedVersion: 2
-    key0: {r: 0.33823532, g: 0.33226416, b: 0.33077425, a: 1}
-    key1: {r: 0.9338235, g: 0.9338235, b: 0.9338235, a: 1}
-    key2: {r: 1, g: 0.9333334, b: 0.80392164, a: 0}
-    key3: {r: 0.9843137, g: 0.9843137, b: 0.9843137, a: 0}
-    key4: {r: 0, g: 0.38039216, b: 1, a: 0}
+    key0: {r: 0.09558821, g: 0.09558821, b: 0.09558821, a: 1}
+    key1: {r: 0.93584675, g: 0.93380857, b: 0.929852, a: 1}
+    key2: {r: 0.93584675, g: 0.93380857, b: 0.929852, a: 0}
+    key3: {r: 0.93584675, g: 0.93380857, b: 0.929852, a: 0}
+    key4: {r: 0.93584675, g: 0.93380857, b: 0.929852, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
-    ctime1: 21395
+    ctime1: 39514
     ctime2: 65535
     ctime3: 65535
     ctime4: 65535
@@ -294,7 +294,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_NumColorKeys: 3
+    m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   Falloff:
     serializedVersion: 2
@@ -357,19 +357,19 @@ MonoBehaviour:
   NoiseScale: 0.1
   ColourGradient:
     serializedVersion: 2
-    key0: {r: 0.39607844, g: 0.5803922, b: 0.4509804, a: 1}
-    key1: {r: 0.42352942, g: 0.5137255, b: 0.3529412, a: 1}
-    key2: {r: 0.2784314, g: 0.39607844, b: 0.1882353, a: 0}
-    key3: {r: 0.1882353, g: 0.39607844, b: 0.2509804, a: 0}
-    key4: {r: 0.21960784, g: 0.47058824, b: 0.29411766, a: 0}
+    key0: {r: 0.6, g: 0.63529414, b: 0.59607846, a: 1}
+    key1: {r: 0.5254902, g: 0.5686275, b: 0.49411765, a: 1}
+    key2: {r: 0.47058824, g: 0.59607846, b: 0.27450982, a: 0}
+    key3: {r: 0.47058824, g: 0.59607846, b: 0.27450982, a: 0}
+    key4: {r: 0.47058824, g: 0.59607846, b: 0.27450982, a: 0}
     key5: {r: 0.47058824, g: 0.59607846, b: 0.27450982, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
-    ctime1: 14071
-    ctime2: 26792
-    ctime3: 36430
-    ctime4: 47609
+    ctime1: 65535
+    ctime2: 64957
+    ctime3: 64957
+    ctime4: 64957
     ctime5: 64957
     ctime6: 0
     ctime7: 0
@@ -382,7 +382,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_NumColorKeys: 6
+    m_NumColorKeys: 2
     m_NumAlphaKeys: 2
 --- !u!1001 &692276476
 Prefab:
@@ -443,6 +443,10 @@ Prefab:
       propertyPath: waterMode
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 780611a67e8e941a2b3aa96e5915a793, type: 2}
   m_IsPrefabParent: 0
@@ -497,7 +501,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!81 &1793977783
 AudioListener:
   m_ObjectHideFlags: 0
@@ -561,8 +565,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1793977782}
-  m_LocalRotation: {x: 0.0862798, y: 0.25611293, z: -0.022956576, w: 0.962515}
-  m_LocalPosition: {x: 580.9116, y: 241.56375, z: 232.81726}
+  m_LocalRotation: {x: 0.23754792, y: -0.7421446, z: 0.33142343, w: 0.5319314}
+  m_LocalPosition: {x: 1665.2567, y: 881.6615, z: 1058.6349}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -574,7 +578,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1793977782}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff26db721962cdf4a8edcdfa9a767d2a, type: 3}
   m_Name: 
@@ -605,6 +609,10 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 11400004, guid: c6453f8e1f814744d8b94e5a6d1f9942, type: 2}
       propertyPath: mouseLook.lockCursor
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: c6453f8e1f814744d8b94e5a6d1f9942, type: 2}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
