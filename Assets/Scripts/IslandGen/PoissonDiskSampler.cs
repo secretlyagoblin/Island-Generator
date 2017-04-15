@@ -20,35 +20,46 @@ using System.Collections.Generic;
 /// Author: Gregory Schlomoff (gregory.schlomoff@gmail.com)
 /// Released in the public domain
 public class PoissonDiscSampler {
-    private const int k = 30;  // Maximum number of attempts before marking a sample as inactive.
+    private const int _maximumSamples = 30;  // Maximum number of attempts before marking a sample as inactive.
 
     private readonly Rect _rect;
-    private readonly float _radiusSqrd;  // radius squared
+    //private readonly float _radiusSqrd;  // radius squared
     private readonly float _cellSize;
-    private Vector2[,] _grid;
-    private List<Vector2> _activeSamples = new List<Vector2>();
+    private Disk[,] _grid;
+    private List<Disk> _activeSamples = new List<Disk>();
+    private Maps.Map _context;
+
+    private float _minSize;
+    private float _maxSize;
 
     /// Create a sampler with the following parameters:
     ///
     /// width:  each sample's x coordinate will be between [0, width]
     /// height: each sample's y coordinate will be between [0, height]
     /// radius: each sample will be at least `radius` units away from any other sample, and at most 2 * `radius`.
-    public PoissonDiscSampler(float width, float height, float radius)
+    public PoissonDiscSampler(float width, float height, float minSize, float maxSize, Maps.Map context)
     {
         RNG.Init();
         _rect = new Rect(0, 0, width, height);
-        _radiusSqrd = radius * radius;
-        _cellSize = radius / Mathf.Sqrt(2);
-        _grid = new Vector2[Mathf.CeilToInt(width / _cellSize),
+        _context = context.Clone().Normalise();
+        _minSize = minSize;
+        _maxSize = maxSize;
+        //_radiusSqrd = radius * radius;
+        _cellSize = (minSize) / Mathf.Sqrt(2);
+        _grid = new Disk[Mathf.CeilToInt(width / _cellSize),
                            Mathf.CeilToInt(height / _cellSize)];
     }
 
     /// Return a lazy sequence of samples. You typically want to call this in a foreach loop, like so:
     ///   foreach (Vector2 sample in sampler.Samples()) { ... }
-    public IEnumerable<Vector2> Samples()
+    public IEnumerable<Disk> Samples()
     {
         // First sample is choosen randomly
-        yield return AddSample(new Vector2(RNG.NextFloat() * _rect.width, RNG.NextFloat() * _rect.height));
+
+        var firstPos = new Vector2(RNG.NextFloat() * _rect.width, RNG.NextFloat() * _rect.height);
+        var firstSize = GetGrayscale(firstPos);
+
+        yield return AddSample(new Disk(firstPos, firstSize));
 
         while (_activeSamples.Count > 0)
         {
@@ -56,19 +67,24 @@ public class PoissonDiscSampler {
             // Pick a random active sample
             var floater = RNG.NextFloat();
             int i = (int)floater * _activeSamples.Count;
-            Vector2 sample = _activeSamples[i];
+            var currentSample = _activeSamples[i];
 
             // Try `k` random candidates between [radius, 2 * radius] from that sample.
             bool found = false;
-            for (int j = 0; j < k; ++j)
+            for (int j = 0; j < _maximumSamples; ++j)
             {
 
                 float angle = 2 * Mathf.PI * RNG.NextFloat();
-                float r = Mathf.Sqrt(RNG.NextFloat() * 3 * _radiusSqrd + _radiusSqrd); // See: http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus/9048443#9048443
-                Vector2 candidate = sample + r * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                float r = Mathf.Sqrt(RNG.NextFloat() * 3 * currentSample.RadiusSqr + currentSample.RadiusSqr); // See: http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus/9048443#9048443
+                var candidatePos = currentSample.Position + r * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                var candidateSize = GetGrayscale(candidatePos);
+
+                var candidate = new Disk(candidatePos, candidateSize);
+
+
 
                 // Accept candidates if it's inside the rect and farther than 2 * radius to any existing sample.
-                if (_rect.Contains(candidate) && IsFarEnough(candidate))
+                if (_rect.Contains(candidatePos) && IsFarEnough(candidate))
                 {
                     found = true;
                     yield return AddSample(candidate);
@@ -85,9 +101,9 @@ public class PoissonDiscSampler {
         }
     }
 
-    private bool IsFarEnough(Vector2 sample)
+    private bool IsFarEnough(Disk sample)
     {
-        GridPos pos = new GridPos(sample, _cellSize);
+        GridPos pos = new GridPos(sample.Position, _cellSize);
 
         int xmin = Mathf.Max(pos.x - 2, 0);
         int ymin = Mathf.Max(pos.y - 2, 0);
@@ -98,11 +114,16 @@ public class PoissonDiscSampler {
         {
             for (int x = xmin; x <= xmax; x++)
             {
-                Vector2 s = _grid[x, y];
-                if (s != Vector2.zero)
+                Disk s = _grid[x, y];
+                if (s.Position != Vector2.zero)
                 {
-                    Vector2 d = s - sample;
-                    if (d.x * d.x + d.y * d.y < _radiusSqrd)
+                    var distance = Vector2.Distance(s.Position, sample.Position);
+
+                    //if (s.Radius + sample.Radius < distance)
+                       // return false;
+
+                    Vector2 d = s.Position - sample.Position;
+                    if (d.x * d.x + d.y * d.y < sample.RadiusSqr)
                         return false;
                 }
             }
@@ -116,12 +137,21 @@ public class PoissonDiscSampler {
     }
 
     /// Adds the sample to the active samples queue and the grid before returning it
-    private Vector2 AddSample(Vector2 sample)
+    private Disk AddSample(Disk sample)
     {
         _activeSamples.Add(sample);
-        GridPos pos = new GridPos(sample, _cellSize);
+        GridPos pos = new GridPos(sample.Position, _cellSize);
         _grid[pos.x, pos.y] = sample;
         return sample;
+    }
+
+    private float GetGrayscale(Vector2 position)
+    {
+        var x = Mathf.InverseLerp(0, _rect.size.x, position.x);
+        var y = Mathf.InverseLerp(0, _rect.size.y, position.y);
+
+        var height = _context.BilinearSampleFromNormalisedVector2(new Vector2(x, y));
+        return Mathf.Lerp(_minSize, _maxSize, height);
     }
 
     /// Helper struct to calculate the x and y indices of a sample in the grid
@@ -136,12 +166,12 @@ public class PoissonDiscSampler {
         }
     }
 
-    private struct PointRadius {
+    public struct Disk {
         public Vector2 Position { get; private set; }
         public float Radius { get; private set; }
         public float RadiusSqr { get; private set; }
 
-        public PointRadius(Vector2 position, float radius)
+        public Disk(Vector2 position, float radius)
         {
             Position = position;
             Radius = radius;
