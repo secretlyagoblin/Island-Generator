@@ -215,12 +215,14 @@ namespace Maps {
             {
                 for (int y = 0; y < SizeY; y++)
                 {
-                    _map[x, y] = _map[x, y] <= threshold ? 0 : 1;
+                    _map[x, y] = _map[x, y] < threshold ? 0 : 1;
                 }
             }
 
             return this;
         }
+
+
 
         public static Map GetInvertedMap(Map map)
         {

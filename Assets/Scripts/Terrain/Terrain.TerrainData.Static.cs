@@ -215,7 +215,7 @@ namespace Terrain {
             return newMap;
         }
 
-        static Map CreateHeightMap(Map unionMap)
+        public static Map CreateHeightMap(Map unionMap)
         {
             var subMaps = unionMap.GenerateSubMaps(6, 12);
             var heightmap = Map.CreateHeightMap(subMaps);

@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class CreateStandardTerrain : MonoBehaviour {
 
-    public Gradient Steepness;
+    public Gradient MajorRocks;
+    public Gradient MinorRocks;
     public AnimationCurve Falloff;
 
     private float width = 1500;
@@ -78,7 +79,7 @@ public class CreateStandardTerrain : MonoBehaviour {
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
         //terrainData.set
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
-        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Resize(256, 256)));
+        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Invert().ThickenOutline(1).Invert().Resize(256, 256)));
         terrainData.detailPrototypes = Details.GetDetailPrototypes();
 
 
@@ -125,140 +126,80 @@ public class CreateStandardTerrain : MonoBehaviour {
         //    }
         //}
 
-        var propCount = 300f;
+        var propCount = 180f;
 
         var mapSize = (float)width;
         var minSize = mapSize / propCount;
-        var maxSize = mapSize / (propCount + 100f);
+        var maxSize = mapSize / (propCount - 50f);
 
         var propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
         var spawnMap = _map.WalkableMap.Clone().ThickenOutline(1);
 
+        var falloffMap = _map.WalkableMap.Clone().GetDistanceMap(15).Clamp(0.5f,1f).Normalise();
+
 
         foreach (var sample in propMap.Samples())
         {
-
-            //var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, 200, sample.x), Mathf.InverseLerp(0, 200, sample.y));
-            //if (tex.grayscale > 0.5f)
-            //{
-            //Debug.DrawRay(new Vector3(sample.Position.x, 30, sample.Position.y), Vector3.up * 0.1f, Steepness.Evaluate(Mathf.InverseLerp(minSize,maxSize,sample.Radius)), 100f);
-            // }
-
-            //var height = Steepness.Evaluate(Mathf.InverseLerp(minSize, maxSize, sample.Radius);
-
-
             var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.Position.x), Mathf.InverseLerp(0, mapSize, sample.Position.y));
             var height = terrainData.GetInterpolatedHeight(normalisedSample.x, normalisedSample.y);
 
             if (height < 0.5f)
                 continue;
 
-            if (RNG.NextFloat() < 0.35f)
+            if (spawnMap.BilinearSampleFromNormalisedVector2(normalisedSample) < 0.5f)
                 continue;
 
+            var dist = falloffMap.BilinearSampleFromNormalisedVector2(normalisedSample);
 
-
-            if (spawnMap.BilinearSampleFromNormalisedVector2(normalisedSample) < 0.5f)
+            if (dist < 0.15f)
                 continue;
 
             var steepness = steepnessMap.BilinearSampleFromNormalisedVector2(normalisedSample);// + RNG.NextFloat(-0.1f,0.1f);
 
             var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
 
-
-
             var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), Quaternion.Euler(0, RNG.NextFloat(-180f, 180f),0), parent.transform);
             obj.transform.localScale = Vector3.one * (sample.Radius);
 
-
-
-            _block.SetColor("_Color", Steepness.Evaluate(steepness));
+            _block.SetColor("_Color", MajorRocks.Evaluate(steepness));
             obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(_block);
-
-
         }
 
+        propCount = 300f;
 
-        /*
+        minSize = mapSize / propCount;
+        maxSize = mapSize / (propCount - 50f);
 
-        var propCount = 130f;
+        propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
 
-        
-        for (int x = 1; x < propCount; x++)
+        //spawnMap = _map.WalkableMap.Clone();
+
+        foreach (var sample in propMap.Samples())
         {
-            for (int y = 1; y < propCount; y++)
-            {
-                var locX = (x ) / propCount;
-                var locY = (y) / propCount;
+            var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.Position.x), Mathf.InverseLerp(0, mapSize, sample.Position.y));
+            var height = terrainData.GetInterpolatedHeight(normalisedSample.x, normalisedSample.y);
 
-                var innerHeight = terrainData.GetInterpolatedHeight(locX, locY);
+            if (height < 0.5f)
+                continue;
 
-                if (_heightMap.WalkableMap.BilinearSampleFromNormalisedVector2(new Vector2(locX, locY)) > 0.5f && innerHeight > 0.3f)
-                {
-                    
+            if (spawnMap.BilinearSampleFromNormalisedVector2(normalisedSample) < 0.5f)
+                continue;
 
-                    var normal = terrainData.GetInterpolatedNormal(x / propCount, y / propCount);
-                    var forward = new Vector3(normal.x, 0, normal.z);
-                    var steepness = terrainData.GetSteepness(x / propCount, y / propCount);
+            var dist = falloffMap.BilinearSampleFromNormalisedVector2(normalisedSample);
 
-                    var RockToCreate = steepness < 62 | RNG.Next(0,50)<1 ? RockToCreateShallow : RockToCreateSteep;
-                    //steepness = Util.InverseLerpUnclamped(0f, 150f, steepness);
-                    //innerHeight -= (steepness*40);
+            if (dist > 0.15f)
+                continue;
 
-                    forward.Normalize();
+            var steepness = steepnessMap.BilinearSampleFromNormalisedVector2(normalisedSample);// + RNG.NextFloat(-0.1f,0.1f);
 
-                    var rotation = Quaternion.identity;
+            var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
 
-                    if(Vector3.Dot(normal,Vector3.up) > 0.05f)
-                    {
-                        rotation = Quaternion.LookRotation(Vector3.Lerp(normal, forward, 0.5f), Vector3.up);
+            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), Quaternion.Euler(0, RNG.NextFloat(-180f, 180f), 0), parent.transform);
+            obj.transform.localScale = Vector3.one * (sample.Radius);
 
-                        //rotation = Quaternion.LookRotation(forward, Vector3.up);
-
-                        //rotation = Quaternion.Euler(0, RNG.NextFloat(-180f, 180f), 0);
-
-                        var obj = Instantiate(RockToCreate, new Vector3(locX * width, innerHeight, locY * lenght), rotation, parent.transform);
-
-                        //obj.transform.RotateAroundLocal(obj.transform.up, RNG.NextFloat(-180f, 180f));
-
-
-                        var scaleX = Random.Range(1.3f, 2.2f);
-
-                        if (RNG.Next(0, 20) < 1)
-                        {
-                            scaleX = Random.Range(2.8f, 4.1f);
-                        } else if (RNG.Next(0, 20) < 3)
-                        {
-                            scaleX = Random.Range(1.8f, 3.5f);
-                        }
-
-
-
-
-                        obj.transform.localScale = new Vector3(scaleX, scaleX * 3, scaleX);
-
-                        obj.transform.Translate(new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f) - (1f * scaleX * 2), Random.Range(-0.2f, 0.2f)));
-                        //obj.transform.Translate(Vector3.down * 15f);
-
-                    }
-
-
-
-
-                }
-                
-
-
-
-            }
-            
-            
+            _block.SetColor("_Color", MinorRocks.Evaluate(steepness));
+            obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(_block);
         }
-        */
-
-
-
-
 
     }
 
