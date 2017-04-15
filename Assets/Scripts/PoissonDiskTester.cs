@@ -3,25 +3,47 @@ using System.Collections;
 
 public class PoissonDiskTester : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
+    public Gradient Grad;
+    public GameObject testInstantiate;
 
-        var propMap = new PoissonDiscSampler(1, 1, 1f/200f);
+    // Use this for initialization
+    void Start()
+    {
+        var map = Terrain.TerrainData.RegionIsland(128, Rect.zero);
+        map.HeightMap.Normalise();
+        var mapOverlay = map.HeightMap.GetBumpMap().Normalise();
 
-        foreach (var sample in propMap.Samples())
+
+        var bandCount = 3f;
+
+        for (int bands = 1; bands < bandCount; bands++)
         {
-            //var tex = texture.GetPixelBilinear(Mathf.InverseLerp(0, 200, sample.x), Mathf.InverseLerp(0, 200, sample.y));
-            //if (tex.grayscale > 0.5f)
-            //{
-            Debug.DrawRay(new Vector3(sample.x, 0, sample.y), Vector3.up * 0.1f, Color.green, 100f);
-            // }
+            var propMap = new PoissonDiscSampler(1, 1, bands / 400f);
 
+            var color = Grad.Evaluate(bands / bandCount);
+
+            foreach (var sample in propMap.Samples())
+            {
+                var val = mapOverlay.BilinearSampleFromNormalisedVector2(sample);
+                if (val < bands/ bandCount && val > bands/ bandCount - 1f/ bandCount && map.WalkableMap.BilinearSampleFromNormalisedVector2(sample) > 0.5f)
+                {
+                    //Debug.DrawRay(new Vector3(sample.x, 0, sample.y), Vector3.up * 0.1f, color, 100f);
+
+                    var obj = Instantiate(testInstantiate, new Vector3(sample.x, map.HeightMap.BilinearSampleFromNormalisedVector2(sample), sample.y), Quaternion.identity);
+                    obj.transform.localScale = Vector3.one * (bands / 400f);
+
+                }
+
+            }
         }
 
+
+
+
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+        // Update is called once per frame
+        void Update () {
 	
 	}
 }
