@@ -13,6 +13,9 @@ namespace Terrain {
             get; private set;
         }
 
+        public Map WaterOutline;
+        public Map LandOutline;
+
         public PhysicalMap WalkablePhysicalMap
         {
             get

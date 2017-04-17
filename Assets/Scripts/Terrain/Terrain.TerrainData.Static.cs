@@ -63,6 +63,11 @@ namespace Terrain {
 
             var totalFalloffMap = finalWaterFalloff + cliffsFalloff.Invert();
 
+            var waterEdge = totalFalloffMap.Clone().Invert().Clamp(0.5f, 1f).Normalise().BooleanMapFromThreshold(1f).Invert().ThickenOutline(1).Invert();
+            var outline = (walkableAreaMap.Clone().ThickenOutline(1) - walkableAreaMap);
+            var waterOutline = Map.ApplyMask(outline, Map.BlankMap(outline).FillWith(0), waterEdge);
+            var earthOutline = Map.ApplyMask(outline, Map.BlankMap(outline).FillWith(0), waterEdge.Invert());
+
             totalFalloffMap.Invert().Normalise();
 
             var heightMap = CreateHeightMap(walkableAreaMap);
@@ -92,7 +97,11 @@ namespace Terrain {
 
             //var isWaterMap = realFinalMap.Clone().ShiftLowestValueToZero().Clamp(0, 0.1f).AddToStack(stack); 
 
-            return new TerrainData(rect, walkableAreaMap, realFinalMap.Clone().Multiply(200f),new ColorLayer(realFinalMap));
+            var terrainData = new TerrainData(rect, walkableAreaMap, realFinalMap.Clone().Multiply(200f), new ColorLayer(realFinalMap));
+            terrainData.WaterOutline = waterOutline;
+            terrainData.LandOutline = earthOutline;
+
+            return terrainData;
         }
 
         public static Map[] VoronoiPreBake(TerrainData parentData, int size, Rect rect)

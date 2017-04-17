@@ -271,17 +271,17 @@ MonoBehaviour:
     serializedVersion: 2
     key0: {r: 0.09558821, g: 0.09558821, b: 0.09558821, a: 1}
     key1: {r: 0.93584675, g: 0.93380857, b: 0.929852, a: 1}
-    key2: {r: 0, g: 0, b: 0, a: 0}
-    key3: {r: 0, g: 0, b: 0, a: 0}
-    key4: {r: 0, g: 0, b: 0, a: 0}
+    key2: {r: 0.13671401, g: 0.022058845, b: 1, a: 0}
+    key3: {r: 0.13671401, g: 0.022058845, b: 1, a: 0}
+    key4: {r: 0, g: 0.38039216, b: 1, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
     ctime1: 39514
-    ctime2: 0
-    ctime3: 0
-    ctime4: 0
+    ctime2: 65535
+    ctime3: 65535
+    ctime4: 65535
     ctime5: 0
     ctime6: 0
     ctime7: 0
@@ -340,6 +340,48 @@ MonoBehaviour:
       inSlope: 1
       outSlope: 1
       tangentMode: 34
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  LargeSizeMultiplier:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 0.2561468
+      value: 0.6065024
+      inSlope: 1.7106092
+      outSlope: 1.7106092
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  SmallSizeMultiplier:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
