@@ -8,6 +8,9 @@ public class CreateStandardTerrain : MonoBehaviour {
     public Gradient MinorRocks;
     public AnimationCurve Falloff;
 
+    public AnimationCurve LargeSizeMultiplier;
+    public AnimationCurve SmallSizeMultiplier;
+
     private float width = 1500;
     private float lenght = 1500;
     private float height = 300;
@@ -158,10 +161,26 @@ public class CreateStandardTerrain : MonoBehaviour {
 
             var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
 
-            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), Quaternion.Euler(0, RNG.NextFloat(-180f, 180f),0), parent.transform);
-            obj.transform.localScale = Vector3.one * (sample.Radius);
+            
 
-            _block.SetColor("_Color", MajorRocks.Evaluate(steepness));
+            var normal = terrainData.GetInterpolatedNormal(normalisedSample.x, normalisedSample.y);
+            var forward = new Vector3(normal.x, 0, normal.z);
+            forward += new Vector3(RNG.NextFloat(-0.4f,0.4f),0,RNG.NextFloat(-0.4f,0.4f));
+            var rotation = Quaternion.Euler(0, RNG.NextFloat(-180, 180), 0);
+            if (Vector3.Dot(normal, Vector3.up) > 0.05f)
+                rotation = Quaternion.LookRotation(forward, Vector3.up);
+
+
+            var multiplier = LargeSizeMultiplier.Evaluate(steepness);
+            var scaledSteepnees = Mathf.Lerp(maxSize, minSize*0.5f, multiplier);
+            var color = MajorRocks.Evaluate(steepness);
+
+
+
+            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), rotation, parent.transform);
+            obj.transform.localScale = Vector3.one * scaledSteepnees;
+
+            _block.SetColor("_Color", color);
             obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(_block);
         }
 
@@ -171,6 +190,8 @@ public class CreateStandardTerrain : MonoBehaviour {
         maxSize = mapSize / (propCount - 50f);
 
         propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
+
+        var watermap = _map.WaterOutline.Clone().ThickenOutline(1);
 
         //spawnMap = _map.WalkableMap.Clone();
 
@@ -194,10 +215,51 @@ public class CreateStandardTerrain : MonoBehaviour {
 
             var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
 
-            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), Quaternion.Euler(0, RNG.NextFloat(-180f, 180f), 0), parent.transform);
-            obj.transform.localScale = Vector3.one * (sample.Radius);
+            var multiplier = SmallSizeMultiplier.Evaluate(steepness);
 
-            _block.SetColor("_Color", MinorRocks.Evaluate(steepness));
+            var color = MinorRocks.Evaluate(steepness);
+
+
+            var scaledSteepnees = Mathf.Lerp(maxSize, minSize, multiplier);
+            color = MinorRocks.Evaluate(multiplier);
+
+            var scale = scaledSteepnees;
+
+            var waterSample = watermap.BilinearSampleFromNormalisedVector2(normalisedSample);
+
+            var normal = terrainData.GetInterpolatedNormal(normalisedSample.x, normalisedSample.y);
+            var forward = new Vector3(normal.x, 0, normal.z);
+            forward += new Vector3(RNG.NextFloat(-0.4f, 0.4f), 0, RNG.NextFloat(-0.4f, 0.4f));
+            var rotation = Quaternion.Euler(0, RNG.NextFloat(-180, 180), 0);
+            if (Vector3.Dot(normal, Vector3.up) > 0.05f)
+                rotation = Quaternion.LookRotation(forward, Vector3.up);
+
+
+
+            if (waterSample > 0.5f)
+            {
+                objToSpawn = RNG.NextFloat() > 0.3f ? RockToCreateShallow : RockToCreateSteep;                
+                //color = Color.red;
+
+                if (waterSample > 0.99f)
+                {
+                    //color = Color.green;
+                    objToSpawn = RockToCreateShallow;
+                    //scale = scale * (RNG.NextFloat(0.7f, 1.1f));
+                }
+
+            }
+
+            if (_map.LandOutline.BilinearSampleFromNormalisedVector2(normalisedSample) > 0.5f)
+            {
+                objToSpawn = RNG.NextFloat() > 0.5f ? RockToCreateShallow : RockToCreateSteep;
+                //color = Color.blue;
+            }
+
+            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), rotation, parent.transform);
+            obj.transform.localScale = Vector3.one * (scale);
+
+            _block.SetColor("_Color", color);
             obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(_block);
         }
 
