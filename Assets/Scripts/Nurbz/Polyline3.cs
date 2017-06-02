@@ -1,14 +1,37 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace Nurbz
-{
-    public class Polyline3
-    {
-        public Vector3[] Vectors { get; private set; }
+namespace Nurbz {
+    public class Polyline3 {
+        public List<Vector3> Vectors { get; private set; }
         public bool Closed { get; private set; }
 
+        public Vector3 start
+        {
+            get
+            {
+                return Vectors[0];
+            }
+        }
+
+        public Vector3 end
+        {
+            get
+            {
+                return Vectors[Vectors.Count - 1];
+            }
+        }
+
         public Polyline3(Vector3[] vectors)
+        {
+            Vectors = vectors.ToList();
+            Closed = true;
+        }
+
+
+
+        public Polyline3(List<Vector3> vectors)
         {
             Vectors = vectors;
             Closed = true;
@@ -16,14 +39,14 @@ namespace Nurbz
 
         public Polyline3(Vector3[] vectors, bool closed)
         {
-            Vectors = vectors;
+            Vectors = vectors.ToList();
             Closed = closed;
         }
 
         public List<Vector2> Vector3ToVector2()
         {
             List<Vector2> vector2d = new List<Vector2>();
-            foreach(var vec in Vectors)
+            foreach (var vec in Vectors)
             {
                 vector2d.Add(new Vector2(vec.x, vec.z));
             }
@@ -41,9 +64,9 @@ namespace Nurbz
 
             matrixList.Add(firstMatrix);
 
-            var length = Vectors.Length;
+            var length = Vectors.Count;
 
-            for (var i = 1; i< length - 1; i++)
+            for (var i = 1; i < length - 1; i++)
             {
                 var workingMatrix = new Matrix4x4();
                 var workingPosition = Vectors[i];
@@ -57,7 +80,7 @@ namespace Nurbz
             }
 
             var lastMatrix = new Matrix4x4();
-            lastMatrix.SetTRS(Vectors[length-1], Quaternion.LookRotation(LineMath.LineToCrossVector3(Vectors[length - 2], Vectors[length - 1])), Vector3.one);
+            lastMatrix.SetTRS(Vectors[length - 1], Quaternion.LookRotation(LineMath.LineToCrossVector3(Vectors[length - 2], Vectors[length - 1])), Vector3.one);
 
             matrixList.Add(lastMatrix);
 
@@ -67,7 +90,7 @@ namespace Nurbz
 
         public void Debugdraw()
         {
-            for (var i = 0; i < Vectors.Length-1; i++)
+            for (var i = 0; i < Vectors.Count - 1; i++)
             {
                 Debug.DrawLine(Vectors[i], Vectors[i + 1], Color.white, 100f);
 
@@ -77,7 +100,7 @@ namespace Nurbz
 
         public void Debugdraw(Color color, float time)
         {
-            for (var i = 0; i < Vectors.Length - 1; i++)
+            for (var i = 0; i < Vectors.Count - 1; i++)
             {
                 Debug.DrawLine(Vectors[i], Vectors[i + 1], color, time);
 
@@ -85,17 +108,17 @@ namespace Nurbz
 
         }
 
-        public Line3[] GetLines ()
+        public Line3[] GetLines()
         {
             var lineList = new List<Line3>();
-            for (var x = 0; x < Vectors.Length - 1; x++)
+            for (var x = 0; x < Vectors.Count - 1; x++)
             {
                 lineList.Add(new Line3(Vectors[x], Vectors[x + 1]));
             };
 
             if (Closed)
             {
-                lineList.Add(new Line3(Vectors[Vectors.Length - 1], Vectors[0]));
+                lineList.Add(new Line3(Vectors[Vectors.Count - 1], Vectors[0]));
             }
 
             return lineList.ToArray();
@@ -106,11 +129,12 @@ namespace Nurbz
             var lines = GetLines();
             var verts = new List<Vector3>();
 
-            if (Closed) {
-                
+            if (Closed)
+            {
+
                 verts.Add(GetOffsetIntersection(lines[lines.Length - 1], lines[0], distance));
 
-                for (var i = 1; i < Vectors.Length; i++)
+                for (var i = 1; i < Vectors.Count; i++)
                 {
                     verts.Add(GetOffsetIntersection(lines[i - 1], lines[i], distance));
                 }
@@ -134,9 +158,7 @@ namespace Nurbz
 
         public void Flip()
         {
-            var vectors = new List<Vector3>(Vectors);
-            vectors.Reverse();
-            Vectors = vectors.ToArray();
+            Vectors.Reverse();
         }
 
         public Vector3 GetNormal()
@@ -152,5 +174,106 @@ namespace Nurbz
             return Vector3.Cross(side1, side2).normalized;
         }
 
+        public void AddToEnd(Vector3 point)
+        {
+            Vectors.Add(point);
+            SetClosed();
+        }
+
+        public void AddToStart(Vector3 point)
+        {
+            Vectors.Insert(0, point);
+            SetClosed();
+
+        }
+
+        void SetClosed()
+        {
+            if (start == end)
+                Closed = true;
+            else
+                Closed = false;
+        }
+
+        public List<Vector3> DivideDistance(float distance)
+        {
+            var dist = 0f;
+            var points = new List<Vector3>();
+
+            for (int i = 0; i < Vectors.Count-1; i++)
+            {
+                var a = Vectors[i];
+                var b = Vectors[i+1];
+
+                dist += Vector3.Distance(a, b);
+
+                while (dist > distance)
+                {
+                    var t = Mathf.InverseLerp(0, distance, dist);
+                    var p = Vector3.Lerp(a, b, t);
+
+                    points.Add(p);
+                    dist -= distance;
+                }
+            }
+
+            return points;
+        }
+
+        public static List<Polyline3> FormPolylines(List<Line3> lines)
+        {
+
+            lines = Line3.GetUniqueLines(lines);
+
+            var output = new List<Polyline3>();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                var line = lines[i];
+
+                for (int u = 0; u < output.Count; u++)
+                {
+                    var poly = output[u];
+
+                    if (poly.Closed)
+                        continue;
+
+                    if (line.start == poly.start)
+                    {
+                        poly.AddToStart(line.end);
+                        goto end;
+                    }
+                    else if (line.start == poly.end)
+                    {
+                        poly.AddToEnd(line.end);
+                        goto end;
+                    }
+                    else if (line.end == poly.start)
+                    {
+                        poly.AddToStart(line.start);
+                        goto end;
+                    }
+                    else if (line.start == poly.end)
+                    {
+                        poly.AddToEnd(line.end);
+                        goto end;
+                    }
+
+
+                }
+
+                output.Add(new Polyline3(new Vector3[] { line.start, line.end }, false));
+
+                end:
+                { }
+            }
+
+            for (int u = 0; u < output.Count; u++)
+            {
+                //output[u].ForceClockwise();
+            }
+
+            return output;
+        }
     }
 }

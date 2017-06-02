@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nurbz
 {
@@ -15,15 +16,30 @@ namespace Nurbz
             get { return GetOrientation(); }
         }
 
+        public static Line3 zero = new Line3(Vector3.zero, Vector3.zero);
+
         public Line3(Vector3 a, Vector3 b)
         {
             start = a;
             end = b;
         }
 
+        public bool IsEqualTo(Line3 other)
+        {
+            if (start == other.start && end == other.end)
+                return true;
+            return false;
+        }
+
+        public static List<Line3> GetUniqueLines(List<Line3> linesToSmallify)
+        {
+            return linesToSmallify.GroupBy(g => g.middle).Select(g => g.First()).ToList();
+        } 
+
         Vector3 GetMidPoint()
         {
-            return new Vector3((start.x + end.x) * 0.5f, (start.y + end.y) * 0.5f, (start.z + end.z) * 0.5f);
+            return Vector3.Lerp(start, end, 0.5f);
+            //return new Vector3((start.x + end.x) * 0.5f, (start.y + end.y) * 0.5f, (start.z + end.z) * 0.5f);
         }
 
         Vector3 GetOrientation()

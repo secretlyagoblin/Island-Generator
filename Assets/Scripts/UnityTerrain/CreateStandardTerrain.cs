@@ -11,17 +11,17 @@ public class CreateStandardTerrain : MonoBehaviour {
     public AnimationCurve LargeSizeMultiplier;
     public AnimationCurve SmallSizeMultiplier;
 
-    private float width = 1500;
-    private float lenght = 1500;
-    private float height = 300;
+    private float _width = 1500;
+    private float _length = 1500;
+    private float _height = 300;
 
     private static Vector2 tileAmount = Vector2.one;
 
-    private int heightmapResoltion = 256 +1;
-    private int detailResolution = 256;
-    private int detailResolutionPerPatch = 8;
-    private int controlTextureResolution = 256;
-    private int baseTextureReolution = 1024;
+    private int _heightmapResoltion = 128 + 1;
+    private int _detailResolution = 128;
+    private int _detailResolutionPerPatch = 8;
+    private int _controlTextureResolution = 128;
+    private int _baseTextureReolution = 512;
 
     public DetailObjectPool[] DetailObjectPools;
 
@@ -41,7 +41,7 @@ public class CreateStandardTerrain : MonoBehaviour {
     void Start()
     {
         _block = new MaterialPropertyBlock();
-        CreateTerrain();
+        CreateAgain();
 
     }
 
@@ -63,22 +63,22 @@ public class CreateStandardTerrain : MonoBehaviour {
         //GameObject parent = Instantiate(new GameObject("Boostr"));
         //parent.transform.position = new Vector3(0, 0, 0);
 
-        _map = Terrain.TerrainData.RegionIsland(heightmapResoltion, new Rect());
-        _map.HeightMap.Remap(0, height);
+        _map = Terrain.TerrainData.RegionIsland(_heightmapResoltion, new Rect());
+        _map.HeightMap.Remap(0, _height);
 
 
         TerrainData terrainData = new TerrainData();
 
-        terrainData.size = new Vector3(width / 8f,
-                                        height,
-                                        lenght / 8f);
+        terrainData.size = new Vector3(_width / 8f,
+                                        _height,
+                                        _length / 8f);
 
         //terrainData.
 
-        terrainData.baseMapResolution = baseTextureReolution;
-        terrainData.heightmapResolution = heightmapResoltion;
-        terrainData.alphamapResolution = controlTextureResolution;
-        terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
+        terrainData.baseMapResolution = _baseTextureReolution;
+        terrainData.heightmapResolution = _heightmapResoltion;
+        terrainData.alphamapResolution = _controlTextureResolution;
+        terrainData.SetDetailResolution(_detailResolution, _detailResolutionPerPatch);
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
         //terrainData.set
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
@@ -131,14 +131,14 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         var propCount = 180f;
 
-        var mapSize = (float)width;
+        var mapSize = (float)_width;
         var minSize = mapSize / propCount;
         var maxSize = mapSize / (propCount - 50f);
 
         var propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
         var spawnMap = _map.WalkableMap.Clone().ThickenOutline(1);
 
-        var falloffMap = _map.WalkableMap.Clone().GetDistanceMap(15).Clamp(0.5f,1f).Normalise();
+        var falloffMap = _map.WalkableMap.Clone().GetDistanceMap(15).Clamp(0.5f, 1f).Normalise();
 
 
         foreach (var sample in propMap.Samples())
@@ -161,18 +161,18 @@ public class CreateStandardTerrain : MonoBehaviour {
 
             var objToSpawn = steepness > 0.5f ? RockToCreateShallow : RockToCreateSteep;
 
-            
+
 
             var normal = terrainData.GetInterpolatedNormal(normalisedSample.x, normalisedSample.y);
             var forward = new Vector3(normal.x, 0, normal.z);
-            forward += new Vector3(RNG.NextFloat(-0.4f,0.4f),0,RNG.NextFloat(-0.4f,0.4f));
+            forward += new Vector3(RNG.NextFloat(-0.4f, 0.4f), 0, RNG.NextFloat(-0.4f, 0.4f));
             var rotation = Quaternion.Euler(0, RNG.NextFloat(-180, 180), 0);
             if (Vector3.Dot(normal, Vector3.up) > 0.05f)
                 rotation = Quaternion.LookRotation(forward, Vector3.up);
 
 
             var multiplier = LargeSizeMultiplier.Evaluate(steepness);
-            var scaledSteepnees = Mathf.Lerp(maxSize, minSize*0.5f, multiplier);
+            var scaledSteepnees = Mathf.Lerp(maxSize, minSize * 0.5f, multiplier);
             var color = MajorRocks.Evaluate(steepness);
 
 
@@ -238,7 +238,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
             if (waterSample > 0.5f)
             {
-                objToSpawn = RNG.NextFloat() > 0.3f ? RockToCreateShallow : RockToCreateSteep;                
+                objToSpawn = RNG.NextFloat() > 0.3f ? RockToCreateShallow : RockToCreateSteep;
                 //color = Color.red;
 
                 if (waterSample > 0.99f)
@@ -263,6 +263,83 @@ public class CreateStandardTerrain : MonoBehaviour {
             obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(_block);
         }
 
+    }
+
+    private void CreateAgain()
+    {
+        //GameObject parent = Instantiate(new GameObject("Boostr"));
+        //parent.transform.position = new Vector3(0, 0, 0);
+
+        _map = Terrain.TerrainData.RegionIsland(_heightmapResoltion, new Rect());
+        _map.HeightMap.Remap(0, _height);
+
+
+        TerrainData terrainData = new TerrainData();
+
+        terrainData.size = new Vector3(_width / 4f,
+                                        _height,
+                                        _length / 4f);
+
+        //terrainData.
+
+        terrainData.baseMapResolution = _baseTextureReolution;
+        terrainData.heightmapResolution = _heightmapResoltion;
+        terrainData.alphamapResolution = _controlTextureResolution;
+        terrainData.SetDetailResolution(_detailResolution, _detailResolutionPerPatch);
+        terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
+        //terrainData.set
+        terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
+        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Invert().ThickenOutline(1).Invert().Resize(_detailResolution, _detailResolution)));
+        terrainData.detailPrototypes = Details.GetDetailPrototypes();
+
+
+
+        Details.SetDetails(terrainData, _map.WalkableMap);
+
+
+        //terrainData.name = name;
+        GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
+        var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
+        terrain.detailObjectDistance = 100f;
+
+        //terrain.name = name;
+        //terrain.transform.parent = parent.transform;
+        terrainObj.transform.position = new Vector3(0, 0, 0);
+
+        var parent = new GameObject();
+
+
+
+        var spawnMap = _map.WalkableMap.Clone();//.Invert().ThickenOutline().Invert();
+
+        var okay = UnityTerrainHelpers.PropSample(_map.HeightMap, spawnMap.Clone().Invert().ThickenOutline().Invert(), 135);
+
+        spawnMap = spawnMap.ThickenOutline();
+
+        for (int i = 0; i < okay.Count; i++)
+        {            
+            var a = okay[i];
+
+            var height = terrainData.GetInterpolatedHeight(a.SamplePoint.x, a.SamplePoint.y);
+
+            if (height < 0.5f)
+                continue;
+
+            if (spawnMap.BilinearSampleFromNormalisedVector2(a.SamplePoint) < 0.5f)
+                continue;
+
+            var gob = Instantiate(RockToCreateShallow);
+
+            var scale = Random.Range(1f, 1.3f);
+            
+            gob.transform.position = (new Vector3(_width * a.Min.x, a.Min.y, _width * a.Min.z));
+            gob.transform.localScale = (new Vector3(_width*a.Size.x * scale, a.Size.y, _width * a.Size.z * scale));
+            gob.transform.RotateAround(new Vector3(_width * a.Center.x, a.Center.y, _width * a.Center.z), Vector3.up, Random.Range(0, 360f));
+
+            gob.name = "Prop " + a.Scale;
+
+            gob.transform.parent = parent.transform;
+        }
     }
 
     private void CreateMyToys()
