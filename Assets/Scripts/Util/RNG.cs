@@ -77,6 +77,13 @@ public static class RNG {
         return new Vector2(NextFloat(minValue, maxValue), NextFloat(minValue, maxValue));
     }
 
+
+    public static Vector3 NextVector3(float minValue, float maxValue)
+    {
+        return new Vector3(NextFloat(minValue, maxValue), NextFloat(minValue, maxValue), NextFloat(minValue, maxValue));
+    }
+
+
     public static float NextFloat(float maxValue)
     {
         return (float)(_pseudoRandom.NextDouble()) * maxValue;

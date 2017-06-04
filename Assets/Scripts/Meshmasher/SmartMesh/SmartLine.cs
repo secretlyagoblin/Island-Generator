@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Meshmasher;
+using MeshMasher;
 
-namespace Meshmasher {
+namespace MeshMasher {
     public class SmartLine {
 
         public int State
@@ -16,6 +16,11 @@ namespace Meshmasher {
 
         public bool IsPartOfCurrentSortingEvent
         { get; private set; }
+
+        public Vector3 Center { get
+            {
+                return Vector3.Lerp(Nodes[0].Vert, Nodes[1].Vert, 0.5f);
+            } }
 
         public SmartLine(SmartNode nodeA, SmartNode nodeB)
         {

@@ -15,6 +15,102 @@ namespace Terrain {
             return new TerrainData(rect, parentWalkablemap,parentHeightmap);
         }
 
+        public static TerrainData VoronoiIsland(int size, Rect rect)
+        {
+            RNG.DateTimeInit();
+            var seed = RNG.NextFloat(0, 1000);
+
+            var walkableAreaMap = new Map(size, size);
+
+            var cells = new List<VoronoiCell>();
+
+            for (int i = 0; i < 130; i++)
+            {
+                cells.Add(new VoronoiCell(RNG.NextVector3(0f, 1f)));
+            }
+
+            var voronoiGenerator = new VoronoiGenerator(walkableAreaMap, cells);
+            var fallOffMap = voronoiGenerator.GetVoronoiBoolMap(walkableAreaMap.Clone().CreateCircularFalloff(size*0.37f).Normalise()).Display();
+            var fallOffFineAlright = Map.BooleanIntersection(
+                walkableAreaMap
+                    .Clone()
+                    .CreateCircularFalloff(size * 0.37f)
+                    .Invert(),
+                walkableAreaMap
+                    .Clone()
+                    .CreateYGradient()
+                    .BooleanMapFromThreshold(0.7f))
+                .Display()
+                ;
+            var otherFallOffMap = voronoiGenerator.GetVoronoiBoolMap(fallOffFineAlright).Display();
+
+            var heightMap = voronoiGenerator
+                .GetHeightMap(walkableAreaMap);
+
+            var smallSmooth = heightMap
+                .Clone()
+                .ApplyMask(fallOffMap)
+                .Invert()
+                .SmoothMap(2)
+                .Display();
+            //var absHeight = smallSmooth.ApplyMask(otherFallOffMap).Display();
+
+            var highSmooth = Map.DecimateMap(smallSmooth, 2).SmoothMap(10).Resize(size, size).SmoothMap().Display();
+            
+            var otherSteepness = smallSmooth.Clone().GetAbsoluteBumpMap().Normalise().Display().BooleanMapFromThreshold(0.35f).Display();
+            smallSmooth.Add(walkableAreaMap.Clone().PerlinFill(0.05f * size, 0, 0, seed).Remap(-0.025f, 0.025f));
+
+            var exteriorMap = Map.DecimateMap(otherFallOffMap, 2).SmoothMap(2).Resize(size, size);
+            var exteriorBump = exteriorMap.Clone().GetAbsoluteBumpMap().Normalise().Display().BooleanMapFromThreshold(0.5f).Display();
+            var finalBump = Map.BooleanUnion(exteriorBump.Invert(), otherSteepness.Invert()).Invert().Display();
+
+            var finalHeightMap = Map.Blend(smallSmooth.Remap(0f, 0.35f), heightMap.Clone().Remap(0.75f, 1f).SmoothMap(2), exteriorMap.Normalise()).Display();
+
+            var terrainData = new TerrainData(rect, finalBump, finalHeightMap.Clamp(0.1f,1f).Normalise(), new ColorLayer(finalBump));
+            return terrainData;
+
+        }
+
+        public static TerrainData DelaunayIsland(int size, Rect rect,Transform transform)
+        {
+            RNG.DateTimeInit();
+            var stack = Map.SetGlobalDisplayStack();
+            var baseNoiseMap = new Map(size, size);
+
+            baseNoiseMap
+                .PerlinFill(size*0.25f,0,0,RNG.Next(1000))
+                .Add(
+                    baseNoiseMap
+                    .Clone()
+                    .PerlinFill(size * 0.55f, 0, 0, RNG.Next(1000)).Remap(-0.5f,0.5f))
+                .Display();
+
+            var falloffMap = baseNoiseMap.Clone().CreateCircularFalloff(size * 0.45f).Display();
+            falloffMap = Map.DecimateMap(falloffMap,4).GetDistanceMap((int)(size * 0.05f)).Resize(size,size).Clamp(0f, 0.5f).Display();
+
+            baseNoiseMap = Map.Blend(Map.BlankMap(size, size).FillWith(0), baseNoiseMap.Remap(0.1f,1f), falloffMap.Normalise()).Display();
+
+
+            var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
+            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+
+            var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
+                Map.BlankMap(size, size)
+                .PerlinFill(size * 0.125f, 0, 0, RNG.Next(1000))
+                .Remap(-0.05f,0.05f))
+                .Clamp(0.06f,1f).Normalise();
+
+
+
+
+            var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.15f).Display();
+
+            var terrainData = new TerrainData(rect, walkableMap, heightMap.Clone().Multiply(200f), new ColorLayer(walkableMap));
+
+            stack.CreateDebugStack(transform);
+
+            return terrainData;
+        }
 
 
         public static TerrainData RegionIsland(int size, Rect rect)

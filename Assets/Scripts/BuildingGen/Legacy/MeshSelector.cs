@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Meshmasher;
+using MeshMasher;
 using Nurbz;
 
 public class MeshSelector : MonoBehaviour {

@@ -309,6 +309,21 @@ namespace Maps {
             return this;
         }
 
+        public Map CreateYGradient()
+        {
+            var ySize = 1f / SizeY;
+
+            for (int x = 0; x < SizeX; x++)
+            {
+                for (int y = 0; y < SizeY; y++)
+                {
+                    _map[x, y] = ySize * y;
+                }
+            }
+
+            return this;
+        }
+
         public Map CreateTerrainMap()
         {
             var newMap = new Map(SizeY, SizeX);
@@ -1368,6 +1383,87 @@ namespace Maps {
             return count;
         }
 
+        // Mesh Mapping
+
+        public Map GetHeightmapFromSquareXZMesh(Mesh mesh)
+        {
+            var tris = mesh.triangles;
+            var verts = mesh.vertices;
+
+            for (int i = 0; i < tris.Length; i+=3)
+            {
+                var v1 = verts[tris[i]];
+                var v2 = verts[tris[i+1]];
+                var v3 = verts[tris[i+2]];
+
+                var xs = new List<int> { Mathf.RoundToInt(v1.x * SizeX), Mathf.RoundToInt(v2.x * SizeX), Mathf.RoundToInt(v3.x * SizeX) };
+                xs.Sort();
+
+                var xMin = xs.First();
+                var xMax = xs.Last();
+
+                xMin--;
+                xMax++;
+
+                xMin = xMin < 0 ? 0 : xMin;
+                xMax = xMax > SizeX ? SizeX : xMax;
+                
+                var zs = new List<int> { Mathf.RoundToInt(v1.z * SizeY), Mathf.RoundToInt(v2.z * SizeY), Mathf.RoundToInt(v3.z * SizeY) };
+                zs.Sort();
+
+                var zMin = zs.First();
+                var zMax = zs.Last();
+
+                zMin--;
+                zMax++;
+
+                zMin = zMin < 0 ? 0 : zMin;
+                zMax = zMax > SizeY ? SizeY : zMax;
+
+                v1 = new Vector3(v1.x * SizeX, v1.y, v1.z * SizeY);
+                v2 = new Vector3(v2.x * SizeX, v2.y, v2.z * SizeY);
+                v3 = new Vector3(v3.x * SizeX, v3.y, v3.z * SizeY);
+
+                var plane = new Plane(v1, v2, v3);
+
+                
+
+
+                for (int x = xMin; x < xMax; x++)
+                {
+                    for (int y = zMin; y < zMax; y++)
+                    {
+                        if (PointInTriangle(new Vector3(x, 0, y), v1, v2, v3))
+                        {
+                            var ray = new Ray(new Vector3(x,0,y), Vector3.up);
+                            var dist = 0f;
+                            plane.Raycast(ray, out dist);
+                            this[x, y] = dist;
+                                }
+                    }
+                }
+
+            }
+
+            return this;
+        }
+
+        float sign(Vector3 p1, Vector3 p2, Vector3 p3)
+        {
+            return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
+        }
+
+        bool PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3)
+        {
+            bool b1, b2, b3;
+
+            b1 = sign(pt, v1, v2) < 0.0f;
+            b2 = sign(pt, v2, v3) < 0.0f;
+            b3 = sign(pt, v3, v1) < 0.0f;
+
+            return ((b1 == b2) && (b2 == b3));
+        }
+
         //Texture Modifications
 
         public Texture2D ApplyTexture(Texture2D texture)
@@ -1433,7 +1529,7 @@ namespace Maps {
 
 
 
-        public Map AddToStack(MeshDebugStack stack)
+        public Map Display(MeshDebugStack stack)
         {
             stack.RecordMapStateToStack(this);
             return this;

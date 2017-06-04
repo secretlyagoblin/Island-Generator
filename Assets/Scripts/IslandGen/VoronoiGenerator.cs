@@ -74,7 +74,7 @@ public class VoronoiGenerator {
         return map;
     }
 
-    public Map GetVoronoiBoolMap(Map insideMap)
+    public Map GetVoronoiBoolMap()
     {
         var map = new Map(_map.SizeX, _map.SizeY, 1);
 
@@ -94,6 +94,42 @@ public class VoronoiGenerator {
 
 
                     map[point.x, point.y] = 0;
+                }
+            }
+        }
+        return map;
+    }
+
+    public Map GetVoronoiBoolMap(Map insideMap)
+    {
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
+
+        for (int i = 0; i < _allElements.Count; i++)
+        {
+
+            var cell = _allElements[i];
+
+            if (cell.MapPoints.Count == 0)
+                continue;
+
+            if (insideMap.BilinearSampleFromNormalisedVector2(cell.Position) < 0.5f)
+            {
+                for (int p = 0; p < cell.MapPoints.Count; p++)
+                {
+                    var point = cell.MapPoints[p];
+
+
+                    map[point.x, point.y] = 0;
+                }
+            }
+            else
+            {
+                for (int p = 0; p < cell.MapPoints.Count; p++)
+                {
+                    var point = cell.MapPoints[p];
+
+
+                    map[point.x, point.y] = 1;
                 }
             }
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Nurbz;
 
-namespace Meshmasher
+namespace MeshMasher
 {
     public class SmartMesh
     {
@@ -314,7 +314,7 @@ namespace Meshmasher
 
             foreach (var poly in completedPolylines)
             {
-                outputNodeLists.Add(poly.getNodeList());
+                outputNodeLists.Add(poly.GetNodeList());
             }
 
             for (int i = 0; i < listForResetting.Count; i++)

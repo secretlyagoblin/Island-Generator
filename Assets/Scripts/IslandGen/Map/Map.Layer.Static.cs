@@ -73,12 +73,20 @@ namespace Maps {
 
         static MeshDebugStack _stack = null;
 
-        public static void SetGlobalStack(MeshDebugStack stack)
+        public static void SetGlobalDisplayStack(MeshDebugStack stack)
         {
             _stack = stack;
         }
 
-        public Map AddToGlobalStack()
+        public static MeshDebugStack SetGlobalDisplayStack()
+        {
+            _stack = new MeshDebugStack(new Material(Shader.Find("Standard")));
+            return _stack;
+        }
+
+        
+
+        public Map Display()
         {
             if (_stack != null)
             {

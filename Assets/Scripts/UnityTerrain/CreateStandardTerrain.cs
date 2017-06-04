@@ -17,10 +17,10 @@ public class CreateStandardTerrain : MonoBehaviour {
 
     private static Vector2 tileAmount = Vector2.one;
 
-    private int _heightmapResoltion = 128 + 1;
-    private int _detailResolution = 128;
+    private int _heightmapResoltion = 256 + 1;
+    private int _detailResolution = 256;
     private int _detailResolutionPerPatch = 8;
-    private int _controlTextureResolution = 128;
+    private int _controlTextureResolution = 256;
     private int _baseTextureReolution = 512;
 
     public DetailObjectPool[] DetailObjectPools;
@@ -135,7 +135,7 @@ public class CreateStandardTerrain : MonoBehaviour {
         var minSize = mapSize / propCount;
         var maxSize = mapSize / (propCount - 50f);
 
-        var propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
+        var propMap = new PoissonDiscSampler(mapSize, mapSize, minSize);
         var spawnMap = _map.WalkableMap.Clone().ThickenOutline(1);
 
         var falloffMap = _map.WalkableMap.Clone().GetDistanceMap(15).Clamp(0.5f, 1f).Normalise();
@@ -143,7 +143,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         foreach (var sample in propMap.Samples())
         {
-            var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.Position.x), Mathf.InverseLerp(0, mapSize, sample.Position.y));
+            var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.x), Mathf.InverseLerp(0, mapSize, sample.y));
             var height = terrainData.GetInterpolatedHeight(normalisedSample.x, normalisedSample.y);
 
             if (height < 0.5f)
@@ -177,7 +177,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
 
 
-            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), rotation, parent.transform);
+            var obj = Instantiate(objToSpawn, new Vector3(sample.x, height, sample.y), rotation, parent.transform);
             obj.transform.localScale = Vector3.one * scaledSteepnees;
 
             _block.SetColor("_Color", color);
@@ -189,7 +189,7 @@ public class CreateStandardTerrain : MonoBehaviour {
         minSize = mapSize / propCount;
         maxSize = mapSize / (propCount - 50f);
 
-        propMap = new PoissonDiscSampler(mapSize, mapSize, minSize, maxSize, steepnessMap);
+        propMap = new PoissonDiscSampler(mapSize, mapSize, minSize);
 
         var watermap = _map.WaterOutline.Clone().ThickenOutline(1);
 
@@ -197,7 +197,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         foreach (var sample in propMap.Samples())
         {
-            var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.Position.x), Mathf.InverseLerp(0, mapSize, sample.Position.y));
+            var normalisedSample = new Vector2(Mathf.InverseLerp(0, mapSize, sample.x), Mathf.InverseLerp(0, mapSize, sample.y));
             var height = terrainData.GetInterpolatedHeight(normalisedSample.x, normalisedSample.y);
 
             if (height < 0.5f)
@@ -256,7 +256,7 @@ public class CreateStandardTerrain : MonoBehaviour {
                 //color = Color.blue;
             }
 
-            var obj = Instantiate(objToSpawn, new Vector3(sample.Position.x, height, sample.Position.y), rotation, parent.transform);
+            var obj = Instantiate(objToSpawn, new Vector3(sample.x, height, sample.y), rotation, parent.transform);
             obj.transform.localScale = Vector3.one * (scale);
 
             _block.SetColor("_Color", color);
@@ -270,15 +270,15 @@ public class CreateStandardTerrain : MonoBehaviour {
         //GameObject parent = Instantiate(new GameObject("Boostr"));
         //parent.transform.position = new Vector3(0, 0, 0);
 
-        _map = Terrain.TerrainData.RegionIsland(_heightmapResoltion, new Rect());
+        _map = Terrain.TerrainData.DelaunayIsland(_heightmapResoltion, new Rect(), transform);
         _map.HeightMap.Remap(0, _height);
 
 
         TerrainData terrainData = new TerrainData();
 
-        terrainData.size = new Vector3(_width / 4f,
+        terrainData.size = new Vector3(_width / 8f,
                                         _height,
-                                        _length / 4f);
+                                        _length / 8f);
 
         //terrainData.
 
@@ -291,7 +291,6 @@ public class CreateStandardTerrain : MonoBehaviour {
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
         terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Invert().ThickenOutline(1).Invert().Resize(_detailResolution, _detailResolution)));
         terrainData.detailPrototypes = Details.GetDetailPrototypes();
-
 
 
         Details.SetDetails(terrainData, _map.WalkableMap);

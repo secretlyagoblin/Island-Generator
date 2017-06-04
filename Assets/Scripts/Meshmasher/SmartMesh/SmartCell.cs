@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Meshmasher;
+using MeshMasher;
 
-namespace Meshmasher {
+namespace MeshMasher {
     public class SmartCell {
 
         public int State

@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Meshmasher;
+using MeshMasher;
 using Nurbz;
 
-namespace Meshmasher {
+namespace MeshMasher {
     public class SmartNode {
 
-        public Vector3 Vert
-        { get; private set; }
+        public Vector3 Vert;
+
         public int Index
         { get; private set; }
         public int State
