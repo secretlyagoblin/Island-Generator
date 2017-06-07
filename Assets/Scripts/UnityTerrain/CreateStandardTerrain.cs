@@ -21,7 +21,7 @@ public class CreateStandardTerrain : MonoBehaviour {
     private int _detailResolution = 256;
     private int _detailResolutionPerPatch = 8;
     private int _controlTextureResolution = 256;
-    private int _baseTextureReolution = 512;
+    private int _baseTextureReolution = 1024;
 
     public DetailObjectPool[] DetailObjectPools;
 

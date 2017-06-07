@@ -105,6 +105,70 @@ namespace Terrain {
 
             var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.15f).Display();
 
+            heightMap.Add(
+                    baseNoiseMap
+                    .Clone()
+                    .PerlinFill(size * 0.02f, 0, 0, RNG.Next(1000)).Remap(-0.01f, 0.01f));
+
+            var terrainData = new TerrainData(rect, walkableMap, heightMap.Clone().Multiply(200f), new ColorLayer(walkableMap));
+
+            stack.CreateDebugStack(transform);
+
+            return terrainData;
+        }
+
+        public static TerrainData DelaunayValley(int size, Rect rect, Transform transform)
+        {
+            RNG.DateTimeInit();
+            var stack = Map.SetGlobalDisplayStack();
+            var baseNoiseMap = new Map(size, size);
+
+            baseNoiseMap
+                .PerlinFill(size * 0.25f, 0, 0, RNG.Next(1000))
+                .Add(
+                    baseNoiseMap
+                    .Clone()
+                    .PerlinFill(size * 0.55f, 0, 0, RNG.Next(1000)).Remap(-0.5f, 0.5f))
+                .Display();
+
+            var falloffMap = baseNoiseMap.Clone().CreateCircularFalloff(size * 0.45f).Display();
+            falloffMap = Map.DecimateMap(falloffMap, 4).GetDistanceMap((int)(size * 0.1f)).Resize(size, size).Clamp(0f, 0.5f).Display();
+
+            var halfSize = size;
+
+            var blackout = new Map(halfSize, halfSize);
+            blackout = blackout
+                .SetColumn(0, 1)
+                .SetColumn(halfSize - 1, 1)
+                .SetRow(0, 1)
+                .SetRow(halfSize - 1, 1)
+                .GetDistanceMap((int)(halfSize * 0.1f))
+                .Resize(size, size)
+                .Remap(0f,0.7f)
+                .Display();
+
+            var added = falloffMap + blackout;
+            added.Normalise().Display();
+
+            baseNoiseMap = added.Add(baseNoiseMap.Remap(0, 0.3f)).Display();
+
+
+
+
+            var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
+            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+
+            var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
+                Map.BlankMap(size, size)
+                .PerlinFill(size * 0.125f, 0, 0, RNG.Next(1000))
+                .Remap(-0.05f, 0.05f))
+                .Clamp(0.06f, 1f).Normalise();
+
+
+
+
+            var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.1f).Display();
+
             var terrainData = new TerrainData(rect, walkableMap, heightMap.Clone().Multiply(200f), new ColorLayer(walkableMap));
 
             stack.CreateDebugStack(transform);

@@ -368,6 +368,26 @@ namespace Maps {
             return outputFloat;
         }
 
+        public Map SetColumn(int xIndex, int value)
+        {
+            for (int y = 0; y < SizeY; y++)
+            {
+                _map[xIndex, y] = value;
+            }
+
+            return this;
+        }
+
+        public Map SetRow(int yIndex, int value)
+        {
+            for (int x = 0; x < SizeX; x++)
+            {
+                _map[x, yIndex] = value;
+            }
+
+            return this;
+        }
+
         public Vector3 GetNormalisedVector3FromIndex(int xIndex, int yIndex)
         {
             var x = Mathf.InverseLerp(0, SizeX, xIndex);
