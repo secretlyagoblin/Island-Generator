@@ -21,10 +21,10 @@ public class SplatCollection : ScriptableObject {
         return output;
     }
     
-    public float[,,] GetAlphaMaps(Maps.Map baseMap)
+    public float[,,] GetAlphaMaps(Maps.Map[] maps)
     {
-        var sizeX = baseMap.SizeX;
-        var sizeY = baseMap.SizeY;
+        var sizeX = maps[0].SizeX;
+        var sizeY = maps[0].SizeY;
         var splatCount = TerrainSplats.Count;
 
         var map = new float[sizeX, sizeY, splatCount];
@@ -42,7 +42,7 @@ public class SplatCollection : ScriptableObject {
                 for (int z = 0; z < splatCount; z++)
                 {
 
-                    map[y, x, z] = baseMap[x, y] == z ? 1 : 0;
+                    map[y, x, z] = maps[z][x, y];// == z ? 1 : 0;
 
                 }
             }

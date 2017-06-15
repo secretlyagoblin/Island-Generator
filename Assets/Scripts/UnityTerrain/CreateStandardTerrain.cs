@@ -83,7 +83,7 @@ public class CreateStandardTerrain : MonoBehaviour {
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
         //terrainData.set
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
-        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Invert().ThickenOutline(1).Invert().Resize(256, 256)));
+        //terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Invert().ThickenOutline(1).Invert().Resize(256, 256)));
         terrainData.detailPrototypes = Details.GetDetailPrototypes();
 
 
@@ -281,6 +281,17 @@ public class CreateStandardTerrain : MonoBehaviour {
                                         _height,
                                         _length / 8f);
 
+        var set = Maps.Map.SetGlobalDisplayStack();
+
+        var okayColours = _map.WalkableMap.Clone().GetDistanceMap(8).Resize(_detailResolution, _detailResolution).Invert().Normalise().Clamp(0.4f,1f).Normalise().Display();
+        //okayColours = _map.HeightMap.Clone().Normalise().GetAbsoluteBumpMap().Normalise().Clamp(0.1f, 0.9f).Normalise().Display();
+        var colour = okayColours.Clone().PerlinFill(15, 0, 0, 123.12123f).Clamp(0.25f,0.75f).Normalise().Display();
+        var guff = Maps.Map.Blend(colour, colour.Clone().FillWith(0), okayColours).Display();
+        var nuff = Maps.Map.Blend(colour.Invert(), colour.Clone().FillWith(0), okayColours).Display();
+        var stuff = okayColours;
+
+        set.CreateDebugStack(2f);
+
         //terrainData.
 
         terrainData.baseMapResolution = _baseTextureReolution;
@@ -290,7 +301,7 @@ public class CreateStandardTerrain : MonoBehaviour {
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
         //terrainData.set
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
-        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(_map.WalkableMap.Clone().Invert().ThickenOutline(1).Invert().Resize(_detailResolution, _detailResolution)));
+        terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(new Maps.Map[]{ guff, stuff.Invert(), nuff }));
         terrainData.detailPrototypes = Details.GetDetailPrototypes();
 
 

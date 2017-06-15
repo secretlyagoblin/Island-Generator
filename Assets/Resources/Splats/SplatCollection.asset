@@ -14,3 +14,4 @@ MonoBehaviour:
   TerrainSplats:
   - {fileID: 11400000, guid: ffd1f7afe2444ce4f8b4a4db92e6ab98, type: 2}
   - {fileID: 11400000, guid: dcd16e6b1b95b5649a5ce23116c1e5d1, type: 2}
+  - {fileID: 11400000, guid: fa828b310790dc74da89548723f9373e, type: 2}
