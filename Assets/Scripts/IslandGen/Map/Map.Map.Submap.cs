@@ -42,6 +42,7 @@ namespace Maps {
             for (int x = position.x; x < mapSizeX; x++)
             {
                 posX++;
+                posY = -1;
                 for (int y = position.y; y < mapSizeY; y++)
                 {
                     posY++;

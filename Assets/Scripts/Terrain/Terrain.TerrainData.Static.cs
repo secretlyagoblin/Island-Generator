@@ -138,10 +138,10 @@ namespace Terrain {
 
             var blackout = new Map(halfSize, halfSize);
             blackout = blackout
-                .SetColumn(0, 1)
-                .SetColumn(halfSize - 1, 1)
                 .SetRow(0, 1)
                 .SetRow(halfSize - 1, 1)
+                .SetColumn(0, 1)
+                .SetColumn(halfSize - 1, 1)
                 .GetDistanceMap((int)(halfSize * 0.1f))
                 .Resize(size, size)
                 .Remap(0f,0.7f)
@@ -166,6 +166,118 @@ namespace Terrain {
 
 
 
+
+            var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.1f).Display();
+
+            var terrainData = new TerrainData(rect, walkableMap, heightMap.Clone().Multiply(200f), new ColorLayer(walkableMap));
+
+            stack.CreateDebugStack(transform);
+
+            return terrainData;
+        }
+
+        public static TerrainData DelaunayValleyControlled(int size, Rect rect, Transform transform, AnimationCurve curve)
+        {
+            RNG.DateTimeInit();
+
+            var walkableAreaMap = new Map(size, size);
+            var stack = Map.SetGlobalDisplayStack();
+
+            walkableAreaMap.FillWithBoolNoise(0.5f, 0, 0)
+                .ApplyMask(Map.BlankMap(walkableAreaMap)
+                        .CreateCircularFalloff(size * 0.45f)
+                        .SetRow((size / 2) - 1, 0)
+                        .SetRow((size / 2) + 1, 0)
+                        .SetRow((size / 2) - 2, 0)
+                        .SetRow((size / 2) + 2, 0)
+                        )
+                .SetRow(size / 2, 0)
+                .Display()
+                .BoolSmoothOperation(4)
+                .RemoveSmallRegions(600)
+                .Invert()
+                .RemoveSmallRegions(300)
+                .Invert()
+                .Display();
+
+            var smalSize = 30;
+
+            var topLeft = new Map(smalSize + 1, smalSize + 1);
+
+            var seed = RNG.Next(10000);
+
+            topLeft = topLeft
+                .SetRow(0, 1)
+                .SetColumn(0, 1)
+                .SetIndex(smalSize, smalSize, 1)
+                .Display()
+                .GetDistanceMap(smalSize / 2)
+                .Display()
+                .Resize(size / 2, size / 2)
+                .Display()
+                .Normalise()
+                //.Add(Map.BlankMap(walkableAreaMap).FillWithBoolNoise().Normalise())
+                .Display();
+
+            var topRight = new Map(smalSize + 1, smalSize + 1);
+            topRight = topRight
+                //.SetColumn(0, 1)
+                .SetRow(0, 1)
+                .SetIndex(smalSize, smalSize, 1)
+                .SetIndex(smalSize, 0, 1)
+                .Display()
+                .GetDistanceMap(smalSize / 2)
+                .Display()
+                .Resize(size / 2, size / 2)
+                .Display()
+                .Normalise();
+
+            var bottomLeft = new Map(smalSize + 1, smalSize + 1);
+            bottomLeft = bottomLeft
+                //.SetColumn(0, 1)
+                .SetRow(smalSize, 1)
+                .SetIndex(0, 0, 1)
+                .SetIndex(0, smalSize, 1)
+                .Display()
+                .GetDistanceMap(smalSize / 2)
+                .Display()
+                .Resize(size / 2, size / 2)
+                .Display()
+                .Normalise();
+
+            var bottomRight = new Map(smalSize + 1, smalSize + 1);
+            bottomRight = bottomRight
+                .SetColumn(smalSize, 1)
+                //.SetRow(smalSize, 1)
+                .SetIndex(0, 0, 1)
+                .SetIndex(smalSize, 0, 1)
+                .Display()
+                .GetDistanceMap(smalSize / 2)
+                .Display()
+                .Resize(size / 2, size / 2)
+                .Display()
+                .Normalise();
+
+            var finalMap = Map.BlankMap(size, size)
+                .FillWith(0)
+                .ApplyMap(topLeft, new Coord(0, 0))
+                .ApplyMap(topRight, new Coord(0, (int)(size * 0.5f)))
+                .ApplyMap(bottomLeft, new Coord((int)(size * 0.5f), 0))
+                .ApplyMap(bottomRight, new Coord((int)(size * 0.5f), (int)(size * 0.5f)))
+                .Display()
+                .Add(Map.BlankMap(walkableAreaMap).PerlinFill(size * 0.15f, 1, 0, seed).Remap(-0.25f, 0.25f))
+                .Clamp(-0.25f, 1)
+                .Normalise()
+                .Remap(curve)
+                //.Display()
+                //BooleanMapFromThreshold(0.5f)
+                .Display();
+
+
+            var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.06f);
+            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+
+            var heightMap = Map.Clone(finalMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0,0.8f).Normalise().Display();
 
             var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.1f).Display();
 

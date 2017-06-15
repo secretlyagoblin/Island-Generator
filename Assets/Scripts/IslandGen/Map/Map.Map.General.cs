@@ -368,7 +368,7 @@ namespace Maps {
             return outputFloat;
         }
 
-        public Map SetColumn(int xIndex, int value)
+        public Map SetRow(int xIndex, int value)
         {
             for (int y = 0; y < SizeY; y++)
             {
@@ -378,13 +378,19 @@ namespace Maps {
             return this;
         }
 
-        public Map SetRow(int yIndex, int value)
+        public Map SetColumn(int yIndex, int value)
         {
             for (int x = 0; x < SizeX; x++)
             {
                 _map[x, yIndex] = value;
             }
 
+            return this;
+        }
+
+        public Map SetIndex(int x, int y, int value)
+        {
+            _map[x, y] = value;
             return this;
         }
 

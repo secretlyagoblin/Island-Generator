@@ -10,6 +10,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
     public AnimationCurve LargeSizeMultiplier;
     public AnimationCurve SmallSizeMultiplier;
+    public AnimationCurve CliifFalloff;
 
     private float _width = 1500;
     private float _length = 1500;
@@ -270,7 +271,7 @@ public class CreateStandardTerrain : MonoBehaviour {
         //GameObject parent = Instantiate(new GameObject("Boostr"));
         //parent.transform.position = new Vector3(0, 0, 0);
 
-        _map = Terrain.TerrainData.DelaunayIsland(_heightmapResoltion, new Rect(), transform);
+        _map = Terrain.TerrainData.DelaunayValleyControlled(_heightmapResoltion, new Rect(), transform, CliifFalloff);
         _map.HeightMap.Remap(0, _height);
 
 
@@ -318,6 +319,9 @@ public class CreateStandardTerrain : MonoBehaviour {
         for (int i = 0; i < okay.Count; i++)
         {            
             var a = okay[i];
+
+            if (a.Size.y == 0)
+                continue;
 
             var height = terrainData.GetInterpolatedHeight(a.SamplePoint.x, a.SamplePoint.y);
 
