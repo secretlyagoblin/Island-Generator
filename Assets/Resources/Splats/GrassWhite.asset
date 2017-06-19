@@ -9,14 +9,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 647efea1e071c884eab67d59e6a6ea71, type: 3}
-  m_Name: Grass 1
+  m_Name: GrassWhite
   m_EditorClassIdentifier: 
   DetailTexture: {fileID: 2800000, guid: 5c82ec2c375a1b94b8560ff038e65c4a, type: 3}
-  MinWidth: 0.3
-  MaxWidth: 0.6
-  MinHeight: 0.2
-  MaxHeight: 1
-  NoiseSpread: 100
-  HealthyColor: {r: 0.31764707, g: 0.427451, b: 0.3137255, a: 1}
-  DryColor: {r: 0.5411765, g: 0.5254902, b: 0.43529415, a: 1}
+  MinWidth: 1
+  MaxWidth: 2
+  MinHeight: 1
+  MaxHeight: 2
+  NoiseSpread: 0.1
+  HealthyColor: {r: 0, g: 1, b: 0, a: 1}
+  DryColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   IsBillboard: 1

@@ -21,10 +21,10 @@ public class DetailObjectCollection : ScriptableObject {
         return output;
     }
 
-    public void SetDetails(TerrainData terrainData, Maps.Map baseMap)
+    public void SetDetails(TerrainData terrainData, Maps.Map[] baseMap)
     {
-        var sizeX = baseMap.SizeX;
-        var sizeY = baseMap.SizeY;
+        var sizeX = baseMap[0].SizeX;
+        var sizeY = baseMap[0].SizeY;
         var count = DetailObjects.Length;
 
 
@@ -33,7 +33,8 @@ public class DetailObjectCollection : ScriptableObject {
 
         for (int z = 0; z < count; z++)
         {
-            var map = new int[sizeX, sizeY];
+            var inMap = baseMap[z];
+            var outMap = new int[sizeX, sizeY];
 
             // For each point on the alphamap...
             for (var x = 0; x < sizeX; x++)
@@ -49,14 +50,18 @@ public class DetailObjectCollection : ScriptableObject {
                     //{
                     //    if (Mathf.PerlinNoise(x * 0.12342f, y * 0.12342f) < 0.5f)
                     //        map[y, x] = RNG.Next(30, 110);
-                    //}
+                    //}         
+
+                    //map[y, x] = baseMap[x, y] == z ? (int)(RNG.Next(400,600)* Mathf.Lerp(-0.2f,1.4f,(Mathf.PerlinNoise(x * 0.12342f, y * 0.12342f)))) : 0;
+
+                    outMap[x, y] = Mathf.RoundToInt(inMap[y,x] *16f);
 
 
 
-                    map[y, x] = baseMap[x, y] == z ? (int)(RNG.Next(400,600)* Mathf.Lerp(-0.2f,1.4f,(Mathf.PerlinNoise(x * 0.12342f, y * 0.12342f)))) : 0;
                 }
             }
-            terrainData.SetDetailLayer(0, 0, z, map);
+
+            terrainData.SetDetailLayer(0, 0, z, outMap);
         }
     }
 }

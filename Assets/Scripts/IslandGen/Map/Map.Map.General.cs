@@ -561,6 +561,70 @@ namespace Maps {
 
         }
 
+        public Map MirrorY()
+        {
+            var outputArray = new float[SizeX,SizeY];
+
+            for (int x = 0; x < SizeX; x++)
+            {
+                var size = SizeY;
+                for (int y = 0; y < SizeY; y++)
+                {
+                    size--;
+                    var value = _map[x, y];
+                    outputArray[x, size] = value;
+                }
+            }
+
+            _map = outputArray;
+
+            return this;
+
+        }
+
+        public Map Rotate90()
+        {
+            var outputArray = new float[SizeX, SizeY];
+
+            for (int x = 0; x < SizeX; x++)
+            {
+                //var size = SizeY;
+                for (int y = 0; y < SizeY; y++)
+                {
+                    //size--;
+                    var value = _map[x, y];
+                    outputArray[y, x] = value;
+                }
+            }
+
+            _map = outputArray;
+
+            return this;
+
+        }
+
+        public Map MirrorX()
+        {
+            var outputArray = new float[SizeX, SizeY];
+
+            for (int y = 0; y < SizeY; y++)
+            {
+                var size = SizeX;
+
+                for (int x = 0; x < SizeX; x++)
+                {
+                    size--;
+                    var value = _map[x, y];
+                    outputArray[size, y] = value;
+                }
+            }
+
+            _map = outputArray;
+
+            return this;
+
+        }
+
         public Map ThickenOutline(int iterations)
         {
             for (int i = 0; i < iterations; i++)

@@ -12,9 +12,9 @@ public class CreateStandardTerrain : MonoBehaviour {
     public AnimationCurve SmallSizeMultiplier;
     public AnimationCurve CliifFalloff;
 
-    private float _width = 1500;
-    private float _length = 1500;
-    private float _height = 300;
+    private float _width = 220;
+    private float _length = 220;
+    private float _height = 65;
 
     private static Vector2 tileAmount = Vector2.one;
 
@@ -88,7 +88,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
 
 
-        Details.SetDetails(terrainData, _map.WalkableMap);
+        //Details.SetDetails(terrainData, _map.WalkableMap);
 
 
         //terrainData.name = name;
@@ -283,6 +283,8 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         var set = Maps.Map.SetGlobalDisplayStack();
 
+
+
         var okayColours = _map.WalkableMap.Clone().GetDistanceMap(8).Resize(_detailResolution, _detailResolution).Invert().Normalise().Clamp(0.4f,1f).Normalise().Display();
         //okayColours = _map.HeightMap.Clone().Normalise().GetAbsoluteBumpMap().Normalise().Clamp(0.1f, 0.9f).Normalise().Display();
         var colour = okayColours.Clone().PerlinFill(15, 0, 0, 123.12123f).Clamp(0.25f,0.75f).Normalise().Display();
@@ -290,7 +292,18 @@ public class CreateStandardTerrain : MonoBehaviour {
         var nuff = Maps.Map.Blend(colour.Invert(), colour.Clone().FillWith(0), okayColours).Display();
         var stuff = okayColours;
 
-        set.CreateDebugStack(2f);
+        var grass1Falloff = Maps.Map.Blend(_map.WalkableMap.Clone().GetDistanceMap(9).Clamp(0f, 0.5f).Normalise(), 
+                _map.WalkableMap.Clone().FillWith(0), 
+                _map.WalkableMap.Clone().Invert())
+            .Remap(AnimationCurve.EaseInOut(0, 0, 1, 1)).Normalise().Display();
+
+
+        var grass2Falloff = Maps.Map.Blend(_map.WalkableMap.Clone().GetDistanceMap(10).Clamp(0f, 0.5f).Normalise(),
+                _map.WalkableMap.Clone().FillWith(0),
+                _map.WalkableMap.Clone().Invert())
+            .Normalise().Display();
+
+
 
         //terrainData.
 
@@ -299,19 +312,24 @@ public class CreateStandardTerrain : MonoBehaviour {
         terrainData.alphamapResolution = _controlTextureResolution;
         terrainData.SetDetailResolution(_detailResolution, _detailResolutionPerPatch);
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
-        //terrainData.set
+
         terrainData.splatPrototypes = SplatCollection.GetSplatPrototypes();
         terrainData.SetAlphamaps(0, 0, SplatCollection.GetAlphaMaps(new Maps.Map[]{ guff, stuff.Invert(), nuff }));
+
         terrainData.detailPrototypes = Details.GetDetailPrototypes();
+        Details.SetDetails(terrainData, new Maps.Map[] { nuff.Clamp(0.25f,0.75f).Normalise(), grass1Falloff.Resize(_detailResolution, _detailResolution) });
+       // Details.SetDetails(terrainData, new Maps.Map[] { grass2Falloff.Resize(_detailResolution, _detailResolution).Remap(0,1f), grass1Falloff.Resize(_detailResolution, _detailResolution) });
 
+        //Details.SetDetails(terrainData, new Maps.Map[] { _map.WalkableMap.Clone().Resize(_detailResolution, _detailResolution).Display() });
+        //Details.SetDetails(terrainData, new Maps.Map[] { _map.WalkableMap.Clone().Display() });
+        //Details.SetDetails(terrainData, new Maps.Map[] { godWhy });
 
-        Details.SetDetails(terrainData, _map.WalkableMap);
-
+        set.CreateDebugStack(2f);
 
         //terrainData.name = name;
         GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
         var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
-        terrain.detailObjectDistance = 100f;
+        terrain.detailObjectDistance = 250f;
 
         //terrain.name = name;
         //terrain.transform.parent = parent.transform;
@@ -323,7 +341,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         var spawnMap = _map.WalkableMap.Clone();//.Invert().ThickenOutline().Invert();
 
-        var okay = UnityTerrainHelpers.PropSample(_map.HeightMap, spawnMap.Clone().Invert().ThickenOutline().Invert(), 135);
+        var okay = UnityTerrainHelpers.PropSample(_map.HeightMap, spawnMap.Clone().Invert().ThickenOutline().Invert(), 200);
 
         spawnMap = spawnMap.ThickenOutline();
 
