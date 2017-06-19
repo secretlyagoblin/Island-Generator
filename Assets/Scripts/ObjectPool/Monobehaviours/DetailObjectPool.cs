@@ -33,11 +33,13 @@ public class DetailObjectPool : MonoBehaviour {
 
 	}
 
-    Terrain.TerrainData _terrainData;
+    UnityEngine.Terrain _terrain;
+    Maps.Map _mask;
 
-    public void SetPhysicalMap(Terrain.TerrainData data)
+    public void SetPhysicalMap(UnityEngine.Terrain terrain, Maps.Map mask)
     {
-        _terrainData = data;
+        _terrain = terrain;
+        _mask = mask;
     }
 
     public void InitPositions()
@@ -46,26 +48,29 @@ public class DetailObjectPool : MonoBehaviour {
         {
             var vec2 = new Vector2(RNG.NextFloat(0, 1), RNG.NextFloat(0, 1));
 
-            if (_terrainData.WalkableMap.BilinearSampleFromNormalisedVector2(vec2) != 0)
+            if (_mask.BilinearSampleFromNormalisedVector2(vec2) != 0)
             {
                 continue;
             }
 
-            var vec = new Vector3(vec2.x*RegionSize, _terrainData.HeightMap.BilinearSampleFromNormalisedVector2(vec2), vec2.y* RegionSize);
+            var height = _terrain.terrainData.GetInterpolatedHeight(vec2.x,vec2.y);
+            var normal = _terrain.terrainData.GetInterpolatedNormal(vec2.x, vec2.y);
+
+            var vec = new Vector3(vec2.x * _terrain.terrainData.size.x, height, vec2.y * _terrain.terrainData.size.z);
 
             if (Mathf.PerlinNoise(vec.x * NoiseScale, vec.z * NoiseScale) < 0.5f & (Mathf.PerlinNoise(vec.x * (NoiseScale * 4), vec.z * (NoiseScale * 4)) < 0.5f | RNG.Next(0, 100) < 1f))
             {
-                var color = _terrainData.ColorSampleAtPoint(vec2);
+                //var color = _terrain.ColorSampleAtPoint(vec2);
 
-                AddPosition(vec,color.grayscale);
+                AddPosition(vec, normal, 1);
                 //Debug.DrawRay(vec, Vector3.right, Color.green, 100f);
             }
         }
     }
 
-    public void AddPosition(Vector3 position, float gradientPosition)
+    public void AddPosition(Vector3 position, Vector3 normal, float gradientPosition)
     {
-        _detailObjectManager.AddElement(CreateGrassData(position, gradientPosition), new Vector2(position.x, position.z));
+        _detailObjectManager.AddElement(CreateGrassData(position, normal, gradientPosition), new Vector2(position.x, position.z));
     }
 
     bool _needsUpdate = true;
@@ -189,7 +194,7 @@ public class DetailObjectPool : MonoBehaviour {
         return isWholeListIteratedOver;
     }
 
-    DetailObjectData CreateGrassData(Vector3 position, float gradientPosition)
+    DetailObjectData CreateGrassData(Vector3 position, Vector3 normal, float gradientPosition)
     {
         var pos = position;
         var rot = RNG.NextFloat(0, 360);
@@ -206,7 +211,7 @@ public class DetailObjectPool : MonoBehaviour {
         var tint = ColourGradient.Evaluate(gradientPosition);
         //tint = (tint * 0.5f) + 0.5f;
 
-        return new DetailObjectData(pos, Quaternion.AngleAxis(rot, Vector3.up), new Vector3(scale, scale, scale), tint);
+        return new DetailObjectData(pos, Quaternion.FromToRotation(Vector3.up,normal), rot, new Vector3(scale, scale, scale), tint);
 
     }
 
@@ -216,13 +221,15 @@ public class DetailObjectPool : MonoBehaviour {
 
         Vector3 _positon;
         Quaternion _rotation;
+        float _angleRotation;
         Vector3 _scale;
         Color _color;
 
-        public DetailObjectData(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
+        public DetailObjectData(Vector3 position, Quaternion normal, float angleRotation, Vector3 scale, Color color)
         {
             _positon = position;
-            _rotation = rotation;
+            _rotation = normal;
+            _angleRotation = angleRotation;
             _scale = scale;
             _color = color;
         }
@@ -243,6 +250,7 @@ public class DetailObjectPool : MonoBehaviour {
         public GameObject Instantiate(GameObject baseObject, Transform parent)
         {
             var obj = Object.Instantiate(baseObject, _positon, _rotation, parent);
+            obj.transform.Rotate(obj.transform.up, _angleRotation);
             obj.transform.localScale = _scale;
 
             return obj;

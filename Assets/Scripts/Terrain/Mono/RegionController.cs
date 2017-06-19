@@ -143,7 +143,7 @@ public class RegionController : MonoBehaviour {
 
         for (int i = 0; i < DetailObjectPools.Length; i++)
         {
-            DetailObjectPools[i].SetPhysicalMap(_heightMap);
+            //DetailObjectPools[i].SetPhysicalMap(_);
             DetailObjectPools[i].InitPositions();
         }
 

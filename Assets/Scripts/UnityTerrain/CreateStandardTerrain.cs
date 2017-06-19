@@ -35,6 +35,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
 
     Terrain.TerrainData _map;
+    UnityEngine.Terrain _terrain;
 
     MaterialPropertyBlock _block;
 
@@ -328,8 +329,8 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         //terrainData.name = name;
         GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
-        var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
-        terrain.detailObjectDistance = 250f;
+        _terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
+        _terrain.detailObjectDistance = 250f;
 
         //terrain.name = name;
         //terrain.transform.parent = parent.transform;
@@ -378,7 +379,7 @@ public class CreateStandardTerrain : MonoBehaviour {
     {
         for (int i = 0; i < DetailObjectPools.Length; i++)
         {
-            DetailObjectPools[i].SetPhysicalMap(_map);
+            DetailObjectPools[i].SetPhysicalMap(_terrain, _map.WalkableMap);
             DetailObjectPools[i].InitPositions();
         }
     }
