@@ -54,7 +54,7 @@ public class DetailObjectCollection : ScriptableObject {
 
                     //map[y, x] = baseMap[x, y] == z ? (int)(RNG.Next(400,600)* Mathf.Lerp(-0.2f,1.4f,(Mathf.PerlinNoise(x * 0.12342f, y * 0.12342f)))) : 0;
 
-                    outMap[x, y] = Mathf.RoundToInt(inMap[y,x] *16f);
+                    outMap[x, y] = Mathf.RoundToInt(inMap[y,x] *8f);
 
 
 

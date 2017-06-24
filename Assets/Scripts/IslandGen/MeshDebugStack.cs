@@ -74,10 +74,10 @@ public class MeshDebugStack {
 
     }
 
-    public void CreateDebugStack(float height)
+    public void CreateDebugStack(float offset)
     {
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * (height));
+        gameObject.transform.Translate(Vector3.forward * (offset));
         gameObject.name = "Debug Stack";
         gameObject.layer = 5;
 
