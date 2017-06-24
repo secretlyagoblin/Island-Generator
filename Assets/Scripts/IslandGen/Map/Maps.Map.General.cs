@@ -368,7 +368,7 @@ namespace Maps {
             return outputFloat;
         }
 
-        public Map SetRow(int xIndex, int value)
+        public Map SetRow(int xIndex, float value)
         {
             for (int y = 0; y < SizeY; y++)
             {
@@ -378,7 +378,7 @@ namespace Maps {
             return this;
         }
 
-        public Map SetColumn(int yIndex, int value)
+        public Map SetColumn(int yIndex, float value)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -388,7 +388,7 @@ namespace Maps {
             return this;
         }
 
-        public Map SetIndex(int x, int y, int value)
+        public Map SetIndex(int x, int y, float value)
         {
             _map[x, y] = value;
             return this;
@@ -1556,7 +1556,7 @@ namespace Maps {
 
         //Texture Modifications
 
-        public Texture2D ApplyTexture(Texture2D texture)
+        public Texture2D ApplyToTexture(Texture2D texture)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -1569,7 +1569,7 @@ namespace Maps {
             return texture;
         }
 
-        public Texture2D ApplyTexture(Texture2D texture, Gradient gradient)
+        public Texture2D ApplyToTexture(Texture2D texture, Gradient gradient)
         {
             for (int x = 0; x < SizeX; x++)
             {
@@ -1583,7 +1583,7 @@ namespace Maps {
             return texture;
         }
 
-        public Texture2D ApplyTexture(Texture2D texture, Gradient gradient, Map mask)
+        public Texture2D ApplyToTexture(Texture2D texture, Gradient gradient, Map mask)
         {
             for (int x = 0; x < SizeX; x++)
             {

@@ -230,8 +230,6 @@ namespace Maps {
             return this;
         }
 
-
-
         public static Map GetInvertedMap(Map map)
         {
             return Clone(map).Invert();
@@ -314,7 +312,6 @@ namespace Maps {
             return outputMap;
         }
 
-
         public static Map Blend(Map mapA, Map mapB, Map blendMap)
         {
             var outputMap = Map.BlankMap(mapA);
@@ -328,6 +325,40 @@ namespace Maps {
             }
 
             return outputMap;
+        }
+
+        public static Map CreateMapFromSubMapsWithoutResizing(Map[,] mapArray)
+        {
+            var finalX = mapArray[0, 0].SizeX * mapArray.GetLength(0);
+            var finalY = mapArray[0, 0].SizeY * mapArray.GetLength(1);
+
+            var finalMap = new Map(finalX, finalY);
+
+            var trueLength = finalMap.SizeX - 1;
+
+            for (int arrayX = 0; arrayX < mapArray.GetLength(0); arrayX++)
+            {
+                for (int arrayY = 0; arrayY < mapArray.GetLength(1); arrayY++)
+                {
+                    var currentMap = mapArray[arrayX, arrayY];
+
+                    var startX = arrayX * currentMap.SizeX;
+                    var startY = arrayY * currentMap.SizeY;
+
+                    for (int x = 0; x < currentMap.SizeX; x++)
+                    {
+                        for (int y = 0; y < currentMap.SizeY; y++)
+                        {
+                            finalMap[startX + x, startY + y] = currentMap[x, y];
+                        }
+                    }                    
+                }
+            }
+
+            //Handle Edges Here
+
+            return finalMap;
+
         }
 
         public static Map CreateMapFromSubMapsAssumingOnePixelOverlap(Map[,] mapArray)
@@ -443,6 +474,7 @@ namespace Maps {
         }
 
 
+
         // Map Photoshop Functions
 
         public Map Lighten(Map other)
@@ -456,6 +488,30 @@ namespace Maps {
             }
 
             return this;
+        }
+
+        // Texture Parsing Functions
+
+        public static Map MapFromGrayscaleTexture(Texture2D grayscaleTexture)
+        {
+            var sizeX = grayscaleTexture.width;
+            var sizeY = grayscaleTexture.height;
+
+            var map = new Map(sizeX, sizeY);
+
+            for (int x = 0; x < sizeX; x++)
+            {
+                for (int y = 0; y < sizeY; y++)
+                {
+                    var pixel = grayscaleTexture.GetPixel(x, y);
+                    map[x, y] = pixel.grayscale < 0.5f? 0:1;
+                }
+            }
+            
+            //Hacky lining up with texture
+            map.Rotate90().Rotate90().Rotate90().MirrorY().MirrorX();
+
+            return map;
         }
     }
 }
