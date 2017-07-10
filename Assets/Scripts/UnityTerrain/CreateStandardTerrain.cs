@@ -4,25 +4,27 @@ using UnityEngine;
 
 public class CreateStandardTerrain : MonoBehaviour {
 
+    public Texture2D LevelFile;
+
     public Gradient MajorRocks;
     public Gradient MinorRocks;
     public AnimationCurve Falloff;
 
     public AnimationCurve LargeSizeMultiplier;
     public AnimationCurve SmallSizeMultiplier;
-    public AnimationCurve CliifFalloff;
+    public AnimationCurve CliffFalloff;
 
-    private float _width = 220;
-    private float _length = 220;
+    private float _width = 150;
+    private float _length = 150;
     private float _height = 65;
 
     private static Vector2 tileAmount = Vector2.one;
 
-    private int _heightmapResoltion = 256 + 1;
+    private int _heightmapResolution = 256 + 1;
     private int _detailResolution = 256;
     private int _detailResolutionPerPatch = 8;
     private int _controlTextureResolution = 256;
-    private int _baseTextureReolution = 1024;
+    private int _baseTextureResolution = 1024;
 
     public DetailObjectPool[] DetailObjectPools;
 
@@ -31,10 +33,11 @@ public class CreateStandardTerrain : MonoBehaviour {
 
     public GameObject RockToCreateSteep;
     public GameObject RockToCreateShallow;
+    public GameObject Tree;
     public GameObject Sphere;
 
 
-    Terrain.TerrainData _map;
+    ProcTerrain.TerrainData _map;
     UnityEngine.Terrain _terrain;
 
     MaterialPropertyBlock _block;
@@ -43,6 +46,7 @@ public class CreateStandardTerrain : MonoBehaviour {
     void Start()
     {
         _block = new MaterialPropertyBlock();
+        SetTerrainValues(256/2);
         CreateAgain();
 
     }
@@ -60,12 +64,28 @@ public class CreateStandardTerrain : MonoBehaviour {
         }
     }
 
+    private void SetTerrainValues(int size)
+    {
+        var multiplierX = LevelFile.width / 3;
+        var multiplierY = LevelFile.height / 3;
+
+        size = size * multiplierX;
+
+        _heightmapResolution = size + 1;
+        _detailResolution = size;
+        _detailResolutionPerPatch = 8;
+        _controlTextureResolution = size;
+        _baseTextureResolution = 1024;
+        _width = _width * multiplierX;
+        _length = _length * multiplierY;
+    }
+
     private void CreateTerrain()
     {
         //GameObject parent = Instantiate(new GameObject("Boostr"));
         //parent.transform.position = new Vector3(0, 0, 0);
 
-        _map = Terrain.TerrainData.RegionIsland(_heightmapResoltion, new Rect());
+        _map = ProcTerrain.TerrainData.RegionIsland(_heightmapResolution, new Rect());
         _map.HeightMap.Remap(0, _height);
 
 
@@ -77,8 +97,8 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         //terrainData.
 
-        terrainData.baseMapResolution = _baseTextureReolution;
-        terrainData.heightmapResolution = _heightmapResoltion;
+        terrainData.baseMapResolution = _baseTextureResolution;
+        terrainData.heightmapResolution = _heightmapResolution;
         terrainData.alphamapResolution = _controlTextureResolution;
         terrainData.SetDetailResolution(_detailResolution, _detailResolutionPerPatch);
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
@@ -272,18 +292,13 @@ public class CreateStandardTerrain : MonoBehaviour {
         //GameObject parent = Instantiate(new GameObject("Boostr"));
         //parent.transform.position = new Vector3(0, 0, 0);
 
-        _map = Terrain.TerrainData.DelaunayValleyControlled(_heightmapResoltion, new Rect(), transform, CliifFalloff);
+
+        var set = Maps.Map.SetGlobalDisplayStack();
+        _map = ProcTerrain.TerrainData.DelaunayValleyControlled(_heightmapResolution, new Rect(), transform,LevelFile, CliffFalloff);
         _map.HeightMap.Remap(0, _height);
 
 
         TerrainData terrainData = new TerrainData();
-
-        terrainData.size = new Vector3(_width / 8f,
-                                        _height,
-                                        _length / 8f);
-
-        var set = Maps.Map.SetGlobalDisplayStack();
-
 
 
         var okayColours = _map.WalkableMap.Clone().GetDistanceMap(8).Resize(_detailResolution, _detailResolution).Invert().Normalise().Clamp(0.4f,1f).Normalise().Display();
@@ -308,8 +323,9 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         //terrainData.
 
-        terrainData.baseMapResolution = _baseTextureReolution;
-        terrainData.heightmapResolution = _heightmapResoltion;
+        terrainData.baseMapResolution = _baseTextureResolution;
+        terrainData.heightmapResolution = _heightmapResolution;
+        terrainData.size = new Vector3(_width, _height, _length);
         terrainData.alphamapResolution = _controlTextureResolution;
         terrainData.SetDetailResolution(_detailResolution, _detailResolutionPerPatch);
         terrainData.SetHeights(0, 0, _map.HeightMap.CreateTerrainMap().Normalise().FloatArray);
@@ -325,12 +341,14 @@ public class CreateStandardTerrain : MonoBehaviour {
         //Details.SetDetails(terrainData, new Maps.Map[] { _map.WalkableMap.Clone().Display() });
         //Details.SetDetails(terrainData, new Maps.Map[] { godWhy });
 
-        set.CreateDebugStack(2f);
+        set.CreateDebugStack(-12f);
 
         //terrainData.name = name;
         GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
         _terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
-        _terrain.detailObjectDistance = 250f;
+        _terrain.detailObjectDistance = 150f;
+        _terrain.heightmapPixelError = 150f;
+        _terrain.basemapDistance = 200f;
 
         //terrain.name = name;
         //terrain.transform.parent = parent.transform;
@@ -361,7 +379,14 @@ public class CreateStandardTerrain : MonoBehaviour {
             if (spawnMap.BilinearSampleFromNormalisedVector2(a.SamplePoint) < 0.5f)
                 continue;
 
-            var gob = Instantiate(RockToCreateShallow);
+            GameObject gob = null;
+
+            if (RNG.NextFloat() < 0.7f)
+                gob = Instantiate(RockToCreateShallow);
+            else
+                gob = Instantiate(Tree);
+
+
 
             var scale = Random.Range(1f, 1.3f);
             

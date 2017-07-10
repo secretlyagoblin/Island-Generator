@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Name: Grass 1
   m_EditorClassIdentifier: 
   DetailTexture: {fileID: 2800000, guid: 5c82ec2c375a1b94b8560ff038e65c4a, type: 3}
-  MinWidth: 0.3
-  MaxWidth: 0.6
+  MinWidth: 0.8
+  MaxWidth: 1.5
   MinHeight: 0.2
   MaxHeight: 1
   NoiseSpread: 100

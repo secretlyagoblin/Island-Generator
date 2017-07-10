@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using U3D.Threading.Tasks;
 using UnityEngine;
 
-namespace Terrain {
+namespace ProcTerrain {
 
     public class Region {
 

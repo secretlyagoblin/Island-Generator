@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using U3D.Threading.Tasks;
-using Terrain;
+using ProcTerrain;
 
 public class RegionController : MonoBehaviour {
 
@@ -24,7 +24,7 @@ public class RegionController : MonoBehaviour {
 
     Region _region;
     bool _loaded = false;
-    Terrain.TerrainData _heightMap;
+    ProcTerrain.TerrainData _heightMap;
 
     float _timeSinceStartup = 0;
     float _previousTimeSinceStartup = 0;
@@ -47,7 +47,7 @@ public class RegionController : MonoBehaviour {
 
         var regionRect = new Rect(Vector2.zero, Vector2.one * RegionSize);
 
-        _heightMap = Terrain.TerrainData.RegionIsland(RegionResolution, regionRect);
+        _heightMap = ProcTerrain.TerrainData.RegionIsland(RegionResolution, regionRect);
         //var heightMap = HeightmapData.BlankMap(RegionResolution, new Rect(Vector2.zero, Vector2.one * RegionSize),32f);
 
         _timeSinceStartup = Time.realtimeSinceStartup;

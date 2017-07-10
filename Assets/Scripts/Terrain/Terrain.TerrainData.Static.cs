@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Maps;
 
-namespace Terrain {
+namespace ProcTerrain {
 
     public partial class TerrainData {
 

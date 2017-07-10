@@ -30,7 +30,7 @@ public class VoronoiPointBucketManager {
         _bucket = new Bucket<VoronoiCell>(6, rect);
     }
 
-    public void AddRegion(Terrain.TerrainData region, int pointCount, Rect rect)
+    public void AddRegion(ProcTerrain.TerrainData region, int pointCount, Rect rect)
     {
         for (int i = 0; i < pointCount; i++)
         {

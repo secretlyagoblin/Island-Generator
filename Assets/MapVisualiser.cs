@@ -79,7 +79,7 @@ public class MapVisualiser : MonoBehaviour {
         var guf = Map.ApplyMask(outline, Map.BlankMap(outline).FillWith(0), waterEdge).Display();
         var buf = Map.ApplyMask(outline, Map.BlankMap(outline).FillWith(0), waterEdge.Invert()).Display();
 
-        var heightMap = Terrain.TerrainData.CreateHeightMap(walkableAreaMap);
+        var heightMap = ProcTerrain.TerrainData.CreateHeightMap(walkableAreaMap);
 
         heightMap.Normalise()
             .LerpHeightMap(walkableAreaMap, AnimationCurve.EaseInOut(0, 0, 1, 1))
