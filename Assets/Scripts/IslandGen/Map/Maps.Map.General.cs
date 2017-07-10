@@ -529,6 +529,41 @@ namespace Maps {
             return outputList.ToArray();
         }
 
+        public Map[,] GenerateNonUniformSubmapsOverlappingWherePossible(int divisions)
+        {
+            var divX = SizeX / divisions;
+            var divY = SizeY / divisions;
+
+            var output = new Map[divisions, divisions];
+
+            for (int x = 0; x < divisions; x++)
+            {
+                for (int y = 0; y < divisions; y++)
+                {
+                    var startX = divX * x;
+                    var startY= divY * y;
+                    
+                    //determines if we'll run out of map this time round
+                    var sizeX = (divX * (x + 1))+1 < SizeX?divX+1:divX;
+                    var sizeY = (divY * (y + 1)) + 1 < SizeY ? divY + 1 : divY;
+
+                    var map = new Map(sizeX, sizeY);
+
+                    for (int u = 0; u < sizeX; u++)
+                    {
+                        for (int v = 0; v < sizeY; v++)
+                        {
+
+                            map[u, v] = this[u + startX, v + startY];
+                        }
+                    }
+                    output[x, y] = map;
+                }
+            }
+
+            return output;
+        }
+
         public Map Invert()
         {
             var smallestValue = float.MaxValue;
@@ -1050,7 +1085,7 @@ namespace Maps {
 
         public Map PerlinFill(float perlinScale, int mapCoordinateX, int mapCoordinateY, float seed)
         {
-            var perlinSeed = RNG.NextFloat(0, 10000f);
+            //var perlinSeed = RNG.NextFloat(0, 10000f);
 
             if (perlinScale <= 0)
                 perlinScale = 0.0001f;

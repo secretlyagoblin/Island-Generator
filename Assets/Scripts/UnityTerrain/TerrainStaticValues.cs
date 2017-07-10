@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class TerrainStaticValues  {
 
-    public static readonly int MapResolution = 256;
+    public static readonly int MapResolution = 512;
     public static readonly int DetailResolutionPerPatch = 8;
     public static readonly int BaseTextureResolution = 1024;
 

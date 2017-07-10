@@ -75,7 +75,7 @@ namespace Maps {
             return (new Coord((int)(SizeX * 0.5f), (int)(SizeY * 0.5f)));
         }
 
-        public Map[,] CreateSubMapsFromThisLevelMap(int subMapSize)
+        public Map[,] CreateLevelSubMapsFromThisLevelMap(int subMapSize)
         {
             var subMaps = new Map[SizeX / 3, SizeY / 3];
 

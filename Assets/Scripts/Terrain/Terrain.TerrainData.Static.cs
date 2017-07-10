@@ -185,7 +185,7 @@ namespace ProcTerrain {
 
             var levelMap = Map.MapFromGrayscaleTexture(level);//.Display();
 
-            var chunks = levelMap.CreateSubMapsFromThisLevelMap(16);
+            var chunks = levelMap.CreateLevelSubMapsFromThisLevelMap(16);
 
             for (int x = 0; x < chunks.GetLength(0); x++)
             {

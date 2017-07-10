@@ -16,7 +16,7 @@ public class LevelKnitter : MonoBehaviour {
         var stack = Maps.Map.SetGlobalDisplayStack();
 
         var map = Maps.Map.MapFromGrayscaleTexture(testTexture).Display();
-        var chunks = map.CreateSubMapsFromThisLevelMap(chunkSize);
+        var chunks = map.CreateLevelSubMapsFromThisLevelMap(chunkSize);
 
         for (int x = 0; x < chunks.GetLength(0); x++)
         {
