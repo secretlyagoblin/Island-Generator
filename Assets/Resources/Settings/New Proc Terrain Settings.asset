@@ -143,7 +143,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 0
   Details: {fileID: 11400000, guid: 3f6b8e4c23f49c946bec08041b9d0d39, type: 2}
-  RockToCreateSteep: {fileID: 0}
+  RockToCreateSteep: {fileID: 1547769206152344, guid: 854353dc7dafb8d43ba2eb5e3e926602,
+    type: 2}
   RockToCreateShallow: {fileID: 0}
   Tree: {fileID: 0}
   Sphere: {fileID: 0}
+  DetailMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  DetailMaterial: {fileID: 2100000, guid: 0c77d9243694c474cba35d196a9a64ad, type: 2}

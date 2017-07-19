@@ -226,6 +226,59 @@ namespace ProcTerrain {
             return terrainData;
         }
 
+        public static TerrainData DelaunayValleyControlledAssumingLevelSet(Maps.Map level, Rect rect, AnimationCurve curve)
+        {
+            RNG.DateTimeInit();
+
+            var size = TerrainStaticValues.HeightmapResolution;
+            var walkableAreaMap = new Map(size, size);
+            var stack = Map.SetGlobalDisplayStack();
+
+            var seed = RNG.Next(10000);
+
+            var finalMap = level.Clone().Resize(size, size)
+                .Normalise()
+                .Display()
+                .Add(Map.BlankMap(walkableAreaMap).PerlinFill(size * 0.15f, 1, 0, seed).Remap(-0.25f, 0.25f))
+                .Clamp(-0.25f, 0.9f)
+                .Normalise()
+                .Remap(curve)
+                //.Display()
+                //BooleanMapFromThreshold(0.5f)
+                .Display();
+
+            var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.04f);
+            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+
+            var heightMap = Map.Clone(finalMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0, 0.8f).Normalise().Display();
+
+            var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.1f).Display();
+
+            var terrainData = new TerrainData(rect, walkableMap, heightMap.Clone().Multiply(200f), new ColorLayer(walkableMap));
+
+            return terrainData;
+        }
+
+        static Map _storedFalloffMap = null;
+
+        public static Map Falloffmap(int size)
+        {
+            if (_storedFalloffMap == null)
+            {
+                var origDimension = 32;
+                var map = new Map(origDimension, origDimension, 1);
+                map.SetColumn(0, 0).SetColumn(origDimension-1, 0).SetRow(0, 0).SetRow(origDimension-1, 0);
+                map.GetDistanceMap(4);
+                map.Clamp(0.6f, 9f);
+                map.Normalise();
+                map = map.Resize(size, size);
+                _storedFalloffMap = map;
+            }
+
+            return _storedFalloffMap;
+
+        }
+
 
         public static TerrainData RegionIsland(int size, Rect rect)
         {

@@ -1094,9 +1094,8 @@ namespace Maps {
             {
                 for (int y = 0; y < SizeY; y++)
                 {
-
-                    var perlinX = seed + (mapCoordinateX * SizeX) + (x / perlinScale);
-                    var perlinY = seed + (mapCoordinateY * SizeY) + (y / perlinScale);
+                    var perlinX = seed + (mapCoordinateX * SizeX) + ((x / (float)SizeX) * perlinScale);
+                    var perlinY = seed + (mapCoordinateY * SizeY) + ((y / (float)SizeY) * perlinScale);
 
                     var perlin = Mathf.PerlinNoise(perlinX, perlinY);
 

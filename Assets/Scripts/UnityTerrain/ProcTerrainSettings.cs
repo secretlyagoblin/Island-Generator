@@ -20,4 +20,7 @@ public class ProcTerrainSettings : ScriptableObject {
     public GameObject RockToCreateShallow;
     public GameObject Tree;
     public GameObject Sphere;
+
+    public Mesh DetailMesh;
+    public Material DetailMaterial;
 }
