@@ -31,12 +31,12 @@ public static class TerrainFactory {
 
     static MaterialPropertyBlock _block;
 
-    public static TerrainChunk MakeTerrainChunk(Maps.Map levelMap, Rect rect, ProcTerrainSettings settings)
+    public static TerrainChunk MakeTerrainChunk(Maps.Map levelMap, Coord coord, Rect rect, ProcTerrainSettings settings)
     {
         _levelMap = levelMap;
         _settings = settings;
         SetTerrainValues(rect);
-        return new TerrainChunk(GetTerrain(rect.position), GetProps(rect));
+        return new TerrainChunk(GetTerrain(rect.position,coord), GetProps(rect));
     }
 
 
@@ -52,7 +52,7 @@ public static class TerrainFactory {
         _length = rect.height;
     }
 
-    private static Terrain GetTerrain(Vector2 position)
+    private static Terrain GetTerrain(Vector2 position, Coord tile)
     {
         // Creating Map
         _map = ProcTerrain.TerrainData.DelaunayValleyControlledAssumingLevelSet(_levelMap, new Rect(), _settings.CliffFalloff);
@@ -72,7 +72,7 @@ public static class TerrainFactory {
 
         //Creating Colours and stuff
         var colourBase = _map.WalkableMap.Clone().GetDistanceMap(8).Resize(_detailResolution, _detailResolution).Invert().Normalise().Clamp(0.4f, 1f).Normalise().Display();
-        var colourPerlin = colourBase.Clone().PerlinFill(15, 0, 0, 123.12123f).Clamp(0.25f, 0.75f).Normalise().Display();
+        var colourPerlin = colourBase.Clone().PerlinFill(15, tile.x, tile.y, 123.12123f).Clamp(0.25f, 0.75f).Normalise().Display();
         var perlinA = Maps.Map.Blend(colourPerlin, colourPerlin.Clone().FillWith(0), colourBase).Display();
         var perlinB = Maps.Map.Blend(colourPerlin.Invert(), colourPerlin.Clone().FillWith(0), colourBase).Display();
 

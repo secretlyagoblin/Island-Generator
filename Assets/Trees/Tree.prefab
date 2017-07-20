@@ -53,7 +53,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: c2a43f44d9a744f30a3ab6131156069d, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -93,7 +93,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: d0145bb5d76c944f19d18db8ef120be4, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -322,7 +322,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b477584e148db4251b979e9621cbd5a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Instancing: 1
+  Instancing: 0
   ExtraLeafBending: 4.18
   EnableDynamicWetness: 0
   MaxWetness: 1

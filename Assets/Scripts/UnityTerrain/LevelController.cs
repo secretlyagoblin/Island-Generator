@@ -57,7 +57,7 @@ public class LevelController : MonoBehaviour {
                     .Clone()
                     .Resize(TerrainStaticValues.HeightmapResolution, TerrainStaticValues.HeightmapResolution);
 
-                _terrainChunks[x,y] = TerrainFactory.MakeTerrainChunk(chunk, new Rect(new Vector2(Size.width * x, Size.height * y), Size.size),Settings);
+                _terrainChunks[x,y] = TerrainFactory.MakeTerrainChunk(chunk,new Coord(x,y), new Rect(new Vector2(Size.width * x, Size.height * y), Size.size),Settings);
             }
         }
 
