@@ -274,7 +274,7 @@ namespace Maps {
             //Debug.Log("------------ End Line ------------");
         }
 
-        float[,] DrawCircle(Coord c, int r)
+        float[,] DrawCircle(Coord c, int r, float value)
         {
             for (int x = -r; x <= r; x++)
             {
@@ -286,13 +286,28 @@ namespace Maps {
                         var drawY = c.y + y;
                         if (IsInMapRange(drawX, drawY))
                         {
-                            _map[drawX, drawY] = 0;
+                            _map[drawX, drawY] = value;
                         }
                     }
                 }
             }
 
             return _map;
+        }
+
+        float[,] DrawCircle(Coord c, int r)
+        {
+            return DrawCircle(c, r, 0);
+        }
+
+        public Map DrawLine(Coord a, Coord b, int thickness, float value)
+        {
+            var line = Coord.GetLine(a, b);
+            for (int i = 0; i < line.Length; i++)
+            {
+                DrawCircle(line[i], thickness, value);
+            }
+            return this;
         }
 
         // Helper Functions

@@ -44,12 +44,33 @@ namespace Maps {
             return _rect.Overlaps(other._rect);
         }
 
-        public void DrawShape(Color color)
+        public void DrawRect(Color color)
         {
             Debug.DrawLine(_topLeft, _topRight, color);
             Debug.DrawLine(_topRight, _bottomRight, color);
             Debug.DrawLine(_bottomRight, _bottomLeft, color);
             Debug.DrawLine(_bottomLeft, _topLeft, color);
+        }
+
+        public void DrawShape(Collider2D collider, float paintValue)
+        {
+            for (int x = 0; x < _map.SizeX; x++)
+            {
+                for (int y = 0; y < _map.SizeY; y++)
+                {
+                    var pos = ArrayIndexToWorldContext(x, y);
+
+                    if (collider.OverlapPoint(pos))
+                        _map[x, y] = paintValue;
+                }
+            }
+        }
+
+        public PhysicalMap DrawLine(Vector2 a, Vector2 b, int thickness, float value)
+        {
+            _map.DrawLine(CoordFromWorldContext(a), CoordFromWorldContext(b),thickness,value);
+            return this;
+
         }
 
         Vector2 ArrayIndexToWorldContext(int x, int y)
@@ -65,6 +86,13 @@ namespace Maps {
 
             vector = new Vector2(_xRange.InverseLerp(vector.x), _yRange.InverseLerp(vector.y));
             return vector;
+        }
+
+        Coord CoordFromWorldContext(Vector2 vector)
+        {
+            int a = Mathf.RoundToInt(_xRange.InverseLerp(vector.x) * _map.SizeX);
+            int b = Mathf.RoundToInt(_yRange.InverseLerp(vector.y) * _map.SizeY);
+            return new Coord(a, b);
         }
 
         // Exposed public transformations

@@ -7,8 +7,8 @@ public class LevelGen2D : MonoBehaviour {
     public GameObject CirclePrefab;
     public int PropCount = 12;
     public float TimeCount;
-    List<GameObject> _chain = new List<GameObject>();
     LineRenderer _renderer;
+    Rigidbody2D[] _rigids;
 
     SpringJoint2D[] _joints;
 
@@ -91,7 +91,7 @@ public class LevelGen2D : MonoBehaviour {
         for (int i = 0; i < _joints.Length; i++)
         {
             var j = _joints[i];
-            Debug.DrawLine(j.transform.position, j.connectedBody.transform.position,Color.white,0.2f);
+            Debug.DrawLine(j.transform.position, j.connectedBody.transform.position,Color.white,0.1f);
         }
 
     }
@@ -100,12 +100,77 @@ public class LevelGen2D : MonoBehaviour {
     {
         yield return new WaitForSeconds(time);
 
-        var rigids = GetComponentsInChildren<Rigidbody2D>();
+        _rigids = GetComponentsInChildren<Rigidbody2D>();
 
-        for (int i = 0; i < rigids.Length; i++)
+        for (int i = 0; i < _rigids.Length; i++)
         {
-            rigids[i].simulated = false;
+            _rigids[i].simulated = false;
         }
+
+        PreviewBoundingRect();
+    }
+
+    void PreviewBoundingRect()
+    {
+        var combinedBounds = new Bounds(_rigids[0].transform.position,Vector2.zero);
+        
+
+        var totalColliders = new List<CircleCollider2D>();
+
+        for (int i = 0; i < _rigids.Length; i++)
+        {
+            var results = new CircleCollider2D[_rigids[i].attachedColliderCount];
+            var resultsCount = _rigids[i].GetAttachedColliders(results);
+            totalColliders.AddRange(results);
+
+            for (int u = 0; u < resultsCount; u++)
+            {
+                combinedBounds.Encapsulate(results[u].bounds);
+                results[u].radius = results[u].radius * 0.9f;
+            }            
+        }
+
+        combinedBounds.size = combinedBounds.size.x > combinedBounds.size.y ? new Vector2(combinedBounds.size.x, combinedBounds.size.x) : new Vector2(combinedBounds.size.y, combinedBounds.size.y);
+        combinedBounds.size += (Vector3.one * combinedBounds.size.magnitude * 0.05f);
+
+        //Debug.DrawLine(combinedBounds.min, combinedBounds.max,Color.red,100f);
+
+        var physicalMap = new Maps.PhysicalMap(new Maps.Map(256, 256, 0), new Rect(combinedBounds.min, combinedBounds.size));
+
+        for (int i = 0; i < totalColliders.Count; i++)
+        {
+            physicalMap.DrawShape(totalColliders[i],1);
+        }
+
+        for (int i = 0; i < _joints.Length; i++)
+        {
+            var j = _joints[i];
+
+            physicalMap.DrawLine(j.transform.position, j.connectedBody.transform.position,RNG.Next(3,6),1);
+        }
+
+        var stack = Maps.Map.SetGlobalDisplayStack();
+
+        var map = physicalMap.ToMap();
+        map.Display()
+            .GetDistanceMap(5)
+            .Clamp(0.5f, 1f)
+            .Normalise()
+            .Display()
+            .Normalise()
+            .Add(map.Clone()
+            .PerlinFill(5, 0, 0, RNG.NextFloat(0, 1000f))
+            .Remap(-0.29f, 0.29f))
+            .BooleanMapFromThreshold(0.3f)
+            .Display();
+
+
+
+        stack.CreateDebugStack(transform);
+
+        
+
+        //map.DrawRect(Color.white);
     }
 
     GameObject CreateNewObject(Vector2 position, float radius)
