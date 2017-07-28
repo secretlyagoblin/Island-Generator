@@ -59,6 +59,12 @@ public static class RNG {
         return _pseudoRandom.Next(minValue, maxValue);
     }
 
+    public static int Next(int minValue, int maxValue, AnimationCurve curve)
+    {
+        var t = curve.Evaluate(NextFloat());
+        return Mathf.FloorToInt(Mathf.Lerp(minValue,maxValue,t));
+    }
+
     public static float NextFullRangeFloat()
     {
         double mantissa = (_pseudoRandom.NextDouble() * 2.0) - 1.0;
@@ -92,8 +98,16 @@ public static class RNG {
 
     public static float NextFloat(float minValue, float maxValue)
     {
+
+
         return minValue+ ((float)(_pseudoRandom.NextDouble()) * (maxValue-minValue));
 
+    }
+
+    public static float NextFloat(float minValue, float maxValue, AnimationCurve curve)
+    {
+        var t = curve.Evaluate(NextFloat());
+        return minValue + (t * (maxValue - minValue));
     }
 
     public static double NextDouble()
