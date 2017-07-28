@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class LevelGen2D : MonoBehaviour {
 
+    public bool DoTheLevel = false;
+    public AnimationCurve Curve;
+
     public GameObject CirclePrefab;
     public int PropCount = 12;
     public float TimeCount;
@@ -11,6 +14,9 @@ public class LevelGen2D : MonoBehaviour {
     Rigidbody2D[] _rigids;
 
     SpringJoint2D[] _joints;
+
+    public ProcTerrainSettings Settings;
+    public Rect Size;
 
     // Use this for initialization
     void Start()
@@ -36,19 +42,19 @@ public class LevelGen2D : MonoBehaviour {
             objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 1.5f));
         }
 
-        CreateChain(objs[0], objs[1], Random.Range(3, 7));
-        CreateChain(objs[1], objs[2], Random.Range(3, 7));
-        CreateChain(objs[3], objs[4], Random.Range(3, 7));
-        CreateChain(objs[5], objs[6], Random.Range(3, 7));
-        CreateChain(objs[0], objs[3], Random.Range(3, 7));
-        CreateChain(objs[3], objs[5], Random.Range(3, 7));
-        CreateChain(objs[5], objs[7], Random.Range(3, 7));
-        CreateChain(objs[1], objs[4], Random.Range(3, 7));
-        CreateChain(objs[4], objs[6], Random.Range(3, 7));
-        CreateChain(objs[1], objs[3], Random.Range(3, 7));
-        CreateChain(objs[2], objs[4], Random.Range(3, 7));
-        CreateChain(objs[4], objs[5], Random.Range(3, 7));
-        CreateChain(objs[6], objs[7], Random.Range(3, 7));
+        CreateChain(objs[0], objs[1], RNG.Next(3, 7, Curve));
+        CreateChain(objs[1], objs[2], RNG.Next(3, 7, Curve));
+        CreateChain(objs[3], objs[4], RNG.Next(3, 7, Curve));
+        CreateChain(objs[5], objs[6], RNG.Next(3, 7, Curve));
+        CreateChain(objs[0], objs[3], RNG.Next(3, 7, Curve));
+        CreateChain(objs[3], objs[5], RNG.Next(3, 7, Curve));
+        CreateChain(objs[5], objs[7], RNG.Next(3, 7, Curve));
+        CreateChain(objs[1], objs[4], RNG.Next(3, 7, Curve));
+        CreateChain(objs[4], objs[6], RNG.Next(3, 7, Curve));
+        CreateChain(objs[1], objs[3], RNG.Next(3, 7, Curve));
+        CreateChain(objs[2], objs[4], RNG.Next(3, 7, Curve));
+        CreateChain(objs[4], objs[5], RNG.Next(3, 7, Curve));
+        CreateChain(objs[6], objs[7], RNG.Next(3, 7, Curve));
 
         /*
 
@@ -146,7 +152,7 @@ public class LevelGen2D : MonoBehaviour {
         {
             var j = _joints[i];
 
-            physicalMap.DrawLine(j.transform.position, j.connectedBody.transform.position,RNG.Next(3,6),1);
+            physicalMap.DrawLine(j.transform.position, j.connectedBody.transform.position,RNG.Next(4,6),1);
         }
 
         var stack = Maps.Map.SetGlobalDisplayStack();
@@ -162,11 +168,22 @@ public class LevelGen2D : MonoBehaviour {
             .PerlinFill(5, 0, 0, RNG.NextFloat(0, 1000f))
             .Remap(-0.29f, 0.29f))
             .BooleanMapFromThreshold(0.3f)
+            .GetDistanceMap(4)
+            .Display()
+            .Add(map.Clone()
+            .PerlinFill(5, 0, 0, RNG.NextFloat(0, 1000f))
+            .Remap(-0.2f, 0.2f))
+            .Clamp(0.25f,0.75f)
+            .Normalise()
+            .Invert()
             .Display();
 
 
 
         stack.CreateDebugStack(transform);
+
+        if(DoTheLevel)
+            MakeTheLevel(map);
 
         
 
@@ -208,9 +225,64 @@ public class LevelGen2D : MonoBehaviour {
             var pointOnDomain = Mathf.InverseLerp(0, divisions, i);
             var position = Vector3.Lerp(p1.transform.position, p2.transform.position, pointOnDomain);
 
-            chain.Add(CreateNewObjectAndAddLink(position, RNG.NextFloat(0.7f, 1.5f), chain[i - 1]));
+            chain.Add(CreateNewObjectAndAddLink(position, RNG.NextFloat(0.7f, 2.5f), chain[i - 1]));
         }
 
         AddLink(p2, chain[chain.Count - 1]);
+    }
+
+
+
+    TerrainChunk[,] _terrainChunks;
+
+    // Use this for initialization
+    void MakeTheLevel(Maps.Map levelMap)
+    {
+        var sizeX = levelMap.SizeX/32;
+        var sizeY = levelMap.SizeY/32;
+
+        var chunks = levelMap.GenerateNonUniformSubmapsOverlappingWherePossible(sizeX);
+
+        _terrainChunks = new TerrainChunk[sizeX, sizeY];
+
+
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                var chunk = chunks[x, y]
+                    .Clone()
+                    .Resize(TerrainStaticValues.HeightmapResolution, TerrainStaticValues.HeightmapResolution);
+
+                _terrainChunks[x, y] = TerrainFactory.MakeTerrainChunk(chunk, new Coord(x, y), new Rect(new Vector2(Size.width * x, Size.height * y), Size.size), Settings);
+            }
+        }
+
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                if (_terrainChunks[x, y].Terrain == null)
+                    continue;
+
+                Terrain left = null;
+                if (x - 1 >= 0)
+                    left = _terrainChunks[x - 1, y].Terrain;
+
+                Terrain right = null;
+                if (x + 1 < sizeX)
+                    right = _terrainChunks[x + 1, y].Terrain;
+
+                Terrain bottom = null;
+                if (y - 1 >= 0)
+                    bottom = _terrainChunks[x, y - 1].Terrain;
+
+                Terrain top = null;
+                if (y + 1 < sizeY)
+                    top = _terrainChunks[x, y + 1].Terrain;
+
+                _terrainChunks[x, y].Terrain.SetNeighbors(left, top, right, bottom);
+            }
+        }
     }
 }

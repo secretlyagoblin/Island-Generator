@@ -289,10 +289,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be6a1e2c810753e4b885e5a53d29df1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DoTheLevel: 1
+  Curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
   CirclePrefab: {fileID: 1816407192511494, guid: 742c7ab540dfa024c999a4700631cc6d,
     type: 2}
   PropCount: 14
-  TimeCount: 2
+  TimeCount: 4
+  Settings: {fileID: 11400000, guid: 2c3cf07feab012140920e8abf3673e2d, type: 2}
+  Size:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 500
+    height: 500
 --- !u!4 &872909376
 Transform:
   m_ObjectHideFlags: 0

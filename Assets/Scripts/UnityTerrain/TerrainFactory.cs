@@ -33,6 +33,8 @@ public static class TerrainFactory {
 
     public static TerrainChunk MakeTerrainChunk(Maps.Map levelMap, Coord coord, Rect rect, ProcTerrainSettings settings)
     {
+
+
         _levelMap = levelMap;
         _settings = settings;
         SetTerrainValues(rect);
@@ -54,6 +56,9 @@ public static class TerrainFactory {
 
     private static Terrain GetTerrain(Vector2 position, Coord tile)
     {
+        if (_levelMap.IsBlank())
+            return null;
+
         // Creating Map
         _map = ProcTerrain.TerrainData.DelaunayValleyControlledAssumingLevelSet(_levelMap, new Rect(), _settings.CliffFalloff);
         var hMap = Maps.Map.Blend(_map.HeightMap.Normalise(), _levelMap, ProcTerrain.TerrainData.Falloffmap(TerrainStaticValues.HeightmapResolution));
@@ -98,7 +103,7 @@ public static class TerrainFactory {
         terrainObj.name = "Chunk " + position.x + " " + position.y;
         _terrain = terrainObj.GetComponent<Terrain>();
         _terrain.detailObjectDistance = 150f;
-        _terrain.heightmapPixelError = 150f;
+        _terrain.heightmapPixelError = 50f;
         _terrain.basemapDistance = 700f;
 
         terrainObj.transform.position = new Vector3(position.x,0,position.y);
@@ -109,12 +114,17 @@ public static class TerrainFactory {
 
     private static Matrix4x4[][] GetProps(Rect rect)
     {
+
+        var output = new List<Matrix4x4[]>();
+        var counter = new List<Matrix4x4>();
+
+        if (_levelMap.IsBlank())
+            return output.ToArray();
+
         var spawnMap = _map.WalkableMap.Clone();//.Invert().ThickenOutline().Invert();
         var objectLocations = UnityTerrainHelpers.PropSample(_map.HeightMap.Clone().Normalise(), spawnMap.Clone().Invert().ThickenOutline().Invert(), 64);
         spawnMap = spawnMap.ThickenOutline();
 
-        var output = new List<Matrix4x4[]>();
-        var counter = new List<Matrix4x4>();
 
         for (int i = 0; i < objectLocations.Count; i++)
         {

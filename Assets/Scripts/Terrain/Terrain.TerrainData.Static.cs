@@ -237,12 +237,12 @@ namespace ProcTerrain {
             var seed = RNG.Next(10000);
 
             var finalMap = level.Clone().Resize(size, size)
-                .Normalise()
-                .Display()
+                //.Normalise()
+                //.Display()
                 .Add(Map.BlankMap(walkableAreaMap).PerlinFill(size * 0.15f, 1, 0, seed).Remap(-0.25f, 0.25f))
                 .Clamp(-0.25f, 0.9f)
-                .Normalise()
-                .Remap(curve)
+                //.Normalise()
+                //.Remap(curve)
                 //.Display()
                 //BooleanMapFromThreshold(0.5f)
                 .Display();
@@ -250,7 +250,7 @@ namespace ProcTerrain {
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.04f);
             mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
 
-            var heightMap = Map.Clone(finalMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0, 0.8f).Normalise().Display();
+            var heightMap = Map.Clone(finalMap);//.GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0, 0.8f).Normalise().Display();
 
             var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.1f).Display();
 

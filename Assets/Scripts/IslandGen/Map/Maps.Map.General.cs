@@ -9,6 +9,21 @@ namespace Maps {
     public partial class Map {
         // General Functions
 
+            public bool IsBlank()
+        {
+            var check = this[0, 0];
+
+            for (int x = 0; x < SizeX; x++)
+            {
+                for (int y = 0; y < SizeY; y++)
+                {
+                    if (_map[x, y] != check)
+                        return false;
+                }
+            }
+            return true;
+        }
+
         public Map FillWith(float value)
         {
             for (int x = 0; x < SizeX; x++)
