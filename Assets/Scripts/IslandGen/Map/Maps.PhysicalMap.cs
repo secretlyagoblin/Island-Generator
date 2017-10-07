@@ -73,6 +73,13 @@ namespace Maps {
 
         }
 
+        public PhysicalMap DrawLine(Vector2 a, Vector2 b, int thickness, float valueA, float valueB)
+        {
+            _map.DrawLine(CoordFromWorldContext(a), CoordFromWorldContext(b), thickness, valueA, valueB);
+            return this;
+
+        }
+
         Vector2 ArrayIndexToWorldContext(int x, int y)
         {
 

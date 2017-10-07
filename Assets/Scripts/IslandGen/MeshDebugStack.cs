@@ -69,7 +69,11 @@ public class MeshDebugStack {
         obj.transform.parent = parent;
         obj.name = "Layer " + layer;
         obj.layer = parent.gameObject.layer;
-        obj.transform.localPosition =(Vector3.right * layer * heightMultiplier);
+        obj.transform.localPosition =(Vector3.right * layer * heightMultiplier)+new Vector3(0.5f,0f,0.5f);
+
+        obj.transform.rotation = Quaternion.Euler(0,90f,0f);
+
+        obj.transform.localScale = new Vector3(0.1f, 1f, -0.1f);
         
 
         return obj;

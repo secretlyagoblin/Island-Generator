@@ -70,14 +70,14 @@ namespace MeshMasher {
             var outputNodeList = new List<SmartNode>();
 
             var node = LineSections[0].GetSharedNode(LineSections[0 + 1]);
-            outputNodeList.Add(LineSections[0].GetInternalNodePartner(node));
+            outputNodeList.Add(LineSections[0].GetOtherLine(node));
 
             for (var x = 0; x < LineSections.Count - 1; x++)
             {
                 outputNodeList.Add(LineSections[x].GetSharedNode(LineSections[x + 1]));
             }
 
-            outputNodeList.Add(LineSections.Last().GetInternalNodePartner(outputNodeList.Last()));
+            outputNodeList.Add(LineSections.Last().GetOtherLine(outputNodeList.Last()));
 
             return outputNodeList;
         }

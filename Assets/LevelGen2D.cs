@@ -7,6 +7,8 @@ public class LevelGen2D : MonoBehaviour {
     public bool DoTheLevel = false;
     public AnimationCurve Curve;
 
+    public float PerlinScale = 0.5f;
+
     public GameObject CirclePrefab;
     public int PropCount = 12;
     public float TimeCount;
@@ -39,7 +41,7 @@ public class LevelGen2D : MonoBehaviour {
 
         for (int i = 0; i < objs.Length; i++)
         {
-            objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 1.5f));
+            objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 4f));
         }
 
         CreateChain(objs[0], objs[1], RNG.Next(3, 7, Curve));
@@ -56,37 +58,6 @@ public class LevelGen2D : MonoBehaviour {
         CreateChain(objs[4], objs[5], RNG.Next(3, 7, Curve));
         CreateChain(objs[6], objs[7], RNG.Next(3, 7, Curve));
 
-        /*
-
-        var length = PropCount;
-        var startPos = new Vector3[length];
-
-        _chain = new List<GameObject>();
-        _chain.Add(CreateNewObject(new Vector2(Mathf.Sin(0), Mathf.Cos(0)) * (length / 2), RNG.NextFloat(0.3f, 1f)));
-        startPos[0] = _chain[0].transform.position;
-
-
-        //for (int i = 1; i < length; i++)
-        //{
-        //    chain.Add(CreateNewObjectAndAddLink(Vector2.up * i*2 + Vector2.left* RNG.NextFloat(-0.25f,0.25f), RNG.NextFloat(), chain[i - 1]));
-        //}
-
-        for (int i = 1; i < length; i++)
-        {
-            var pointOnDomain = Mathf.InverseLerp(0, length, i);
-            pointOnDomain = pointOnDomain * Mathf.PI * 2f;
-
-            _chain.Add(CreateNewObjectAndAddLink(new Vector2(Mathf.Sin(pointOnDomain), Mathf.Cos(pointOnDomain)) * (length / 2), RNG.NextFloat(0.3f, 1f), _chain[i - 1]));
-            startPos[i] = _chain[i].transform.position;
-        }
-
-        AddLink(_chain[0], _chain[_chain.Count - 1]);
-        StartCoroutine(FreezePhysicsAfterTime(TimeCount));
-
-        _renderer = GetComponent<LineRenderer>();
-        _renderer.positionCount = length;
-
-    */
         _joints = GetComponentsInChildren<SpringJoint2D>();
         StartCoroutine(FreezePhysicsAfterTime(TimeCount));
     }
@@ -113,6 +84,7 @@ public class LevelGen2D : MonoBehaviour {
             _rigids[i].simulated = false;
         }
 
+        SetHeightsFromSimplex();
         PreviewBoundingRect();
     }
 
@@ -141,36 +113,42 @@ public class LevelGen2D : MonoBehaviour {
 
         //Debug.DrawLine(combinedBounds.min, combinedBounds.max,Color.red,100f);
 
-        var physicalMap = new Maps.PhysicalMap(new Maps.Map(256, 256, 0), new Rect(combinedBounds.min, combinedBounds.size));
+        var physicalMap = new Maps.PhysicalMap(new Maps.Map(256, 256, 1), new Rect(combinedBounds.min, combinedBounds.size));
 
         for (int i = 0; i < totalColliders.Count; i++)
         {
-            physicalMap.DrawShape(totalColliders[i],1);
+            physicalMap.DrawShape(totalColliders[i], totalColliders[i].transform.position.z);
         }
 
         for (int i = 0; i < _joints.Length; i++)
         {
             var j = _joints[i];
 
-            physicalMap.DrawLine(j.transform.position, j.connectedBody.transform.position,RNG.Next(4,6),1);
+            physicalMap.DrawLine(j.transform.position, j.connectedBody.transform.position,RNG.Next(3,6), j.transform.position.z, j.connectedBody.transform.position.z);
         }
 
         var stack = Maps.Map.SetGlobalDisplayStack();
 
-        var map = physicalMap.ToMap();
-        map.Display()
+        var heightMap = physicalMap.ToMap();
+        var walkableMap = heightMap.Clone().BooleanMapFromThreshold(0.99f);
+        var distMap = walkableMap.Clone();
+
+
+        walkableMap.Display()
+            //.SmoothMap(5)
+            .Display()
             .GetDistanceMap(5)
             .Clamp(0.5f, 1f)
             .Normalise()
             .Display()
             .Normalise()
-            .Add(map.Clone()
+            .Add(walkableMap.Clone()
             .PerlinFill(5, 0, 0, RNG.NextFloat(0, 1000f))
             .Remap(-0.29f, 0.29f))
             .BooleanMapFromThreshold(0.3f)
             .GetDistanceMap(4)
             .Display()
-            .Add(map.Clone()
+            .Add(walkableMap.Clone()
             .PerlinFill(5, 0, 0, RNG.NextFloat(0, 1000f))
             .Remap(-0.2f, 0.2f))
             .Clamp(0.25f,0.75f)
@@ -178,16 +156,39 @@ public class LevelGen2D : MonoBehaviour {
             .Invert()
             .Display();
 
+        heightMap = heightMap.SmoothMap(3).Resize(256,256);
+
+        
+
+        //distMap = distMap.Resize(50, 50).GetDistanceMap(10).Resize(256, 256).Display();
+
+        var diffMap = Maps.Map.Blend(heightMap, new Maps.Map(heightMap).FillWith(1f), walkableMap);
+        diffMap.Invert().Display();
+
 
 
         stack.CreateDebugStack(transform);
 
         if(DoTheLevel)
-            MakeTheLevel(map);
+            MakeTheLevel(diffMap);
 
         
 
         //map.DrawRect(Color.white);
+    }
+
+    void SetHeightsFromSimplex()
+    {
+        for (int i = 0; i < _rigids.Length; i++)
+        {
+            var r = _rigids[i];
+            var ender = r.gameObject.GetComponentInChildren<SpriteRenderer>();
+
+            var height = Mathf.PerlinNoise(r.transform.position.x* PerlinScale, r.transform.position.y* PerlinScale);
+            r.transform.position = new Vector3(r.transform.position.x, r.transform.position.y, height);
+            ender.color = new Color(height, height, height);
+            
+        }
     }
 
     GameObject CreateNewObject(Vector2 position, float radius)
@@ -230,8 +231,6 @@ public class LevelGen2D : MonoBehaviour {
 
         AddLink(p2, chain[chain.Count - 1]);
     }
-
-
 
     TerrainChunk[,] _terrainChunks;
 
@@ -285,4 +284,5 @@ public class LevelGen2D : MonoBehaviour {
             }
         }
     }
+
 }

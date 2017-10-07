@@ -1086,7 +1086,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9797973b83aecbb48b419d8ad422e774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  LevelFile: {fileID: 2800000, guid: 01da7acf7d1c08b4f9b1acb709c12f60, type: 3}
+  LevelFile: {fileID: 2800000, guid: cdfd8f44668f9104ba28007a0e44206e, type: 3}
   MajorRocks:
     serializedVersion: 2
     key0: {r: 0.09558821, g: 0.09558821, b: 0.09558821, a: 1}
@@ -1232,7 +1232,7 @@ MonoBehaviour:
     type: 2}
   RockToCreateShallow: {fileID: 1182371890363230, guid: 59b2b94476a08cb41a67d52667bd8158,
     type: 2}
-  Tree: {fileID: 1143502511265470, guid: c210063017206024dbce6640e3426656, type: 2}
+  Tree: {fileID: 1182371890363230, guid: 59b2b94476a08cb41a67d52667bd8158, type: 2}
   Sphere: {fileID: 1843271488461220, guid: 085877f63f2dc8246bbbbf9bba28f625, type: 2}
 --- !u!4 &546513071
 Transform:

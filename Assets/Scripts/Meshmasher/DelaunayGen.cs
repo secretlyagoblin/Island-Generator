@@ -32,7 +32,7 @@ namespace MeshMasher {
             var min = triangleRatio * 0.001f;
             var rat = triangleRatio * 2f;
 
-            var mesh = MeshMasher.AutoWelder.AutoWeld(meshes[0], min, rat);
+            var mesh = AutoWelder.AutoWeld(meshes[0], min, rat);
 
             return mesh;
         }

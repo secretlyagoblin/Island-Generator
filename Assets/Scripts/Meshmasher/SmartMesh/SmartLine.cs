@@ -13,9 +13,10 @@ namespace MeshMasher {
         { get; private set; }
         public List<SmartLine> Lines
         { get; private set; }
+        public int Index
+        { get; set; }
 
-        public bool IsPartOfCurrentSortingEvent
-        { get; private set; }
+        public float Length { get; private set; }
 
         public Vector3 Center { get
             {
@@ -24,7 +25,6 @@ namespace MeshMasher {
 
         public SmartLine(SmartNode nodeA, SmartNode nodeB)
         {
-            IsPartOfCurrentSortingEvent = false;
 
             Nodes = new List<SmartNode>(new SmartNode[] { nodeA, nodeB });
             Neighbours = new List<SmartCell>();
@@ -32,6 +32,8 @@ namespace MeshMasher {
 
             nodeA.AddLine(this);
             nodeB.AddLine(this);
+
+            Length = Vector3.Distance(nodeA.Vert, nodeB.Vert);
 
         }
 
@@ -66,17 +68,7 @@ namespace MeshMasher {
             return false;
         }
 
-        public void SetAsPartOfPolylineSortingEvent()
-        {
-            IsPartOfCurrentSortingEvent = true;
-        }
-
-        public void RemoveFromSortingEvent()
-        {
-            IsPartOfCurrentSortingEvent = false;
-        }
-
-        public SmartNode GetInternalNodePartner(SmartNode node)
+        public SmartNode GetOtherLine(SmartNode node)
         {
 
             if (node == Nodes[0])
@@ -100,6 +92,15 @@ namespace MeshMasher {
             return null;
         }
 
+        public SmartNode GetOtherNode(SmartNode other)
+        {
+            if (Nodes[0] == other)
+                return Nodes[1];
+            if (Nodes[1] == other)
+                return Nodes[2];
+            return null;
+        }
+
         public bool EquatesTo(SmartLine other)
         {
             if (other.Nodes[0] == Nodes[0] && other.Nodes[1] == Nodes[1])
@@ -107,6 +108,11 @@ namespace MeshMasher {
             if (other.Nodes[1] == Nodes[0] && other.Nodes[0] == Nodes[1])
                 return true;
             return false;
+        }
+
+        public void DrawLine(Color color, float duration)
+        {
+            Debug.DrawLine(Nodes[0].Vert, Nodes[1].Vert, color, duration);
         }
 
     }

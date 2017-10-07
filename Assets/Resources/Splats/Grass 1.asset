@@ -15,8 +15,8 @@ MonoBehaviour:
   MinWidth: 0.8
   MaxWidth: 1.5
   MinHeight: 0.2
-  MaxHeight: 1
-  NoiseSpread: 100
-  HealthyColor: {r: 0.31764707, g: 0.427451, b: 0.3137255, a: 1}
-  DryColor: {r: 0.5411765, g: 0.5254902, b: 0.43529415, a: 1}
+  MaxHeight: 0.6
+  NoiseSpread: 2
+  HealthyColor: {r: 0.18971482, g: 0.29411763, b: 0.18598615, a: 1}
+  DryColor: {r: 0.123836674, g: 0.1397059, b: 0.12326991, a: 1}
   IsBillboard: 1

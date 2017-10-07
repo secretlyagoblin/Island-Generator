@@ -4,40 +4,31 @@ using UnityEngine;
 
 namespace MeshMasher {
 
-    public static class MeshConnectionsRemover {
+    public partial class SmartMesh {
 
-        public static Mesh RemoveEdges(SmartMesh mesh)
+        public Mesh BuildMeshSurfaceWithCliffs()
         {
-            var lines = mesh.Lines;
-            var nodes = mesh.Nodes;
+            return BuildMeshSurfaceWithCliffs(GetMeshState());
+        }
 
-            var lineDict = new Dictionary<SmartLine, bool>();
+        public Mesh BuildMeshSurfaceWithCliffs(MeshState state)
+        {
 
-            for (int i = 0; i < lines.Count; i++)
-            {
-                var l = lines[i];
-                lineDict.Add(l, Random.Range(0, 20) < 12 ? true : false);
-
-            }
-
-            var tris = mesh.Cells;
-
-
-            for (int i = 0; i < tris.Count; i++)
-            {
-                var t = tris[i];
-
-                for (int l = 0; l < t.Lines.Count; l++)
-                {
-                    /*
-                    var line = t.Lines[l];
-                    if (lineDict[line])
-                        Debug.DrawLine(line.Center, t.Center, Color.blue);
-                    else
-                        //Debug.DrawLine(line.Center, t.Center, Color.red);
-                        */
-                }
-            }
+            //for (int i = 0; i < tris.Count; i++)
+            //{
+            //    var t = tris[i];
+            //
+            //    for (int l = 0; l < t.Lines.Count; l++)
+            //    {
+            //        /*
+            //        var line = t.Lines[l];
+            //        if (lineDict[line])
+            //            Debug.DrawLine(line.Center, t.Center, Color.blue);
+            //        else
+            //            //Debug.DrawLine(line.Center, t.Center, Color.red);
+            //            */
+            //    }
+            //}
 
 
             //for (int i = 0; i < nodes.Count; i++)
@@ -51,9 +42,9 @@ namespace MeshMasher {
 
             var index = 0;
 
-            for (int i = 0; i < tris.Count; i++)
+            for (int i = 0; i < Cells.Count; i++)
             {
-                var t = tris[i];
+                var t = Cells[i];
 
                 if (t.Lines.Count != 3)
                 {
@@ -86,9 +77,9 @@ namespace MeshMasher {
                 var v0c = l0.Center;
                 var v2c = l1.Center;
 
-                var v0 = lineDict[l0] ? l0.Center : new Vector3(v0c.x,sharedNode.y,v0c.z);
+                var v0 = state.Lines[l0.Index] == 0 ? l0.Center : new Vector3(v0c.x,sharedNode.y,v0c.z);
                 var v1 = sharedNode;
-                var v2 = lineDict[l1] ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                var v2 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -114,9 +105,9 @@ namespace MeshMasher {
                 v0c = l0.Center;
                 v2c = l1.Center;
 
-                v0 = lineDict[l0] ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
+                v0 = state.Lines[l0.Index] == 0 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
                 v1 = sharedNode;
-                v2 = lineDict[l1] ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                v2 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -141,9 +132,9 @@ namespace MeshMasher {
                 v0c = l0.Center;
                 v2c = l1.Center;
 
-                v0 = lineDict[l0] ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
+                v0 = state.Lines[l0.Index] == 0 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
                 v1 = sharedNode;
-                v2 = lineDict[l1] ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                v2 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -171,9 +162,9 @@ namespace MeshMasher {
                 v2c = l1.Center;
                 var v3c = l2.Center;
 
-                v0 = lineDict[l0] ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
-                v1 = lineDict[l1] ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
-                v2 = lineDict[l2] ? l2.Center : new Vector3(v3c.x, sharedNode.y, v3c.z);
+                v0 = state.Lines[l1.Index] == 0 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
+                v1 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                v2 = state.Lines[l2.Index] == 0 ? l2.Center : new Vector3(v3c.x, sharedNode.y, v3c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -188,10 +179,6 @@ namespace MeshMasher {
                 //Debug.DrawLine(v0, v1, Color.green, 100f);
                 //Debug.DrawLine(v1, v2, Color.green, 100f);
                 //Debug.DrawLine(v2, v0, Color.green, 100f);
-
-
-
-
             }
 
             var output = new Mesh();
@@ -202,8 +189,6 @@ namespace MeshMasher {
             output.RecalculateNormals();
 
             return output;
-
-
         }
 
     }

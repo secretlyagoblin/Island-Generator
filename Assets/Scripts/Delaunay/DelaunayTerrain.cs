@@ -48,9 +48,11 @@ public class DelaunayTerrain : MonoBehaviour {
             var mesh = MeshMasher.AutoWelder.AutoWeld(meshes[i], 0.000001f, 0.01f);
 
             var sMesh = new MeshMasher.SmartMesh(mesh);
+            var minTree = sMesh.MinimumSpanningTree();
+            minTree = sMesh.CullLeavingOnlySimpleLines(minTree);
             //sMesh.DrawMesh(transform);
 
-            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(sMesh);
+            mesh = sMesh.BuildMeshSurfaceWithCliffs(minTree);
             mesh = MeshMasher.AutoWelder.AutoWeld(mesh, 0.000001f, 0.01f);
 
             Filter.mesh = mesh;

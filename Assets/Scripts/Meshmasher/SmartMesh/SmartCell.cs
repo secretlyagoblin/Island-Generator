@@ -6,12 +6,6 @@ using MeshMasher;
 namespace MeshMasher {
     public class SmartCell {
 
-        public int State
-        { get; set; }
-        public int Room
-        { get; private set; }
-        public bool Unsorted
-        { get; set; }
         public Vector3 Center
         { get; private set; }
         public List<SmartNode> Nodes
@@ -20,6 +14,8 @@ namespace MeshMasher {
         { get; private set; }
         public List<SmartLine> Lines
         { get; private set; }
+        public int Index
+        { get; set; }
 
         public SmartCell(SmartNode nodeA, SmartNode nodeB, SmartNode nodeC)
         {
@@ -28,18 +24,9 @@ namespace MeshMasher {
             Neighbours = new List<SmartCell>();
             Lines = new List<SmartLine>();
 
-
-
-            Unsorted = true;
-
             Center = nodeA.Vert + nodeB.Vert + nodeC.Vert;
             float scale = 1f / 3f;
             Center = new Vector3(Center.x * scale, Center.y * scale, Center.z * scale);
-        }
-
-        public void OverrideCurrentRoomSetting(int room)
-        {
-            this.Room = room;
         }
 
         public void CreateNodeConnections()
@@ -140,6 +127,16 @@ namespace MeshMasher {
             }
         }
 
+        public SmartLine GetSharedBorder(SmartCell other)
+        {
+            var commonLines = Lines.Intersect(other.Lines).ToList();
+
+            if (commonLines.Count == 0)
+                return null;
+            else
+                return commonLines[0];
+        }
+
         void CreateLineConnection(SmartCell other)
         {
 
@@ -165,12 +162,12 @@ namespace MeshMasher {
 
         }
 
-
-
         public void AddLine(SmartLine line)
         {
             Lines.Add(line);
         }
+
+
     }
 
 }

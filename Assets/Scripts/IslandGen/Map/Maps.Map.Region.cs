@@ -310,6 +310,23 @@ namespace Maps {
             return this;
         }
 
+        public Map DrawLine(Coord a, Coord b, int thickness, float startValue, float endValue)
+        {
+            var line = Coord.GetLine(a, b);
+
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                var point = line[i];
+                var distA = Vector2.Distance(a.Vector2, point.Vector2);
+                var distB = Vector2.Distance(b.Vector2, point.Vector2);
+                var t = Mathf.InverseLerp(0f, distA + distB, distA);
+
+                DrawCircle(line[i], thickness,Mathf.Lerp(startValue,endValue,t ));
+            }
+            return this;
+        }
+
         // Helper Functions
 
         int GetSurroundingWallCount(float[,] map, int gridX, int gridY)

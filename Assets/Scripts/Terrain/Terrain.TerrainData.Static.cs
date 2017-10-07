@@ -92,7 +92,7 @@ namespace ProcTerrain {
 
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
-            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+            mesh = new MeshMasher.SmartMesh(mesh).BuildMeshSurfaceWithCliffs();
 
             var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
                 Map.BlankMap(size, size)
@@ -156,7 +156,7 @@ namespace ProcTerrain {
 
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
-            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+            mesh = new MeshMasher.SmartMesh(mesh).BuildMeshSurfaceWithCliffs();
 
             var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
                 Map.BlankMap(size, size)
@@ -213,7 +213,10 @@ namespace ProcTerrain {
 
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.04f);
-            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+            var sMesh = new MeshMasher.SmartMesh(mesh);
+            var minTree = sMesh.MinimumSpanningTree();
+            //minTree = sMesh.CullToSingleLine(minTree);
+            mesh = sMesh.BuildMeshSurfaceWithCliffs(minTree);
 
             var heightMap = Map.Clone(finalMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0,0.8f).Normalise().Display();
 
@@ -239,8 +242,8 @@ namespace ProcTerrain {
             var finalMap = level.Clone().Resize(size, size)
                 //.Normalise()
                 //.Display()
-                .Add(Map.BlankMap(walkableAreaMap).PerlinFill(size * 0.15f, 1, 0, seed).Remap(-0.25f, 0.25f))
-                .Clamp(-0.25f, 0.9f)
+                //.Add(Map.BlankMap(walkableAreaMap).PerlinFill(size * 0.15f, 1, 0, seed).Remap(-0.25f, 0.25f))
+                //.Clamp(-0.25f, 0.9f)
                 //.Normalise()
                 //.Remap(curve)
                 //.Display()
@@ -248,7 +251,7 @@ namespace ProcTerrain {
                 .Display();
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.04f);
-            mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+            mesh = new MeshMasher.SmartMesh(mesh).BuildMeshSurfaceWithCliffs();
 
             var heightMap = Map.Clone(finalMap);//.GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0, 0.8f).Normalise().Display();
 

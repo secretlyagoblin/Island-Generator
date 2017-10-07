@@ -8,16 +8,21 @@ namespace MeshMasher {
 
         public Vector3 Vert;
 
-        public int Index
-        { get; private set; }
-        public int State
-        { get; set; }
+        //public int State
+        //{ get; set; }
+        //public float Weight
+        //{
+        //    get; set;
+        //}
+
         public List<SmartNode> Nodes
         { get; private set; }
         public List<SmartCell> Cells
         { get; private set; }
         public List<SmartLine> Lines
         { get; private set; }
+        public int Index
+        { get; set; }
 
         private List<float> _angles = new List<float>();
         private bool _anglesNeedsUpdating = false;
@@ -49,7 +54,7 @@ namespace MeshMasher {
 
             foreach (var line in Lines)
             {
-                var other = line.GetInternalNodePartner(this);
+                var other = line.GetOtherLine(this);
                 lines.Add(new SmartAndAbstractLine(line, new Line3(Vert, other.Vert)));
             }
 
@@ -69,7 +74,7 @@ namespace MeshMasher {
 
         }
 
-        public SmartLine GetNextClockwiseLineSegment(SmartLine testLine)
+        public SmartLine GetNextClockwiseLineSegment(SmartLine testLine, MeshState state)
         {
 
             if (_anglesNeedsUpdating)
@@ -79,10 +84,10 @@ namespace MeshMasher {
             }
 
             for (int i = 0; i < Lines.Count - 1; i++)
-                if (Lines[i] == testLine && Lines[i + 1].IsPartOfCurrentSortingEvent)
+                if (Lines[i] == testLine && state.Lines[Lines[i + 1].Index] == 1)
                     return Lines[i + 1];
 
-            if (Lines[0].IsPartOfCurrentSortingEvent)
+            if (state.Lines[Lines[0].Index] == 1)
                 return Lines[0];
 
             return testLine;

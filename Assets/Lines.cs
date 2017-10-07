@@ -27,13 +27,13 @@ public class Lines : MonoBehaviour {
                     .SetRow((size / 2) + 2, 0)
                     )
             .SetRow(size / 2, 0)
-            .Display()
+            //.Display()
             .BoolSmoothOperation(4)
             .RemoveSmallRegions(600)
             .Invert()
             .RemoveSmallRegions(300)
-            .Invert()
-            .Display();
+            .Invert();
+            //.Display();
 
         var smalSize = 30;
 
@@ -45,14 +45,14 @@ public class Lines : MonoBehaviour {
             .SetRow(0, 1)
             .SetColumn(0, 1)
             .SetIndex(smalSize, smalSize, 1)
-            .Display()
+            //.Display()
             .GetDistanceMap(smalSize / 2)
-            .Display()
+            //.Display()
             .Resize(size / 2, size / 2)
-            .Display()
-            .Normalise()
+            //.Display()
+            .Normalise();
             //.Add(Map.BlankMap(walkableAreaMap).FillWithBoolNoise().Normalise())
-            .Display();
+            //.Display();
 
         var topRight = new Map(smalSize + 1, smalSize + 1);
         topRight = topRight
@@ -60,11 +60,11 @@ public class Lines : MonoBehaviour {
             .SetRow(0, 1)
             .SetIndex(smalSize, smalSize, 1)
             .SetIndex(smalSize, 0, 1)
-            .Display()
+            //.Display()
             .GetDistanceMap(smalSize / 2)
-            .Display()
+            //.Display()
             .Resize(size / 2, size / 2)
-            .Display()
+            //.Display()
             .Normalise();
 
         var bottomLeft = new Map(smalSize + 1, smalSize + 1);
@@ -73,11 +73,11 @@ public class Lines : MonoBehaviour {
             .SetRow(smalSize, 1)
             .SetIndex(0, 0, 1)
             .SetIndex(0, smalSize, 1)
-            .Display()
+            //.Display()
             .GetDistanceMap(smalSize / 2)
-            .Display()
+            //.Display()
             .Resize(size / 2, size / 2)
-            .Display()
+            //.Display()
             .Normalise();
 
         var bottomRight = new Map(smalSize + 1, smalSize + 1);
@@ -86,11 +86,11 @@ public class Lines : MonoBehaviour {
             //.SetRow(smalSize, 1)
             .SetIndex(0, 0, 1)
             .SetIndex(smalSize, 0, 1)
-            .Display()
+            //.Display()
             .GetDistanceMap(smalSize / 2)
-            .Display()
+            //.Display()
             .Resize(size / 2, size / 2)
-            .Display()
+            //.Display()
             .Normalise();
 
         var finalMap = Map.BlankMap(size, size)
@@ -99,23 +99,63 @@ public class Lines : MonoBehaviour {
             .ApplyMap(topRight, new Coord(0, (int)(size * 0.5f)))
             .ApplyMap(bottomLeft, new Coord((int)(size * 0.5f), 0))
             .ApplyMap(bottomRight, new Coord((int)(size * 0.5f), (int)(size * 0.5f)))
-            .Display()
+            //.Display()
             .Add(Map.BlankMap(walkableAreaMap).PerlinFill(size * 0.15f, 1, 0, seed).Remap(-0.25f, 0.25f))
             .Clamp(-0.25f, 1)
             .Normalise()
-            .Remap(MyCurve)
+            .Remap(MyCurve);
             //.Display()
             //BooleanMapFromThreshold(0.5f)
-            .Display();
+            //.Display();
 
 
         var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.06f);
-        mesh = MeshMasher.MeshConnectionsRemover.RemoveEdges(new MeshMasher.SmartMesh(mesh));
+        //mesh = MeshMasher.AutoWelder.AutoWeld(mesh, 0.001f, 0.01f);
+        var smartmesh = new MeshMasher.SmartMesh(mesh);
+
+        smartmesh.DrawMesh(transform);
+
+        var meshState = smartmesh.MinimumSpanningTree();
+        //var other = smartmesh.InvertLineSelection(lines);
+
+        for (int i = 0; i < smartmesh.Lines.Count; i++)
+        {
+            smartmesh.Lines[i].DrawLine(Color.blue, 100f);
+        }
+
+        for (int i = 0; i < smartmesh.Cells.Count; i++)
+        {
+            //smartmesh.Lines[i].DrawLine(Color.green, 100f);
+
+            for (int u = 0; u < smartmesh.Cells[i].Neighbours.Count; u++)
+            {
+                var border = smartmesh.Cells[i].GetSharedBorder(smartmesh.Cells[i].Neighbours[u]);
+                if (border == null)
+                    continue;
+                if (meshState.Lines[border.Index] == 1)
+                    continue;
+
+                Debug.DrawLine(smartmesh.Cells[i].Center, smartmesh.Cells[i].Neighbours[u].Center,Color.green,100f);
+            }   
+
+             
+
+
+        }
+
+        //lines = smartmesh.CullToSingleLine(lines);
+
+
+
+        for (int i = 0; i < meshState.Lines.Length; i++)
+        {
+            if(meshState.Lines[i] > 0)
+            smartmesh.Lines[i].DrawLine(Color.white, 100f);
+        }
+
+        mesh = smartmesh.BuildMeshSurfaceWithCliffs(meshState);
 
         var heightMap = Map.Clone(finalMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display();
-
-
-
 
         var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.15f).Display();
 
