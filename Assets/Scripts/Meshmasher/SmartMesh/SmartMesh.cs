@@ -380,6 +380,205 @@ namespace MeshMasher {
             return state;
         }
 
+        public MeshState WalkThroughRooms(MeshState state)
+        {
+            var hasBeenCounted = new bool[Cells.Count];
+
+
+
+            var count = 0;
+
+            //test this first
+
+            while (hasBeenCounted.Where(c => c).Count() != hasBeenCounted.Length)
+            {
+                var startCell = Cells.FirstOrDefault(c => hasBeenCounted[c.Index] == false);
+                var cellsToIterateOver = new List<SmartCell>();
+
+                for (int i = 0; i < Cells.Count; i++)
+                {
+                    var neihbourCount = 0;
+                    var validNeighbour = 0;
+                    for (int u = 0; u < Cells[i].Neighbours.Count; u++)
+                    {
+                        if (state.Lines[Cells[i].GetSharedBorder(Cells[i].Neighbours[u]).Index] == 0 && hasBeenCounted[Cells[i].Neighbours[u].Index] == false)
+                        {
+                            neihbourCount++;
+                            validNeighbour = u;
+                        }
+                    }
+
+                    if (neihbourCount == 1)
+                    {
+                        startCell = Cells[i].Neighbours[validNeighbour];
+                        goto end;
+                    }
+                }
+
+                end:
+
+                cellsToIterateOver.Add(startCell);
+
+                while (cellsToIterateOver.Count > 0)
+                {
+                    var nextList = new List<SmartCell>();
+
+                    for (int i = 0; i < cellsToIterateOver.Count; i++)
+                    {
+                        var cell = cellsToIterateOver[i];
+                        hasBeenCounted[cell.Index] = true;
+                        state.Cells[cell.Index] = count;
+
+                        var cells = cell.Neighbours.Where(n => state.Lines[cell.GetSharedBorder(n).Index] == 0 && hasBeenCounted[n.Index] == false).ToList();
+                        nextList.AddRange(cells);
+                    }
+                cellsToIterateOver = nextList.Distinct().ToList();
+
+                    count++;
+                }
+
+
+
+
+            }
+
+            
+            
+
+
+
+
+
+
+            return state;
+        }
+
+        public MeshState CalculateRooms(MeshState state)
+        {
+            var hasBeenCounted = new bool[Cells.Count];
+
+
+
+            var count = 0;
+
+            //test this first
+
+            while (hasBeenCounted.Where(c => c).Count() != hasBeenCounted.Length)
+            {
+                var startCell = Cells.FirstOrDefault(c => hasBeenCounted[c.Index] == false);
+                var cellsToIterateOver = new List<SmartCell>();
+
+                for (int i = 0; i < Cells.Count; i++)
+                {
+                    var neihbourCount = 0;
+                    var validNeighbour = 0;
+                    for (int u = 0; u < Cells[i].Neighbours.Count; u++)
+                    {
+                        if (state.Lines[Cells[i].GetSharedBorder(Cells[i].Neighbours[u]).Index] == 0 && hasBeenCounted[Cells[i].Neighbours[u].Index] == false)
+                        {
+                            neihbourCount++;
+                            validNeighbour = u;
+                        }
+                    }
+
+                    if (neihbourCount == 1)
+                    {
+                        startCell = Cells[i].Neighbours[validNeighbour];
+                        goto end;
+                    }
+                }
+
+                end:
+
+                cellsToIterateOver.Add(startCell);
+
+                while (cellsToIterateOver.Count > 0)
+                {
+                    var nextList = new List<SmartCell>();
+
+                    for (int i = 0; i < cellsToIterateOver.Count; i++)
+                    {
+                        var cell = cellsToIterateOver[i];
+                        hasBeenCounted[cell.Index] = true;
+                        state.Cells[cell.Index] = count;
+
+                        var cells = cell.Neighbours.Where(n => state.Lines[cell.GetSharedBorder(n).Index] == 0 && hasBeenCounted[n.Index] == false).ToList();
+                        nextList.AddRange(cells);
+                    }
+                    cellsToIterateOver = nextList.Distinct().ToList();
+                }
+
+                count++;
+
+
+
+
+            }
+
+
+
+
+
+
+
+
+
+            return state;
+        }
+
+        public MeshState RemoveLargeRooms(MeshState lineStateToUpdate,MeshState roomMap, MeshState walkMap, int maxWalkLength)
+        {
+            var distinct = roomMap.Cells.Distinct().ToList();
+
+            for (int i = 0; i < distinct.Count; i++)
+            {
+                var cells = Cells.Where(c => roomMap.Cells[c.Index] == distinct[i]).ToList();
+                var dict = new Dictionary<int, List<SmartCell>>();
+
+                for (int u = 0; u < cells.Count; u++)
+                {
+                    if (dict.ContainsKey(walkMap.Cells[cells[u].Index]))
+                    {
+                        dict[walkMap.Cells[cells[u].Index]].Add(cells[u]);
+                    }
+                    else
+                    {
+                        dict.Add(walkMap.Cells[cells[u].Index], new List<SmartCell>() { cells[u] });
+                    }
+                }
+
+                var keys = dict.Keys.ToList();
+                keys.Sort();
+                var size = keys.Last();
+
+                if (size < maxWalkLength)
+                    continue;
+
+                var divisions = Mathf.CeilToInt(size / maxWalkLength);
+                var divisionSize = Mathf.CeilToInt(size / divisions);
+
+                for (int u = 0; u < keys.Count; u+= divisionSize)
+                {
+                    for (int v = 0; v < dict[keys[u]].Count; v++)
+                    {
+                        var innerCell = dict[keys[u]][v];
+
+                        innerCell.Neighbours.ForEach(n =>
+                        {
+                            if (roomMap.Cells[n.Index] == roomMap.Cells[innerCell.Index] && walkMap.Cells[n.Index] > walkMap.Cells[innerCell.Index])
+                            {
+                                lineStateToUpdate.Lines[innerCell.GetSharedBorder(n).Index] = 1;
+                            }
+                        });
+                    }
+                }
+
+
+            }
+
+            return lineStateToUpdate;
+        }
+
         /*
         public List<SmartLine> InvertLineSelection(List<SmartLine> lines)
         {

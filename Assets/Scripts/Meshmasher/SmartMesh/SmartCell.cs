@@ -53,6 +53,8 @@ namespace MeshMasher {
                     }
                 }
             }
+
+            Neighbours = Neighbours.Distinct().ToList();
         }
 
         public void CreateLineConnections()

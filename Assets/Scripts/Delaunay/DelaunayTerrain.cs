@@ -50,6 +50,9 @@ public class DelaunayTerrain : MonoBehaviour {
             var sMesh = new MeshMasher.SmartMesh(mesh);
             var minTree = sMesh.MinimumSpanningTree();
             minTree = sMesh.CullLeavingOnlySimpleLines(minTree);
+            var walkState = sMesh.WalkThroughRooms(minTree.Clone());
+            var roomState = sMesh.CalculateRooms(minTree.Clone());
+            minTree = sMesh.RemoveLargeRooms(minTree, roomState, walkState, 8);
             //sMesh.DrawMesh(transform);
 
             mesh = sMesh.BuildMeshSurfaceWithCliffs(minTree);

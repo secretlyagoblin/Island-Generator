@@ -77,9 +77,9 @@ namespace MeshMasher {
                 var v0c = l0.Center;
                 var v2c = l1.Center;
 
-                var v0 = state.Lines[l0.Index] == 0 ? l0.Center : new Vector3(v0c.x,sharedNode.y,v0c.z);
+                var v0 = state.Lines[l0.Index] == 1 ? l0.Center : new Vector3(v0c.x,sharedNode.y,v0c.z);
                 var v1 = sharedNode;
-                var v2 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                var v2 = state.Lines[l1.Index] == 1 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -105,9 +105,9 @@ namespace MeshMasher {
                 v0c = l0.Center;
                 v2c = l1.Center;
 
-                v0 = state.Lines[l0.Index] == 0 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
+                v0 = state.Lines[l0.Index] == 1 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
                 v1 = sharedNode;
-                v2 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                v2 = state.Lines[l1.Index] == 1 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -132,9 +132,9 @@ namespace MeshMasher {
                 v0c = l0.Center;
                 v2c = l1.Center;
 
-                v0 = state.Lines[l0.Index] == 0 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
+                v0 = state.Lines[l0.Index] == 1 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
                 v1 = sharedNode;
-                v2 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                v2 = state.Lines[l1.Index] == 1 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);
@@ -162,9 +162,9 @@ namespace MeshMasher {
                 v2c = l1.Center;
                 var v3c = l2.Center;
 
-                v0 = state.Lines[l1.Index] == 0 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
-                v1 = state.Lines[l1.Index] == 0 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
-                v2 = state.Lines[l2.Index] == 0 ? l2.Center : new Vector3(v3c.x, sharedNode.y, v3c.z);
+                v0 = state.Lines[l1.Index] == 1 ? l0.Center : new Vector3(v0c.x, sharedNode.y, v0c.z);
+                v1 = state.Lines[l1.Index] == 1 ? l1.Center : new Vector3(v2c.x, sharedNode.y, v2c.z);
+                v2 = state.Lines[l2.Index] == 1 ? l2.Center : new Vector3(v3c.x, sharedNode.y, v3c.z);
 
                 outputVerts.Add(v0);
                 outputVerts.Add(v1);

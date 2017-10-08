@@ -123,6 +123,10 @@ public class Lines : MonoBehaviour {
             smartmesh.Lines[i].DrawLine(Color.blue, 100f);
         }
 
+        var walkState = smartmesh.WalkThroughRooms(meshState.Clone());
+        var roomState = smartmesh.CalculateRooms(meshState.Clone());
+        meshState = smartmesh.RemoveLargeRooms(meshState, roomState, walkState, 8);
+
         for (int i = 0; i < smartmesh.Cells.Count; i++)
         {
             //smartmesh.Lines[i].DrawLine(Color.green, 100f);
@@ -135,7 +139,12 @@ public class Lines : MonoBehaviour {
                 if (meshState.Lines[border.Index] == 1)
                     continue;
 
-                Debug.DrawLine(smartmesh.Cells[i].Center, smartmesh.Cells[i].Neighbours[u].Center,Color.green,100f);
+                var colour = (walkState.Cells[smartmesh.Cells[i].Index] + walkState.Cells[smartmesh.Cells[i].Neighbours[u].Index]) *0.5f;
+
+                var num = Mathf.Sin(colour*0.2345f);
+                num = (num + 1)*0.5f;
+
+                Debug.DrawLine(smartmesh.Cells[i].Center, smartmesh.Cells[i].Neighbours[u].Center,new Color(num, 1f-num, 0,1f),100f);
             }   
 
              
