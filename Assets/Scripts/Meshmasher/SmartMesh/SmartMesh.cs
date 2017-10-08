@@ -579,6 +579,15 @@ namespace MeshMasher {
             return lineStateToUpdate;
         }
 
+        public MeshState GeneratedSemiConnectedMesh(int maxCliffLength)
+        {
+            var state = MinimumSpanningTree();
+            var walkState = WalkThroughRooms(state.Clone());
+            var roomState = CalculateRooms(state.Clone());
+            state = RemoveLargeRooms(state, roomState, walkState, 8);
+            return state;
+        }
+
         /*
         public List<SmartLine> InvertLineSelection(List<SmartLine> lines)
         {

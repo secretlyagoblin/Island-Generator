@@ -47,7 +47,7 @@ MonoBehaviour:
       sampleCount: 10
       downsampling: 1
       forceForwardCompatibility: 0
-      ambientOnly: 0
+      ambientOnly: 1
       highPrecision: 0
   screenSpaceReflection:
     m_Enabled: 0
@@ -113,11 +113,11 @@ MonoBehaviour:
     m_Settings:
       tonemapping:
         tonemapper: 2
-        neutralBlackIn: 0.0574
+        neutralBlackIn: 0.0393
         neutralWhiteIn: 9.33
         neutralBlackOut: 0
         neutralWhiteOut: 10
-        neutralWhiteLevel: 5.3
+        neutralWhiteLevel: 20
         neutralWhiteClip: 10
       basic:
         postExposure: 1.7

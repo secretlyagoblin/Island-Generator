@@ -89,6 +89,7 @@ public class CreateStandardTerrain : MonoBehaviour {
 
         var set = Maps.Map.SetGlobalDisplayStack();
         _map = ProcTerrain.TerrainData.DelaunayValleyControlled(_heightmapResolution, new Rect(), transform,LevelFile, CliffFalloff);
+        //_map = ProcTerrain.TerrainData.DelaunayIsland(_heightmapResolution, new Rect(), transform);
         _map.HeightMap.Remap(0, _height);
 
 
