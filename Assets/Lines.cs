@@ -6,6 +6,7 @@ using Maps;
 public class Lines : MonoBehaviour {
 
     public AnimationCurve MyCurve;
+    public float cellScale;
 
     // Use this for initialization
     void Start()
@@ -109,7 +110,7 @@ public class Lines : MonoBehaviour {
             //.Display();
 
 
-        var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.06f);
+        var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, cellScale);
         //mesh = MeshMasher.AutoWelder.AutoWeld(mesh, 0.001f, 0.01f);
         var smartmesh = new MeshMasher.SmartMesh(mesh);
 
@@ -165,6 +166,7 @@ public class Lines : MonoBehaviour {
         mesh = smartmesh.BuildMeshSurfaceWithCliffs(meshState);
 
         var heightMap = Map.Clone(finalMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display();
+
 
         var walkableMap = heightMap.Clone().Normalise().GetAbsoluteBumpMap().Display().Normalise().BooleanMapFromThreshold(0.15f).Display();
 
