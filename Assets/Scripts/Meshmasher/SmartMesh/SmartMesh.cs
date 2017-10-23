@@ -10,21 +10,24 @@ namespace MeshMasher {
         public List<SmartCell> Cells { get; private set; }
         public List<SmartLine> Lines { get; private set; }
 
-        public SmartMesh(Mesh mesh)
-        {
+        public SmartMesh(Mesh mesh) : this(mesh.vertices,mesh.triangles)
+        {    
+        }
 
+        public SmartMesh(Vector3[] vertices, int[] triangles)
+        {
             Nodes = new List<SmartNode>();
             Cells = new List<SmartCell>();
             Lines = new List<SmartLine>();
 
-            var verts = mesh.vertices;
+            var verts = vertices;
 
             for (int i = 0; i < verts.Length; i++)
             {
                 Nodes.Add(new SmartNode(verts[i], i));
             }
 
-            var tris = mesh.triangles;
+            var tris = triangles;
 
             for (var x = 0; x < tris.Length; x += 3)
             {
@@ -60,8 +63,6 @@ namespace MeshMasher {
 
             for (int i = 0; i < Lines.Count; i++)
                 Lines[i].Index = i;
-
-
         }
 
         public MeshState GetMeshState()
@@ -72,6 +73,18 @@ namespace MeshMasher {
                 Cells = new int[Cells.Count],
                 Lines = new int[Lines.Count],
             };
+        }
+
+        public int[] TriangleMap()
+        {
+            var output = new List<int>();
+
+            for (int i = 0; i < Cells.Count; i++)
+            {
+                output.AddRange(Cells[i].Nodes.Select(n => n.Index).ToList());
+            }
+
+            return output.ToArray();
         }
 
         /*

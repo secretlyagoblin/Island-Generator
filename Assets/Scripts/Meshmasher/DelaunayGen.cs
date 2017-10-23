@@ -104,10 +104,72 @@ namespace MeshMasher {
             return output;
         }
 
+        static SmartMesh MakeSmartMesh(TriangleNet.Mesh mesh)
+        {
+
+            IEnumerator<Triangle> triangleEnumerator = mesh.Triangles.GetEnumerator();
+
+                var vertices = new List<Vector3>();
+                var normals = new List<Vector3>();
+                var uvs = new List<Vector2>();
+                var triangles = new List<int>();
+
+                while (triangleEnumerator.MoveNext())
+                {
+                    var triangle = triangleEnumerator.Current;
+
+                    // For the triangles to be right-side up, they need
+                    // to be wound in the opposite direction
+                    var v0 = GetPoint3D(mesh, triangle.vertices[2].id);
+                    var v1 = GetPoint3D(mesh, triangle.vertices[1].id);
+                    var v2 = GetPoint3D(mesh, triangle.vertices[0].id);
+
+                    triangles.Add(vertices.Count);
+                    triangles.Add(vertices.Count + 1);
+                    triangles.Add(vertices.Count + 2);
+
+                    vertices.Add(v0);
+                    vertices.Add(v1);
+                    vertices.Add(v2);
+                }
+
+            return new MeshMasher.SmartMesh(vertices.ToArray(), triangles.ToArray());
+
+        }
+
         static Vector3 GetPoint3D(TriangleNet.Mesh mesh, int index)
         {
             Vertex vertex = mesh.vertices[index];
             return new Vector3((float)vertex.x, 0f, (float)vertex.y);
+        }
+
+        public static SmartMesh FromBounds(Rect rect, float pointRadius)
+        {
+            RNG.Init();
+            var sampler = new PoissonDiscSampler(1f, 1f, pointRadius);
+            var polygon = new Polygon();
+
+            foreach (var sample in sampler.Samples())
+            {
+                polygon.Add(new Vertex(sample.x, sample.y));
+            }
+
+            polygon.Add(new Vertex(0f, 0f));
+            polygon.Add(new Vertex(0, 1f));
+            polygon.Add(new Vertex(1f, 0f));
+            polygon.Add(new Vertex(1f, 1f));
+
+            var options = new TriangleNet.Meshing.ConstraintOptions() { ConformingDelaunay = false };
+            var del = (TriangleNet.Mesh)polygon.Triangulate(options);
+
+            var mesh = MakeSmartMesh(del);
+
+            var min = pointRadius * 0.001f;
+            var rat = pointRadius * 2f;
+
+            mesh = AutoWelder.AutoWeld(mesh, min, rat); // should really just work off raw triangles and verts
+
+            return mesh;
         }
 
 
