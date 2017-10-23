@@ -19,12 +19,9 @@ namespace MeshMasher {
 
             var verts = mesh.vertices;
 
-            var count = -1;
-
-            foreach (var vert in verts)
+            for (int i = 0; i < verts.Length; i++)
             {
-                count++;
-                Nodes.Add(new SmartNode(vert, count));
+                Nodes.Add(new SmartNode(verts[i], i));
             }
 
             var tris = mesh.triangles;
@@ -36,18 +33,24 @@ namespace MeshMasher {
                 Cells.Add(cell);
             }
 
-            foreach (var cell in Cells)
+            for (int i = 0; i < Cells.Count; i++)
             {
-                cell.CreateCellConnections();
+                Cells[i].CreateCellConnections();
             }
 
-            foreach (var cell in Cells)
+            for (int i = 0; i < Cells.Count; i++)
             {
-                cell.CreateLineConnections();
-                Lines.AddRange(cell.Lines);
+                Cells[i].CreateLineConnections();
+                Lines.AddRange(Cells[i].Lines);
             }
 
             Lines = Lines.Distinct().ToList();
+
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                Lines[i].Nodes[0].Nodes.Add(Lines[i].Nodes[1]);
+                Lines[i].Nodes[1].Nodes.Add(Lines[i].Nodes[0]);
+            }
 
             for (int i = 0; i < Nodes.Count; i++)
                 Nodes[i].Index = i;
@@ -588,40 +591,111 @@ namespace MeshMasher {
             return state;
         }
 
-        /*
-        public List<SmartLine> InvertLineSelection(List<SmartLine> lines)
+        public int[] ShortestWalkNode(int startIndex, int endIndex)
         {
-            for (int i = 0; i < Nodes.Count; i++)
+            var nodesToEvaluate = new Dictionary<int, aStarHelper>();
+            var evaluatedNodes = new Dictionary<int, aStarHelper>();
+            var startVert = Nodes[startIndex].Vert;
+            var endVert = Nodes[endIndex].Vert;
+            var shortCircuit = -1;
+
+            var output = new List<int>();
+
+            nodesToEvaluate.Add(startIndex, new aStarHelper()
             {
-                Nodes[i].IsPartOfCurrentSortingEvent = true;
-            }
-            for (int i = 0; i < Lines.Count; i++)
+                gCost = 0,
+                hCost = 0
+            });
+
+            while(shortCircuit <= 99999)
             {
-                Lines[i].IsPartOfCurrentSortingEvent = false;
+                shortCircuit++;
+
+                float shortestDist = float.MaxValue;
+                int shortestNode = 0;
+
+                foreach (var node in nodesToEvaluate)
+                {
+                    if(node.Value.fCost < shortestDist)
+                    {
+                        shortestNode = node.Key;
+                        shortestDist = node.Value.fCost;
+                    }
+                }
+
+                var currentKey = shortestNode;
+                var currentValue = nodesToEvaluate[currentKey];
+                var currentNode = Nodes[currentKey];
+                nodesToEvaluate.Remove(currentKey);
+                evaluatedNodes.Add(currentKey, currentValue);
+
+                if(currentKey == endIndex)
+                {
+                    var parent = currentKey;
+                    while(parent != startIndex)
+                    {
+                        output.Add(parent);
+                        parent= evaluatedNodes[parent].parent;
+                    }
+
+                    output.Add(startIndex);
+                    return output.ToArray();
+                }
+
+                for (int i = 0; i < Nodes[currentKey].Nodes.Count; i++)
+                {
+                    var neigh = Nodes[currentKey].Nodes[i];
+                    if (evaluatedNodes.ContainsKey(neigh.Index))
+                        continue;
+
+                    var gCost = currentValue.gCost + Vector3.Distance(currentNode.Vert, neigh.Vert);
+
+                    if (nodesToEvaluate.ContainsKey(neigh.Index))
+                    {
+                        var star = nodesToEvaluate[neigh.Index];
+                        if (gCost > star.gCost)
+                            continue;
+
+                        star.gCost = gCost;
+                        star.parent = currentKey;
+                    }
+                    else
+                    {
+                        nodesToEvaluate.Add(neigh.Index, new aStarHelper()
+                        {
+                            //can be updated to include weights on lines by searching for actual line weights
+                            gCost = gCost,
+                            hCost = Vector3.Distance(neigh.Vert, endVert),
+                            parent = currentKey
+                        });
+                    }
+
+
+                }
+
             }
 
-            for (int i = 0; i < lines.Count; i++)
-            {
-                lines[i].IsPartOfCurrentSortingEvent = false;
-                lines[i].Nodes[0].IsPartOfCurrentSortingEvent = false;
-                lines[i].Nodes[1].IsPartOfCurrentSortingEvent = false;
-            }
+            Debug.Log("Short Circuit, Lad");
 
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var node = Nodes[i];
-                if (!node.IsPartOfCurrentSortingEvent)
-                    continue;
+            return new int[0];
 
-                node.Lines.Where(l => l.Nodes[0].IsPartOfCurrentSortingEvent && l.Nodes[1].IsPartOfCurrentSortingEvent).ToList().ForEach(x => x.IsPartOfCurrentSortingEvent = true);
 
-            }
 
-            return Lines.Where(l => l.IsPartOfCurrentSortingEvent).ToList();
         }
-        */
+
+        internal class aStarHelper {
+            public float gCost;
+            public float hCost;
+            public float fCost { get { return gCost + hCost; } }
+            public int parent;
+        }
+
     }
 
+    /// <summary>
+    /// Smartmesh functions operate on the current mesh using MeshStates to hold the current state of the mesh. 
+    /// This allows the current mesh to be analyised for various conditions.
+    /// </summary>
     public class MeshState {
         public int[] Nodes;
         public int[] Cells;

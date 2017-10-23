@@ -17,6 +17,8 @@ namespace MeshMasher {
         public int Index
         { get; set; }
 
+        public float[] BarycentricWeights { get; private set; }
+
         public SmartCell(SmartNode nodeA, SmartNode nodeB, SmartNode nodeC)
         {
 
@@ -27,6 +29,8 @@ namespace MeshMasher {
             Center = nodeA.Vert + nodeB.Vert + nodeC.Vert;
             float scale = 1f / 3f;
             Center = new Vector3(Center.x * scale, Center.y * scale, Center.z * scale);
+
+            CalculateBarycentricWeights();
         }
 
         public void CreateNodeConnections()
@@ -164,11 +168,25 @@ namespace MeshMasher {
 
         }
 
+        void CalculateBarycentricWeights()
+        {
+            // calculate vectors from point f to vertices p1, p2 and p3:
+            var f1 = Nodes[0].Vert - Center;
+            var f2 = Nodes[1].Vert - Center;
+            var f3 = Nodes[2].Vert - Center;
+            // calculate the areas and factors (order of parameters doesn't matter):
+            var a = Vector3.Cross(Nodes[0].Vert - Nodes[1].Vert, Nodes[0].Vert - Nodes[2].Vert).magnitude; // main triangle area a
+            var a1 = Vector3.Cross(f2, f3).magnitude / a; // p1's triangle area / a
+            var a2 = Vector3.Cross(f3, f1).magnitude / a; // p2's triangle area / a 
+            var a3 = Vector3.Cross(f1, f2).magnitude / a; // p3's triangle area / a
+
+            BarycentricWeights = new float[] { a1, a2, a3 };
+        }
+
         public void AddLine(SmartLine line)
         {
             Lines.Add(line);
         }
-
 
     }
 

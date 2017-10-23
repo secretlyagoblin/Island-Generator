@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public static class RNG {
 
@@ -47,6 +47,11 @@ public static class RNG {
     public static int Next()
     {
         return _pseudoRandom.Next();
+    }
+
+    public static T Next<T>(List<T> list)
+    {
+        return list[Next(0, list.Count)];
     }
 
     public static int Next(int maxValue)
