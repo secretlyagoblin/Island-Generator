@@ -10,9 +10,14 @@ namespace MeshMasher {
         public List<SmartCell> Cells { get; private set; }
         public List<SmartLine> Lines { get; private set; }
 
+        Bounds _bounds = new Bounds();
+        List<SmartNode>[,,] _buckets; 
+
         public SmartMesh(Mesh mesh) : this(mesh.vertices,mesh.triangles)
         {    
         }
+
+
 
         public SmartMesh(Vector3[] vertices, int[] triangles)
         {
@@ -25,6 +30,7 @@ namespace MeshMasher {
             for (int i = 0; i < verts.Length; i++)
             {
                 Nodes.Add(new SmartNode(verts[i], i));
+                _bounds.Encapsulate(verts[i]);
             }
 
             var tris = triangles;
@@ -63,6 +69,8 @@ namespace MeshMasher {
 
             for (int i = 0; i < Lines.Count; i++)
                 Lines[i].Index = i;
+
+            CreateBuckets(10, 1, 10);
         }
 
         public MeshState GetMeshState()
@@ -694,6 +702,93 @@ namespace MeshMasher {
 
 
 
+        }
+
+        public void Resize(Bounds bounds)
+        {
+            var oldMin = _bounds.min;
+            var oldMax = _bounds.max;
+            var newMin = bounds.min;
+            var newMax = bounds.max;
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var n = Nodes[i].Vert;
+
+                var x = Mathf.InverseLerp(oldMin.x, oldMax.x, n.x);
+                var y = Mathf.InverseLerp(oldMin.y, oldMax.y, n.y);
+                var z = Mathf.InverseLerp(oldMin.z, oldMax.z, n.z);
+
+                x = Mathf.Lerp(newMin.x, newMax.x, x);
+                y = Mathf.Lerp(newMin.y, newMax.y, y);
+                x = Mathf.Lerp(newMin.z, newMax.z, z);
+
+                Nodes[i].Vert = new Vector3(x, y, z);
+                    }
+
+            _bounds = bounds;
+        }
+
+        public int ClosestIndex(Vector3 testPoint)
+        {
+            if (!_bounds.Contains(testPoint))
+            {
+                testPoint = _bounds.ClosestPoint(testPoint);
+            }
+
+            var min = _bounds.min;
+            var max = _bounds.max;
+
+            var lengthX = _buckets.GetLength(0);
+            var lengthY = _buckets.GetLength(1);
+            var lengthZ = _buckets.GetLength(2);
+
+            var pointX = Mathf.FloorToInt(Mathf.InverseLerp(min.x, max.x, testPoint.x) * lengthX);
+            var pointY = Mathf.FloorToInt(Mathf.InverseLerp(min.y, max.y, testPoint.y) * lengthY);
+            var pointZ = Mathf.FloorToInt(Mathf.InverseLerp(min.z, max.z, testPoint.z) * lengthZ);
+
+            var minDist = float.MaxValue;
+            SmartNode node = null;
+
+            for (int x = pointX; x < Mathf.Min(lengthX,pointX+1); x++)
+            {
+                for (int y = pointY; y < Mathf.Min(lengthY, pointY + 1); y++)
+                {
+                    for (int z = pointZ; z < Mathf.Min(lengthZ, pointZ + 1); z++)
+                    {
+                        for (int i = 0; i < _buckets[x,y,z].Count; i++)
+                        {
+                            var dist = Vector3.Distance(testPoint, _buckets[x, y, z][i].Vert);
+                            if(dist < minDist)
+                            {
+                                minDist = dist;
+                                node = _buckets[x, y, z][i];
+                            }
+                        }
+                    }
+                }
+            }
+
+            return node.Index;
+        }
+
+        void CreateBuckets(int divX, int divY, int divZ)
+        {
+            _buckets = new List<SmartNode>[divX, divY, divZ];
+
+            var min = _bounds.min;
+            var max = _bounds.max;
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var n = Nodes[i].Vert;
+
+                var x = Mathf.InverseLerp(min.x, max.x, n.x) * divX;
+                var y = Mathf.InverseLerp(min.y, max.y, n.y) * divY;
+                var z = Mathf.InverseLerp(min.z, max.z, n.z) * divZ;
+
+                _buckets[Mathf.RoundToInt(x), Mathf.RoundToInt(y), Mathf.RoundToInt(z)].Add(Nodes[i]);
+            }
         }
 
         internal class aStarHelper {
