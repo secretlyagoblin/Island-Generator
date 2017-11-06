@@ -31,23 +31,24 @@ public class LevelGen2D : MonoBehaviour {
     {
         RNG.DateTimeInit();
 
-        var points = new Vector2[]
+        var points = new Vector3[]
         {
-            new Vector2(0,0),
-            new Vector2(10,0),
-            new Vector2(20,0),
-            new Vector2(5,10),
-            new Vector2(15,10),
-            new Vector2(10,20),
-            new Vector2(20,20),
-            new Vector2(15,30)
+            new Vector3(0,0,RNG.Next(0,2)),
+            new Vector3(10,0,RNG.Next(0,2)),
+            new Vector3(20,0,RNG.Next(0,2)),
+            new Vector3(5,10,RNG.Next(1,3)),
+            new Vector3(15,10,RNG.Next(1,3)),
+            new Vector3(10,20,RNG.Next(2,4)),
+            new Vector3(20,20,RNG.Next(2,4)),
+            new Vector3(15,30,RNG.Next(3,5)),
+            new Vector3(15,15,RNG.Next(3,5))            
         };
 
         var objs = new GameObject[points.Length];
 
         for (int i = 0; i < objs.Length; i++)
         {
-            objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 4f,RadiusCurve));
+            objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 4f,RadiusCurve), points[i].z);
         }
 
         CreateChain(objs[0], objs[1], RNG.Next(PropMin, PropMax, Curve));
@@ -58,11 +59,12 @@ public class LevelGen2D : MonoBehaviour {
         CreateChain(objs[3], objs[5], RNG.Next(PropMin, PropMax, Curve));
         CreateChain(objs[5], objs[7], RNG.Next(PropMin, PropMax, Curve));
         CreateChain(objs[1], objs[4], RNG.Next(PropMin, PropMax, Curve));
-        CreateChain(objs[4], objs[6], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[8], objs[6], RNG.Next(PropMin, PropMax, Curve));
         CreateChain(objs[1], objs[3], RNG.Next(PropMin, PropMax, Curve));
         CreateChain(objs[2], objs[4], RNG.Next(PropMin, PropMax, Curve));
-        CreateChain(objs[4], objs[5], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[8], objs[5], RNG.Next(PropMin, PropMax, Curve));
         CreateChain(objs[6], objs[7], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[4], objs[8], RNG.Next(1, 3, Curve));
 
         _joints = GetComponentsInChildren<SpringJoint2D>();
         StartCoroutine(FreezePhysicsAfterTime(TimeCount));
@@ -289,11 +291,16 @@ public class LevelGen2D : MonoBehaviour {
         {
             var l = _mesh.Lines[i];
 
-            if(returnState.Nodes[l.Nodes[0].Index] == returnState.Nodes[l.Nodes[1].Index])
+            if (returnState.Nodes[l.Nodes[0].Index] != -1 && returnState.Nodes[l.Nodes[1].Index] != -1)
             {
-                if (returnState.Nodes[l.Nodes[0].Index] == -1)
-                    continue;
-                var colourHue = Mathf.InverseLerp(0f, 50f, returnState.Nodes[l.Nodes[0].Index]);
+
+                //if (returnState.Nodes[l.Nodes[0].Index] == returnState.Nodes[l.Nodes[1].Index])
+                //{/
+                //if (returnState.Nodes[l.Nodes[0].Index] == -1)
+                //continue;
+                var nodeValue = returnState.Nodes[l.Nodes[0].Index] > returnState.Nodes[l.Nodes[1].Index] ? returnState.Nodes[l.Nodes[0].Index] : returnState.Nodes[l.Nodes[1].Index];
+
+                var colourHue = Mathf.InverseLerp(0f, 50f, nodeValue);
                 l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f),100f);
             }
 
@@ -304,12 +311,14 @@ public class LevelGen2D : MonoBehaviour {
         return returnState;
     }
 
-    GameObject CreateNewObject(Vector2 position, float radius)
+    GameObject CreateNewObject(Vector3 position, float radius, float height)
     {
         var obj = Instantiate(CirclePrefab);
-        obj.transform.position = position;
+        obj.transform.position = new Vector3(position.x,position.y,0f);
         obj.transform.localScale = Vector2.one*radius;
         obj.transform.parent = transform;
+        var heightData = obj.AddComponent<CellData>();
+        heightData.Height = height;
         return obj;
     }
 
@@ -322,9 +331,10 @@ public class LevelGen2D : MonoBehaviour {
         //spring.
     }
 
-    GameObject CreateNewObjectAndAddLink(Vector2 position, float radius,GameObject link)
+    GameObject CreateNewObjectAndAddLink(Vector3 position, float radius, float height,GameObject link)
     {
-        var obj = CreateNewObject(position, radius);
+        var obj = CreateNewObject(position, radius, height);
+
         AddLink(obj, link);
         return obj;
     }
@@ -338,8 +348,9 @@ public class LevelGen2D : MonoBehaviour {
         {
             var pointOnDomain = Mathf.InverseLerp(0, divisions, i);
             var position = Vector3.Lerp(p1.transform.position, p2.transform.position, pointOnDomain);
+            var height = Mathf.Lerp(p1.GetComponent<CellData>().Height, p2.GetComponent<CellData>().Height, pointOnDomain);
 
-            chain.Add(CreateNewObjectAndAddLink(position, RNG.NextFloat(0.7f, 2.5f), chain[i - 1]));
+            chain.Add(CreateNewObjectAndAddLink(position, RNG.NextFloat(0.7f, 2.5f), height, chain[i - 1]));
         }
 
         AddLink(p2, chain[chain.Count - 1]);

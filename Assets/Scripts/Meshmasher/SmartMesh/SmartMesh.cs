@@ -681,6 +681,67 @@ namespace MeshMasher {
 
         }
 
+        public MeshState SecretSauceRoomsBasedOnWeights(MeshState state)
+        {
+            var newState = GetMeshState();
+            var diffusionWeight = new int[Nodes.Count];
+            var nodeOwnership = new int[Nodes.Count];
+            var nodeTraversed = new bool[Nodes.Count];
+            var boundaryNodes = new List<SmartNode>();
+
+
+
+            var roomIndex = -1;
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                diffusionWeight[i] = (state.Nodes[i]);
+                nodeOwnership[i] = -1;
+                if (state.Nodes[i] > 0)
+                {
+                    boundaryNodes.Add(Nodes[i]);
+                    roomIndex++;
+                    nodeTraversed[i] = true;
+                    nodeOwnership[i] = roomIndex;
+                }
+            }
+
+            while (boundaryNodes.Count > 0)
+            {
+                var nextIteration = new List<SmartNode>();
+                for (int i = 0; i < boundaryNodes.Count; i++)
+                {
+                    var b = boundaryNodes[i];
+                    var room = nodeOwnership[b.Index];
+                    var weight = diffusionWeight[b.Index] - 1;
+
+                    for (int u = 0; u < b.Nodes.Count; u++)
+                    {
+                        var neigh = b.Nodes[u];
+                        var n = neigh.Index;
+                        if (nodeTraversed[n] == false | diffusionWeight[n] <= diffusionWeight[b.Index] && nodeOwnership[n] != room)
+                        {
+                            nodeOwnership[n] = room;
+                            nextIteration.Add(neigh);
+                            diffusionWeight[n] = weight;
+                            nodeTraversed[n] = true;
+                        }
+
+                    }
+                }
+                boundaryNodes = nextIteration;
+            }
+
+            for (int i = 0; i < nodeOwnership.Length; i++)
+            {
+                nodeOwnership[i] = diffusionWeight[i] <= 0 ? -1 : nodeOwnership[i];
+            }
+
+            newState.Nodes = nodeOwnership;
+
+            return newState;
+        }
+
         public int[] ShortestWalkNode(int startIndex, int endIndex)
         {
             var nodesToEvaluate = new Dictionary<int, aStarHelper>();
