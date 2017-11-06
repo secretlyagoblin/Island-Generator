@@ -145,8 +145,13 @@ namespace MeshMasher {
 
         public static SmartMesh FromBounds(Rect rect, float pointRadius)
         {
+            return FromBounds(new Bounds(rect.center, rect.size), pointRadius);
+        }
+
+        public static SmartMesh FromBounds(Bounds bounds, float triangePercentageSize)
+        {
             RNG.Init();
-            var sampler = new PoissonDiscSampler(1f, 1f, pointRadius);
+            var sampler = new PoissonDiscSampler(1f, 1f, triangePercentageSize);
             var polygon = new Polygon();
 
             foreach (var sample in sampler.Samples())
@@ -164,10 +169,11 @@ namespace MeshMasher {
 
             var mesh = MakeSmartMesh(del);
 
-            var min = pointRadius * 0.001f;
-            var rat = pointRadius * 2f;
+            var min = triangePercentageSize * 0.001f;
+            var rat = triangePercentageSize * 2f;
 
             mesh = AutoWelder.AutoWeld(mesh, min, rat); // should really just work off raw triangles and verts
+            mesh.Resize(bounds);
 
             return mesh;
         }

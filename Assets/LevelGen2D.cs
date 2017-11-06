@@ -1,16 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class LevelGen2D : MonoBehaviour {
 
     public bool DoTheLevel = false;
     public AnimationCurve Curve;
+    public AnimationCurve RadiusCurve;
 
     public float PerlinScale = 0.5f;
 
     public GameObject CirclePrefab;
-    public int PropCount = 12;
+    public int PropMin = 3;
+    public int PropMax = 7;
     public float TimeCount;
     LineRenderer _renderer;
     Rigidbody2D[] _rigids;
@@ -19,6 +22,9 @@ public class LevelGen2D : MonoBehaviour {
 
     public ProcTerrainSettings Settings;
     public Rect Size;
+
+    Bounds _bounds;
+    MeshMasher.SmartMesh _mesh;
 
     // Use this for initialization
     void Start()
@@ -41,22 +47,22 @@ public class LevelGen2D : MonoBehaviour {
 
         for (int i = 0; i < objs.Length; i++)
         {
-            objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 4f));
+            objs[i] = CreateNewObject(points[i], RNG.NextFloat(0.7f, 4f,RadiusCurve));
         }
 
-        CreateChain(objs[0], objs[1], RNG.Next(3, 7, Curve));
-        CreateChain(objs[1], objs[2], RNG.Next(3, 7, Curve));
-        CreateChain(objs[3], objs[4], RNG.Next(3, 7, Curve));
-        CreateChain(objs[5], objs[6], RNG.Next(3, 7, Curve));
-        CreateChain(objs[0], objs[3], RNG.Next(3, 7, Curve));
-        CreateChain(objs[3], objs[5], RNG.Next(3, 7, Curve));
-        CreateChain(objs[5], objs[7], RNG.Next(3, 7, Curve));
-        CreateChain(objs[1], objs[4], RNG.Next(3, 7, Curve));
-        CreateChain(objs[4], objs[6], RNG.Next(3, 7, Curve));
-        CreateChain(objs[1], objs[3], RNG.Next(3, 7, Curve));
-        CreateChain(objs[2], objs[4], RNG.Next(3, 7, Curve));
-        CreateChain(objs[4], objs[5], RNG.Next(3, 7, Curve));
-        CreateChain(objs[6], objs[7], RNG.Next(3, 7, Curve));
+        CreateChain(objs[0], objs[1], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[1], objs[2], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[3], objs[4], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[5], objs[6], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[0], objs[3], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[3], objs[5], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[5], objs[7], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[1], objs[4], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[4], objs[6], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[1], objs[3], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[2], objs[4], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[4], objs[5], RNG.Next(PropMin, PropMax, Curve));
+        CreateChain(objs[6], objs[7], RNG.Next(PropMin, PropMax, Curve));
 
         _joints = GetComponentsInChildren<SpringJoint2D>();
         StartCoroutine(FreezePhysicsAfterTime(TimeCount));
@@ -73,6 +79,7 @@ public class LevelGen2D : MonoBehaviour {
 
     }
 
+    // Step 1 - Run Physics
     IEnumerator FreezePhysicsAfterTime(float time)
     {
         yield return new WaitForSeconds(time);
@@ -84,14 +91,49 @@ public class LevelGen2D : MonoBehaviour {
             _rigids[i].simulated = false;
         }
 
-        SetHeightsFromSimplex();
-        PreviewBoundingRect();
+        RunAdditionalScripts();
     }
 
-    void PreviewBoundingRect()
+    // Step 2 - Run Scripts in order
+    void RunAdditionalScripts()
     {
-        var combinedBounds = new Bounds(_rigids[0].transform.position,Vector2.zero);
-        
+        ReorientToXZPlaneAndUpdateBounds();
+
+        _mesh = MeshMasher.DelaunayGen.FromBounds(_bounds, 0.015f);
+        _mesh.SetCustomBuckets(10, 1, 10);
+
+        var connectivity = MapGraphToShortestWalk();
+
+        var connected = new bool[_mesh.Nodes.Count];
+
+        for (int i = 0; i < connectivity.Length; i++)
+        {
+            connected[connectivity[i]] = true;
+        }
+
+        for (int i = 0; i < _mesh.Lines.Count; i++)
+        {
+            var l = _mesh.Lines[i];
+            if (connected[l.Nodes[0].Index] == true && connected[l.Nodes[1].Index] == true)
+            {
+                l.DrawLine(Color.white, 100f);
+            }
+
+        }
+
+
+        var rooms = ApplyWeightsToNodes();
+
+    }
+
+    
+    //Step 2
+    void ReorientToXZPlaneAndUpdateBounds()
+    {
+        var resultsBase = new CircleCollider2D[_rigids[0].attachedColliderCount];
+        _rigids[0].GetAttachedColliders(resultsBase);
+        _bounds = new Bounds(new Vector3(resultsBase[0].transform.position.x, 0, resultsBase[0].transform.position.y), Vector3.zero);
+
 
         var totalColliders = new List<CircleCollider2D>();
 
@@ -103,13 +145,26 @@ public class LevelGen2D : MonoBehaviour {
 
             for (int u = 0; u < resultsCount; u++)
             {
-                combinedBounds.Encapsulate(results[u].bounds);
+                results[u].transform.position = new Vector3(results[u].transform.position.x, 0, results[u].transform.position.y);
+
+                _bounds.Encapsulate(results[u].transform.position);
                 results[u].radius = results[u].radius * 0.9f;
             }            
         }
 
-        combinedBounds.size = combinedBounds.size.x > combinedBounds.size.y ? new Vector2(combinedBounds.size.x, combinedBounds.size.x) : new Vector2(combinedBounds.size.y, combinedBounds.size.y);
-        combinedBounds.size += (Vector3.one * combinedBounds.size.magnitude * 0.05f);
+        _bounds.size = _bounds.size.x > _bounds.size.z ? new Vector3(_bounds.size.x,0, _bounds.size.x) : new Vector3(_bounds.size.z,0, _bounds.size.z);
+        _bounds.size += (Vector3.one * _bounds.size.magnitude * 0.15f);
+
+        Debug.Log("Bounds: " + _bounds.size + " " + _bounds.center);
+
+
+
+
+
+
+
+        /*
+
 
         //Debug.DrawLine(combinedBounds.min, combinedBounds.max,Color.red,100f);
 
@@ -175,20 +230,78 @@ public class LevelGen2D : MonoBehaviour {
         
 
         //map.DrawRect(Color.white);
+        */
     }
 
-    void SetHeightsFromSimplex()
+    int[] MapGraphToShortestWalk()
     {
+
+        var nodes = new List<int>();
+
+       //for (int i = 0; i < _mesh.Lines.Count; i++)
+       //{
+       //    _mesh.Lines[i].DrawLine(Color.white, 100f);
+       //}
+
+        for (int i = 0; i < _joints.Length; i++)
+        {
+            var j = _joints[i];
+            var a = _mesh.ClosestIndex(j.transform.position);
+            var b = _mesh.ClosestIndex(j.connectedBody.transform.position);
+
+            var realNodes = _mesh.ShortestWalkNode(a, b);
+
+           for (int u = 0; u < realNodes.Length; u++)
+           {
+               Debug.DrawRay(_mesh.Nodes[realNodes[u]].Vert, Vector3.up, Color.blue, 100f);
+           }
+
+            nodes.AddRange(realNodes);
+        }
+
+        return nodes.Distinct().ToArray();
+
+    }
+
+    MeshMasher.MeshState ApplyWeightsToNodes()
+    {
+        var state = _mesh.GetMeshState();
+
         for (int i = 0; i < _rigids.Length; i++)
         {
-            var r = _rigids[i];
-            var ender = r.gameObject.GetComponentInChildren<SpriteRenderer>();
+            var results = new CircleCollider2D[_rigids[i].attachedColliderCount];
+            var resultsCount = _rigids[i].GetAttachedColliders(results);
 
-            var height = Mathf.PerlinNoise(r.transform.position.x* PerlinScale, r.transform.position.y* PerlinScale);
-            r.transform.position = new Vector3(r.transform.position.x, r.transform.position.y, height);
-            ender.color = new Color(height, height, height);
-            
+            for (int u = 0; u < resultsCount; u++)
+            {
+                var a = _mesh.ClosestIndex(results[u].transform.position);
+
+                //state.Nodes[a] = (int)(results[u].radius*12);
+
+                state.Nodes[a] = RNG.Next(4, 7, RadiusCurve);
+
+            }
         }
+
+        var returnState = _mesh.ApplyRoomsBasedOnWeights(state);
+
+        for (int i = 0; i < _mesh.Lines.Count; i++)
+        {
+            var l = _mesh.Lines[i];
+
+            if(returnState.Nodes[l.Nodes[0].Index] == returnState.Nodes[l.Nodes[1].Index])
+            {
+                if (returnState.Nodes[l.Nodes[0].Index] == -1)
+                    continue;
+                var colourHue = Mathf.InverseLerp(0f, 50f, returnState.Nodes[l.Nodes[0].Index]);
+                l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f),100f);
+            }
+
+        }
+
+
+
+        return returnState;
     }
 
     GameObject CreateNewObject(Vector2 position, float radius)

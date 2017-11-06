@@ -70,7 +70,12 @@ namespace MeshMasher {
             for (int i = 0; i < Lines.Count; i++)
                 Lines[i].Index = i;
 
-            CreateBuckets(10, 1, 10);
+            CreateBuckets(1, 1, 1);
+        }
+
+        public void SetCustomBuckets(int sizeX,int sizeY, int sizeZ)
+        {
+            CreateBuckets(sizeX, sizeY, sizeZ);
         }
 
         public MeshState GetMeshState()
@@ -603,13 +608,77 @@ namespace MeshMasher {
             return lineStateToUpdate;
         }
 
-        public MeshState GeneratedSemiConnectedMesh(int maxCliffLength)
+        public MeshState GenerateSemiConnectedMesh(int maxCliffLength)
         {
             var state = MinimumSpanningTree();
             var walkState = WalkThroughRooms(state.Clone());
             var roomState = CalculateRooms(state.Clone());
             state = RemoveLargeRooms(state, roomState, walkState, 8);
             return state;
+        }
+
+        public MeshState ApplyRoomsBasedOnWeights(MeshState state)
+        {
+            var newState = GetMeshState();
+            var diffusionWeight = new int[Nodes.Count];
+            var nodeOwnership = new int[Nodes.Count];
+            var nodeTraversed = new bool[Nodes.Count];
+            var boundaryNodes = new List<SmartNode>();
+
+
+
+            var roomIndex = -1;
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                diffusionWeight[i] = (state.Nodes[i]);
+                nodeOwnership[i] = -1;
+                if(state.Nodes[i] > 0)
+                {
+                    boundaryNodes.Add(Nodes[i]);
+                    roomIndex++;
+                    nodeTraversed[i] = true;
+                    nodeOwnership[i] = roomIndex;
+                }
+            }
+
+            while (boundaryNodes.Count > 0)
+            {
+                var nextIteration = new List<SmartNode>();
+                for (int i = 0; i < boundaryNodes.Count; i++)
+                {
+                    var b = boundaryNodes[i];
+                    var room = nodeOwnership[b.Index];
+                    var weight = diffusionWeight[b.Index] -1;
+
+                    for (int u = 0; u < b.Nodes.Count; u++)
+                    {
+                        var neigh = b.Nodes[u];
+                        var n = neigh.Index;
+                        if(nodeTraversed[n] == false | diffusionWeight[n] <= diffusionWeight[b.Index] && nodeOwnership[n] !=room )
+                        {
+                            nodeOwnership[n] = room;
+                            nextIteration.Add(neigh);
+                            diffusionWeight[n] = weight;
+                            nodeTraversed[n] = true;
+                        }              
+
+                    }
+                }
+                boundaryNodes = nextIteration;
+            }
+
+            for (int i = 0; i < nodeOwnership.Length; i++)
+            {
+                nodeOwnership[i] = diffusionWeight[i] <= 0?-1: nodeOwnership[i];
+            }
+
+            newState.Nodes = nodeOwnership;
+
+            return newState;
+
+
+
         }
 
         public int[] ShortestWalkNode(int startIndex, int endIndex)
@@ -721,7 +790,7 @@ namespace MeshMasher {
 
                 x = Mathf.Lerp(newMin.x, newMax.x, x);
                 y = Mathf.Lerp(newMin.y, newMax.y, y);
-                x = Mathf.Lerp(newMin.z, newMax.z, z);
+                z = Mathf.Lerp(newMin.z, newMax.z, z);
 
                 Nodes[i].Vert = new Vector3(x, y, z);
                     }
@@ -743,18 +812,18 @@ namespace MeshMasher {
             var lengthY = _buckets.GetLength(1);
             var lengthZ = _buckets.GetLength(2);
 
-            var pointX = Mathf.FloorToInt(Mathf.InverseLerp(min.x, max.x, testPoint.x) * lengthX);
-            var pointY = Mathf.FloorToInt(Mathf.InverseLerp(min.y, max.y, testPoint.y) * lengthY);
-            var pointZ = Mathf.FloorToInt(Mathf.InverseLerp(min.z, max.z, testPoint.z) * lengthZ);
+            var pointX = Mathf.FloorToInt(Mathf.InverseLerp(min.x, max.x, testPoint.x) * (lengthX-1));
+            var pointY = Mathf.FloorToInt(Mathf.InverseLerp(min.y, max.y, testPoint.y) * (lengthY-1));
+            var pointZ = Mathf.FloorToInt(Mathf.InverseLerp(min.z, max.z, testPoint.z) * (lengthZ-1));
 
             var minDist = float.MaxValue;
             SmartNode node = null;
 
-            for (int x = pointX; x < Mathf.Min(lengthX,pointX+1); x++)
+            for (int x = pointX; x < Mathf.Min(lengthX,pointX+2); x++)
             {
-                for (int y = pointY; y < Mathf.Min(lengthY, pointY + 1); y++)
+                for (int y = pointY; y < Mathf.Min(lengthY, pointY + 2); y++)
                 {
-                    for (int z = pointZ; z < Mathf.Min(lengthZ, pointZ + 1); z++)
+                    for (int z = pointZ; z < Mathf.Min(lengthZ, pointZ + 2); z++)
                     {
                         for (int i = 0; i < _buckets[x,y,z].Count; i++)
                         {
@@ -769,12 +838,32 @@ namespace MeshMasher {
                 }
             }
 
+            if (node == null)
+            {
+                Debug.Log("I'm in hell");
+            }
+
+            //Debug.DrawLine(testPoint, node.Vert, Color.green, 100f);
+
             return node.Index;
         }
 
         void CreateBuckets(int divX, int divY, int divZ)
         {
             _buckets = new List<SmartNode>[divX, divY, divZ];
+
+            for (int x = 0; x < divX; x++)
+            {
+                for (int y = 0; y < divY; y++)
+                {
+                    for (int z = 0; z < divZ; z++)
+                    {
+                        _buckets[x, y, z] = new List<SmartNode>();
+                    }
+                }
+            }
+
+
 
             var min = _bounds.min;
             var max = _bounds.max;
@@ -783,11 +872,19 @@ namespace MeshMasher {
             {
                 var n = Nodes[i].Vert;
 
-                var x = Mathf.InverseLerp(min.x, max.x, n.x) * divX;
-                var y = Mathf.InverseLerp(min.y, max.y, n.y) * divY;
-                var z = Mathf.InverseLerp(min.z, max.z, n.z) * divZ;
+                var x = Mathf.InverseLerp(min.x, max.x, n.x) * (divX-1);
+                var y = Mathf.InverseLerp(min.y, max.y, n.y) * (divY-1);
+                var z = Mathf.InverseLerp(min.z, max.z, n.z) * (divZ-1);
 
-                _buckets[Mathf.RoundToInt(x), Mathf.RoundToInt(y), Mathf.RoundToInt(z)].Add(Nodes[i]);
+                var intX = Mathf.RoundToInt(x);
+                var intY = Mathf.RoundToInt(y);
+                var intZ = Mathf.RoundToInt(z);
+
+
+                    _buckets[intX, intY, intZ].Add(Nodes[i]);
+
+
+                
             }
         }
 
@@ -818,6 +915,26 @@ namespace MeshMasher {
                 Lines = (int[])Lines.Clone(),
             };
         }
+
+        public void Add(MeshState other)
+        {
+            for (int i = 0; i < Nodes.Length; i++)
+            {
+                Nodes[i] += other.Nodes[i];
+            }
+
+            for (int i = 0; i < Cells.Length; i++)
+            {
+                Cells[i] += other.Cells[i];
+            }
+
+            for (int i = 0; i < Lines.Length; i++)
+            {
+                Lines[i] += other.Lines[i];
+            }
+        }
+
+
     }
 
 }  

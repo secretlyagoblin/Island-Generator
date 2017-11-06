@@ -70,6 +70,12 @@ public static class RNG {
         return Mathf.FloorToInt(Mathf.Lerp(minValue,maxValue,t));
     }
 
+    public static float Next(float minValue, float maxValue, AnimationCurve curve)
+    {
+        var t = curve.Evaluate(NextFloat());
+        return Mathf.Lerp(minValue, maxValue, t);
+    }
+
     public static float NextFullRangeFloat()
     {
         double mantissa = (_pseudoRandom.NextDouble() * 2.0) - 1.0;

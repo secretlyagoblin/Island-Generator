@@ -93,7 +93,7 @@ namespace ProcTerrain {
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
             var sMesh = new MeshMasher.SmartMesh(mesh);
-            mesh = sMesh.BuildMeshSurfaceWithCliffs(sMesh.GeneratedSemiConnectedMesh(6));
+            mesh = sMesh.BuildMeshSurfaceWithCliffs(sMesh.GenerateSemiConnectedMesh(6));
 
             var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
                 Map.BlankMap(size, size)
