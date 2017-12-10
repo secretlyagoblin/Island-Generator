@@ -11,6 +11,8 @@ namespace WorldGen {
         public List<Region> Regions = new List<Region>();
         public Vector2 GraphPosition;
         public Vector3 XZPos { get { return new Vector3(GraphPosition.x, 0, GraphPosition.y); } }
+        public int RoomId = -1;
+        public int RoomSize = 0;
 
         public void Finalise()
         {

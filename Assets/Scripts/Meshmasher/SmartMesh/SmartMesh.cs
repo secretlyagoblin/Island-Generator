@@ -681,6 +681,33 @@ namespace MeshMasher {
 
         }
 
+        public MeshState DrawRoomOutlines(MeshState state)
+        {
+            var newState = GetMeshState();
+            var nodeOwnership = new int[Nodes.Count];
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                nodeOwnership[i] = -1;
+            }
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                for (int u = 0; u < Nodes[i].Nodes.Count; u++)
+                {
+                    if(state.Nodes[Nodes[i].Index] != state.Nodes[Nodes[i].Nodes[u].Index] && state.Nodes[Nodes[i].Index] > state.Nodes[Nodes[i].Nodes[u].Index])
+                    {
+                        nodeOwnership[i] = 1;
+                    }
+                }
+            }
+
+            newState.Nodes = nodeOwnership;
+
+            return newState;
+
+        }
+
         public MeshState SecretSauceRoomsBasedOnWeights(MeshState state)
         {
             var newState = GetMeshState();

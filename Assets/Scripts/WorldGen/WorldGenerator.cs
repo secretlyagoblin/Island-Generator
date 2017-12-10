@@ -6,6 +6,7 @@ using WorldGen;
 public class WorldGenerator : MonoBehaviour {
 
     public RegionNetworkSettings RegionSettings;
+    public WorldMeshSettings WorldMeshSettings;
 
     public float SimulationStep = 0.1f;
     public float SimulationLength = 10f;
@@ -14,6 +15,7 @@ public class WorldGenerator : MonoBehaviour {
     WorldMesh _worldMesh;
 
 	// Use this for initialization
+
 	void Start () {
 
         RNG.DateTimeInit();
@@ -21,7 +23,7 @@ public class WorldGenerator : MonoBehaviour {
         _regionNetwork = new RegionNetwork(transform, RegionSettings);  
         _regionNetwork.Simulate(SimulationLength, SimulationStep);       
 
-        _worldMesh = new WorldMesh(_regionNetwork.Finalise(), transform);
+        _worldMesh = new WorldMesh(transform, _regionNetwork.Finalise(), WorldMeshSettings);
         _worldMesh.Generate();
 
         //_regionNetwork.DebugDraw(Color.white, 100f, true);
