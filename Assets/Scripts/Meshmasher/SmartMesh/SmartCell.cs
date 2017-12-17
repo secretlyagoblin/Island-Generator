@@ -183,6 +183,13 @@ namespace MeshMasher {
             BarycentricWeights = new float[] { a1, a2, a3 };
         }
 
+        public void Resize()
+        {
+            Center = Nodes[0].Vert + Nodes[1].Vert + Nodes[2].Vert;
+            float scale = 1f / 3f;
+            Center = new Vector3(Center.x * scale, Center.y * scale, Center.z * scale);
+        }
+
         public void AddLine(SmartLine line)
         {
             Lines.Add(line);

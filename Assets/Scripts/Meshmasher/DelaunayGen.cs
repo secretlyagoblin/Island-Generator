@@ -150,7 +150,7 @@ namespace MeshMasher {
 
         public static SmartMesh FromBounds(Bounds bounds, float triangePercentageSize)
         {
-            RNG.Init();
+            //RNG.Init();
             var sampler = new PoissonDiscSampler(1f, 1f, triangePercentageSize);
             var polygon = new Polygon();
 

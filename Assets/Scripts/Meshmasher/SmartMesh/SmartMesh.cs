@@ -881,7 +881,14 @@ namespace MeshMasher {
                 z = Mathf.Lerp(newMin.z, newMax.z, z);
 
                 Nodes[i].Vert = new Vector3(x, y, z);
-                    }
+            }
+
+            for (int i = 0; i < Cells.Count; i++)
+            {
+                Cells[i].Resize();
+            }
+
+
 
             _bounds = bounds;
         }

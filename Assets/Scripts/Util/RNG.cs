@@ -49,7 +49,7 @@ public static class RNG {
         return _pseudoRandom.Next();
     }
 
-    public static T Next<T>(List<T> list)
+    public static T NextFromList<T>(List<T> list)
     {
         return list[Next(0, list.Count)];
     }

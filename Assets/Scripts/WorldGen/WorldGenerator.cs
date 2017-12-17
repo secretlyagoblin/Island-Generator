@@ -14,19 +14,47 @@ public class WorldGenerator : MonoBehaviour {
     RegionNetwork _regionNetwork;
     WorldMesh _worldMesh;
 
+    public int IterationCount = 1;
+    int _iterationCounter = 0;
+    int _failureCount = 0;
+
 	// Use this for initialization
 
 	void Start () {
 
         RNG.DateTimeInit();
 
-        _regionNetwork = new RegionNetwork(transform, RegionSettings);  
-        _regionNetwork.Simulate(SimulationLength, SimulationStep);       
-
-        _worldMesh = new WorldMesh(transform, _regionNetwork.Finalise(), WorldMeshSettings);
-        _worldMesh.Generate();
 
         //_regionNetwork.DebugDraw(Color.white, 100f, true);
 
+    }
+
+    private void Update()
+    {
+
+
+        if (_iterationCounter >= IterationCount)
+            return;
+
+        _iterationCounter++;
+
+        //Debug.Log("...running iteration " + (_iterationCounter) + "...");
+
+
+
+        _regionNetwork = new RegionNetwork(transform, RegionSettings);
+        _regionNetwork.Simulate(SimulationLength, SimulationStep);
+
+        _worldMesh = new WorldMesh(transform, _regionNetwork.Finalise(), WorldMeshSettings);
+        if (!_worldMesh.Generate())
+        {
+            _failureCount++;
+        }
+
+        if(_iterationCounter == IterationCount)
+        {
+            Debug.Log(IterationCount + " iterations run, " + _failureCount + " errors");
+            Debug.Log(((float)_failureCount/ (float)IterationCount*100f) + "% fail rate");
+        }
     }
 }

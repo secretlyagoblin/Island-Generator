@@ -18,6 +18,16 @@ namespace WorldGen {
         {
             var pos = Object.transform.position;
             GraphPosition = new Vector2(pos.x, pos.y);
+
+            var thisPos = XZPos;
+
+            //for (int i = 0; i < Regions.Count; i++)
+            //{
+            //    var otherPos = new Vector3(Regions[i].Object.transform.position.x, 0, Regions[i].Object.transform.position.y);
+            //
+            //    Debug.DrawLine(thisPos, otherPos, RNG.GetRandomColor(), 100f);
+            //}
+
             GameObject.Destroy(Object);
         }
         

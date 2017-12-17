@@ -76,22 +76,22 @@ namespace WorldGen {
 };
             for (int i = 0; i < points.Length; i++)
             {
-                _regions.Add(CreateNewRegion(points[i], RNG.NextFloat(0.7f, 4f), points[i].z));
+                _regions.Add(CreateNewRegion(points[i], points[i].z));
             }
 
-            CreateChain(_regions[0], _regions[1], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[1], _regions[2], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[3], _regions[4], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[5], _regions[6], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[0], _regions[3], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[3], _regions[5], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[5], _regions[7], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[1], _regions[4], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[8], _regions[6], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[1], _regions[3], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[2], _regions[4], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[8], _regions[5], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
-            CreateChain(_regions[6], _regions[7], RNG.Next(_settings.NodeMin, _settings.NodeMax), true);
+            CreateChain(_regions[0], _regions[1], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[1], _regions[2], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[3], _regions[4], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[5], _regions[6], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[0], _regions[3], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[3], _regions[5], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[5], _regions[7], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[1], _regions[4], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[8], _regions[6], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[1], _regions[3], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[2], _regions[4], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[8], _regions[5], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
+            CreateChain(_regions[6], _regions[7], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
             CreateChain(_regions[4], _regions[8], RNG.Next(1, 3), false);
 
             //_joints = GetComponentsInChildren<SpringJoint2D>();
@@ -99,14 +99,14 @@ namespace WorldGen {
         }
 
         //Creates gameobject representation of graph to simulate
-        Region CreateNewRegion(Vector3 position, float radius, float height)
+        Region CreateNewRegion(Vector3 position, float height)
         {
             var obj = new GameObject();
 
             var region = new Region()
             {
                 Height = height,
-                Radius = radius,
+                Radius = RNG.NextFloat(_settings.RadiusMin,_settings.RadiusMax),
                 Object = obj
             };
 
@@ -131,15 +131,15 @@ namespace WorldGen {
                 var position = Vector3.Lerp(p1.Object.transform.position, p2.Object.transform.position, pointOnDomain);
                 var height = Mathf.Lerp(p1.Height, p2.Height, pointOnDomain);
 
-                chain.Add(CreateNewObjectAndAddLink(position, RNG.NextFloat(0.7f, 2.5f), height, chain[i - 1], regionConnected));
+                chain.Add(CreateNewObjectAndAddLink(position, height, chain[i - 1], regionConnected));
             }
 
             AddLink(p2, chain[chain.Count - 1], regionConnected);
         }
 
-        Region CreateNewObjectAndAddLink(Vector3 position, float radius, float height, Region link, bool regionConnected)
+        Region CreateNewObjectAndAddLink(Vector3 position, float height, Region link, bool regionConnected)
         {
-            var region = CreateNewRegion(position, radius, height);
+            var region = CreateNewRegion(position, height);
             _regions.Add(region);
 
             AddLink(region, link, regionConnected);

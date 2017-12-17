@@ -11,4 +11,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb89816300435b64196377eab01aee23, type: 3}
   m_Name: World Mesh Settings
   m_EditorClassIdentifier: 
-  MinRoomSize: 40
+  MinRoomSize: 30
+  BoundsOffsetPercentage: 0.25
+  DelaunayBoundsRatio: 0.025
+  MinRoomDiffusion: 4
+  MaxRoomDiffusion: 5
+  DebugDisplayTime: 0.01
+  Comments: '500 iterations, 8.2% failure rate
+
+'
