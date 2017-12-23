@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using MeshMasher;
+using System.Linq;
 
 namespace MeshMasher {
     public class SmartLine {
@@ -11,8 +12,8 @@ namespace MeshMasher {
         { get; private set; }
         public List<SmartCell> Neighbours
         { get; private set; }
-        public List<SmartLine> Lines
-        { get; private set; }
+        //public List<SmartLine> Lines
+        //{ get; private set; }
         public int Index
         { get; set; }
 
@@ -28,7 +29,7 @@ namespace MeshMasher {
 
             Nodes = new List<SmartNode>(new SmartNode[] { nodeA, nodeB });
             Neighbours = new List<SmartCell>();
-            Lines = new List<SmartLine>();
+            //Lines = new List<SmartLine>();
 
             nodeA.AddLine(this);
             nodeB.AddLine(this);
@@ -75,7 +76,7 @@ namespace MeshMasher {
                 return Nodes[1];
             if (node == Nodes[1])
                 return Nodes[0];
-            Debug.Log("You are using this wrong, this works only on THIS ");
+            Debug.Log("You are using this wrong, this works only on polylines");
             return null;
         }
 
@@ -97,8 +98,17 @@ namespace MeshMasher {
             if (Nodes[0] == other)
                 return Nodes[1];
             if (Nodes[1] == other)
-                return Nodes[2];
+                return Nodes[0];
             return null;
+        }
+
+        public List<SmartLine> CollectConnectedLines()
+        {
+            var lines = Nodes[0].Lines.ToList();
+            lines.AddRange(Nodes[1].Lines);
+            lines = lines.Distinct().ToList();
+            lines.Remove(this);
+            return lines;
         }
 
         public bool EquatesTo(SmartLine other)

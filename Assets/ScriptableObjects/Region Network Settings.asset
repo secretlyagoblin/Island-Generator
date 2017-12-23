@@ -15,3 +15,4 @@ MonoBehaviour:
   SpawnedNodeMax: 3
   RadiusMin: 2
   RadiusMax: 2.5
+  DestroyGameObject: 1

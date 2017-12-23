@@ -24,19 +24,28 @@ public class WorldGenerator : MonoBehaviour {
 
         RNG.DateTimeInit();
 
+        StartCoroutine(StepThrough(IterationCount, WorldMeshSettings.DebugDisplayTime));
 
         //_regionNetwork.DebugDraw(Color.white, 100f, true);
 
     }
 
-    private void Update()
+    private IEnumerator StepThrough(int iterations, float time)
     {
+        var secs = new WaitForSeconds(time);
 
+        for (int i = 0; i < iterations; i++)
+        {
+            Generate();
+            yield return secs;
+        }
 
-        if (_iterationCounter >= IterationCount)
-            return;
+        Debug.Log(IterationCount + " iterations run, " + _failureCount + " errors");
+        Debug.Log(((float)_failureCount / (float)IterationCount * 100f) + "% fail rate");
+    }
 
-        _iterationCounter++;
+    private void Generate()
+    {
 
         //Debug.Log("...running iteration " + (_iterationCounter) + "...");
 
@@ -49,12 +58,7 @@ public class WorldGenerator : MonoBehaviour {
         if (!_worldMesh.Generate())
         {
             _failureCount++;
-        }
-
-        if(_iterationCounter == IterationCount)
-        {
-            Debug.Log(IterationCount + " iterations run, " + _failureCount + " errors");
-            Debug.Log(((float)_failureCount/ (float)IterationCount*100f) + "% fail rate");
+            Generate();
         }
     }
 }

@@ -92,7 +92,7 @@ namespace WorldGen {
             CreateChain(_regions[2], _regions[4], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
             CreateChain(_regions[8], _regions[5], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
             CreateChain(_regions[6], _regions[7], RNG.Next(_settings.SpawnedNodeMin, _settings.SpawnedNodeMax), true);
-            CreateChain(_regions[4], _regions[8], RNG.Next(1, 3), false);
+            CreateChain(_regions[4], _regions[8], 1, false);
 
             //_joints = GetComponentsInChildren<SpringJoint2D>();
             //StartCoroutine(FreezePhysicsAfterTime(TimeCount));
@@ -140,7 +140,8 @@ namespace WorldGen {
         Region CreateNewObjectAndAddLink(Vector3 position, float height, Region link, bool regionConnected)
         {
             var region = CreateNewRegion(position, height);
-            _regions.Add(region);
+            if(regionConnected)
+                _regions.Add(region);
 
             AddLink(region, link, regionConnected);
             return region;

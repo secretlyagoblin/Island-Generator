@@ -49,8 +49,10 @@ namespace WorldGen {
 
 
             var returnValue =  TestAndApplyTrueAdjacencies(biggerRooms,roads, newSets);
-
+            
             DrawRoomCells(biggerRooms);
+            //DrawPotentialConnections(roomMeshState);
+
 
             return returnValue;
         }
@@ -268,6 +270,64 @@ namespace WorldGen {
             }
         }
 
+        void DrawPotentialConnections(MeshMasher.MeshState rooms)
+        {
+            var lineState = new int[_mesh.Lines.Count];
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+
+                if (rooms.Nodes[l.Nodes[0].Index] != -1 | rooms.Nodes[l.Nodes[1].Index] != -1)
+                {
+                    lineState[i]++;
+
+                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                    //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
+                    //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
+                }
+            }
+
+            var iterationCount = 1;
+
+            for (int it = 1; it <= iterationCount; it++)
+            {
+                for (int i = 0; i < _mesh.Lines.Count; i++)
+                {
+                    var l = _mesh.Lines[i];
+                    if (lineState[i] == it)
+                        continue;
+            
+                    var lines = l.CollectConnectedLines();
+            
+                    for (int lc = 0; lc < lines.Count; lc++)
+                    {
+                        if(lineState[lines[lc].Index] == it)
+                        {
+                            lineState[i] = it+1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+
+                if (lineState[i] > 1)
+                {
+
+                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                    var colourHue = Mathf.InverseLerp(0f, (float)iterationCount, lineState[i]);
+                    l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f),_settings.DebugDisplayTime);//, colourHue * 200);
+                }
+            }
+
+
+
+
+        }
+
         void SetRegionRoomSize(MeshMasher.MeshState rooms)
         {
             var lengthDict = new Dictionary<int, int>();
@@ -358,8 +418,6 @@ namespace WorldGen {
                         var a = regionId > neighId ? regionId : neighId;
                         var b = regionId > neighId ? neighId : regionId;
 
-                        //need to check room Ids against new map!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! son
-
                         if (adjacencySets.ContainsKey(new KeyValuePair<int, int>(a, b)))
                         {
                             var neighSize = neigh.RoomSize;
@@ -376,12 +434,12 @@ namespace WorldGen {
                     }
 
                     r.RoomSize = minRoomSize;
-                    Debug.Log("No valid neihbour found");
+                    //Debug.Log("No valid neihbour found");
 
                     roomfound:
                     continue;
 
-                }              
+                }        
 
 
 
@@ -425,6 +483,7 @@ namespace WorldGen {
 
             var testSets = new List<KeyValuePair<int, int>>();
             var invalidRoomConnection = 0;
+            var invalidPairs = new List<KeyValuePair<int, int>>();
 
             //Find Adjacency Sets and cross reference against initial graph
 
@@ -457,11 +516,122 @@ namespace WorldGen {
                     else
                     {
                         invalidRoomConnection++;
-                        Debug.DrawLine(r.XZPos, n.XZPos, Color.red, _settings.DebugDisplayTime);
+                        invalidPairs.Add(pair);
+                        //Debug.DrawLine(r.XZPos, n.XZPos, Color.red, _settings.DebugDisplayTime);
                         
                     }
                 }
             }
+
+            invalidPairs = invalidPairs.Distinct().ToList();
+
+            //Repair Sets
+
+            if (invalidPairs.Count > 0)
+            {
+
+                for (int i = 0; i < _mesh.Nodes.Count; i++)
+                {
+
+                    if (rooms.Nodes[i] != -1)
+                        continue;
+
+                    var n = _mesh.Nodes[i];
+                    var codes = new List<int>();
+                    var potentialPairs = new List<KeyValuePair<int, int>>();
+
+                    for (int u = 0; u < n.Nodes.Count; u++)
+                    {
+                        var code = rooms.Nodes[n.Nodes[u].Index];
+                        codes.Add(code);
+
+                        for (int v = 0; v < invalidPairs.Count; v++)
+                        {
+                            if (code == invalidPairs[v].Key)
+                                potentialPairs.Add(invalidPairs[v]);
+                        }
+                    }
+
+                    potentialPairs = potentialPairs.Distinct().ToList();
+                    KeyValuePair<int, int> pair = new KeyValuePair<int, int>(-1, -1);
+                    var foundPair = false;
+
+                    for (int u = 0; u < potentialPairs.Count; u++)
+                    {
+                        var pp = potentialPairs[u];
+
+
+                        for (int v = 0; v < codes.Count; v++)
+                        {
+                            if (codes[v] == pp.Value)
+                            {
+                                pair = potentialPairs[u];
+                                foundPair = true;
+                                break;
+                            }
+
+                        }
+
+                        if (!foundPair)
+                            continue;
+
+                        Debug.Log("Repaired Failure by adding corridor section");
+
+                        invalidPairs.Remove(pair);
+                        invalidRoomConnection -= 2;
+
+
+                        var keyAssigned = false;
+                        var valueAssigned = false;
+
+                        for (int v = 0; v < n.Lines.Count; v++)
+                        {
+                            var l = n.Lines[v];
+                            var otherNode = l.GetOtherNode(n);
+
+                            var code = rooms.Nodes[otherNode.Index];
+
+                            if (!keyAssigned)
+                            {
+                                if (pair.Key == code)
+                                {
+                                    rooms.Lines[l.Index] = 1;
+                                    l.DrawLine(Color.gray, _settings.DebugDisplayTime);
+                                    //Debug.Log("Actually worked, key");
+                                    keyAssigned = true;
+                                }
+                            }
+
+                            if (!valueAssigned)
+                            {
+                                if (pair.Value == code)
+                                {
+                                    rooms.Lines[l.Index] = 1;
+                                    l.DrawLine(Color.gray, _settings.DebugDisplayTime);
+                                    //Debug.Log("Actually worked");
+                                    valueAssigned = true;
+                                }
+                            }
+
+                            if (keyAssigned && valueAssigned)
+                            {
+                                rooms.Nodes[i] = RNG.NextFloat() < 0.5f ? pair.Key : pair.Value;
+                                break;
+                            }
+                                
+
+                        }
+                    }
+
+                    if(invalidPairs.Count == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            //TODO: in here we need to look for nodes that have two nodes that bridge an invalid connection. Hopefully this will catch some of the invalid connections.
+
 
             // Set connections between sets
 
@@ -484,6 +654,8 @@ namespace WorldGen {
             //    }
             //}
 
+            //Create roads
+
             foreach (var item in testSets)
             {
 
@@ -493,10 +665,9 @@ namespace WorldGen {
 
                 for (int i = 0; i < set.Count; i++)
                 {
-                    if (connected[_mesh.Lines[set[i]].Nodes[0].Index] == true && connected[_mesh.Lines[set[i]].Nodes[1].Index])
+                    if (connected[_mesh.Lines[set[i]].Nodes[0].Index] == true && connected[_mesh.Lines[set[i]].Nodes[1].Index] == true)
                     {
                         subset.Add(set[i]);
-                        //Todo test is subset is already in connected set... might be best done in other loop
                     }
                 }
 
@@ -533,7 +704,7 @@ namespace WorldGen {
 
             if (invalidRoomConnection > 0)
             {
-                Debug.Log(invalidRoomConnection + " invalid connection(s)");
+                Debug.Log((invalidRoomConnection/2) + " invalid connection(s)");
                 return false;
             }
 

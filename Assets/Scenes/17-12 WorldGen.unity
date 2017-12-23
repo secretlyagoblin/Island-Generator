@@ -144,7 +144,7 @@ MonoBehaviour:
   WorldMeshSettings: {fileID: 11400000, guid: 2d9f61a8645376c4caf49a65e87dc7d6, type: 2}
   SimulationStep: 0.01
   SimulationLength: 30
-  IterationCount: 500
+  IterationCount: 300
 --- !u!4 &306937152
 Transform:
   m_ObjectHideFlags: 0

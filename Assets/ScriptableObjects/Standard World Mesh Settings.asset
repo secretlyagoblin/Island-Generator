@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb89816300435b64196377eab01aee23, type: 3}
   m_Name: Standard World Mesh Settings
   m_EditorClassIdentifier: 
-  MinRoomSize: 30
+  MinRoomSize: 40
   BoundsOffsetPercentage: 0.25
   DelaunayBoundsRatio: 0.025
   MinRoomDiffusion: 4
