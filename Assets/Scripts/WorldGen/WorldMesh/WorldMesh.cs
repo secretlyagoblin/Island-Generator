@@ -31,7 +31,7 @@ namespace WorldGen {
             var roomMeshState = GenerateRooms();
 
             SetRegionRoomSize(roomMeshState);
-            //var sets = GetAdjacencySets(roomMeshState);
+            var sets = GetAdjacencySets(roomMeshState);
             //DrawRoomCells(roomMeshState);
             //TestAndApplyTrueAdjacencies(roomMeshState, sets);
             
@@ -39,7 +39,7 @@ namespace WorldGen {
             //DrawRooms(roomMeshState);
             //
 
-            var biggerRooms = ConsolidateSmallRooms(roomMeshState, _settings.MinRoomSize);
+            var biggerRooms = ConsolidateSmallRooms(roomMeshState, _settings.MinRoomSize, sets);
             var newSets = GetAdjacencySets(biggerRooms);
             
             DrawRooms(biggerRooms);
@@ -225,7 +225,7 @@ namespace WorldGen {
                 }
             }
 
-            var pairBase = 0;
+            //var pairBase = 0;
             
             //foreach (var r in relationshipBags)
             //{
@@ -298,16 +298,18 @@ namespace WorldGen {
             }
         }
 
-        MeshMasher.MeshState ConsolidateSmallRooms(MeshMasher.MeshState rooms, int minRoomSize)
+        MeshMasher.MeshState ConsolidateSmallRooms(MeshMasher.MeshState rooms, int minRoomSize, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
         {
             var consolidatedRooms = _mesh.GetMeshState();
             var smallRooms = new List<Region>();
             var oldIdDict = new Dictionary<int, Region>();
+            var oldRegionDict = new Dictionary<Region, int>();
+
+            //Create map of original regions, determine rooms smaller than min
 
             foreach (var pair in _regionVertexIndex)
             {
                 var r = pair.Key;
-
 
                 if (oldIdDict.ContainsKey(r.RoomId))
                 {
@@ -316,6 +318,7 @@ namespace WorldGen {
                 else
                 {
                     oldIdDict.Add(r.RoomId, r);
+                    oldRegionDict.Add(r, r.RoomId);
                 }
 
 
@@ -325,6 +328,8 @@ namespace WorldGen {
                 }
             }
 
+            //iterate small rooms, connecting as required
+
             while (smallRooms.Count > 0)
             {
                 for (int i = 0; i < smallRooms.Count; i++)
@@ -333,22 +338,52 @@ namespace WorldGen {
                     if (r.RoomSize > minRoomSize)
                         continue;
 
+                    var neighs = r.Regions.OrderBy(x => x.RoomSize).ToList();
 
-
-                    var neigh = r.Regions.OrderBy(x => x.RoomSize).LastOrDefault();
-                    if (neigh == null)
+                    if (neighs.Count == 0)
                     {
+                        Debug.Log("No neihbours found at all!");
                         r.RoomSize = minRoomSize;
-                    }
-                    else
-                    {
-                        var neighSize = neigh.RoomSize;
-                        neigh.RoomSize += r.RoomSize;
-                        r.RoomId = neigh.RoomId;
-                        r.RoomSize += neighSize;
+                        goto roomfound;
                     }
 
-                }
+                    var regionId = oldRegionDict[r];
+
+                    for (int u = 0; u < neighs.Count; u++)
+                    {
+                        var neigh = neighs[u];
+
+                        var neighId = oldRegionDict[neigh];
+
+                        var a = regionId > neighId ? regionId : neighId;
+                        var b = regionId > neighId ? neighId : regionId;
+
+                        //need to check room Ids against new map!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! son
+
+                        if (adjacencySets.ContainsKey(new KeyValuePair<int, int>(a, b)))
+                        {
+                            var neighSize = neigh.RoomSize;
+                            neigh.RoomSize += r.RoomSize;
+                            r.RoomId = neigh.RoomId;
+                            r.RoomSize += neighSize;
+
+                            goto roomfound;
+                        }
+                        else
+                        {
+
+                        }
+                    }
+
+                    r.RoomSize = minRoomSize;
+                    Debug.Log("No valid neihbour found");
+
+                    roomfound:
+                    continue;
+
+                }              
+
+
 
                 smallRooms.Clear();
 
@@ -459,7 +494,10 @@ namespace WorldGen {
                 for (int i = 0; i < set.Count; i++)
                 {
                     if (connected[_mesh.Lines[set[i]].Nodes[0].Index] == true && connected[_mesh.Lines[set[i]].Nodes[1].Index])
+                    {
                         subset.Add(set[i]);
+                        //Todo test is subset is already in connected set... might be best done in other loop
+                    }
                 }
 
                 if(subset.Count == 0)

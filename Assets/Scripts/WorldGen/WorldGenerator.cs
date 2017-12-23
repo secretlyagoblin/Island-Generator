@@ -48,7 +48,7 @@ public class WorldGenerator : MonoBehaviour {
 
         if (!_worldMesh.Generate())
         {
-            _failureCount= IterationCount;
+            _failureCount++;
         }
 
         if(_iterationCounter == IterationCount)

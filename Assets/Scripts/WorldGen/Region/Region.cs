@@ -14,7 +14,7 @@ namespace WorldGen {
         public int RoomId = -1;
         public int RoomSize = 0;
 
-        public void Finalise()
+        public void Finalise(bool destroyGameObject)
         {
             var pos = Object.transform.position;
             GraphPosition = new Vector2(pos.x, pos.y);
@@ -28,7 +28,8 @@ namespace WorldGen {
             //    Debug.DrawLine(thisPos, otherPos, RNG.GetRandomColor(), 100f);
             //}
 
-            //GameObject.Destroy(Object);
+            if(destroyGameObject)
+                GameObject.Destroy(Object);
         }
         
 

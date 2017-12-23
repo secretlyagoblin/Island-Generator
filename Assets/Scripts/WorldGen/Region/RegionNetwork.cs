@@ -39,7 +39,7 @@ namespace WorldGen {
         {
             for (int i = 0; i < _regions.Count; i++)
             {
-                _regions[i].Finalise();
+                _regions[i].Finalise(_settings.DestroyGameObject);
             }
 
             return _regions;        

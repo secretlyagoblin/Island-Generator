@@ -10,5 +10,6 @@ namespace WorldGen {
         public int SpawnedNodeMax = 5;
         public float RadiusMin = 1f;
         public float RadiusMax = 2f;
+        public bool DestroyGameObject = true;
     }
 }
