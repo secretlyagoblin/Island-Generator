@@ -33,7 +33,7 @@ namespace WorldGen {
             SetRegionRoomSize(roomMeshState);
             //var sets = GetAdjacencySets(roomMeshState);
             //DrawRoomCells(roomMeshState);
-            //DetermineTrueAdjacencies(roomMeshState, sets);
+            //TestAndApplyTrueAdjacencies(roomMeshState, sets);
             
 
             //DrawRooms(roomMeshState);
@@ -42,12 +42,17 @@ namespace WorldGen {
             var biggerRooms = ConsolidateSmallRooms(roomMeshState, _settings.MinRoomSize);
             var newSets = GetAdjacencySets(biggerRooms);
             
-            //DrawRooms(biggerRooms);
+            DrawRooms(biggerRooms);
             //DrawRoomOutlines(biggerRooms);
-            DrawRoomCells(biggerRooms);
-            //GenerateRoads();
+            
+            var roads = GenerateRoads();
 
-            return TestTrueAdjacencies(biggerRooms, newSets);
+
+            var returnValue =  TestAndApplyTrueAdjacencies(biggerRooms,roads, newSets);
+
+            DrawRoomCells(biggerRooms);
+
+            return returnValue;
         }
 
         //Init
@@ -84,7 +89,7 @@ namespace WorldGen {
 
         // Roads
 
-        void GenerateRoads()
+        List<int> GenerateRoads()
         {
 
             var nodes = new List<int>();
@@ -102,28 +107,35 @@ namespace WorldGen {
                 }
             }
 
-            var connectivity = nodes.Distinct().ToArray();
+            var connectivity = nodes.Distinct().ToList();
 
             //for (int u = 0; u < distinct.Length; u++)
             //{
             //    Debug.DrawRay(_mesh.Nodes[distinct[u]].Vert, Vector3.up, Color.blue, 100f);
             //} 
 
-            var connected = new bool[_mesh.Nodes.Count];
+            return connectivity;
 
-            for (int i = 0; i < connectivity.Length; i++)
-            {
-                connected[connectivity[i]] = true;
-            }
-
-            for (int i = 0; i < _mesh.Lines.Count; i++)
-            {
-                var l = _mesh.Lines[i];
-                if (connected[l.Nodes[0].Index] == true && connected[l.Nodes[1].Index] == true)
-                {
-                    l.DrawLine(Color.gray, 100f, 0.2f);
-                }
-            }
+            //var outputLines = new List<int>();
+            //
+            //var connected = new bool[_mesh.Nodes.Count];
+            //
+            //for (int i = 0; i < connectivity.Length; i++)
+            //{
+            //    connected[connectivity[i]] = true;
+            //}
+            //
+            //for (int i = 0; i < _mesh.Lines.Count; i++)
+            //{
+            //    var l = _mesh.Lines[i];
+            //    if (connected[l.Nodes[0].Index] == true && connected[l.Nodes[1].Index] == true)
+            //    {
+            //
+            //
+            //
+            //        l.DrawLine(Color.gray, _settings.DebugDisplayTime, 1f);
+            //    }
+            //}
         }
 
         //Rooms
@@ -155,7 +167,7 @@ namespace WorldGen {
                     if (rooms.Nodes[l.Nodes[0].Index] == rooms.Nodes[l.Nodes[1].Index])
                     {
                         var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
-                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
+                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
                         //l.DrawLine(Color.white, 100f);//, colourHue * 200);
                     }
 
@@ -176,7 +188,7 @@ namespace WorldGen {
                 var l = _mesh.Lines[i];
                 if (boundaries.Nodes[l.Nodes[0].Index] == 1 && boundaries.Nodes[l.Nodes[1].Index] == 1)
                 {
-                    l.DrawLine(Color.red, 100f, 0.1f);
+                    l.DrawLine(Color.red, 100f, _settings.DebugDisplayTime);
                 }
             }
         }
@@ -244,6 +256,10 @@ namespace WorldGen {
                 for (int u = 0; u < c.Neighbours.Count; u++)
                 {
                     var line = c.GetSharedBorder(c.Neighbours[u]);
+
+                    if (rooms.Lines[line.Index] == 1)
+                        continue;
+
                     if(rooms.Nodes[line.Nodes[0].Index] != rooms.Nodes[line.Nodes[1].Index])
                     {
                         Debug.DrawLine(c.Center, c.Neighbours[u].Center, Color.grey, _settings.DebugDisplayTime);
@@ -280,72 +296,6 @@ namespace WorldGen {
                 r.RoomId = rooms.Nodes[pair.Value];
                 r.RoomSize = lengthDict[r.RoomId];
             }
-        }
-
-        bool TestTrueAdjacencies(MeshMasher.MeshState rooms, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
-        {
-
-
-            var testSets = new List<KeyValuePair<int, int>>();
-            var invalidRoomConnection = 0;
-
-
-            for (int i = 0; i < _regions.Count; i++)
-            {
-                var r = _regions[i];
-
-                
-                for (int u = 0; u < r.Regions.Count; u++)
-                {
-                    var n = r.Regions[u];
-
-                    if (r.RoomId == n.RoomId)
-                        continue;
-
-                    var pair = r.RoomId > n.RoomId ? new KeyValuePair<int, int>(r.RoomId, n.RoomId) : new KeyValuePair<int, int>(n.RoomId, r.RoomId);
-
-                    if (adjacencySets.ContainsKey(pair))
-                    {
-
-                        if (testSets.Contains(pair))
-                        {
-
-                        }
-                        else
-                        {
-                            testSets.Add(pair);
-                        }
-                    }
-                    else
-                    {
-                        invalidRoomConnection++;
-                        Debug.DrawLine(r.XZPos, n.XZPos, Color.red, _settings.DebugDisplayTime);
-                        
-                    }
-                }
-            }
-
-            foreach (var item in testSets)
-            {
-
-                var set = adjacencySets[item];
-                var l = RNG.NextFromList(set);
-
-                //_regionVertexIndex()
-
-                //var r = item.Key
-
-                //_mesh.Lines[l].DrawLine(Color.white, 100f);
-
-            }
-
-            if (invalidRoomConnection > 0)
-            {
-                Debug.Log(invalidRoomConnection + " invalid connection(s)");
-                return false;
-            }
-
-            return true;
         }
 
         MeshMasher.MeshState ConsolidateSmallRooms(MeshMasher.MeshState rooms, int minRoomSize)
@@ -386,7 +336,7 @@ namespace WorldGen {
 
 
                     var neigh = r.Regions.OrderBy(x => x.RoomSize).LastOrDefault();
-                    if(neigh == null)
+                    if (neigh == null)
                     {
                         r.RoomSize = minRoomSize;
                     }
@@ -432,6 +382,127 @@ namespace WorldGen {
             return consolidatedRooms;
 
         }
+
+        // Final
+
+        bool TestAndApplyTrueAdjacencies(MeshMasher.MeshState rooms, List<int> roads, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
+        {
+
+            var testSets = new List<KeyValuePair<int, int>>();
+            var invalidRoomConnection = 0;
+
+            //Find Adjacency Sets and cross reference against initial graph
+
+            for (int i = 0; i < _regions.Count; i++)
+            {
+                var r = _regions[i];
+
+                
+                for (int u = 0; u < r.Regions.Count; u++)
+                {
+                    var n = r.Regions[u];
+
+                    if (r.RoomId == n.RoomId)
+                        continue;
+
+                    var pair = r.RoomId > n.RoomId ? new KeyValuePair<int, int>(r.RoomId, n.RoomId) : new KeyValuePair<int, int>(n.RoomId, r.RoomId);
+
+                    if (adjacencySets.ContainsKey(pair))
+                    {
+
+                        if (testSets.Contains(pair))
+                        {
+
+                        }
+                        else
+                        {
+                            testSets.Add(pair);
+                        }
+                    }
+                    else
+                    {
+                        invalidRoomConnection++;
+                        Debug.DrawLine(r.XZPos, n.XZPos, Color.red, _settings.DebugDisplayTime);
+                        
+                    }
+                }
+            }
+
+            // Set connections between sets
+
+            var connected = new bool[_mesh.Nodes.Count];
+
+            for (int i = 0; i < roads.Count; i++)
+            {
+                connected[roads[i]] = true;
+            }
+
+            //for (int i = 0; i < _mesh.Lines.Count; i++)
+            //{
+            //    var l = _mesh.Lines[i];
+            //    if (connected[l.Nodes[0].Index] == true && connected[l.Nodes[1].Index] == true)
+            //    {
+            //
+            //
+            //
+            //        l.DrawLine(Color.gray, _settings.DebugDisplayTime, 1f);
+            //    }
+            //}
+
+            foreach (var item in testSets)
+            {
+
+                var set = adjacencySets[item];
+
+                var subset = new List<int>();
+
+                for (int i = 0; i < set.Count; i++)
+                {
+                    if (connected[_mesh.Lines[set[i]].Nodes[0].Index] == true && connected[_mesh.Lines[set[i]].Nodes[1].Index])
+                        subset.Add(set[i]);
+                }
+
+                if(subset.Count == 0)
+                {
+                    subset.Add(RNG.NextFromList(set));
+                }
+
+                for (int i = 0; i < subset.Count; i++)
+                {
+                    rooms.Lines[subset[i]] = 1;
+                    _mesh.Lines[subset[i]].DrawLine(Color.gray, _settings.DebugDisplayTime);
+                }
+
+                //var l = RNG.NextFromList(set);
+                // 
+                //rooms.Lines[l] = 1;
+
+                //for (int u = 0; u < set.Count; u++)
+                //{
+                //    if(rooms.Lines[u] != 1)
+                //    {
+                //        _mesh.Lines[set[u]].DrawLine(Color.red, _settings.DebugDisplayTime);
+                //    }
+                //}
+
+                //_regionVertexIndex()
+
+                //var r = item.Key
+
+                
+
+            }
+
+            if (invalidRoomConnection > 0)
+            {
+                Debug.Log(invalidRoomConnection + " invalid connection(s)");
+                return false;
+            }
+
+            return true;
+        }
+
+        
 
     }
 

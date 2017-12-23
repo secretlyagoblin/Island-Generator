@@ -40,15 +40,15 @@ public class WorldGenerator : MonoBehaviour {
 
         //Debug.Log("...running iteration " + (_iterationCounter) + "...");
 
-
-
         _regionNetwork = new RegionNetwork(transform, RegionSettings);
         _regionNetwork.Simulate(SimulationLength, SimulationStep);
 
         _worldMesh = new WorldMesh(transform, _regionNetwork.Finalise(), WorldMeshSettings);
+
+
         if (!_worldMesh.Generate())
         {
-            _failureCount++;
+            _failureCount= IterationCount;
         }
 
         if(_iterationCounter == IterationCount)

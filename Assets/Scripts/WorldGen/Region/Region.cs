@@ -28,7 +28,7 @@ namespace WorldGen {
             //    Debug.DrawLine(thisPos, otherPos, RNG.GetRandomColor(), 100f);
             //}
 
-            GameObject.Destroy(Object);
+            //GameObject.Destroy(Object);
         }
         
 
