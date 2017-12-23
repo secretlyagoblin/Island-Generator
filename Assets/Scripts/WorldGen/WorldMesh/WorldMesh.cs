@@ -15,6 +15,8 @@ namespace WorldGen {
         MeshMasher.SmartMesh _mesh;
         WorldMeshSettings _settings;
 
+        //public 
+
         public WorldMesh(Transform root, List<Region> regions, WorldMeshSettings settings )
         {
             _regions = regions;
@@ -53,8 +55,17 @@ namespace WorldGen {
             DrawRoomCells(biggerRooms);
             //DrawPotentialConnections(roomMeshState);
 
-
             return returnValue;
+        }
+
+        public List<RegionMesh> Finalise()
+        {
+            return new List<RegionMesh>();
+        }
+
+        public void DisplayDebugGraph()
+        {
+
         }
 
         //Init

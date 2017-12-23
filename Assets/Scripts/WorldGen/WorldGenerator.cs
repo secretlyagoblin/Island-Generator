@@ -7,12 +7,11 @@ public class WorldGenerator : MonoBehaviour {
 
     public RegionNetworkSettings RegionSettings;
     public WorldMeshSettings WorldMeshSettings;
-
-    public float SimulationStep = 0.1f;
-    public float SimulationLength = 10f;
+    public RegionMeshSettings RegionMeshSettings;
 
     RegionNetwork _regionNetwork;
     WorldMesh _worldMesh;
+    RegionMeshNetwork _regionMeshNetwork;
 
     public int IterationCount = 1;
     int _iterationCounter = 0;
@@ -24,41 +23,47 @@ public class WorldGenerator : MonoBehaviour {
 
         RNG.DateTimeInit();
 
-        StartCoroutine(StepThrough(IterationCount, WorldMeshSettings.DebugDisplayTime));
+        StartCoroutine(StepThrough(WorldMeshSettings.DebugDisplayTime));
 
         //_regionNetwork.DebugDraw(Color.white, 100f, true);
 
     }
 
-    private IEnumerator StepThrough(int iterations, float time)
+    private IEnumerator StepThrough(float time)
     {
         var secs = new WaitForSeconds(time);
 
-        for (int i = 0; i < iterations; i++)
+        for (int i = 0; i < IterationCount; i++)
         {
             Generate();
             yield return secs;
         }
 
-        Debug.Log(IterationCount + " iterations run, " + _failureCount + " errors");
+        Debug.Log(_iterationCounter + " iterations run, " + _failureCount + " errors");
         Debug.Log(((float)_failureCount / (float)IterationCount * 100f) + "% fail rate");
     }
 
     private void Generate()
     {
-
-        //Debug.Log("...running iteration " + (_iterationCounter) + "...");
+        _iterationCounter++;
 
         _regionNetwork = new RegionNetwork(transform, RegionSettings);
-        _regionNetwork.Simulate(SimulationLength, SimulationStep);
+        _regionNetwork.Simulate(RegionSettings.SimulationLength, RegionSettings.SimulationStep);
 
         _worldMesh = new WorldMesh(transform, _regionNetwork.Finalise(), WorldMeshSettings);
-
 
         if (!_worldMesh.Generate())
         {
             _failureCount++;
             Generate();
+            return;
         }
+
+        //nothing after here does anything, but it should!
+        //for this to work, generate has to set up data for next stage
+        // after that, debug display should have enough info it run over graph independintly of generate.
+
+        _worldMesh.DisplayDebugGraph();
+        _regionMeshNetwork = new RegionMeshNetwork(_worldMesh.Finalise());
     }
 }

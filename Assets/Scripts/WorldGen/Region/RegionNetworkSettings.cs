@@ -11,5 +11,7 @@ namespace WorldGen {
         public float RadiusMin = 1f;
         public float RadiusMax = 2f;
         public bool DestroyGameObject = true;
+        public float SimulationStep = 0.1f;
+        public float SimulationLength = 10f;
     }
 }

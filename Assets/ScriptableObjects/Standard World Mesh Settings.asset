@@ -16,7 +16,7 @@ MonoBehaviour:
   DelaunayBoundsRatio: 0.025
   MinRoomDiffusion: 4
   MaxRoomDiffusion: 5
-  DebugDisplayTime: 0.001
+  DebugDisplayTime: 100
   Comments: '500 iterations, 8.2% failure rate
 
 '

@@ -142,9 +142,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RegionSettings: {fileID: 11400000, guid: 3b4cb3d916800ce4185a454103fd90a6, type: 2}
   WorldMeshSettings: {fileID: 11400000, guid: 2d9f61a8645376c4caf49a65e87dc7d6, type: 2}
-  SimulationStep: 0.01
-  SimulationLength: 30
-  IterationCount: 300
+  RegionMeshSettings: {fileID: 11400000, guid: 25c00eae71dc09a4f9ca8aa496edbe30, type: 2}
+  IterationCount: 1
 --- !u!4 &306937152
 Transform:
   m_ObjectHideFlags: 0
