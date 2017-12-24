@@ -15,6 +15,9 @@ namespace WorldGen {
         MeshMasher.SmartMesh _mesh;
         WorldMeshSettings _settings;
 
+        MeshMasher.MeshState _roomState;
+        float[] _heightMap;
+
         //public 
 
         public WorldMesh(Transform root, List<Region> regions, WorldMeshSettings settings )
@@ -44,16 +47,19 @@ namespace WorldGen {
             var biggerRooms = ConsolidateSmallRooms(roomMeshState, _settings.MinRoomSize, sets);
             var newSets = GetAdjacencySets(biggerRooms);
             
-            DrawRooms(biggerRooms);
+            //DrawRooms(biggerRooms);
             //DrawRoomOutlines(biggerRooms);
             
             var roads = GenerateRoads();
 
 
             var returnValue =  TestAndApplyTrueAdjacencies(biggerRooms,roads, newSets);
-            
-            DrawRoomCells(biggerRooms);
+
+            //DrawRoomCells(biggerRooms);
             //DrawPotentialConnections(roomMeshState);
+
+            _roomState = biggerRooms;
+            _heightMap = GetHeightmap(biggerRooms, 20);
 
             return returnValue;
         }
@@ -65,7 +71,10 @@ namespace WorldGen {
 
         public void DisplayDebugGraph()
         {
-
+            //DrawRooms(_roomState);
+            DrawRoomCells(_roomState);
+            DrawLines(_roomState);
+            DrawHeightMap(_roomState,_heightMap,5);
         }
 
         //Init
@@ -168,44 +177,6 @@ namespace WorldGen {
             return returnState;
         }
 
-        void DrawRooms(MeshMasher.MeshState rooms)
-        {
-            for (int i = 0; i < _mesh.Lines.Count; i++)
-            {
-                var l = _mesh.Lines[i];
-
-                if (rooms.Nodes[l.Nodes[0].Index] != -1 && rooms.Nodes[l.Nodes[1].Index] != -1)
-                {
-
-                    if (rooms.Nodes[l.Nodes[0].Index] == rooms.Nodes[l.Nodes[1].Index])
-                    {
-                        var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
-                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
-                        //l.DrawLine(Color.white, 100f);//, colourHue * 200);
-                    }
-
-                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
-                    //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
-                    //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
-
-                }
-            }
-        }
-
-        void DrawRoomOutlines(MeshMasher.MeshState rooms)
-        {
-            var boundaries = _mesh.DrawRoomOutlines(rooms);
-
-            for (int i = 0; i < _mesh.Lines.Count; i++)
-            {
-                var l = _mesh.Lines[i];
-                if (boundaries.Nodes[l.Nodes[0].Index] == 1 && boundaries.Nodes[l.Nodes[1].Index] == 1)
-                {
-                    l.DrawLine(Color.red, 100f, _settings.DebugDisplayTime);
-                }
-            }
-        }
-
         Dictionary<KeyValuePair<int, int>, List<int>> GetAdjacencySets(MeshMasher.MeshState rooms)
         {
             //var boundaries = _mesh.DrawRoomOutlines(rooms);
@@ -254,87 +225,6 @@ namespace WorldGen {
             //}
 
             return relationshipBags;
-
-
-        }
-
-        void DrawRoomCells(MeshMasher.MeshState rooms)
-        {
-            //var boundaries = _mesh.DrawRoomOutlines(rooms);
-
-            for (int i = 0; i < _mesh.Cells.Count; i++)
-            {
-                var c = _mesh.Cells[i];
-
-                for (int u = 0; u < c.Neighbours.Count; u++)
-                {
-                    var line = c.GetSharedBorder(c.Neighbours[u]);
-
-                    if (rooms.Lines[line.Index] == 1)
-                        continue;
-
-                    if(rooms.Nodes[line.Nodes[0].Index] != rooms.Nodes[line.Nodes[1].Index])
-                    {
-                        Debug.DrawLine(c.Center, c.Neighbours[u].Center, Color.grey, _settings.DebugDisplayTime);
-                    }
-                }
-            }
-        }
-
-        void DrawPotentialConnections(MeshMasher.MeshState rooms)
-        {
-            var lineState = new int[_mesh.Lines.Count];
-            for (int i = 0; i < _mesh.Lines.Count; i++)
-            {
-                var l = _mesh.Lines[i];
-
-                if (rooms.Nodes[l.Nodes[0].Index] != -1 | rooms.Nodes[l.Nodes[1].Index] != -1)
-                {
-                    lineState[i]++;
-
-                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
-                    //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
-                    //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
-                }
-            }
-
-            var iterationCount = 1;
-
-            for (int it = 1; it <= iterationCount; it++)
-            {
-                for (int i = 0; i < _mesh.Lines.Count; i++)
-                {
-                    var l = _mesh.Lines[i];
-                    if (lineState[i] == it)
-                        continue;
-            
-                    var lines = l.CollectConnectedLines();
-            
-                    for (int lc = 0; lc < lines.Count; lc++)
-                    {
-                        if(lineState[lines[lc].Index] == it)
-                        {
-                            lineState[i] = it+1;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < _mesh.Lines.Count; i++)
-            {
-                var l = _mesh.Lines[i];
-
-                if (lineState[i] > 1)
-                {
-
-                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
-                    var colourHue = Mathf.InverseLerp(0f, (float)iterationCount, lineState[i]);
-                    l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f),_settings.DebugDisplayTime);//, colourHue * 200);
-                }
-            }
-
-
 
 
         }
@@ -487,7 +377,126 @@ namespace WorldGen {
 
         }
 
-        // Final
+        //HeightMap
+
+        float[] GetHeightmap(MeshMasher.MeshState rooms, int iterationCount)
+        {
+            //could also generate an influence map from here if that mattered
+
+
+            var heights = new float[_mesh.Nodes.Count];
+            var heightsLocked = new bool[_mesh.Nodes.Count];
+            var maxHeight = float.MinValue;
+            var heightsSet = new bool[_mesh.Nodes.Count];
+
+            var initialPropogationMap = new Queue<MeshMasher.SmartNode>();
+
+            for (int i = 0; i < _regions.Count; i++)
+            {
+                var h = _regions[i].Height;
+                if (h > maxHeight)
+                    maxHeight = h;
+
+                var index = _regionVertexIndex[_regions[i]];
+
+                heights[index] = _regions[i].Height;
+                //heightsLocked[index] = true;
+                heightsSet[index] = true;
+
+                for (int u = 0; u < _mesh.Nodes[index].Nodes.Count; u++)
+                {
+                    if (heightsSet[_mesh.Nodes[index].Nodes[u].Index])
+                        continue;
+
+                    initialPropogationMap.Enqueue(_mesh.Nodes[index].Nodes[u]);
+                    heights[_mesh.Nodes[index].Nodes[u].Index] = _regions[i].Height;
+                    heightsSet[_mesh.Nodes[index].Nodes[u].Index] = true;
+                }
+            }
+
+            for (int i = 0; i < _mesh.Nodes.Count; i++)
+            {
+                if (rooms.Nodes[i] == -1)
+                {
+                    heightsLocked[i] = true;
+                    heightsSet[i] = true;
+                }
+            }
+
+            //Propogation
+
+            while (initialPropogationMap.Count > 0)
+            {
+                var c = initialPropogationMap.Dequeue();
+
+                for (int u = 0; u < c.Nodes.Count; u++)
+                {
+                    if (heightsSet[c.Nodes[u].Index])
+                        continue;
+
+                    initialPropogationMap.Enqueue(c.Nodes[u]);
+                    heights[c.Nodes[u].Index] = heights[c.Index];
+                    heightsSet[c.Nodes[u].Index] = true;
+                }
+            }
+
+            //Diffusion
+
+            var iterations = iterationCount;
+
+            for (int i = 0; i < iterations; i++)
+            {
+                var newHeights = new float[_mesh.Nodes.Count];
+
+                for (int u = 0; u < _mesh.Nodes.Count; u++)
+                {
+                    if (heightsLocked[u] == true)
+                    {
+                        newHeights[u] = heights[u];
+                        continue;
+                    }
+
+                    var c = _mesh.Nodes[u];
+
+                    var newHeight = heights[u];
+                    var count = 1;
+
+                    var highestValue = newHeight;
+                    var lowestValue = newHeight;
+
+                    for (int v = 0; v < c.Nodes.Count; v++)
+                    {
+                        var n = c.Nodes[v];
+                        if (rooms.Nodes[n.Index] == rooms.Nodes[c.Index] || rooms.Lines[c.GetSharedLine(n).Index] == 1)
+                        {
+                            var sampleHeight = heights[n.Index];
+                            newHeight += sampleHeight;
+
+                            if (sampleHeight < lowestValue)
+                                lowestValue = sampleHeight;
+
+                            if (sampleHeight > highestValue)
+                                highestValue = sampleHeight;
+
+                            count++;
+                        }
+                    }
+
+                    //Heightmap technique A: Average
+                    //newHeights[u] = newHeight * ((float)1 / count);
+
+                    //Heightmap technique B: Middle Point
+                    newHeights[u] = (lowestValue + highestValue) / 2;
+
+
+                }
+                heights = newHeights;
+            }
+
+            return heights;
+        }
+
+            // Final
 
         bool TestAndApplyTrueAdjacencies(MeshMasher.MeshState rooms, List<int> roads, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
         {
@@ -545,6 +554,9 @@ namespace WorldGen {
                 {
 
                     if (rooms.Nodes[i] != -1)
+                        continue;
+
+                    if (roads.Contains(i))
                         continue;
 
                     var n = _mesh.Nodes[i];
@@ -607,7 +619,7 @@ namespace WorldGen {
                                 if (pair.Key == code)
                                 {
                                     rooms.Lines[l.Index] = 1;
-                                    l.DrawLine(Color.gray, _settings.DebugDisplayTime);
+                                    //l.DrawLine(Color.gray, _settings.DebugDisplayTime);
                                     //Debug.Log("Actually worked, key");
                                     keyAssigned = true;
                                 }
@@ -618,7 +630,7 @@ namespace WorldGen {
                                 if (pair.Value == code)
                                 {
                                     rooms.Lines[l.Index] = 1;
-                                    l.DrawLine(Color.gray, _settings.DebugDisplayTime);
+                                    //l.DrawLine(Color.gray, _settings.DebugDisplayTime);
                                     //Debug.Log("Actually worked");
                                     valueAssigned = true;
                                 }
@@ -640,9 +652,6 @@ namespace WorldGen {
                     }
                 }
             }
-
-            //TODO: in here we need to look for nodes that have two nodes that bridge an invalid connection. Hopefully this will catch some of the invalid connections.
-
 
             // Set connections between sets
 
@@ -690,7 +699,7 @@ namespace WorldGen {
                 for (int i = 0; i < subset.Count; i++)
                 {
                     rooms.Lines[subset[i]] = 1;
-                    _mesh.Lines[subset[i]].DrawLine(Color.gray, _settings.DebugDisplayTime);
+                    //_mesh.Lines[subset[i]].DrawLine(Color.gray, _settings.DebugDisplayTime);
                 }
 
                 //var l = RNG.NextFromList(set);
@@ -722,8 +731,154 @@ namespace WorldGen {
             return true;
         }
 
-        
+        //Debug
 
+        void DrawLines(MeshMasher.MeshState roads)
+        {
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                if (roads.Lines[i] == 1)
+                    _mesh.Lines[i].DrawLine(Color.gray, _settings.DebugDisplayTime);
+            }
+        }
+
+        void DrawRooms(MeshMasher.MeshState rooms)
+        {
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+
+                if (rooms.Nodes[l.Nodes[0].Index] != -1 && rooms.Nodes[l.Nodes[1].Index] != -1)
+                {
+
+                    if (rooms.Nodes[l.Nodes[0].Index] == rooms.Nodes[l.Nodes[1].Index])
+                    {
+                        var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
+                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
+                        //l.DrawLine(Color.white, 100f);//, colourHue * 200);
+                    }
+
+                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                    //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
+                    //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
+
+                }
+            }
+        }
+
+        void DrawRoomOutlines(MeshMasher.MeshState rooms)
+        {
+            var boundaries = _mesh.DrawRoomOutlines(rooms);
+
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+                if (boundaries.Nodes[l.Nodes[0].Index] == 1 && boundaries.Nodes[l.Nodes[1].Index] == 1)
+                {
+                    l.DrawLine(Color.red, 100f, _settings.DebugDisplayTime);
+                }
+            }
+        }
+
+        void DrawRoomCells(MeshMasher.MeshState rooms)
+        {
+            //var boundaries = _mesh.DrawRoomOutlines(rooms);
+
+            for (int i = 0; i < _mesh.Cells.Count; i++)
+            {
+                var c = _mesh.Cells[i];
+
+                for (int u = 0; u < c.Neighbours.Count; u++)
+                {
+                    var line = c.GetSharedBorder(c.Neighbours[u]);
+
+                    if (rooms.Lines[line.Index] == 1)
+                        continue;
+
+                    if (rooms.Nodes[line.Nodes[0].Index] != rooms.Nodes[line.Nodes[1].Index])
+                    {
+                        Debug.DrawLine(c.Center, c.Neighbours[u].Center, Color.grey, _settings.DebugDisplayTime);
+                    }
+                }
+            }
+        }
+
+        void DrawPotentialConnections(MeshMasher.MeshState rooms)
+        {
+            var lineState = new int[_mesh.Lines.Count];
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+
+                if (rooms.Nodes[l.Nodes[0].Index] != -1 | rooms.Nodes[l.Nodes[1].Index] != -1)
+                {
+                    lineState[i]++;
+
+                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                    //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
+                    //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
+                }
+            }
+
+            var iterationCount = 1;
+
+            for (int it = 1; it <= iterationCount; it++)
+            {
+                for (int i = 0; i < _mesh.Lines.Count; i++)
+                {
+                    var l = _mesh.Lines[i];
+                    if (lineState[i] == it)
+                        continue;
+
+                    var lines = l.CollectConnectedLines();
+
+                    for (int lc = 0; lc < lines.Count; lc++)
+                    {
+                        if (lineState[lines[lc].Index] == it)
+                        {
+                            lineState[i] = it + 1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+
+                if (lineState[i] > 1)
+                {
+
+                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                    var colourHue = Mathf.InverseLerp(0f, (float)iterationCount, lineState[i]);
+                    l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
+                }
+            }
+        }
+
+        void DrawHeightMap(MeshMasher.MeshState rooms, float[] heights, int maxHeight)
+        {
+
+            var offset = 0.1f;
+            var xOffset = new Vector3(offset, 0, 0);
+            var yOffset = new Vector3(0, 0, offset);
+            
+            for (int i = 0; i < heights.Length; i++)
+            {
+                if (rooms.Nodes[i] == -1)
+                    continue;
+            
+                var cvalue = Mathf.InverseLerp(0, maxHeight, heights[i]);
+                //var color = new Color(cvalue, cvalue, cvalue);
+                var color = Color.HSVToRGB(cvalue/1.5f, 1, cvalue);
+            
+                var pos = _mesh.Nodes[i].Vert;
+                pos += (Vector3.up * heights[i]);
+                Debug.DrawLine(pos - xOffset, pos + xOffset, color, _settings.DebugDisplayTime);
+                Debug.DrawLine(pos - yOffset, pos + yOffset, color, _settings.DebugDisplayTime);
+            }
+        }
     }
 
 }

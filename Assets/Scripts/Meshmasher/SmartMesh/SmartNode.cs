@@ -74,6 +74,18 @@ namespace MeshMasher {
 
         }
 
+        public SmartLine GetSharedLine(SmartNode other)
+        {
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                var l = Lines[i];
+                if (l.GetOtherNode(this) == other)
+                    return l;
+            }
+
+            return null;
+        }
+
         public SmartLine GetNextClockwiseLineSegment(SmartLine testLine, MeshState state)
         {
 

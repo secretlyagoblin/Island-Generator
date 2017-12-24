@@ -64,15 +64,15 @@ namespace WorldGen {
         {
             var points = new Vector3[]
 {
-            new Vector3(0,0,RNG.Next(0,2)),
-            new Vector3(10,0,RNG.Next(0,2)),
-            new Vector3(20,0,RNG.Next(0,2)),
-            new Vector3(5,10,RNG.Next(1,3)),
-            new Vector3(15,10,RNG.Next(1,3)),
-            new Vector3(10,20,RNG.Next(2,4)),
-            new Vector3(20,20,RNG.Next(2,4)),
-            new Vector3(15,30,RNG.Next(3,5)),
-            new Vector3(15,15,RNG.Next(3,5))
+            new Vector3(0,0,RNG.NextFloat(0,2)),
+            new Vector3(10,0,RNG.NextFloat(0,2)),
+            new Vector3(20,0,RNG.NextFloat(0,2)),
+            new Vector3(5,10,RNG.NextFloat(1.5f,3)),
+            new Vector3(15,10,RNG.NextFloat(1.5f,3)),
+            new Vector3(10,20,RNG.NextFloat(2,3)),
+            new Vector3(20,20,RNG.NextFloat(1.5f,3)),
+            new Vector3(15,30,RNG.NextFloat(2,4)),
+            new Vector3(15,15,RNG.NextFloat(3,4))
 };
             for (int i = 0; i < points.Length; i++)
             {
