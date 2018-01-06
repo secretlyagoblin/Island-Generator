@@ -19,6 +19,8 @@ namespace MeshMasher {
 
         public float[] BarycentricWeights { get; private set; }
 
+        Vector3[] _verts;
+
         public SmartCell(SmartNode nodeA, SmartNode nodeB, SmartNode nodeC)
         {
 
@@ -193,6 +195,29 @@ namespace MeshMasher {
         public void AddLine(SmartLine line)
         {
             Lines.Add(line);
+        }
+
+        //Point in triangle
+
+        public bool PointInCell(Vector3 point)
+        {
+            return PointInTriangle(point, Nodes[0].Vert, Nodes[1].Vert, Nodes[2].Vert);
+        }
+
+        float sign(Vector3 p1, Vector3 p2, Vector3 p3)
+        {
+            return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
+        }
+
+        bool PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3)
+        {
+            bool b1, b2, b3;
+
+            b1 = sign(pt, v1, v2) < 0.0f;
+            b2 = sign(pt, v2, v3) < 0.0f;
+            b3 = sign(pt, v3, v1) < 0.0f;
+
+            return ((b1 == b2) && (b2 == b3));
         }
 
     }

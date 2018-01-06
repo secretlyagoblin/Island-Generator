@@ -130,5 +130,10 @@ namespace MeshMasher {
             Debug.DrawLine(Nodes[0].Vert+(Vector3.up*offset), Nodes[1].Vert + (Vector3.up * offset), color, duration);
         }
 
+        public void DrawLine(Color color, float duration, Vector3 offset)
+        {
+            Debug.DrawLine(Nodes[0].Vert + (offset), Nodes[1].Vert + (offset), color, duration);
+        }
+
     }
 }

@@ -18,7 +18,7 @@ namespace WorldGen {
         MeshMasher.MeshState _roomState;
         float[] _heightMap;
 
-        //public 
+        #region Public Functions  
 
         public WorldMesh(Transform root, List<Region> regions, WorldMeshSettings settings )
         {
@@ -59,23 +59,30 @@ namespace WorldGen {
             //DrawPotentialConnections(roomMeshState);
 
             _roomState = biggerRooms;
-            _heightMap = GetHeightmap(biggerRooms, 20);
+            _heightMap = GetHeightmap(biggerRooms, 30);
 
             return returnValue;
         }
 
         public List<RegionMesh> Finalise()
         {
+
+            //shoul
             return new List<RegionMesh>();
         }
 
         public void DisplayDebugGraph()
         {
-            //DrawRooms(_roomState);
-            DrawRoomCells(_roomState);
+            DrawRooms(_roomState);
+            //DrawRoomCells(_roomState);
             DrawLines(_roomState);
-            DrawHeightMap(_roomState,_heightMap,5);
+            //DrawHeightMap(_roomState,_heightMap,5);
+            //DrawHeightDifference(_roomState, _heightMap);
+            //DrawCellTriangleGraph(_roomState);
+            MakeSmallerMesh(_roomState);
         }
+
+        #endregion
 
         //Init
 
@@ -400,7 +407,7 @@ namespace WorldGen {
                 var index = _regionVertexIndex[_regions[i]];
 
                 heights[index] = _regions[i].Height;
-                //heightsLocked[index] = true;
+                heightsLocked[index] = true;
                 heightsSet[index] = true;
 
                 for (int u = 0; u < _mesh.Nodes[index].Nodes.Count; u++)
@@ -496,7 +503,7 @@ namespace WorldGen {
             return heights;
         }
 
-            // Final
+        // Final
 
         bool TestAndApplyTrueAdjacencies(MeshMasher.MeshState rooms, List<int> roads, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
         {
@@ -733,6 +740,8 @@ namespace WorldGen {
 
         //Debug
 
+        #region Debug
+
         void DrawLines(MeshMasher.MeshState roads)
         {
             for (int i = 0; i < _mesh.Lines.Count; i++)
@@ -879,6 +888,171 @@ namespace WorldGen {
                 Debug.DrawLine(pos - yOffset, pos + yOffset, color, _settings.DebugDisplayTime);
             }
         }
+
+        void DrawHeightDifference(MeshMasher.MeshState rooms, float[] heights)
+        {
+            for (int i = 0; i < _mesh.Lines.Count; i++)
+            {
+                var l = _mesh.Lines[i];
+
+                if (rooms.Nodes[l.Nodes[0].Index] != -1 && rooms.Nodes[l.Nodes[1].Index] != -1)
+                {
+                    if (rooms.Nodes[l.Nodes[0].Index] == rooms.Nodes[l.Nodes[1].Index])
+                    {
+
+                        var diff = heights[l.Nodes[0].Index] - heights[l.Nodes[1].Index];
+                        diff = Mathf.Abs(diff);
+
+
+                        var colourHue = Mathf.InverseLerp(0f, l.Length, diff);
+                        colourHue = -colourHue + 1;
+                        l.DrawLine(Color.HSVToRGB(colourHue/3, 1, 1), _settings.DebugDisplayTime);
+                                                                                                       
+                    }
+
+
+                }
+            }
+
+
+        }
+
+        void DrawCellTriangleGraph(MeshMasher.MeshState rooms)
+        {
+            for (int i = 0; i < _mesh.Nodes.Count; i++)
+            {
+                var n = rooms.Nodes[i];
+
+                if (n == -1)
+                    continue;
+
+                _mesh.Nodes[i].DisplayFanTriangles(Color.yellow, _settings.DebugDisplayTime);
+
+
+            }
+
+        }
+
+        void MakeSmallerMesh(MeshMasher.MeshState rooms)
+        {
+            var smallerMesh = MeshMasher.DelaunayGen.FromBounds(_bounds, _settings.DelaunayBoundsRatio*0.25f);
+            var smallNodes = smallerMesh.GetMeshState();
+            var smallLines = new List<int>[rooms.Lines.Length]; 
+
+            //smallerMesh.DrawMesh(_transform);
+
+            for (int i = 0; i < smallerMesh.Nodes.Count; i++)
+            {
+                var n = smallerMesh.Nodes[i];
+
+                var index = _mesh.ClosestIndex(n.Vert);
+
+                if (rooms.Nodes[index] == -1)
+                { smallNodes.Nodes[i] = -1; }
+                else
+                {
+                    smallNodes.Nodes[i] = rooms.Nodes[index];
+
+                    //for (int u = 0; u < _mesh.Nodes[index].Lines.Count; u++)
+                    //{
+                    //    var innerIndex = _mesh.Nodes[index].Lines[u].Index;
+                    //    if (smallLines[innerIndex] == null)
+                    //        smallLines[innerIndex] = new List<int>();
+                    //
+                    //    smallLines[innerIndex].Add(i);
+                    //
+                    //}
+                }
+
+
+
+                //_mesh.ClosestIndex(n.Vert);
+                //
+                //if (_mesh.Nodes[u].PointInNodeFan(n.Vert))
+                //{
+                //    //n.DisplayFanTriangles(Color.yellow, _settings.DebugDisplayTime);
+                //    smallNodes.Nodes[i] = rooms.Nodes[u];
+                //    goto end;
+                //}
+
+                //for (int u = 0; u < _mesh.Nodes.Count; u++)
+                //{
+                //    if (rooms.Nodes[u] == -1)
+                //        continue;
+                //
+                //    _mesh.ClosestIndex(n.Vert);
+                //
+                //    if (_mesh.Nodes[u].PointInNodeFan(n.Vert))
+                //    {
+                //        //n.DisplayFanTriangles(Color.yellow, _settings.DebugDisplayTime);
+                //        smallNodes.Nodes[i] = rooms.Nodes[u];
+                //        goto end;
+                //    }
+                //}
+
+                //smallNodes.Nodes[i] = -1;
+
+                //end:
+
+                continue;
+            }
+
+            for (int i = 0; i < smallerMesh.Lines.Count; i++)
+            {
+                var l = smallerMesh.Lines[i];
+
+                if (smallNodes.Nodes[l.Nodes[0].Index] != -1 && smallNodes.Nodes[l.Nodes[1].Index] != -1)
+                {
+
+                    if (smallNodes.Nodes[l.Nodes[0].Index] == smallNodes.Nodes[l.Nodes[1].Index])
+                    {
+                        var colourHue = Mathf.InverseLerp(0f, 50f, smallNodes.Nodes[l.Nodes[0].Index]);
+                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime,(Vector3.right*15f));//, colourHue * 200);
+                        //l.DrawLine(Color.white, 100f);//, colourHue * 200);
+                    }
+                    else
+                    {
+                        //l.DrawLine(Color.white, _settings.DebugDisplayTime);
+                    }
+
+                    //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                    //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
+                    //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
+
+                }
+            }
+
+            //for (int i = 0; i < rooms.Lines.Length; i++)
+            //{
+            //    if (rooms.Lines[i] == -1)
+            //        continue;
+            //
+            //    var bits = smallLines[i];
+            //
+            //    if (bits == null)
+            //        continue;
+            //
+            //    bits = bits.Distinct().ToList();
+            //
+            //    for (int u = 0; u < bits.Count; u++)
+            //    {
+            //        var l = smallerMesh.Lines[bits[u]];
+            //
+            //        //if (smallNodes.Nodes[l.Nodes[0].Index] != -1 && smallNodes.Nodes[l.Nodes[1].Index] != -1)
+            //        //{
+            //
+            //            //if (smallNodes.Nodes[l.Nodes[0].Index] != smallNodes.Nodes[l.Nodes[1].Index])
+            //            //{
+            //                l.DrawLine(Color.white, _settings.DebugDisplayTime);
+            //            //}
+            //        //}
+            //    }
+            //}
+
+
+        }
+
+        #endregion
     }
 
 }

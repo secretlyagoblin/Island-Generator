@@ -17,6 +17,6 @@ MonoBehaviour:
   MinRoomDiffusion: 4
   MaxRoomDiffusion: 5
   DebugDisplayTime: 100
-  Comments: '500 iterations, 8.2% failure rate
+  Comments: '300 iterations, 1.33% failure rate
 
 '

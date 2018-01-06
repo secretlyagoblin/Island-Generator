@@ -23,13 +23,13 @@ public class WorldGenerator : MonoBehaviour {
 
         RNG.DateTimeInit();
 
-        StartCoroutine(StepThrough(WorldMeshSettings.DebugDisplayTime));
+        StartCoroutine(GenerateWorldRepeatedly(WorldMeshSettings.DebugDisplayTime));
 
         //_regionNetwork.DebugDraw(Color.white, 100f, true);
 
     }
 
-    private IEnumerator StepThrough(float time)
+    private IEnumerator GenerateWorldRepeatedly(float time)
     {
         var secs = new WaitForSeconds(time);
 
