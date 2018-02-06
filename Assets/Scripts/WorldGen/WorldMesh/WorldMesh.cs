@@ -20,7 +20,7 @@ namespace WorldGen {
 
         #region Public Functions  
 
-        public WorldMesh(Transform root, List<Region> regions, WorldMeshSettings settings )
+        public WorldMesh(Transform root, List<Region> regions, WorldMeshSettings settings)
         {
             _regions = regions;
             _transform = root;
@@ -39,21 +39,21 @@ namespace WorldGen {
             var sets = GetAdjacencySets(roomMeshState);
             //DrawRoomCells(roomMeshState);
             //TestAndApplyTrueAdjacencies(roomMeshState, sets);
-            
+
 
             //DrawRooms(roomMeshState);
             //
 
             var biggerRooms = ConsolidateSmallRooms(roomMeshState, _settings.MinRoomSize, sets);
             var newSets = GetAdjacencySets(biggerRooms);
-            
+
             //DrawRooms(biggerRooms);
             //DrawRoomOutlines(biggerRooms);
-            
+
             var roads = GenerateRoads();
 
 
-            var returnValue =  TestAndApplyTrueAdjacencies(biggerRooms,roads, newSets);
+            var returnValue = TestAndApplyTrueAdjacencies(biggerRooms, roads, newSets);
 
             //DrawRoomCells(biggerRooms);
             //DrawPotentialConnections(roomMeshState);
@@ -188,7 +188,7 @@ namespace WorldGen {
         {
             //var boundaries = _mesh.DrawRoomOutlines(rooms);
 
-            var relationshipBags = new Dictionary<KeyValuePair<int,int>, List<int>>();
+            var relationshipBags = new Dictionary<KeyValuePair<int, int>, List<int>>();
             var pairCount = 0;
 
             for (int i = 0; i < _mesh.Lines.Count; i++)
@@ -217,7 +217,7 @@ namespace WorldGen {
             }
 
             //var pairBase = 0;
-            
+
             //foreach (var r in relationshipBags)
             //{
             //    var color = Color.HSVToRGB(Mathf.InverseLerp(0, pairCount, pairBase),1,1);
@@ -255,7 +255,7 @@ namespace WorldGen {
                 }
             }
 
-            
+
 
             foreach (var pair in _regionVertexIndex)
             {
@@ -347,7 +347,7 @@ namespace WorldGen {
                     roomfound:
                     continue;
 
-                }        
+                }
 
 
 
@@ -518,7 +518,7 @@ namespace WorldGen {
             {
                 var r = _regions[i];
 
-                
+
                 for (int u = 0; u < r.Regions.Count; u++)
                 {
                     var n = r.Regions[u];
@@ -545,7 +545,7 @@ namespace WorldGen {
                         invalidRoomConnection++;
                         invalidPairs.Add(pair);
                         //Debug.DrawLine(r.XZPos, n.XZPos, Color.red, _settings.DebugDisplayTime);
-                        
+
                     }
                 }
             }
@@ -648,12 +648,12 @@ namespace WorldGen {
                                 rooms.Nodes[i] = RNG.NextFloat() < 0.5f ? pair.Key : pair.Value;
                                 break;
                             }
-                                
+
 
                         }
                     }
 
-                    if(invalidPairs.Count == 0)
+                    if (invalidPairs.Count == 0)
                     {
                         break;
                     }
@@ -698,7 +698,7 @@ namespace WorldGen {
                     }
                 }
 
-                if(subset.Count == 0)
+                if (subset.Count == 0)
                 {
                     subset.Add(RNG.NextFromList(set));
                 }
@@ -725,13 +725,13 @@ namespace WorldGen {
 
                 //var r = item.Key
 
-                
+
 
             }
 
             if (invalidRoomConnection > 0)
             {
-                Debug.Log((invalidRoomConnection/2) + " invalid connection(s)");
+                Debug.Log((invalidRoomConnection / 2) + " invalid connection(s)");
                 return false;
             }
 
@@ -872,16 +872,16 @@ namespace WorldGen {
             var offset = 0.1f;
             var xOffset = new Vector3(offset, 0, 0);
             var yOffset = new Vector3(0, 0, offset);
-            
+
             for (int i = 0; i < heights.Length; i++)
             {
                 if (rooms.Nodes[i] == -1)
                     continue;
-            
+
                 var cvalue = Mathf.InverseLerp(0, maxHeight, heights[i]);
                 //var color = new Color(cvalue, cvalue, cvalue);
-                var color = Color.HSVToRGB(cvalue/1.5f, 1, cvalue);
-            
+                var color = Color.HSVToRGB(cvalue / 1.5f, 1, cvalue);
+
                 var pos = _mesh.Nodes[i].Vert;
                 pos += (Vector3.up * heights[i]);
                 Debug.DrawLine(pos - xOffset, pos + xOffset, color, _settings.DebugDisplayTime);
@@ -906,8 +906,8 @@ namespace WorldGen {
 
                         var colourHue = Mathf.InverseLerp(0f, l.Length, diff);
                         colourHue = -colourHue + 1;
-                        l.DrawLine(Color.HSVToRGB(colourHue/3, 1, 1), _settings.DebugDisplayTime);
-                                                                                                       
+                        l.DrawLine(Color.HSVToRGB(colourHue / 3, 1, 1), _settings.DebugDisplayTime);
+
                     }
 
 
@@ -935,9 +935,11 @@ namespace WorldGen {
 
         void MakeSmallerMesh(MeshMasher.MeshState rooms)
         {
-            var smallerMesh = MeshMasher.DelaunayGen.FromBounds(_bounds, _settings.DelaunayBoundsRatio*0.25f);
+            var smallerMesh = MeshMasher.DelaunayGen.FromBounds(_bounds, _settings.DelaunayBoundsRatio * 0.25f);
             var smallNodes = smallerMesh.GetMeshState();
-            var smallLines = new List<int>[rooms.Lines.Length]; 
+            var roadCells = new Dictionary<int, List<int>>();
+
+            var offset = Vector3.right * 15f;
 
             //smallerMesh.DrawMesh(_transform);
 
@@ -952,6 +954,15 @@ namespace WorldGen {
                 else
                 {
                     smallNodes.Nodes[i] = rooms.Nodes[index];
+
+                    if (!roadCells.ContainsKey(index))
+                    {
+                        roadCells.Add(index, new List<int>() { i });
+                    }
+                    else
+                    {
+                        roadCells[index].Add(i);
+                    }
 
                     //for (int u = 0; u < _mesh.Nodes[index].Lines.Count; u++)
                     //{
@@ -1007,7 +1018,7 @@ namespace WorldGen {
                     if (smallNodes.Nodes[l.Nodes[0].Index] == smallNodes.Nodes[l.Nodes[1].Index])
                     {
                         var colourHue = Mathf.InverseLerp(0f, 50f, smallNodes.Nodes[l.Nodes[0].Index]);
-                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime,(Vector3.right*15f));//, colourHue * 200);
+                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime, offset);//, colourHue * 200);
                         //l.DrawLine(Color.white, 100f);//, colourHue * 200);
                     }
                     else
@@ -1022,32 +1033,58 @@ namespace WorldGen {
                 }
             }
 
-            //for (int i = 0; i < rooms.Lines.Length; i++)
-            //{
-            //    if (rooms.Lines[i] == -1)
-            //        continue;
-            //
-            //    var bits = smallLines[i];
-            //
-            //    if (bits == null)
-            //        continue;
-            //
-            //    bits = bits.Distinct().ToList();
-            //
-            //    for (int u = 0; u < bits.Count; u++)
-            //    {
-            //        var l = smallerMesh.Lines[bits[u]];
-            //
-            //        //if (smallNodes.Nodes[l.Nodes[0].Index] != -1 && smallNodes.Nodes[l.Nodes[1].Index] != -1)
-            //        //{
-            //
-            //            //if (smallNodes.Nodes[l.Nodes[0].Index] != smallNodes.Nodes[l.Nodes[1].Index])
-            //            //{
-            //                l.DrawLine(Color.white, _settings.DebugDisplayTime);
-            //            //}
-            //        //}
-            //    }
-            //}
+            for (int i = 0; i < rooms.Lines.Length; i++)
+            {
+                if (rooms.Lines[i] != 1)
+                    continue;
+
+                //Debug.Log("In theory, processing line " + i);
+
+                var l = _mesh.Lines[i];
+
+                if (!(rooms.Nodes[l.Nodes[0].Index] != -1 && rooms.Nodes[l.Nodes[1].Index] != -1))
+                    continue;
+
+                if (!roadCells.ContainsKey(l.Nodes[0].Index))
+                    continue;
+
+                var nodes = roadCells[l.Nodes[0].Index];
+
+                Debug.Log("In theory, iterating over every node associated with line " + l.Nodes[0].Index);
+                
+
+                for (int u = 0; u < nodes.Count; u++)
+                {
+                    //Debug.DrawRay(smallerMesh.Nodes[nodes[u]].Vert + offset+RNG.NextVector3(-0.1f,0.1f), Vector3.up, Color.red, _settings.DebugDisplayTime);
+
+                    var lines = smallerMesh.Nodes[nodes[u]].Lines;
+
+                    for (int v = 0; v < lines.Count; v++)
+                    {
+                        var sl = lines[v];
+
+                        if (smallNodes.Nodes[sl.Nodes[0].Index] != -1 && smallNodes.Nodes[sl.Nodes[1].Index] != -1)
+                        {
+
+                            if (smallNodes.Nodes[sl.Nodes[0].Index] == smallNodes.Nodes[sl.Nodes[1].Index])
+                            {
+                                //l.DrawLine(Color.white, 100f);//, colourHue * 200);
+                            }
+                            else
+                            {
+                                sl.DrawLine(Color.white, _settings.DebugDisplayTime, offset);
+                            }
+
+                            //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
+                            //var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
+                            //l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), 100f);//, colourHue * 200);
+
+                        }
+                    }
+                }
+
+
+            }
 
 
         }
