@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using MeshMasher.MeshTiling;
 
 namespace MeshMasher {
 
@@ -18,12 +19,19 @@ namespace MeshMasher {
 
         static MeshTileTemplate mesh;// = new BuildMesh();
 
-        public NestedMesh(SimpleVector2Int[] tiles)
+        public NestedMesh(Vector2Int[] tileArray)
         {
             if (mesh == null)
             {
                 mesh = new MeshTileTemplate();
                 mesh.Init();
+            }
+
+            var tiles = new SimpleVector2Int[tileArray.Length];
+
+            for (int i = 0; i < tileArray.Length; i++)
+            {
+                tiles[i] = new SimpleVector2Int(tileArray[i].x, tileArray[i].y);
             }
 
             //mesh.Init(); // shouldn't need to do that

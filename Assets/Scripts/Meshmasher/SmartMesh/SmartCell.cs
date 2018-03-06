@@ -72,7 +72,7 @@ namespace MeshMasher {
 
             // testing here for naked edges, ugly thing
 
-            if (Lines.Count() != Nodes.Count())
+            if (Lines.Count != Nodes.Count)
             {
                 var line = new SmartLine(Nodes[0], Nodes[1]);
                 var count = 0;
@@ -90,7 +90,7 @@ namespace MeshMasher {
                     line.AddCells(this, null);
                     Lines.Add(line);
                 }
-                if (Lines.Count() == Nodes.Count())
+                if (Lines.Count == Nodes.Count)
                     return;
 
                 line = new SmartLine(Nodes[1], Nodes[2]);
@@ -109,7 +109,7 @@ namespace MeshMasher {
                     line.AddCells(this, null);
                     Lines.Add(line);
                 }
-                if (Lines.Count() == Nodes.Count())
+                if (Lines.Count == Nodes.Count)
                     return;
 
                 line = new SmartLine(Nodes[2], Nodes[0]);
@@ -128,10 +128,8 @@ namespace MeshMasher {
                     line.AddCells(this, null);
                     Lines.Add(line);
                 }
-                if (Lines.Count() == Nodes.Count())
+                if (Lines.Count == Nodes.Count)
                     return;
-
-
             }
         }
 
@@ -158,7 +156,7 @@ namespace MeshMasher {
 
             var commonNodes = Nodes.Intersect(other.Nodes).ToList();
 
-            if (commonNodes.Count() != 2)
+            if (commonNodes.Count != 2)
                 return;
 
             var line = new SmartLine(commonNodes[0], commonNodes[1]);
@@ -220,6 +218,13 @@ namespace MeshMasher {
             return ((b1 == b2) && (b2 == b3));
         }
 
+        public void DebugDraw(Color color, float duration)
+        {
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                Lines[i].DrawLine(color, duration);
+            }
+        }
     }
 
 }

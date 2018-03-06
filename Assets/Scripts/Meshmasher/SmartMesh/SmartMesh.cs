@@ -11,13 +11,13 @@ namespace MeshMasher {
         public List<SmartLine> Lines { get; private set; }
 
         Bounds _bounds = new Bounds();
-        List<SmartNode>[,,] _buckets; 
+        List<SmartNode>[,,] _buckets;
+
+        #region constructors
 
         public SmartMesh(Mesh mesh) : this(mesh.vertices,mesh.triangles)
         {    
         }
-
-
 
         public SmartMesh(Vector3[] vertices, int[] triangles)
         {
@@ -72,6 +72,8 @@ namespace MeshMasher {
 
             CreateBuckets(1, 1, 1);
         }
+
+        #endregion
 
         public void SetCustomBuckets(int sizeX,int sizeY, int sizeZ)
         {
@@ -142,7 +144,12 @@ namespace MeshMasher {
 
     */ //Debug mesh
 
-        public void DrawMesh(Transform transform)
+            public void DrawMesh(Transform transform)
+        {
+            DrawMesh(transform, Color.red, Color.green);
+        }
+
+        public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor)
         {
 
             foreach (var cell in Cells)
@@ -154,77 +161,15 @@ namespace MeshMasher {
                     float scale = 0.5f;
                     scaledVector = new Vector3(scaledVector.x * scale, scaledVector.y * scale, scaledVector.z * scale);
 
-                    Debug.DrawLine(transform.TransformPoint(cell.Center), transform.TransformPoint(scaledVector), Color.red);
+                    Debug.DrawLine(transform.TransformPoint(cell.Center), transform.TransformPoint(scaledVector), inverseGraphColor);
                 }
             }
 
             foreach (var line in Lines)
             {
-                Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), Color.green);
+                Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), graphColor);
             }
 
-        }
-
-        public MeshState SetCellGroups(MeshState state)
-        {
-            var sorted = new bool[Cells.Count];
-
-            var allGroups = new List<List<SmartCell>>();
-            var allCells = new List<SmartCell>(Cells);
-
-            while (allCells.Count != 0)
-            {
-                var cellGroup = new List<SmartCell>();
-
-                var cell = allCells[0];
-                sorted[cell.Index] = true;
-
-                cellGroup.Add(cell);
-                allCells.Remove(cell);
-
-                var finalCellGroup = new List<SmartCell>();
-                finalCellGroup.AddRange(cellGroup);
-
-                var finished = false;
-
-                while (finished == false)
-                {
-                    var nextCellGroup = new List<SmartCell>();
-                    foreach (var c in cellGroup)
-                    {
-                        foreach (var neigh in c.Neighbours)
-                        {
-                            if (!sorted[neigh.Index] && state.Cells[cell.Index] == state.Cells[c.Index])
-                            {
-                                nextCellGroup.Add(neigh);
-                                allCells.Remove(neigh);
-                                sorted[neigh.Index] = true;
-                            }
-                        }
-                    }
-
-                    if (nextCellGroup.Count == 0)
-                        finished = true;
-
-                    finalCellGroup.AddRange(nextCellGroup);
-                    cellGroup = new List<SmartCell>(nextCellGroup);
-                }
-
-                allGroups.Add(finalCellGroup);
-            }
-
-            var count = -1;
-
-            foreach (var group in allGroups)
-            {
-                count++;
-                foreach (var cell in group)
-                {
-                    state.Cells[cell.Index] = count;
-                }
-            }
-
-            return state;
         }
             
         public List<List<SmartNode>> GetCellBoundingPolyLines(MeshState state, int key)
@@ -310,6 +255,68 @@ namespace MeshMasher {
             }
 
             return vectors.ToArray();
+        }
+
+        public MeshState SetCellGroups(MeshState state)
+        {
+            var sorted = new bool[Cells.Count];
+
+            var allGroups = new List<List<SmartCell>>();
+            var allCells = new List<SmartCell>(Cells);
+
+            while (allCells.Count != 0)
+            {
+                var cellGroup = new List<SmartCell>();
+
+                var cell = allCells[0];
+                sorted[cell.Index] = true;
+
+                cellGroup.Add(cell);
+                allCells.Remove(cell);
+
+                var finalCellGroup = new List<SmartCell>();
+                finalCellGroup.AddRange(cellGroup);
+
+                var finished = false;
+
+                while (finished == false)
+                {
+                    var nextCellGroup = new List<SmartCell>();
+                    foreach (var c in cellGroup)
+                    {
+                        foreach (var neigh in c.Neighbours)
+                        {
+                            if (!sorted[neigh.Index] && state.Cells[cell.Index] == state.Cells[c.Index])
+                            {
+                                nextCellGroup.Add(neigh);
+                                allCells.Remove(neigh);
+                                sorted[neigh.Index] = true;
+                            }
+                        }
+                    }
+
+                    if (nextCellGroup.Count == 0)
+                        finished = true;
+
+                    finalCellGroup.AddRange(nextCellGroup);
+                    cellGroup = new List<SmartCell>(nextCellGroup);
+                }
+
+                allGroups.Add(finalCellGroup);
+            }
+
+            var count = -1;
+
+            foreach (var group in allGroups)
+            {
+                count++;
+                foreach (var cell in group)
+                {
+                    state.Cells[cell.Index] = count;
+                }
+            }
+
+            return state;
         }
 
         public MeshState MinimumSpanningTree()
@@ -769,6 +776,68 @@ namespace MeshMasher {
             return newState;
         }
 
+        public MeshState BubbleMesh(int iterations)
+        {
+            var newState = GetMeshState();
+
+            for (int u = 0; u < iterations; u++)
+            {
+                var loop = new List<SmartCell>() { RNG.NextFromList(Cells) };
+                //var lines = new List<SmartLine>(loop[0].Lines);
+                //var internalLines = new List<SmartLine>();
+
+                var lines = new List<int>();
+
+                newState.Cells[loop[0].Index] = iterations;
+
+                for (int i = 0; i < loop[0].Lines.Count; i++)
+                {
+                    lines.Add(loop[0].Lines[i].Index);
+                    newState.Lines[loop[0].Lines[i].Index]++;
+
+                }
+
+                while (loop.Count < RNG.Next(8,14))
+                {
+                    var c = RNG.NextFromList(loop);
+                    var n = RNG.NextFromList(c.Neighbours);
+
+                    if (newState.Cells[n.Index] >= 1)
+                    {
+
+                    }
+                    else
+                    {
+                        newState.Cells[n.Index] = iterations;
+                        for (int i = 0; i < n.Lines.Count; i++)
+                        {
+                            lines.Add(n.Lines[i].Index);
+                            newState.Lines[n.Lines[i].Index]++;
+                        }
+                        loop.Add(n);
+
+                        Debug.DrawLine(c.Center, n.Center, Color.white, 100f);
+                    }
+                }
+
+                //var currentLine = loop[0].Lines[0];
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    if (newState.Lines[lines[i]] == 1)
+                    {
+                        Lines[lines[i]].DrawLine(Color.red, 100f);
+                    }
+                    else
+                    {
+                        //Lines[lines[i]].DrawLine(Color.white, 100f);
+                    }
+                }
+            }
+
+            return newState;
+        }
+
         public int[] ShortestWalkNode(int startIndex, int endIndex)
         {
             var nodesToEvaluate = new Dictionary<int, aStarHelper>();
@@ -942,6 +1011,8 @@ namespace MeshMasher {
 
             return node.Index;
         }
+
+
 
         void CreateBuckets(int divX, int divY, int divZ)
         {
