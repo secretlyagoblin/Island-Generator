@@ -131,18 +131,6 @@ namespace MeshMasher {
             DerivedOffset = derivedOffset.ToArray();
         }
 
-        public Mesh CreateMesh()
-        {
-            var mesh = new Mesh()
-            {
-                name = "generatedMesh",
-                vertices = Verts,
-                triangles = Tris,
-            };
-
-            return mesh;
-        }
-
         public NestedMesh(NestedMesh originMesh, int[] meshTris)
         {
             var verts = new List<Vector3>();
@@ -285,6 +273,71 @@ namespace MeshMasher {
 
         }
 
+        public List<T> LerpBarycentricValues<T>(int[] originValueIndexes,T[] originValues,  int[] meshTris) where T: IBarycentricLerpable<T>
+        {
+            var nestedValues = new List<T>();
+
+            var innerScale = Scale * 0.25;
+            var nestedLevel = NestedLevel + 1;
+
+            var baseDict = new Dictionary<SimpleVector2Int, int[]>();
+
+            var indexMap = new int[mesh.Positions.Length];
+
+            for (int i = 0; i < indexMap.Length; i++)
+            {
+                indexMap[i] = -1;
+            }
+
+            //for (int i = 0; i < tiles.Count; i++)
+            //{
+            //    baseDict.Add(tiles[i], (int[])indexMap.Clone());
+            //}
+
+            //need to go from offset 0 to offset 12.5 to offset 12.5 + 12.5/4
+
+            var localOffset = 0f;
+            var scale = 50f;
+
+            for (int i = 0; i < nestedLevel; i++)
+            {
+                scale = scale / 4;
+                localOffset += scale;
+            }
+
+            for (int i = 0; i < meshTris.Length; i++)
+            {
+                var barycenters = mesh.Barycenters[DerivedTri[meshTris[i]]];
+                var offset = DerivedOffset[meshTris[i]];
+
+                for (int u = 0; u < barycenters.Length; u++)
+                {
+                    var bc = barycenters[u];
+                    var index = i * 3;
+
+                    var a = originValues[originValueIndexes[index]];
+                    var b = originValues[originValueIndexes[index+1]];
+                    var c = originValues[originValueIndexes[index+2]];
+
+                    nestedValues.Add(originValues[0].Lerp(a,b,c,bc));                   
+                }
+            }
+
+            return nestedValues;
+        } 
+
+        public Mesh CreateMesh()
+        {
+            var mesh = new Mesh()
+            {
+                name = "generatedMesh",
+                vertices = Verts,
+                triangles = Tris,
+            };
+
+            return mesh;
+        }
+
         bool SetContainsPoints(int[] tilesX, int[] tilesY, SimpleVector2Int tileA, SimpleVector2Int tileB, SimpleVector2Int tileC)
         {
             var containsA = false;
@@ -330,4 +383,6 @@ namespace MeshMasher {
             return false;
         }
     }
+
+
 }

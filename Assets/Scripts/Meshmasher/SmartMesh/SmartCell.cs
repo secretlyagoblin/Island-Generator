@@ -45,7 +45,6 @@ namespace MeshMasher {
 
         public void CreateCellConnections()
         {
-
             foreach (var node in Nodes)
             {
                 var neighbourCells = new List<SmartCell>(node.Cells);
@@ -222,7 +221,7 @@ namespace MeshMasher {
         {
             for (int i = 0; i < Lines.Count; i++)
             {
-                Lines[i].DrawLine(color, duration);
+                Lines[i].DebugDraw(color, duration);
             }
         }
     }

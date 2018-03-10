@@ -38,6 +38,11 @@ namespace MeshMasher {
 
         }
 
+        public void AddNeighbour(SmartCell cell)
+        {
+            Neighbours.Add(cell);
+        }
+
         public void AddCells(SmartCell cellA, SmartCell cellB)
         {
             Neighbours.Add(cellA);
@@ -120,7 +125,7 @@ namespace MeshMasher {
             return false;
         }
 
-        public void DrawLine(Color color, float duration)
+        public void DebugDraw(Color color, float duration)
         {
             Debug.DrawLine(Nodes[0].Vert, Nodes[1].Vert, color, duration);
         }

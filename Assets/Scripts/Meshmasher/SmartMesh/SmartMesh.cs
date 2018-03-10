@@ -35,26 +35,42 @@ namespace MeshMasher {
 
             var tris = triangles;
 
+            var halfEdges = new Dictionary<Coord, SmartLine>();
+
             for (var x = 0; x < tris.Length; x += 3)
             {
-                var cell = new SmartCell(Nodes[tris[x]], Nodes[tris[x + 1]], Nodes[tris[x + 2]]);
+                var cell = new SmartCell(Nodes[tris[x ]], Nodes[tris[x + 1]], Nodes[tris[x + 2]]);
                 cell.CreateNodeConnections();
                 Cells.Add(cell);
+
+                CreateLineConnections(tris, halfEdges, cell, x, x + 1);
+                CreateLineConnections(tris, halfEdges, cell, x+1, x + 2);
+                CreateLineConnections(tris, halfEdges, cell, x+2, x);
+
             }
+
+            //Here we iterate through creating lines by creating half-lines and then searching for the inverse in the set
+            //So we should be able to close off a decent chunk of this pretty early
+
+            //here first chris
+
+
+
+
 
             for (int i = 0; i < Cells.Count; i++)
             {
                 Cells[i].CreateCellConnections();
             }
 
-            for (int i = 0; i < Cells.Count; i++)
-            {
-                Cells[i].CreateLineConnections();
-                Lines.AddRange(Cells[i].Lines);
-            }
-
-            Lines = Lines.Distinct().ToList();
-
+            //for (int i = 0; i < Cells.Count; i++)
+            //{
+            //    Cells[i].CreateLineConnections();
+            //    Lines.AddRange(Cells[i].Lines);
+            //}
+            //
+            //Lines = Lines.Distinct().ToList();
+            //
             for (int i = 0; i < Lines.Count; i++)
             {
                 Lines[i].Nodes[0].Nodes.Add(Lines[i].Nodes[1]);
@@ -73,12 +89,7 @@ namespace MeshMasher {
             CreateBuckets(1, 1, 1);
         }
 
-        #endregion
-
-        public void SetCustomBuckets(int sizeX,int sizeY, int sizeZ)
-        {
-            CreateBuckets(sizeX, sizeY, sizeZ);
-        }
+        #endregion        
 
         public MeshState GetMeshState()
         {
@@ -88,6 +99,11 @@ namespace MeshMasher {
                 Cells = new int[Cells.Count],
                 Lines = new int[Lines.Count],
             };
+        }
+
+        public void SetCustomBuckets(int sizeX, int sizeY, int sizeZ)
+        {
+            CreateBuckets(sizeX, sizeY, sizeZ);
         }
 
         public int[] TriangleMap()
@@ -144,7 +160,7 @@ namespace MeshMasher {
 
     */ //Debug mesh
 
-            public void DrawMesh(Transform transform)
+        public void DrawMesh(Transform transform)
         {
             DrawMesh(transform, Color.red, Color.green);
         }
@@ -472,19 +488,7 @@ namespace MeshMasher {
 
                     count++;
                 }
-
-
-
-
-            }
-
-            
-            
-
-
-
-
-
+            }    
 
             return state;
         }
@@ -492,8 +496,6 @@ namespace MeshMasher {
         public MeshState CalculateRooms(MeshState state)
         {
             var hasBeenCounted = new bool[Cells.Count];
-
-
 
             var count = 0;
 
@@ -826,7 +828,7 @@ namespace MeshMasher {
                 {
                     if (newState.Lines[lines[i]] == 1)
                     {
-                        Lines[lines[i]].DrawLine(Color.red, 100f);
+                        Lines[lines[i]].DebugDraw(Color.red, 100f);
                     }
                     else
                     {
@@ -1012,7 +1014,29 @@ namespace MeshMasher {
             return node.Index;
         }
 
+        public void CreateLineConnections(int[] tris,Dictionary<Coord, SmartLine> halfEdges, SmartCell cell, int a, int b)
+        {
+            var coord = new Coord(tris[a], tris[b]);
+            var key = new Coord(coord.y, coord.x);
 
+            if (halfEdges.ContainsKey(key))
+            {
+                var line = halfEdges[key];
+                line.AddNeighbour(cell);
+                cell.AddLine(line);
+
+                halfEdges.Remove(key);
+            }
+            else
+            {
+                var line = new SmartLine(Nodes[tris[a]], Nodes[tris[b]]);
+                cell.AddLine(line);
+                Lines.Add(line);
+                line.AddNeighbour(cell);
+
+                halfEdges.Add(coord, line);
+            }
+        }
 
         void CreateBuckets(int divX, int divY, int divZ)
         {
@@ -1100,7 +1124,5 @@ namespace MeshMasher {
             }
         }
 
-
     }
-
 }  

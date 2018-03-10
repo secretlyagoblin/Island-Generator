@@ -747,7 +747,7 @@ namespace WorldGen {
             for (int i = 0; i < _mesh.Lines.Count; i++)
             {
                 if (roads.Lines[i] == 1)
-                    _mesh.Lines[i].DrawLine(Color.gray, _settings.DebugDisplayTime);
+                    _mesh.Lines[i].DebugDraw(Color.gray, _settings.DebugDisplayTime);
             }
         }
 
@@ -763,7 +763,7 @@ namespace WorldGen {
                     if (rooms.Nodes[l.Nodes[0].Index] == rooms.Nodes[l.Nodes[1].Index])
                     {
                         var colourHue = Mathf.InverseLerp(0f, 50f, rooms.Nodes[l.Nodes[0].Index]);
-                        l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
+                        l.DebugDraw(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
                         //l.DrawLine(Color.white, 100f);//, colourHue * 200);
                     }
 
@@ -861,7 +861,7 @@ namespace WorldGen {
 
                     //var nodeValue = rooms.Nodes[l.Nodes[0].Index] > rooms.Nodes[l.Nodes[1].Index] ? rooms.Nodes[l.Nodes[0].Index] : rooms.Nodes[l.Nodes[1].Index];
                     var colourHue = Mathf.InverseLerp(0f, (float)iterationCount, lineState[i]);
-                    l.DrawLine(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
+                    l.DebugDraw(Color.HSVToRGB(colourHue, 1f, 1f), _settings.DebugDisplayTime);//, colourHue * 200);
                 }
             }
         }
@@ -906,7 +906,7 @@ namespace WorldGen {
 
                         var colourHue = Mathf.InverseLerp(0f, l.Length, diff);
                         colourHue = -colourHue + 1;
-                        l.DrawLine(Color.HSVToRGB(colourHue / 3, 1, 1), _settings.DebugDisplayTime);
+                        l.DebugDraw(Color.HSVToRGB(colourHue / 3, 1, 1), _settings.DebugDisplayTime);
 
                     }
 
