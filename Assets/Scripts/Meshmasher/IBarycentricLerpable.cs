@@ -9,4 +9,6 @@ namespace MeshMasher {
     public interface IBarycentricLerpable<T> {
         T Lerp(T a, T b, T c, Vector3 weight);
     }
+
+
 }

@@ -840,6 +840,8 @@ namespace MeshMasher {
             return newState;
         }
 
+        //public MeshState
+
         public int[] ShortestWalkNode(int startIndex, int endIndex)
         {
             var nodesToEvaluate = new Dictionary<int, aStarHelper>();

@@ -131,7 +131,7 @@ namespace MeshMasher {
             DerivedOffset = derivedOffset.ToArray();
         }
 
-        public NestedMesh(NestedMesh originMesh, int[] meshTris)
+        public NestedMesh(NestedMesh originMesh, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Triangles)
         {
             var verts = new List<Vector3>();
             var tris = new List<int>();
@@ -170,11 +170,29 @@ namespace MeshMasher {
 
             var vertCount = -1;
 
-            for (int i = 0; i < meshTris.Length; i++)
+            for (int i = 0; i < accessIndexes.Length; i++)
             {
-                var subVerts = mesh.ScaledVerts[originMesh.DerivedTri[meshTris[i]]];
-                var subOffsets = mesh.ScaledOffsets[originMesh.DerivedTri[meshTris[i]]];
-                var offset = originMesh.DerivedOffset[meshTris[i]];
+                int[] subVerts;
+                SimpleVector2Int[] subOffsets;
+                SimpleVector2Int offset;
+
+                switch (type)
+                {
+                    default:
+                    case NestedMeshAccessType.Triangles:
+                        subVerts = mesh.ScaledVerts[originMesh.DerivedTri[accessIndexes[i]]];
+                        subOffsets = mesh.ScaledOffsets[originMesh.DerivedTri[accessIndexes[i]]];
+                        offset = originMesh.DerivedOffset[accessIndexes[i]];
+                        break;
+                    case NestedMeshAccessType.Vertex:
+                        Debug.Log("Not supported!, needs rethinking");
+                        subVerts = new int[] { };
+                        subOffsets = new SimpleVector2Int[] { };
+                        offset = new SimpleVector2Int();
+                        break;
+                }
+
+
 
                 for (int u = 0; u < subVerts.Length; u++)
                 {
@@ -273,28 +291,12 @@ namespace MeshMasher {
 
         }
 
-        public List<T> LerpBarycentricValues<T>(int[] originValueIndexes,T[] originValues,  int[] meshTris) where T: IBarycentricLerpable<T>
+        public T[] LerpBarycentricValues<T>(T[] originValues,  int[] meshTris) where T: IBarycentricLerpable<T>
         {
-            var nestedValues = new List<T>();
+            //var nestedValues = new List<T>();
 
             var innerScale = Scale * 0.25;
             var nestedLevel = NestedLevel + 1;
-
-            var baseDict = new Dictionary<SimpleVector2Int, int[]>();
-
-            var indexMap = new int[mesh.Positions.Length];
-
-            for (int i = 0; i < indexMap.Length; i++)
-            {
-                indexMap[i] = -1;
-            }
-
-            //for (int i = 0; i < tiles.Count; i++)
-            //{
-            //    baseDict.Add(tiles[i], (int[])indexMap.Clone());
-            //}
-
-            //need to go from offset 0 to offset 12.5 to offset 12.5 + 12.5/4
 
             var localOffset = 0f;
             var scale = 50f;
@@ -305,6 +307,16 @@ namespace MeshMasher {
                 localOffset += scale;
             }
 
+            var arraySize = 0;
+
+            for (int i = 0; i < meshTris.Length; i++)
+            {
+                arraySize += mesh.Barycenters[DerivedTri[meshTris[i]]].Length;
+            }
+
+            var nestedValues = new T[arraySize];
+            var nestedValuesIndex = 0;
+
             for (int i = 0; i < meshTris.Length; i++)
             {
                 var barycenters = mesh.Barycenters[DerivedTri[meshTris[i]]];
@@ -313,13 +325,14 @@ namespace MeshMasher {
                 for (int u = 0; u < barycenters.Length; u++)
                 {
                     var bc = barycenters[u];
-                    var index = i * 3;
+                    var index = meshTris[i] * 3;
 
-                    var a = originValues[originValueIndexes[index]];
-                    var b = originValues[originValueIndexes[index+1]];
-                    var c = originValues[originValueIndexes[index+2]];
+                    var a = originValues[Tris[index]];
+                    var b = originValues[Tris[index+1]];
+                    var c = originValues[Tris[index+2]];
 
-                    nestedValues.Add(originValues[0].Lerp(a,b,c,bc));                   
+                    nestedValues[nestedValuesIndex] = (originValues[0].Lerp(a,b,c,bc));
+                    nestedValuesIndex++;              
                 }
             }
 
@@ -382,6 +395,10 @@ namespace MeshMasher {
 
             return false;
         }
+    }
+
+    public enum NestedMeshAccessType {
+        Triangles,Vertex
     }
 
 

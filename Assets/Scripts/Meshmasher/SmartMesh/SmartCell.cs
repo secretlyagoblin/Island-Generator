@@ -45,21 +45,65 @@ namespace MeshMasher {
 
         public void CreateCellConnections()
         {
-            foreach (var node in Nodes)
-            {
-                var neighbourCells = new List<SmartCell>(node.Cells);
-                neighbourCells.Remove(this);
+            var nodes = new List<SmartNode>();
 
-                foreach (var cell in neighbourCells)
-                {
-                    if (Nodes.Intersect(cell.Nodes).Count() == 2)
-                    {
-                        Neighbours.Add(cell);
-                    }
-                }
+            //for (int i = 0; i < Nodes.Count; i++)
+            //{
+            //    var node = Nodes[i];
+            //
+            //    for (int u = 0; u < node.Cells.Count; u++)
+            //    {
+            //        var neighbourCell = node.Cells[u];
+            //
+            //        var doubleCount = 0;
+            //
+            //        for (int v = 0; v < neighbourCell.Nodes.Count; v++)
+            //        {
+            //            if (neighbourCell.Nodes[v] == node)
+            //                continue;
+            //
+            //            for (int e = 0; e < Nodes.Count; e++)
+            //            {
+            //                if (Nodes[e] == neighbourCell.Nodes[v])
+            //                    doubleCount++;
+            //            }
+            //        }
+            //
+            //        
+            //    }
+            //}
+
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                var line = Lines[i];
+
+                if (line.Neighbours.Count != 2)
+                    continue;
+
+                if (line.Neighbours[0] == this)
+                    Neighbours.Add(line.Neighbours[1]);
+                else if (line.Neighbours[1] == this)
+                    Neighbours.Add(line.Neighbours[0]);
+                else
+                    Debug.Log("Not quite working");
             }
 
-            Neighbours = Neighbours.Distinct().ToList();
+
+            //foreach (var node in Nodes)
+            //{
+            //    var neighbourCells = new List<SmartCell>(node.Cells);
+            //    neighbourCells.Remove(this);
+            //
+            //    foreach (var cell in neighbourCells)
+            //    {
+            //        if (Nodes.Intersect(cell.Nodes).Count() == 2)
+            //        {
+            //            Neighbours.Add(cell);
+            //        }
+            //    }
+            //}
+
+            //Neighbours = Neighbours.Distinct().ToList();
         }
 
         public void CreateLineConnections()
@@ -223,6 +267,29 @@ namespace MeshMasher {
             {
                 Lines[i].DebugDraw(color, duration);
             }
+        }
+
+        public int[] GetNeighbourhood()
+        {
+            var cellIndexes = new List<int>();
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var node = Nodes[i];
+
+                for (int u = 0; u < node.Cells.Count; u++)
+                {
+                    if (cellIndexes.Contains(node.Cells[u].Index))
+                    {
+                    }
+                    else
+                    {
+                        cellIndexes.Add(node.Cells[u].Index);
+                    }
+                }
+            }
+
+            return cellIndexes.ToArray();
         }
     }
 
