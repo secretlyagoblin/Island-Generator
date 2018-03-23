@@ -8,6 +8,9 @@ namespace MeshMasher.NodeDataTypes {
 
         public int Value;
 
+        public static bool operator ==(RoomCode a, RoomCode b) { return a.Value == b.Value; }
+        public static bool operator !=(RoomCode a, RoomCode b) { return a.Value != b.Value; }
+
         public RoomCode(int value)
         {
             Value = value;
@@ -101,4 +104,106 @@ namespace MeshMasher.NodeDataTypes {
         }
     }
 
+    struct ZoneBoundary : IBarycentricLerpable<ZoneBoundary> {
+
+        public int RoomCode { get { return _roomCode.Value; } set { _roomCode.Value = value; } }
+        public float Distance;
+
+        RoomCode _roomCode;
+
+        public ZoneBoundary(int roomCode)
+        {
+            _roomCode = new RoomCode(roomCode);
+            Distance = 0;
+        }
+
+        public ZoneBoundary(int roomCode, float distance)
+        {
+            _roomCode = new RoomCode(roomCode);
+            Distance = distance;
+        }
+
+        const float threshold = 0.8f;
+
+        public ZoneBoundary Lerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Vector3 weight)
+        {
+            var roomCode = a._roomCode.Lerp(a._roomCode, b._roomCode, c._roomCode, weight).Value;
+
+            //enableConnection a -> b
+
+            //ugly ahead
+
+            int HighestCellCode, SecondHighestCellCode;
+            float HighestBarycenter, SecondHighestBarycenter;
+
+            if (weight.x >= weight.y && weight.x >= weight.z)
+            {
+                HighestCellCode = a.RoomCode;
+                HighestBarycenter = weight.x;
+
+                if (weight.y >= weight.z)
+                {
+                    SecondHighestCellCode = b.RoomCode;
+                    SecondHighestBarycenter = weight.y;
+                }else
+                {
+                    SecondHighestCellCode = c.RoomCode;
+                    SecondHighestBarycenter = weight.z;
+                }
+            } else if (weight.y >= weight.z && weight.y >= weight.x)
+            {
+                HighestCellCode = b.RoomCode;
+                HighestBarycenter = weight.y;
+
+                if (weight.x >= weight.z)
+                {
+                    SecondHighestCellCode = a.RoomCode;
+                    SecondHighestBarycenter = weight.x;
+                }
+                else
+                {
+                    SecondHighestCellCode = c.RoomCode;
+                    SecondHighestBarycenter = weight.z;
+                }
+            }
+            else
+            {
+                HighestCellCode = c.RoomCode;
+                HighestBarycenter = weight.z;
+
+                if (weight.x >= weight.y)
+                {
+                    SecondHighestCellCode = a.RoomCode;
+                    SecondHighestBarycenter = weight.x;
+                }
+                else
+                {
+                    SecondHighestCellCode = b.RoomCode;
+                    SecondHighestBarycenter = weight.y;
+                }
+            }
+
+            var inSameZone = HighestCellCode == SecondHighestCellCode;
+            var withinThreshold = (Mathf.Abs(HighestBarycenter - SecondHighestBarycenter) > threshold);
+
+            if(inSameZone || withinThreshold)
+                return new ZoneBoundary(roomCode, 1);
+            else
+                return new ZoneBoundary(roomCode, 0);
+        }
+
+        bool CheckConnection(int roomCodeA, int roomCodeB, float weightA, float weightB)
+        {
+            if (roomCodeA == roomCodeB)
+            {
+                return true;
+            }
+            else
+            {
+                if (weightA > threshold || weightB > threshold)
+                    return true;
+                return false;
+            }
+        }        
+    }
 }

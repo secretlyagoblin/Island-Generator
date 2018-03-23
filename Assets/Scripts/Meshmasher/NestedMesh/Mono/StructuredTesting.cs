@@ -29,14 +29,14 @@ public class StructuredTesting : MonoBehaviour {
         for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         {
             var n = layer2.Mesh.Nodes[i];
-
+        
             if (layer2.CellMetadata[n.Index].Code == 0)
             {
                 layer2.CellMetadata[n.Index].SmoothColor = Color.black;
             }
             else
             {
-                layer2.CellMetadata[n.Index].Code = i + 1;
+                layer2.CellMetadata[n.Index].Code = RNG.Next(1, layer2.Mesh.Nodes.Count / 10);
                 layer2.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
                 layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f,0.5f);
             }
@@ -44,23 +44,24 @@ public class StructuredTesting : MonoBehaviour {
 
         var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray());
 
-        return;
+        //layer2.Mesh.DrawMesh(transform, Color.red, Color.gray);
+        //layer3.Mesh.DrawMesh(transform, Color.black, Color.white);
 
-        for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
-        {
-            var n = layer3.Mesh.Nodes[i];
-
-            if (layer3.CellMetadata[n.Index].Code == 0)
-            {
-                layer3.CellMetadata[n.Index].SmoothColor = Color.black;
-            }
-            else
-            {
-                layer3.CellMetadata[n.Index].Code = i + 1;
-                layer3.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
-                layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
-            }
-        }
+        //for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
+        //{
+        //    var n = layer3.Mesh.Nodes[i];
+        //
+        //    if (layer3.CellMetadata[n.Index].Code == 0)
+        //    {
+        //        layer3.CellMetadata[n.Index].SmoothColor = Color.black;
+        //    }
+        //    else
+        //    {
+        //        layer3.CellMetadata[n.Index].Code = i + 1;
+        //        layer3.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
+        //        layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
+        //    }
+        //}
 
         var layer4 = new CleverMesh(layer3, layer3.Mesh.Cells.Select(x => x.Index).ToArray());
 
@@ -74,10 +75,10 @@ public class StructuredTesting : MonoBehaviour {
                 continue;
 
             var obj = Instantiate(InstantiationBase);
-            obj.GetComponent<MeshRenderer>().material.color = layer4.CellMetadata[i].SmoothColor;
+            obj.GetComponent<MeshRenderer>().material.color = layer4.CellMetadata[i].Distance < 0.5? Color.red:Color.green;
             obj.transform.position = pts[i].Vert+ Vector3.forward*layer4.CellMetadata[i].Height;
-            obj.transform.position = new Vector3(obj.transform.position.x, obj.transform.position.z, obj.transform.position.y);
-            obj.transform.localScale = Vector3.one * 0.05f;
+            //obj.transform.position = new Vector3(obj.transform.position.x, -obj.transform.position.z, obj.transform.position.y);
+            obj.transform.localScale = Vector3.one * 0.06f;
             obj.name = "Room " + layer4.CellMetadata[i].Code;
         }    
 
@@ -124,19 +125,22 @@ public class CleverMesh {
 
 public struct NodeMetadata : IBarycentricLerpable<NodeMetadata> {
 
-    public int Code { get { return _roomCode.Value; } set { _roomCode.Value = value; } }
+    public int Code { get { return _roomCode.Value; } set { _roomCode.Value = value; _zoneBoundary.RoomCode = value; } }
     public Color SmoothColor { get { return _roomColor.Value; } set { _roomColor.Value = value; } }
     public float Height { get { return _height.Value; } set { _height.Value = value; } }
+    public float Distance { get { return _zoneBoundary.Distance; } }
 
     MeshMasher.NodeDataTypes.RoomCode _roomCode;
     MeshMasher.NodeDataTypes.RoomColor _roomColor;
     MeshMasher.NodeDataTypes.RoomFloat _height;
+    MeshMasher.NodeDataTypes.ZoneBoundary _zoneBoundary;
 
     public NodeMetadata(int roomCode, Color roomColor, float height = 0f)
     {
         _roomCode = new MeshMasher.NodeDataTypes.RoomCode(roomCode);
         _roomColor = new MeshMasher.NodeDataTypes.RoomColor(roomColor);
         _height = new MeshMasher.NodeDataTypes.RoomFloat(height);
+        _zoneBoundary = new MeshMasher.NodeDataTypes.ZoneBoundary(roomCode, 1);
     }
 
     public NodeMetadata Lerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Vector3 weight)
@@ -145,7 +149,9 @@ public struct NodeMetadata : IBarycentricLerpable<NodeMetadata> {
         {
             _roomCode = _roomCode.Lerp(a._roomCode, b._roomCode, c._roomCode, weight),
             _roomColor = _roomColor.Lerp(a._roomColor, b._roomColor, c._roomColor, weight),
-            _height = _height.Lerp(a._height, b._height, c._height, weight)
+            _height = _height.Lerp(a._height, b._height, c._height, weight),
+            _zoneBoundary = _zoneBoundary.Lerp(a._zoneBoundary,b._zoneBoundary,c._zoneBoundary,weight)
+            
         };
     }
 }
