@@ -24,12 +24,12 @@ public class StructuredTesting : MonoBehaviour {
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
         {
             var n = layer1.Mesh.Cells[cellIndex].Nodes[i];
-            layer1.CellMetadata[n.Index] = new NodeMetadata(i + 1, colors[i] ,RNG.NextFloat(5));
+            layer1.CellMetadata[n.Index] = new NodeMetadata(i + 1, colors[i],new int[] { } ,RNG.NextFloat(5));
         }
 
         var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
 
-        //var state = layer2.Mesh.MinimumSpanningTree();
+        var state = layer2.Mesh.MinimumSpanningTree();
         
         for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         {
@@ -44,6 +44,7 @@ public class StructuredTesting : MonoBehaviour {
                 layer2.CellMetadata[n.Index].Code = i + 1;
                 layer2.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
                 layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f,0.5f);
+                layer2.CellMetadata[n.Index].Connections = n.Lines.Where(x => state.Lines[x.Index] == 1).Select(x => x.GetOtherNode(n).Index+1).ToArray();
             }
         }
 
@@ -75,34 +76,36 @@ public class StructuredTesting : MonoBehaviour {
 
         var layer4 = new CleverMesh(layer3, layer3.Mesh.Cells.Select(x => x.Index).ToArray());
         //layer2.Mesh.DrawMesh(transform, Color.black, Color.white);
+
+        var funLayer = layer2;
         //
         ////var state = funLayer.Mesh.MinimumSpanningTree();
         ////state = funLayer.Mesh.CullLeavingOnlySimpleLines(state);
         //var state = funLayer.Mesh.GenerateSemiConnectedMesh(5);
         ////state = layer2.Mesh.
         //
-        //for (int i = 0; i < funLayer.Mesh.Lines.Count; i++)
-        //{
-        //    if (state.Lines[funLayer.Mesh.Lines[i].Index] == 1)
-        //        funLayer.Mesh.Lines[i].DrawLine(Color.white, 100f, 0f);
-        //}
-        //
-        //for (int i = 0; i < funLayer.Mesh.Cells.Count; i++)
-        //{
-        //    var c = funLayer.Mesh.Cells[i];
-        //
-        //    for (int u = 0; u < c.Lines.Count; u++)
-        //    {
-        //            if (state.Lines[c.Lines[u].Index] == 0)
-        //            {
-        //                var other = c.Lines[u].GetCellPartner(c);
-        //            if (other == null)
-        //                continue;
-        //
-        //                Debug.DrawLine(c.Center, other.Center, Color.red, 100f);
-        //            }
-        //    }
-        //}
+        for (int i = 0; i < funLayer.Mesh.Lines.Count; i++)
+        {
+            if (state.Lines[funLayer.Mesh.Lines[i].Index] == 1)
+                funLayer.Mesh.Lines[i].DrawLine(Color.white, 100f, 0f);
+        }
+        
+        for (int i = 0; i < funLayer.Mesh.Cells.Count; i++)
+        {
+            var c = funLayer.Mesh.Cells[i];
+        
+            for (int u = 0; u < c.Lines.Count; u++)
+            {
+                    if (state.Lines[c.Lines[u].Index] == 0)
+                    {
+                        var other = c.Lines[u].GetCellPartner(c);
+                    if (other == null)
+                        continue;
+        
+                        Debug.DrawLine(c.Center, other.Center, Color.red, 100f);
+                    }
+            }
+        }
 
         var pts = layer4.Mesh.Nodes;
 
@@ -114,8 +117,8 @@ public class StructuredTesting : MonoBehaviour {
 
         for (int i = 0; i < pts.Count; i++)
         {
-            if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
-                continue;
+            //if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
+            //    continue;
 
             var obj = Instantiate(InstantiationBase);
             obj.GetComponent<MeshRenderer>().sharedMaterial = layer4.CellMetadata[i].Distance < 0.5? matA : matB;
@@ -153,7 +156,7 @@ public class CleverMesh {
 
         for (int i = 0; i < CellMetadata.Length; i++)
         {
-            CellMetadata[i] = new NodeMetadata(0, Color.black);
+            CellMetadata[i] = new NodeMetadata(0, Color.black, new int[] {0});
         } 
     }
 
@@ -172,18 +175,19 @@ public struct NodeMetadata : IBarycentricLerpable<NodeMetadata> {
     public Color SmoothColor { get { return _roomColor.Value; } set { _roomColor.Value = value; } }
     public float Height { get { return _height.Value; } set { _height.Value = value; } }
     public float Distance { get { return _zoneBoundary.Distance; } }
+    public int[] Connections { get { return _zoneBoundary.Links; } set { _zoneBoundary.Links = value; } }
 
     MeshMasher.NodeDataTypes.RoomCode _roomCode;
     MeshMasher.NodeDataTypes.RoomColor _roomColor;
     MeshMasher.NodeDataTypes.RoomFloat _height;
     MeshMasher.NodeDataTypes.ZoneBoundary _zoneBoundary;
 
-    public NodeMetadata(int roomCode, Color roomColor, float height = 0f )
+    public NodeMetadata(int roomCode, Color roomColor, int[] links, float height = 0f )
     {
         _roomCode = new MeshMasher.NodeDataTypes.RoomCode(roomCode);
         _roomColor = new MeshMasher.NodeDataTypes.RoomColor(roomColor);
         _height = new MeshMasher.NodeDataTypes.RoomFloat(height);
-        _zoneBoundary = new MeshMasher.NodeDataTypes.ZoneBoundary(roomCode);
+        _zoneBoundary = new MeshMasher.NodeDataTypes.ZoneBoundary(roomCode, 1, links);
     }
 
     public NodeMetadata Lerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Vector3 weight)
