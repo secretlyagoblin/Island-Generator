@@ -108,30 +108,41 @@ namespace MeshMasher.NodeDataTypes {
 
         public int RoomCode { get { return _roomCode.Value; } set { _roomCode.Value = value; } }
         public float Distance;
+        public int[] Links { get { return _links; } set { _links = value; } }
 
         RoomCode _roomCode;
+        int[] _links;
+
+        const float _threshold = 0.6f;
+        const int _linkMaxCount = 5;
 
         public ZoneBoundary(int roomCode)
         {
             _roomCode = new RoomCode(roomCode);
             Distance = 0;
+            _links = new int[] {roomCode};
         }
 
-        public ZoneBoundary(int roomCode, float distance)
+        public ZoneBoundary(int roomCode, float distance, int[] links)
         {
             _roomCode = new RoomCode(roomCode);
             Distance = distance;
+            _links = links;
         }
 
-        const float threshold = 0.8f;
 
         public ZoneBoundary Lerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Vector3 weight)
         {
             var roomCode = a._roomCode.Lerp(a._roomCode, b._roomCode, c._roomCode, weight).Value;
 
-            //enableConnection a -> b
+            int[] links;
 
-            //ugly ahead
+            if (roomCode == a._roomCode.Value)
+                links = a._links;
+            else if (roomCode == b._roomCode.Value)
+                links = b._links;
+            else            
+                links = c._links;
 
             int HighestCellCode, SecondHighestCellCode;
             float HighestBarycenter, SecondHighestBarycenter;
@@ -183,13 +194,24 @@ namespace MeshMasher.NodeDataTypes {
                 }
             }
 
-            var inSameZone = HighestCellCode == SecondHighestCellCode;
-            var withinThreshold = (Mathf.Abs(HighestBarycenter - SecondHighestBarycenter) > threshold);
+            var inSameZone = false;
+
+            for (int i = 0; i < links.Length; i++)
+            {
+                if (SecondHighestCellCode == links[i])
+                {
+                    inSameZone = true;
+                    continue;
+                }
+                    
+            }
+
+            var withinThreshold = (Mathf.Abs(HighestBarycenter - SecondHighestBarycenter) > _threshold);
 
             if(inSameZone || withinThreshold)
-                return new ZoneBoundary(roomCode, 1);
+                return new ZoneBoundary(roomCode, 1, (int[])links.Clone());
             else
-                return new ZoneBoundary(roomCode, 0);
+                return new ZoneBoundary(roomCode, 0, (int[])links.Clone());
         }
 
         bool CheckConnection(int roomCodeA, int roomCodeB, float weightA, float weightB)
@@ -200,7 +222,7 @@ namespace MeshMasher.NodeDataTypes {
             }
             else
             {
-                if (weightA > threshold || weightB > threshold)
+                if (weightA > _threshold || weightB > _threshold)
                     return true;
                 return false;
             }

@@ -284,7 +284,35 @@ namespace MeshMasher {
                 }
             }
 
-            Verts = verts.ToArray();
+            var used = new bool[verts.Count];
+            var remap = new int[verts.Count];
+
+            for (int i = 0; i < tris.Count; i+=3)
+            {
+                used[tris[i]] = true;
+                used[tris[i+1]] = true;
+                used[tris[i + 2]] = true;
+            }
+
+            var newIndex = -1;
+            var newVerts = new List<Vector3>();
+
+            for (int i = 0; i < verts.Count; i++)
+            {
+                if (used[i])
+                {
+                    newIndex++;
+                    remap[i] = newIndex;
+                    newVerts.Add(verts[i]);
+                }
+            }
+
+            for (int i = 0; i < tris.Count; i ++)
+            {
+                tris[i] = remap[tris[i]];
+            }
+
+            Verts = newVerts.ToArray();
             Tris = tris.ToArray();
             DerivedTri = derivedTri.ToArray();
             DerivedOffset = derivedOffset.ToArray();

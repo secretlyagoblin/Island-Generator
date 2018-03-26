@@ -51,7 +51,7 @@ namespace MeshMasher {
 
         public SmartCell GetCellPartner(SmartCell cell)
         {
-            if (Nodes.Count <= 1)
+            if (Neighbours.Count <= 1)
             {
                 return null;
             }

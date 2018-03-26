@@ -341,18 +341,42 @@ namespace MeshMasher {
 
             var state = GetMeshState();
 
-            var visitedNodes = new List<SmartNode>();
-            var visitedLines = new List<SmartLine>();
+            var visitedNodesList = new List<SmartNode>();
+            //var visitedLines = new List<SmartLine>();
 
-            visitedNodes.Add(Nodes[0]);
+            var visitedNodes = (int[])state.Nodes.Clone();
+            var visitedLines = (int[])state.Lines.Clone();
+            var visitedLinesIteration = (int[])state.Lines.Clone();
 
-            while (visitedNodes.Count < Nodes.Count)
+            visitedNodesList.Add(Nodes[0]);
+
+            visitedNodes[Nodes[0].Index] = 1;
+
+            var lines = new List<SmartLine>();
+            var iteration = 0;
+
+            while (visitedNodesList.Count < Nodes.Count)
             {
-                var lines = visitedNodes
-                    .SelectMany(n => n.Lines)
-                    .Distinct()
-                    .Except(visitedLines)
-                    .ToList();
+                lines.Clear();
+                iteration++;                
+
+                for (int i = 0; i < visitedNodesList.Count; i++)
+                {
+                    var n = visitedNodesList[i];
+                    if (n.Lines.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    for (int u = 0; u < n.Lines.Count; u++)
+                    {
+                        if (visitedLines[n.Lines[u].Index] == 0 && visitedLinesIteration[n.Lines[u].Index] != iteration)
+                        {
+                            lines.Add(n.Lines[u]);
+                            visitedLinesIteration[n.Lines[u].Index] = iteration;
+                        }
+                    }
+                }                 
 
                 var length = float.MaxValue;
                 SmartLine bestLine = null;
@@ -374,17 +398,23 @@ namespace MeshMasher {
                 isPartOfCurrentSortingEvent[bestLine.Nodes[0].Index] = true;
                 isPartOfCurrentSortingEvent[bestLine.Nodes[1].Index] = true;
 
-                visitedLines.Add(bestLine);
-                visitedNodes.AddRange(bestLine.Nodes);
-                visitedNodes = visitedNodes.Distinct().ToList();
+                visitedLines[bestLine.Index] = 1;
+
+                for (int i = 0; i < bestLine.Nodes.Count; i++)
+                {
+                    var n = bestLine.Nodes[i];
+                    if(visitedNodes[n.Index] ==0 )
+                    {
+                        visitedNodesList.Add(n);
+                        visitedNodes[n.Index] = 1;
+                    }
+
+                }
             }
 
-            for (int i = 0; i < visitedLines.Count; i++)
-            {
-                state.Lines[visitedLines[i].Index] = 1;
-            }
+            state.Lines = visitedLines;
 
-            return state;
+                return state;
         }
 
         public MeshState CullLeavingOnlySimpleLines(MeshState state)
@@ -1018,16 +1048,16 @@ namespace MeshMasher {
 
         public void CreateLineConnections(int[] tris,Dictionary<Coord, SmartLine> halfEdges, SmartCell cell, int a, int b)
         {
-            var coord = new Coord(tris[a], tris[b]);
-            var key = new Coord(coord.y, coord.x);
+            var halfEdge = new Coord(tris[a], tris[b]);
+            var inverseHalfEdge = new Coord(halfEdge.y, halfEdge.x);
 
-            if (halfEdges.ContainsKey(key))
+            if (halfEdges.ContainsKey(inverseHalfEdge))
             {
-                var line = halfEdges[key];
+                var line = halfEdges[inverseHalfEdge];
                 line.AddNeighbour(cell);
                 cell.AddLine(line);
 
-                halfEdges.Remove(key);
+                halfEdges.Remove(inverseHalfEdge);
             }
             else
             {
@@ -1036,7 +1066,7 @@ namespace MeshMasher {
                 Lines.Add(line);
                 line.AddNeighbour(cell);
 
-                halfEdges.Add(coord, line);
+                halfEdges.Add(halfEdge, line);
             }
         }
 
