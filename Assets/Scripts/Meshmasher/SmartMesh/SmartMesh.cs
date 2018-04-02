@@ -91,13 +91,13 @@ namespace MeshMasher {
 
         #endregion        
 
-        public MeshState GetMeshState()
+        public MeshState<T> GetMeshState<T>()
         {
-            return new MeshState()
+            return new MeshState<T>()
             {
-                Nodes = new int[Nodes.Count],
-                Cells = new int[Cells.Count],
-                Lines = new int[Lines.Count],
+                Nodes = new T[Nodes.Count],
+                Cells = new T[Cells.Count],
+                Lines = new T[Lines.Count],
             };
         }
 
@@ -188,7 +188,7 @@ namespace MeshMasher {
 
         }
             
-        public List<List<SmartNode>> GetCellBoundingPolyLines(MeshState state, int key)
+        public List<List<SmartNode>> GetCellBoundingPolyLines(MeshState<int> state, int key)
         {
             var cells = new List<SmartCell>();
 
@@ -273,7 +273,7 @@ namespace MeshMasher {
             return vectors.ToArray();
         }
 
-        public MeshState SetCellGroups(MeshState state)
+        public MeshState<int> SetCellGroups(MeshState<int> state)
         {
             var sorted = new bool[Cells.Count];
 
@@ -335,12 +335,12 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState MinimumSpanningTree()
+        public MeshState<int> MinimumSpanningTree()
         {
-            return MinimumSpanningTree(GetMeshState());
+            return MinimumSpanningTree(GetMeshState<int>());
         }
 
-        public MeshState MinimumSpanningTree(MeshState state)
+        public MeshState<int> MinimumSpanningTree(MeshState<int> state)
         {
             var isPartOfCurrentSortingEvent = new bool[Nodes.Count];
 
@@ -350,7 +350,7 @@ namespace MeshMasher {
 
 
 
-            var newState = GetMeshState();
+            var newState = GetMeshState<int>();
 
             var visitedNodesList = new List<SmartNode>();
             //var visitedLines = new List<SmartLine>();
@@ -444,7 +444,7 @@ namespace MeshMasher {
             return newState;
         }
 
-        public MeshState CullLeavingOnlySimpleLines(MeshState state)
+        public MeshState<int> CullLeavingOnlySimpleLines(MeshState<int> state)
         {
             var isNodePartOfCurrentSortingEvent = new bool[Nodes.Count];
             var isLinePartOfCurrentSortingEvent = new bool[Lines.Count];
@@ -489,7 +489,7 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState WalkThroughRooms(MeshState state)
+        public MeshState<int> WalkThroughRooms(MeshState<int> state)
         {
             var hasBeenCounted = new bool[Cells.Count];
 
@@ -550,7 +550,7 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState CalculateRooms(MeshState state)
+        public MeshState<int> CalculateRooms(MeshState<int> state)
         {
             var hasBeenCounted = new bool[Cells.Count];
 
@@ -621,7 +621,7 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState RemoveLargeRooms(MeshState lineStateToUpdate,MeshState roomMap, MeshState walkMap, int maxWalkLength)
+        public MeshState<int> RemoveLargeRooms(MeshState<int> lineStateToUpdate,MeshState<int> roomMap, MeshState<int> walkMap, int maxWalkLength)
         {
             var distinct = roomMap.Cells.Distinct().ToList();
 
@@ -674,7 +674,7 @@ namespace MeshMasher {
             return lineStateToUpdate;
         }
 
-        public MeshState GenerateSemiConnectedMesh(int maxCliffLength)
+        public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength)
         {
             var state = MinimumSpanningTree();
             var walkState = WalkThroughRooms(state.Clone());
@@ -683,7 +683,7 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState GenerateSemiConnectedMesh(int maxCliffLength, MeshState outline)
+        public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<int> outline)
         {
             var state = MinimumSpanningTree(outline);
             var walkState = WalkThroughRooms(state.Clone());
@@ -692,9 +692,9 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState ApplyRoomsBasedOnWeights(MeshState state)
+        public MeshState<int> ApplyRoomsBasedOnWeights(MeshState<int> state)
         {
-            var newState = GetMeshState();
+            var newState = GetMeshState<int>();
             var diffusionWeight = new int[Nodes.Count];
             var nodeOwnership = new int[Nodes.Count];
             var nodeTraversed = new bool[Nodes.Count];
@@ -756,9 +756,9 @@ namespace MeshMasher {
 
         }
 
-        public MeshState DrawRoomOutlines(MeshState state)
+        public MeshState<int> DrawRoomOutlines(MeshState<int> state)
         {
-            var newState = GetMeshState();
+            var newState = GetMeshState<int>();
             var nodeOwnership = new int[Nodes.Count];
 
             for (int i = 0; i < Nodes.Count; i++)
@@ -783,9 +783,9 @@ namespace MeshMasher {
 
         }
 
-        public MeshState SecretSauceRoomsBasedOnWeights(MeshState state)
+        public MeshState<int> SecretSauceRoomsBasedOnWeights(MeshState<int> state)
         {
-            var newState = GetMeshState();
+            var newState = GetMeshState<int>();
             var diffusionWeight = new int[Nodes.Count];
             var nodeOwnership = new int[Nodes.Count];
             var nodeTraversed = new bool[Nodes.Count];
@@ -841,9 +841,9 @@ namespace MeshMasher {
             return newState;
         }
 
-        public MeshState BubbleMesh(int iterations)
+        public MeshState<int> BubbleMesh(int iterations)
         {
-            var newState = GetMeshState();
+            var newState = GetMeshState<int>();
 
             for (int u = 0; u < iterations; u++)
             {
@@ -1103,9 +1103,9 @@ namespace MeshMasher {
             }
         }
 
-        public MeshState GetBorderNodes()
+        public MeshState<int> GetBorderNodes()
         {
-            var state = GetMeshState();
+            var state = GetMeshState<int>();
 
             for (int i = 0; i < Lines.Count; i++)
             {
@@ -1179,38 +1179,22 @@ namespace MeshMasher {
     /// Smartmesh functions operate on the current mesh using MeshStates to hold the current state of the mesh. 
     /// This allows the current mesh to be analyised for various conditions.
     /// </summary>
-    public class MeshState {
-        public int[] Nodes;
-        public int[] Cells;
-        public int[] Lines;
+    public class MeshState<T> {
+        public T[] Nodes;
+        public T[] Cells;
+        public T[] Lines;
 
-        public MeshState Clone()
+        public MeshState<T> Clone()
         {
-            return new MeshState()
+            return new MeshState<T>()
             {
-                Nodes = (int[])Nodes.Clone(),
-                Cells = (int[])Cells.Clone(),
-                Lines = (int[])Lines.Clone(),
+                Nodes = (T[])Nodes.Clone(),
+                Cells = (T[])Cells.Clone(),
+                Lines = (T[])Lines.Clone(),
             };
         }
 
-        public void Add(MeshState other)
-        {
-            for (int i = 0; i < Nodes.Length; i++)
-            {
-                Nodes[i] += other.Nodes[i];
-            }
 
-            for (int i = 0; i < Cells.Length; i++)
-            {
-                Cells[i] += other.Cells[i];
-            }
-
-            for (int i = 0; i < Lines.Length; i++)
-            {
-                Lines[i] += other.Lines[i];
-            }
-        }
 
     }
 }  

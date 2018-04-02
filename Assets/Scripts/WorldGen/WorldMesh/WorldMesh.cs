@@ -15,7 +15,7 @@ namespace WorldGen {
         MeshMasher.SmartMesh _mesh;
         WorldMeshSettings _settings;
 
-        MeshMasher.MeshState _roomState;
+        MeshMasher.MeshState<int> _roomState;
         float[] _heightMap;
 
         #region Public Functions  
@@ -169,9 +169,9 @@ namespace WorldGen {
 
         //Rooms
 
-        MeshMasher.MeshState GenerateRooms()
+        MeshMasher.MeshState<int> GenerateRooms()
         {
-            var state = _mesh.GetMeshState();
+            var state = _mesh.GetMeshState<int>();
 
             foreach (var pair in _regionVertexIndex)
             {
@@ -184,7 +184,7 @@ namespace WorldGen {
             return returnState;
         }
 
-        Dictionary<KeyValuePair<int, int>, List<int>> GetAdjacencySets(MeshMasher.MeshState rooms)
+        Dictionary<KeyValuePair<int, int>, List<int>> GetAdjacencySets(MeshMasher.MeshState<int> rooms)
         {
             //var boundaries = _mesh.DrawRoomOutlines(rooms);
 
@@ -236,7 +236,7 @@ namespace WorldGen {
 
         }
 
-        void SetRegionRoomSize(MeshMasher.MeshState rooms)
+        void SetRegionRoomSize(MeshMasher.MeshState<int> rooms)
         {
             var lengthDict = new Dictionary<int, int>();
 
@@ -266,9 +266,9 @@ namespace WorldGen {
             }
         }
 
-        MeshMasher.MeshState ConsolidateSmallRooms(MeshMasher.MeshState rooms, int minRoomSize, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
+        MeshMasher.MeshState<int> ConsolidateSmallRooms(MeshMasher.MeshState<int> rooms, int minRoomSize, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
         {
-            var consolidatedRooms = _mesh.GetMeshState();
+            var consolidatedRooms = _mesh.GetMeshState<int>();
             var smallRooms = new List<Region>();
             var oldIdDict = new Dictionary<int, Region>();
             var oldRegionDict = new Dictionary<Region, int>();
@@ -386,7 +386,7 @@ namespace WorldGen {
 
         //HeightMap
 
-        float[] GetHeightmap(MeshMasher.MeshState rooms, int iterationCount)
+        float[] GetHeightmap(MeshMasher.MeshState<int> rooms, int iterationCount)
         {
             //could also generate an influence map from here if that mattered
 
@@ -505,7 +505,7 @@ namespace WorldGen {
 
         // Final
 
-        bool TestAndApplyTrueAdjacencies(MeshMasher.MeshState rooms, List<int> roads, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
+        bool TestAndApplyTrueAdjacencies(MeshMasher.MeshState<int> rooms, List<int> roads, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
         {
 
             var testSets = new List<KeyValuePair<int, int>>();
@@ -742,7 +742,7 @@ namespace WorldGen {
 
         #region Debug
 
-        void DrawLines(MeshMasher.MeshState roads)
+        void DrawLines(MeshMasher.MeshState<int> roads)
         {
             for (int i = 0; i < _mesh.Lines.Count; i++)
             {
@@ -751,7 +751,7 @@ namespace WorldGen {
             }
         }
 
-        void DrawRooms(MeshMasher.MeshState rooms)
+        void DrawRooms(MeshMasher.MeshState<int> rooms)
         {
             for (int i = 0; i < _mesh.Lines.Count; i++)
             {
@@ -775,7 +775,7 @@ namespace WorldGen {
             }
         }
 
-        void DrawRoomOutlines(MeshMasher.MeshState rooms)
+        void DrawRoomOutlines(MeshMasher.MeshState<int> rooms)
         {
             var boundaries = _mesh.DrawRoomOutlines(rooms);
 
@@ -789,7 +789,7 @@ namespace WorldGen {
             }
         }
 
-        void DrawRoomCells(MeshMasher.MeshState rooms)
+        void DrawRoomCells(MeshMasher.MeshState<int> rooms)
         {
             //var boundaries = _mesh.DrawRoomOutlines(rooms);
 
@@ -812,7 +812,7 @@ namespace WorldGen {
             }
         }
 
-        void DrawPotentialConnections(MeshMasher.MeshState rooms)
+        void DrawPotentialConnections(MeshMasher.MeshState<int> rooms)
         {
             var lineState = new int[_mesh.Lines.Count];
             for (int i = 0; i < _mesh.Lines.Count; i++)
@@ -866,7 +866,7 @@ namespace WorldGen {
             }
         }
 
-        void DrawHeightMap(MeshMasher.MeshState rooms, float[] heights, int maxHeight)
+        void DrawHeightMap(MeshMasher.MeshState<int> rooms, float[] heights, int maxHeight)
         {
 
             var offset = 0.1f;
@@ -889,7 +889,7 @@ namespace WorldGen {
             }
         }
 
-        void DrawHeightDifference(MeshMasher.MeshState rooms, float[] heights)
+        void DrawHeightDifference(MeshMasher.MeshState<int> rooms, float[] heights)
         {
             for (int i = 0; i < _mesh.Lines.Count; i++)
             {
@@ -917,7 +917,7 @@ namespace WorldGen {
 
         }
 
-        void DrawCellTriangleGraph(MeshMasher.MeshState rooms)
+        void DrawCellTriangleGraph(MeshMasher.MeshState<int> rooms)
         {
             for (int i = 0; i < _mesh.Nodes.Count; i++)
             {
@@ -933,10 +933,10 @@ namespace WorldGen {
 
         }
 
-        void MakeSmallerMesh(MeshMasher.MeshState rooms)
+        void MakeSmallerMesh(MeshMasher.MeshState<int> rooms)
         {
             var smallerMesh = MeshMasher.DelaunayGen.FromBounds(_bounds, _settings.DelaunayBoundsRatio * 0.25f);
-            var smallNodes = smallerMesh.GetMeshState();
+            var smallNodes = smallerMesh.GetMeshState<int>();
             var roadCells = new Dictionary<int, List<int>>();
 
             var offset = Vector3.right * 15f;

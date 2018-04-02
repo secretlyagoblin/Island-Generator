@@ -8,10 +8,10 @@ namespace MeshMasher {
 
         public Mesh BuildMeshSurfaceWithCliffs()
         {
-            return BuildMeshSurfaceWithCliffs(GetMeshState());
+            return BuildMeshSurfaceWithCliffs(GetMeshState<int>());
         }
 
-        public Mesh BuildMeshSurfaceWithCliffs(MeshState state)
+        public Mesh BuildMeshSurfaceWithCliffs(MeshState<int> state)
         {
 
             //for (int i = 0; i < tris.Count; i++)

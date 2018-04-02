@@ -89,7 +89,7 @@ namespace MeshMasher {
             return null;
         }
 
-        public SmartLine GetNextClockwiseLineSegment(SmartLine testLine, MeshState state)
+        public SmartLine GetNextClockwiseLineSegment(SmartLine testLine, MeshState<int> state)
         {
 
             if (_anglesNeedsUpdating)

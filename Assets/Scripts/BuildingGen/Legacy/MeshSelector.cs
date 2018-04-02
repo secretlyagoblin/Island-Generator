@@ -8,13 +8,13 @@ public class MeshSelector : MonoBehaviour {
 
     public Camera Camera;
     SmartMesh _mesh;
-    MeshState _state;
+    MeshState<int> _state;
 
     // Use this for initialization
     void Start () {
 
         _mesh = new SmartMesh(GetComponent<MeshFilter>().sharedMesh);
-        _state = _mesh.GetMeshState();
+        _state = _mesh.GetMeshState<int>();
 
         for (int i = 0; i < _state.Cells.Length; i++)
         {
