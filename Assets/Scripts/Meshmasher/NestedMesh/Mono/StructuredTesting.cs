@@ -53,18 +53,17 @@ public class StructuredTesting : MonoBehaviour {
 
         var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray());
 
-        //layer2.Mesh.DrawMesh(transform, Color.blue, Color.gray);
+        layer2.Mesh.DrawMesh(transform, Color.blue, Color.white);
 
+        var buff = layer3.Mesh.GetBorderNodes();
 
-
-        //for (int i = 0; i < layer2.Mesh.Lines.Count; i++)
-        //{
-        //    if(stuff.Lines[i] == 0)
-        //    {
-        //        layer2.Mesh.Lines[i].DebugDraw(Color.green, 100f);
-        //    }
-        //}
-
+        for (int i = 0; i < layer3.Mesh.Lines.Count; i++)
+        {
+            if(buff.Lines[i] == 1)
+            {
+                layer3.Mesh.Lines[i].DebugDraw(Color.green, 100f);
+            }
+        }
 
         for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
         {
@@ -90,31 +89,40 @@ public class StructuredTesting : MonoBehaviour {
         //
         //var state = funLayer.Mesh.MinimumSpanningTree(stuff);
 
-//        for (int i = 0; i < funLayer.Mesh.Lines.Count; i++)
-//        {
-//            //if (stuff.Lines[funLayer.Mesh.Lines[i].Index] == 1)
-//            //    funLayer.Mesh.Lines[i].DrawLine(Color.green, 100f, 0f);
-//            //else 
-//if (state.Lines[funLayer.Mesh.Lines[i].Index] == 1)
-//                funLayer.Mesh.Lines[i].DrawLine(Color.white, 100f, 0f);
-//        }
-//        
-//        for (int i = 0; i < funLayer.Mesh.Cells.Count; i++)
-//        {
-//            var c = funLayer.Mesh.Cells[i];
-//        
-//            for (int u = 0; u < c.Lines.Count; u++)
-//            {
-//                    if (state.Lines[c.Lines[u].Index] == 0)
-//                    {
-//                        var other = c.Lines[u].GetCellPartner(c);
-//                    if (other == null)
-//                        continue;
-//        
-//                        Debug.DrawLine(c.Center, other.Center, Color.red, 100f);
-//                    }
-//            }
-//        }
+                for (int i = 0; i < funLayer.Mesh.Lines.Count; i++)
+                {
+                    //if (stuff.Lines[funLayer.Mesh.Lines[i].Index] == 1)
+                    //    funLayer.Mesh.Lines[i].DrawLine(Color.green, 100f, 0f);
+                    //else 
+        if (state.Lines[funLayer.Mesh.Lines[i].Index] == 1 && border.Lines[funLayer.Mesh.Lines[i].Index] == 1)
+                        funLayer.Mesh.Lines[i].DrawLine(Color.white, 100f, 0f);
+                }
+                
+                for (int i = 0; i < funLayer.Mesh.Cells.Count; i++)
+                {
+                    var c = funLayer.Mesh.Cells[i];
+                
+                    for (int u = 0; u < c.Lines.Count; u++)
+                    {
+                            if (state.Lines[c.Lines[u].Index] == 0)
+                            {
+                                var other = c.Lines[u].GetCellPartner(c);
+                            if (other == null)
+                                continue;
+                
+                                Debug.DrawLine(c.Center, other.Center, Color.red, 100f);
+                            }
+                    }
+                }
+
+
+        StateData wrapper = 6;
+        StateData gupper = StateCode.excludedFromSet;
+
+        var wrabbler = new StateData(StateCode.excludedFromSet);
+
+
+            
 
         var pts = layer4.Mesh.Nodes;
 
@@ -213,4 +221,83 @@ public struct NodeMetadata : IBarycentricLerpable<NodeMetadata> {
             
         };
     }
+}
+
+public struct StateData {
+
+    private bool _stateIsInt;
+    private StateCode _intHelper;
+    private int _int;
+
+    public StateData(StateCode value)
+    {
+        this = value;
+    }
+
+    public static implicit operator StateData(int input)
+    {
+        return new StateData() {
+            _stateIsInt = true,
+            _intHelper = StateCode.unassigned,
+            _int = input
+        };
+    }
+
+    public static implicit operator StateData(StateCode input)
+    {
+        return new StateData()
+        {
+            _stateIsInt = false,
+            _intHelper = input,
+            _int = -1
+        };
+    }
+
+    public static bool operator ==(StateData a, StateData b) { return IsEqual(a,b); }
+    public static bool operator !=(StateData a, StateData b) { return !IsEqual(a, b); }
+
+    public static bool operator ==(StateData a, int b) { return IsEqual(a,b); }
+    public static bool operator !=(StateData a, int b) { return !IsEqual(a, b); }
+
+    public static bool operator ==(StateData a, StateCode b) { return IsEqual(a, b); }
+    public static bool operator !=(StateData a, StateCode b) { return !IsEqual(a, b); }
+
+    private static bool IsEqual(StateData a, StateData b)
+    {
+        if (a._stateIsInt != b._stateIsInt)
+            return false;
+        if(a._stateIsInt == true)
+        {
+            return a._int == b._int;
+        }
+        else
+        {
+            return a._intHelper == b._intHelper;
+        }
+    }
+
+    private static bool IsEqual(StateData a, int b)
+    {
+        if (a._stateIsInt != true)
+            return false;
+
+        return a._int == b;        
+    }
+
+    private static bool IsEqual(StateData a, StateCode b)
+    {
+        if (a._stateIsInt == true)
+            return false;
+
+        return a._intHelper == b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+}
+public enum StateCode {
+    unassigned = 0, excludedFromSet
 }
