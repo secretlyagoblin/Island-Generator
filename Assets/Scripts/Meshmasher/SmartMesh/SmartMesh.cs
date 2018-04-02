@@ -335,12 +335,12 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState<FeatureType> MinimumSpanningTree()
+        public MeshState<int> MinimumSpanningTree()
         {
-            return MinimumSpanningTree(GetMeshState<BorderValue>());
+            return MinimumSpanningTree(GetMeshState<int>());
         }
 
-        public MeshState<FeatureType> MinimumSpanningTree(MeshState<BorderValue> borderState)
+        public MeshState<int> MinimumSpanningTree(MeshState<int> state)
         {
             var isPartOfCurrentSortingEvent = new bool[Nodes.Count];
 
@@ -348,7 +348,9 @@ namespace MeshMasher {
 
             SmartNode firstNode = null;
 
-            var newState = GetMeshState<FeatureType>();
+
+
+            var newState = GetMeshState<int>();
 
             var visitedNodesList = new List<SmartNode>();
             //var visitedLines = new List<SmartLine>();
@@ -362,11 +364,10 @@ namespace MeshMasher {
                     nodeCount++;
                     visitedNodes[i] = 1;
                 }
-                else if (borderState.Nodes[i] == BorderValue.Border)
+                else if (state.Nodes[i] == 1)
                 {
                     visitedNodes[i] = 1;
                     nodeCount++;
-                    newState.Nodes[i] = FeatureType.Excluded;
                 }
                 else if (firstNode == null)
                 {
@@ -387,7 +388,7 @@ namespace MeshMasher {
             while (visitedNodesList.Count < Nodes.Count - nodeCount)
             {
                 lines.Clear();
-                iteration++;
+                iteration++;                
 
                 for (int i = 0; i < visitedNodesList.Count; i++)
                 {
@@ -395,15 +396,15 @@ namespace MeshMasher {
 
                     for (int u = 0; u < n.Lines.Count; u++)
                     {
-                        if (visitedLines[n.Lines[u].Index] == 0 &&
+                        if (visitedLines[n.Lines[u].Index] == 0 && 
                             visitedLinesIteration[n.Lines[u].Index] != iteration &&
-                            borderState.Nodes[n.Lines[u].GetOtherNode(n).Index] != BorderValue.Border)
+                            state.Nodes[n.Lines[u].GetOtherNode(n).Index] != 1)
                         {
                             lines.Add(n.Lines[u]);
                             visitedLinesIteration[n.Lines[u].Index] = iteration;
                         }
                     }
-                }
+                }                 
 
                 var length = float.MaxValue;
                 SmartLine bestLine = null;
@@ -415,7 +416,7 @@ namespace MeshMasher {
                     if (line.Length > length)
                         continue;
 
-                    if (isPartOfCurrentSortingEvent[line.Nodes[0].Index] &&
+                    if (isPartOfCurrentSortingEvent[line.Nodes[0].Index] && 
                         isPartOfCurrentSortingEvent[line.Nodes[1].Index])
                         continue;
 
@@ -431,36 +432,18 @@ namespace MeshMasher {
                 for (int i = 0; i < bestLine.Nodes.Count; i++)
                 {
                     var n = bestLine.Nodes[i];
-                    if (visitedNodes[n.Index] == 0)
+                    if(visitedNodes[n.Index] ==0 )
                     {
                         visitedNodesList.Add(n);
                         visitedNodes[n.Index] = 1;
                     }
                 }
             }
-
-            for (int i = 0; i < visitedLines.Length; i++)
-            {
-                var l = visitedLines[i];
-                newState.Lines[l] = FeatureType.Ground;
-            }
-
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (borderState.Lines[i] == BorderValue.Border)
-                    newState.Lines[i] = FeatureType.Excluded;
-            }
+            newState.Lines = visitedLines;
 
             return newState;
         }
 
-        public enum BorderValue {
-            Border, Unborder
-        }
-
-        public enum FeatureType {
-            Wall = 0, Ground, Excluded
-        }
         public MeshState<int> CullLeavingOnlySimpleLines(MeshState<int> state)
         {
             var isNodePartOfCurrentSortingEvent = new bool[Nodes.Count];
@@ -506,10 +489,11 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState<int> WalkThroughRooms()
+        public MeshState<int> WalkThroughRooms(MeshState<int> state)
         {
             var hasBeenCounted = new bool[Cells.Count];
-            var state = GetMeshState<int>();
+
+
 
             var count = 0;
 
@@ -693,16 +677,16 @@ namespace MeshMasher {
         public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength)
         {
             var state = MinimumSpanningTree();
-            var walkState = WalkThroughRooms();
+            var walkState = WalkThroughRooms(state.Clone());
             var roomState = CalculateRooms(state.Clone());
             state = RemoveLargeRooms(state, roomState, walkState, 8);
             return state;
         }
 
-        public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<BorderValue> outline)
+        public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<int> outline)
         {
             var state = MinimumSpanningTree(outline);
-            var walkState = WalkThroughRooms();
+            var walkState = WalkThroughRooms(state.Clone());
             var roomState = CalculateRooms(state.Clone());
             state = RemoveLargeRooms(state, roomState, walkState, 8);
             return state;
