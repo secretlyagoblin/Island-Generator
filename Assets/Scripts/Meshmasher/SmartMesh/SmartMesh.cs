@@ -344,23 +344,48 @@ namespace MeshMasher {
         {
             var isPartOfCurrentSortingEvent = new bool[Nodes.Count];
 
+            var nodeCount = 0;
+
+            SmartNode firstNode = null;
+
+
+
             var newState = GetMeshState();
 
             var visitedNodesList = new List<SmartNode>();
             //var visitedLines = new List<SmartLine>();
 
             var visitedNodes = (int[])newState.Nodes.Clone();
+
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                if (Nodes[i].Lines.Count == 0)
+                {
+                    nodeCount++;
+                    visitedNodes[i] = 1;
+                }
+                else if (state.Nodes[i] == 1)
+                {
+                    visitedNodes[i] = 1;
+                    nodeCount++;
+                }
+                else if (firstNode == null)
+                {
+                    firstNode = Nodes[i];
+                }
+            }
+
             var visitedLines = (int[])newState.Lines.Clone();
             var visitedLinesIteration = (int[])newState.Lines.Clone();
 
-            visitedNodesList.Add(Nodes[0]);
+            visitedNodesList.Add(firstNode);
 
-            visitedNodes[Nodes[0].Index] = 1;
+            visitedNodes[firstNode.Index] = 1;
 
             var lines = new List<SmartLine>();
             var iteration = 0;
 
-            while (visitedNodesList.Count < Nodes.Count)
+            while (visitedNodesList.Count < Nodes.Count - nodeCount)
             {
                 lines.Clear();
                 iteration++;                
@@ -368,14 +393,12 @@ namespace MeshMasher {
                 for (int i = 0; i < visitedNodesList.Count; i++)
                 {
                     var n = visitedNodesList[i];
-                    if (n.Lines.Count == 0)
-                    {
-                        continue;
-                    }
 
                     for (int u = 0; u < n.Lines.Count; u++)
                     {
-                        if (visitedLines[n.Lines[u].Index] == 0 && visitedLinesIteration[n.Lines[u].Index] != iteration)
+                        if (visitedLines[n.Lines[u].Index] == 0 && 
+                            visitedLinesIteration[n.Lines[u].Index] != iteration &&
+                            state.Nodes[n.Lines[u].GetOtherNode(n).Index] != 1)
                         {
                             lines.Add(n.Lines[u]);
                             visitedLinesIteration[n.Lines[u].Index] = iteration;
@@ -393,7 +416,8 @@ namespace MeshMasher {
                     if (line.Length > length)
                         continue;
 
-                    if (isPartOfCurrentSortingEvent[line.Nodes[0].Index] && isPartOfCurrentSortingEvent[line.Nodes[1].Index])
+                    if (isPartOfCurrentSortingEvent[line.Nodes[0].Index] && 
+                        isPartOfCurrentSortingEvent[line.Nodes[1].Index])
                         continue;
 
                     length = line.Length;
@@ -653,6 +677,15 @@ namespace MeshMasher {
         public MeshState GenerateSemiConnectedMesh(int maxCliffLength)
         {
             var state = MinimumSpanningTree();
+            var walkState = WalkThroughRooms(state.Clone());
+            var roomState = CalculateRooms(state.Clone());
+            state = RemoveLargeRooms(state, roomState, walkState, 8);
+            return state;
+        }
+
+        public MeshState GenerateSemiConnectedMesh(int maxCliffLength, MeshState outline)
+        {
+            var state = MinimumSpanningTree(outline);
             var walkState = WalkThroughRooms(state.Clone());
             var roomState = CalculateRooms(state.Clone());
             state = RemoveLargeRooms(state, roomState, walkState, 8);
@@ -1078,16 +1111,15 @@ namespace MeshMasher {
             {
                 var l = Lines[i];
 
-                if(l.Neighbours.Count == 1)
+                if(l.Neighbours.Count != 2)
                 {
-                    state.Lines[i] = 0;
+                    state.Lines[i] = 1;
+                    state.Nodes[l.Nodes[0].Index] = 1;
+                    state.Nodes[l.Nodes[1].Index] = 1;
                 }
                 else
                 {
-                    state.Lines[i] = 1;
-
-                    state.Nodes[l.Nodes[0].Index] = 1;
-                    state.Nodes[l.Nodes[1].Index] = 1;
+                    state.Lines[i] = 0;
                 }                
             }
 
