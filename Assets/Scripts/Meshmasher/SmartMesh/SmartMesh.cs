@@ -337,16 +337,21 @@ namespace MeshMasher {
 
         public MeshState MinimumSpanningTree()
         {
+            return MinimumSpanningTree(GetMeshState());
+        }
+
+        public MeshState MinimumSpanningTree(MeshState state)
+        {
             var isPartOfCurrentSortingEvent = new bool[Nodes.Count];
 
-            var state = GetMeshState();
+            var newState = GetMeshState();
 
             var visitedNodesList = new List<SmartNode>();
             //var visitedLines = new List<SmartLine>();
 
-            var visitedNodes = (int[])state.Nodes.Clone();
-            var visitedLines = (int[])state.Lines.Clone();
-            var visitedLinesIteration = (int[])state.Lines.Clone();
+            var visitedNodes = (int[])newState.Nodes.Clone();
+            var visitedLines = (int[])newState.Lines.Clone();
+            var visitedLinesIteration = (int[])newState.Lines.Clone();
 
             visitedNodesList.Add(Nodes[0]);
 
@@ -408,13 +413,11 @@ namespace MeshMasher {
                         visitedNodesList.Add(n);
                         visitedNodes[n.Index] = 1;
                     }
-
                 }
             }
+            newState.Lines = visitedLines;
 
-            state.Lines = visitedLines;
-
-                return state;
+            return newState;
         }
 
         public MeshState CullLeavingOnlySimpleLines(MeshState state)
@@ -755,8 +758,6 @@ namespace MeshMasher {
             var nodeTraversed = new bool[Nodes.Count];
             var boundaryNodes = new List<SmartNode>();
 
-
-
             var roomIndex = -1;
 
             for (int i = 0; i < Nodes.Count; i++)
@@ -792,7 +793,6 @@ namespace MeshMasher {
                             diffusionWeight[n] = weight;
                             nodeTraversed[n] = true;
                         }
-
                     }
                 }
                 boundaryNodes = nextIteration;
@@ -1068,6 +1068,30 @@ namespace MeshMasher {
 
                 halfEdges.Add(halfEdge, line);
             }
+        }
+
+        public MeshState GetBorderNodes()
+        {
+            var state = GetMeshState();
+
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                var l = Lines[i];
+
+                if(l.Neighbours.Count == 1)
+                {
+                    state.Lines[i] = 0;
+                }
+                else
+                {
+                    state.Lines[i] = 1;
+
+                    state.Nodes[l.Nodes[0].Index] = 1;
+                    state.Nodes[l.Nodes[1].Index] = 1;
+                }                
+            }
+
+            return state;
         }
 
         void CreateBuckets(int divX, int divY, int divZ)

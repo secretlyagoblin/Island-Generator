@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using MeshMasher;
 using System.Linq;
+using System;
 
 namespace MeshMasher {
-    public class SmartLine {
+    public class SmartLine{
 
         public int State
         { get; set; }

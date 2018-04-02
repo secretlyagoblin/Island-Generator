@@ -284,6 +284,8 @@ namespace MeshMasher {
                 }
             }
 
+            /*
+
             var used = new bool[verts.Count];
             var remap = new int[verts.Count];
 
@@ -312,7 +314,10 @@ namespace MeshMasher {
                 tris[i] = remap[tris[i]];
             }
 
-            Verts = newVerts.ToArray();
+            */
+
+            //Verts = newVerts.ToArray();
+            Verts = verts.ToArray();
             Tris = tris.ToArray();
             DerivedTri = derivedTri.ToArray();
             DerivedOffset = derivedOffset.ToArray();

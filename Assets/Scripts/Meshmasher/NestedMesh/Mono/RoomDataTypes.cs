@@ -144,6 +144,25 @@ namespace MeshMasher.NodeDataTypes {
             else            
                 links = c._links;
 
+            //return fine if everything is matching
+
+            var allLinks = a._links;
+            var other1 = false;
+            var other2 = false;
+
+            for (int i = 0; i < allLinks.Length; i++)
+            {
+                if (b.RoomCode == allLinks[i])
+                    other1 = true;
+                if (c.RoomCode == allLinks[i])
+                    other2 = true;
+
+                if(other1 && other2)
+                    return new ZoneBoundary(roomCode, 1, (int[])links.Clone());
+            }
+
+            //calculate second highest thing
+
             int HighestCellCode, SecondHighestCellCode;
             float HighestBarycenter, SecondHighestBarycenter;
 

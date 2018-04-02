@@ -29,7 +29,7 @@ public class StructuredTesting : MonoBehaviour {
 
         var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
 
-        var state = layer2.Mesh.MinimumSpanningTree();
+        var state = layer2.Mesh.GenerateSemiConnectedMesh(5);
         
         for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         {
@@ -44,18 +44,23 @@ public class StructuredTesting : MonoBehaviour {
                 layer2.CellMetadata[n.Index].Code = i + 1;
                 layer2.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
                 layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f,0.5f);
-                layer2.CellMetadata[n.Index].Connections = n.Lines.Where(x => state.Lines[x.Index] == 1).Select(x => x.GetOtherNode(n).Index+1).ToArray();
+                layer2.CellMetadata[n.Index].Connections = n.Lines.Where(x => state.Lines[x.Index] == 1).Select(x => x.GetOtherNode(n).Index+1).Union(new List<int>() {i+1}).ToArray();
             }
-        }
-
-        
+        }        
 
         var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray());
 
+        //layer2.Mesh.DrawMesh(transform, Color.blue, Color.gray);
 
+        var stuff = layer2.Mesh.GetBorderNodes();
 
-
-        //layer2.Mesh.DrawMesh(transform, Color.red, Color.gray);
+        for (int i = 0; i < layer2.Mesh.Lines.Count; i++)
+        {
+            if(stuff.Lines[i] == 0)
+            {
+                layer2.Mesh.Lines[i].DebugDraw(Color.green, 100f);
+            }
+        }
 
 
         //for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
@@ -69,7 +74,7 @@ public class StructuredTesting : MonoBehaviour {
         //    else
         //    {
         //        layer3.CellMetadata[n.Index].Code = i + 1;
-        //        layer3.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
+        //        layer3.CellMetadata[n.Index].SmoothColor = layer3.CellMetadata[n.Index].Distance< 0.5f? Color.black:Color.white;
         //        layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         //    }
         //}
@@ -78,34 +83,34 @@ public class StructuredTesting : MonoBehaviour {
         //layer2.Mesh.DrawMesh(transform, Color.black, Color.white);
 
         var funLayer = layer2;
-        //
-        ////var state = funLayer.Mesh.MinimumSpanningTree();
-        ////state = funLayer.Mesh.CullLeavingOnlySimpleLines(state);
+        
+        //var state = funLayer.Mesh.MinimumSpanningTree();
+        //state = funLayer.Mesh.CullLeavingOnlySimpleLines(state);
         //var state = funLayer.Mesh.GenerateSemiConnectedMesh(5);
-        ////state = layer2.Mesh.
+        //state = layer2.Mesh.
+        
+        //for (int i = 0; i < funLayer.Mesh.Lines.Count; i++)
+        //{
+        //    if (state.Lines[funLayer.Mesh.Lines[i].Index] == 1)
+        //        funLayer.Mesh.Lines[i].DrawLine(Color.white, 100f, 0f);
+        //}
+        
+        //for (int i = 0; i < funLayer.Mesh.Cells.Count; i++)
+        //{
+        //    var c = funLayer.Mesh.Cells[i];
         //
-        for (int i = 0; i < funLayer.Mesh.Lines.Count; i++)
-        {
-            if (state.Lines[funLayer.Mesh.Lines[i].Index] == 1)
-                funLayer.Mesh.Lines[i].DrawLine(Color.white, 100f, 0f);
-        }
-        
-        for (int i = 0; i < funLayer.Mesh.Cells.Count; i++)
-        {
-            var c = funLayer.Mesh.Cells[i];
-        
-            for (int u = 0; u < c.Lines.Count; u++)
-            {
-                    if (state.Lines[c.Lines[u].Index] == 0)
-                    {
-                        var other = c.Lines[u].GetCellPartner(c);
-                    if (other == null)
-                        continue;
-        
-                        Debug.DrawLine(c.Center, other.Center, Color.red, 100f);
-                    }
-            }
-        }
+        //    for (int u = 0; u < c.Lines.Count; u++)
+        //    {
+        //            if (state.Lines[c.Lines[u].Index] == 0)
+        //            {
+        //                var other = c.Lines[u].GetCellPartner(c);
+        //            if (other == null)
+        //                continue;
+        //
+        //                Debug.DrawLine(c.Center, other.Center, Color.red, 100f);
+        //            }
+        //    }
+        //}
 
         var pts = layer4.Mesh.Nodes;
 
@@ -117,12 +122,15 @@ public class StructuredTesting : MonoBehaviour {
 
         for (int i = 0; i < pts.Count; i++)
         {
-            //if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
-            //    continue;
+           //if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
+           //    continue;
+
+            var jitter = RNG.NextFloat(0.2f);
 
             var obj = Instantiate(InstantiationBase);
-            obj.GetComponent<MeshRenderer>().sharedMaterial = layer4.CellMetadata[i].Distance < 0.5? matA : matB;
-            obj.transform.position = pts[i].Vert+ Vector3.forward*layer4.CellMetadata[i].Height;
+            //obj.GetComponent<MeshRenderer>().sharedMaterial = layer4.CellMetadata[i].Distance < 0.5? matA : matB;
+            obj.GetComponent<MeshRenderer>().material.color = layer4.CellMetadata[i].SmoothColor - new Color(jitter, jitter, jitter);
+            obj.transform.position = pts[i].Vert+ Vector3.forward* layer4.CellMetadata[i].Height;
             //obj.transform.position = new Vector3(obj.transform.position.x, -obj.transform.position.z, obj.transform.position.y);
             obj.transform.localScale = Vector3.one * 0.06f;
             obj.name = "Room " + layer4.CellMetadata[i].Code;
