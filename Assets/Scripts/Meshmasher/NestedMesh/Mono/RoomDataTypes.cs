@@ -247,4 +247,44 @@ namespace MeshMasher.NodeDataTypes {
             }
         }        
     }
+
+    struct MeshDual : IBarycentricLerpable<MeshDual> {
+
+        public float Value;
+
+        public MeshDual(float value)
+        {
+            Value = value;
+        }
+
+        public MeshDual Lerp(MeshDual a, MeshDual b, MeshDual c, Vector3 weight)
+        {
+            var dual = new float[] { weight.x, weight.y, weight.z };
+
+            int highest;
+            int secondHighest;
+
+            if (weight.x >= weight.y && weight.x >= weight.z)
+            {
+                highest = 0;
+                secondHighest = weight.y > weight.z ? 1 : 2;
+            }
+            else if (weight.y >= weight.z && weight.y >= weight.x)
+            {
+                highest =  1;
+                secondHighest = weight.x > weight.z ? 0 : 2;
+            }
+            else
+            {
+                highest = 2;
+                secondHighest = weight.x > weight.y ? 0 : 1;
+            }
+
+            var result = dual[highest] - dual[secondHighest];
+
+
+            return new MeshDual(result);
+        }
+
+    }
 }
