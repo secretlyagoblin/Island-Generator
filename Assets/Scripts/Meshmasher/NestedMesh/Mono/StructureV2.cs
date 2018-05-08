@@ -107,6 +107,12 @@ public class StructureV2 : MonoBehaviour {
 
         #endregion
 
+        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
+        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
+        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
+        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
+        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
+
         ///Below we:
         /// 6: TODO: Identify key paths in and out of layer 3 regions
         /// 7: TODO: Define walkable paths, areas of interest
@@ -117,28 +123,14 @@ public class StructureV2 : MonoBehaviour {
 
         var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray());
 
-        for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
+        //for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
+        //{
+        //   
+        //}
+
+        if (EnablePreview)
         {
-            //if (layer3.CellMetadata[i].Code != 0)
-            //{
-            //    layer3.CellMetadata[i].SmoothColor = Color.Lerp(Color.black, Color.white, layer3.CellMetadata[i].MeshDual);
-            //}
-
-            //if (layer3.CellMetadata[n.Index].Code == 0)
-            //{
-            //    layer3.CellMetadata[n.Index].SmoothColor = Color.black;
-            //}
-            //else
-            //{
-            //    layer3.CellMetadata[n.Index].Code = i + 1;
-            //    layer3.CellMetadata[n.Index].SmoothColor = layer3.CellMetadata[n.Index].Distance< 0.5f? Color.black:Color.white;
-            //    layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
-            //}
-
-            if (EnablePreview)
-            {
-                layer3.Mesh.DrawMesh(transform, Color.clear, Color.grey);
-            }
+            layer3.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
         #endregion
@@ -166,11 +158,11 @@ public class StructureV2 : MonoBehaviour {
             //if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
             //    continue;
 
-            var jitter = RNG.NextFloat(0.1f);
-
-            var smoothVal = FalloffCurve.Evaluate(layer4.CellMetadata[i].SmoothColor.r+jitter);
-
-            var color = Gradient.Evaluate(smoothVal);
+            //var jitter = RNG.NextFloat(0.1f);
+            //
+            //var smoothVal = FalloffCurve.Evaluate(layer4.CellMetadata[i].SmoothColor.r+jitter);
+            //
+            //var color = Gradient.Evaluate(smoothVal);
 
 
             var obj = Instantiate(InstantiationBase);
