@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public static class RNG {
 
@@ -49,6 +49,11 @@ public static class RNG {
         return _pseudoRandom.Next();
     }
 
+    public static T NextFromList<T>(List<T> list)
+    {
+        return list[Next(0, list.Count)];
+    }
+
     public static int Next(int maxValue)
     {
         return _pseudoRandom.Next(maxValue);
@@ -57,6 +62,18 @@ public static class RNG {
     public static int Next(int minValue, int maxValue)
     {
         return _pseudoRandom.Next(minValue, maxValue);
+    }
+
+    public static int Next(int minValue, int maxValue, AnimationCurve curve)
+    {
+        var t = curve.Evaluate(NextFloat());
+        return Mathf.FloorToInt(Mathf.Lerp(minValue,maxValue,t));
+    }
+
+    public static float Next(float minValue, float maxValue, AnimationCurve curve)
+    {
+        var t = curve.Evaluate(NextFloat());
+        return Mathf.Lerp(minValue, maxValue, t);
     }
 
     public static float NextFullRangeFloat()
@@ -77,6 +94,13 @@ public static class RNG {
         return new Vector2(NextFloat(minValue, maxValue), NextFloat(minValue, maxValue));
     }
 
+
+    public static Vector3 NextVector3(float minValue, float maxValue)
+    {
+        return new Vector3(NextFloat(minValue, maxValue), NextFloat(minValue, maxValue), NextFloat(minValue, maxValue));
+    }
+
+
     public static float NextFloat(float maxValue)
     {
         return (float)(_pseudoRandom.NextDouble()) * maxValue;
@@ -85,8 +109,16 @@ public static class RNG {
 
     public static float NextFloat(float minValue, float maxValue)
     {
+
+
         return minValue+ ((float)(_pseudoRandom.NextDouble()) * (maxValue-minValue));
 
+    }
+
+    public static float NextFloat(float minValue, float maxValue, AnimationCurve curve)
+    {
+        var t = curve.Evaluate(NextFloat());
+        return minValue + (t * (maxValue - minValue));
     }
 
     public static double NextDouble()
@@ -99,6 +131,12 @@ public static class RNG {
     {
         var item = Next(array.Length);
         return array[item];
+    }
+
+    public static Color GetRandomColor()
+    {
+        return new Color(NextFloat(), NextFloat(), NextFloat());
+
     }
 
 }

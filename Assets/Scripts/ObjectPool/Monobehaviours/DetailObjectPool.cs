@@ -1,13 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
-using Terrain;
+using ProcTerrain;
 using System.Linq;
+using U3D.Threading.Tasks;
 
 public class DetailObjectPool : MonoBehaviour {
 
 	public GameObject TestPoint;
     public GameObject GrassObject;
     public int PropCount;
+    public int DetailDivisions;
     public float RegionSize;
     public float TestDistance;
     public float NoiseScale;
@@ -15,7 +17,6 @@ public class DetailObjectPool : MonoBehaviour {
     public Gradient ColourGradient;
 
     DetailObjectBucketManager<DetailObjectData> _detailObjectManager;
-
 
 	Queue<GameObject> _freeObjects = new Queue<GameObject>();
 	Dictionary<DetailObjectData,GameObject> _dict = new Dictionary<DetailObjectData, GameObject>();
@@ -26,19 +27,19 @@ public class DetailObjectPool : MonoBehaviour {
 
         RNG.DateTimeInit();
         _block = new MaterialPropertyBlock();
-        _detailObjectManager = new DetailObjectBucketManager<DetailObjectData> (Vector2.zero, new Vector2 (RegionSize, RegionSize));
+        _detailObjectManager = new DetailObjectBucketManager<DetailObjectData> (DetailDivisions, new Rect(Vector2.zero, new Vector2 (RegionSize, RegionSize)));
 
         //Add a bunch of DetailObjects to the manager
 
 	}
 
-    Map.Layer _walkableMap;
-    Map.Layer _heightMap;
+    UnityEngine.Terrain _terrain;
+    Maps.Map _mask;
 
-    public void SetPhysicalMap(HeightmapData data)
+    public void SetPhysicalMap(UnityEngine.Terrain terrain, Maps.Map mask)
     {
-        _walkableMap = data.GetHeightmapLayer(Map.MapType.WalkableMap);
-        _heightMap = data.GetHeightmapLayer(Map.MapType.HeightMap);
+        _terrain = terrain;
+        _mask = mask;
     }
 
     public void InitPositions()
@@ -47,37 +48,102 @@ public class DetailObjectPool : MonoBehaviour {
         {
             var vec2 = new Vector2(RNG.NextFloat(0, 1), RNG.NextFloat(0, 1));
 
-            if (_walkableMap.BilinearSampleFromNormalisedVector2(vec2) != 0)
+            if (_mask.BilinearSampleFromNormalisedVector2(vec2) != 0)
             {
                 continue;
             }
 
-            var vec = new Vector3(vec2.x*RegionSize, _heightMap.BilinearSampleFromNormalisedVector2(vec2), vec2.y* RegionSize);
+            var height = _terrain.terrainData.GetInterpolatedHeight(vec2.x,vec2.y);
+            var normal = _terrain.terrainData.GetInterpolatedNormal(vec2.x, vec2.y);
+
+            var vec = new Vector3(vec2.x * _terrain.terrainData.size.x, height, vec2.y * _terrain.terrainData.size.z);
 
             if (Mathf.PerlinNoise(vec.x * NoiseScale, vec.z * NoiseScale) < 0.5f & (Mathf.PerlinNoise(vec.x * (NoiseScale * 4), vec.z * (NoiseScale * 4)) < 0.5f | RNG.Next(0, 100) < 1f))
             {
-                AddPosition(vec);
+                //var color = _terrain.ColorSampleAtPoint(vec2);
+
+                AddPosition(vec, normal, 1);
                 //Debug.DrawRay(vec, Vector3.right, Color.green, 100f);
             }
         }
     }
 
-    public void AddPosition(Vector3 position)
+    public void AddPosition(Vector3 position, Vector3 normal, float gradientPosition)
     {
-        _detailObjectManager.AddElement(CreateGrassData(position), new Vector2(position.x, position.z));
+        _detailObjectManager.AddElement(CreateGrassData(position, normal, gradientPosition), new Vector2(position.x, position.z));
     }
 
+    bool _needsUpdate = true;
+    Vector2 _testVector;
+    Vector2 _previousTestVector = Vector2.zero;
 
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update () {
 
         //Update the detail object manager
 
-		_detailObjectManager.Update (new Vector2 (TestPoint.transform.position.x,TestPoint.transform.position.z), TestDistance);
+        _testVector = new Vector2(TestPoint.transform.position.x, TestPoint.transform.position.z);
 
-        // Hide the objects exiting the pool and remove them from the dict
+        if (_needsUpdate && _testVector != _previousTestVector )
+        {
+            _needsUpdate = false;
+            _previousTestVector = _testVector;
+            
+            var task = Task.Run(UpdateDetailObjectManager).ContinueInMainThreadWith(ApplyObjectManagerChanges);
+        }
+	}
 
-        for (int i = 0; i < _detailObjectManager.ObjectsExitingPool.Count; i++)
+    void UpdateDetailObjectManager()
+    {
+        _detailObjectManager.Update(_testVector, TestDistance);
+    }
+
+    void ApplyObjectManagerChanges(Task t) // Modify to happen in batches
+    {
+        StartCoroutine(ApplyObjectManagerChangesCoroutine(1000,150));
+    }
+
+    System.Collections.IEnumerator ApplyObjectManagerChangesCoroutine(int iterationSizeRemove, int iterationSizeAdd)
+    {
+        var listComplete = false;
+        var startIndex = 0;
+
+        while (!listComplete)
+        {
+            listComplete = RemoveOldObjects(startIndex, iterationSizeRemove);
+            startIndex += iterationSizeRemove;
+            yield return null;
+        }
+
+        listComplete = false;
+        startIndex = 0;
+
+        while (!listComplete)
+        {
+            listComplete = AddNewObjects(startIndex, iterationSizeAdd);
+            startIndex += iterationSizeAdd;
+            yield return null;
+        }
+
+        //Debug.Log("Created all grass, retriggering update...");
+
+        _needsUpdate = true;
+    }
+
+    bool RemoveOldObjects(int startIndex, int iterations)
+    {
+        var maxCount = startIndex + iterations;
+        var exitPoolCount = _detailObjectManager.ObjectsExitingPool.Count;
+
+        var isWholeListIteratedOver = false;
+
+        if (startIndex + iterations >= exitPoolCount)
+        {
+            maxCount = exitPoolCount;
+            isWholeListIteratedOver = true;
+        }
+
+        for (int i = startIndex; i < maxCount; i++)
         {
             var objectData = _detailObjectManager.ObjectsExitingPool[i];
             var obj = _dict[objectData];
@@ -86,9 +152,23 @@ public class DetailObjectPool : MonoBehaviour {
             _dict.Remove(objectData);
         }
 
-        // Either show or instantiate new detail objects
+        return isWholeListIteratedOver;
+    }
 
-        for (int i = 0; i < _detailObjectManager.ObjectsEnteringPool.Count; i++)
+    bool AddNewObjects(int startIndex, int iterations)
+    {
+        var maxCount = startIndex + iterations;
+        var entryPoolCount = _detailObjectManager.ObjectsEnteringPool.Count;
+
+        var isWholeListIteratedOver = false;
+
+        if (startIndex + iterations >= entryPoolCount)
+        {
+            maxCount = entryPoolCount;
+            isWholeListIteratedOver = true;
+        }
+
+        for (int i = startIndex; i < maxCount; i++)
         {
             var objectData = _detailObjectManager.ObjectsEnteringPool[i];
 
@@ -109,11 +189,12 @@ public class DetailObjectPool : MonoBehaviour {
 
                 _dict.Add(objectData, obj);
             }
-            
         }
-	}
 
-    DetailObjectData CreateGrassData(Vector3 position)
+        return isWholeListIteratedOver;
+    }
+
+    DetailObjectData CreateGrassData(Vector3 position, Vector3 normal, float gradientPosition)
     {
         var pos = position;
         var rot = RNG.NextFloat(0, 360);
@@ -127,12 +208,10 @@ public class DetailObjectPool : MonoBehaviour {
             scale = scale * 3f;
         }
 
-        //var tint = ColourGradient.Evaluate(Mathf.PerlinNoise(pos.x * 0.4454f, pos.z * 0.435435f));
+        var tint = ColourGradient.Evaluate(gradientPosition);
         //tint = (tint * 0.5f) + 0.5f;
 
-        var color = ColourGradient.Evaluate(Mathf.PerlinNoise(pos.x * 0.14454f, pos.z * 0.1435435f));
-
-        return new DetailObjectData(pos, Quaternion.AngleAxis(rot, Vector3.up), new Vector3(scale, scale, scale), color);
+        return new DetailObjectData(pos, Quaternion.FromToRotation(Vector3.up,normal), rot, new Vector3(scale, scale, scale), tint);
 
     }
 
@@ -142,13 +221,15 @@ public class DetailObjectPool : MonoBehaviour {
 
         Vector3 _positon;
         Quaternion _rotation;
+        float _angleRotation;
         Vector3 _scale;
         Color _color;
 
-        public DetailObjectData(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
+        public DetailObjectData(Vector3 position, Quaternion normal, float angleRotation, Vector3 scale, Color color)
         {
             _positon = position;
-            _rotation = rotation;
+            _rotation = normal;
+            _angleRotation = angleRotation;
             _scale = scale;
             _color = color;
         }
@@ -162,13 +243,14 @@ public class DetailObjectPool : MonoBehaviour {
 
         public void ApplyColorData(Transform transform, MaterialPropertyBlock block)
         {
-            //block.SetColor("_Color", _color);
-            //transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
+            block.SetColor("_Color", _color);
+            transform.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
         }
 
         public GameObject Instantiate(GameObject baseObject, Transform parent)
         {
-            var obj = Object.Instantiate(baseObject, _positon,_rotation, parent);
+            var obj = Object.Instantiate(baseObject, _positon, _rotation, parent);
+            obj.transform.Rotate(obj.transform.up, _angleRotation);
             obj.transform.localScale = _scale;
 
             return obj;

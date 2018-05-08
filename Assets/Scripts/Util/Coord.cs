@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System;
 
 public struct Coord {
-    public int TileX
+    public int x
     { get; set; }
-    public int TileY
+    public int y
     { get; set; }
 
     public Vector3 Vector3
     {
         get
         {
-            return new Vector3(TileX, 0, TileY);
+            return new Vector3(x, 0, y);
         }
     }
 
@@ -20,25 +20,35 @@ public struct Coord {
     {
         get
         {
-            return new Vector2(TileX, TileY);
+            return new Vector2(x, y);
         }
+    }
+
+    public static Coord operator +(Coord a, Coord b)
+    {
+        return new Coord(a.x + b.x, a.y + b.y);
+    }
+
+    public static Coord operator -(Coord a, Coord b)
+    {
+        return new Coord(a.x - b.x, a.y - b.y);
     }
 
     public Coord(int x, int y)
     {
-        TileX = x;
-        TileY = y;
+        this.x = x;
+        this.y = y;
     }
 
     public static Coord[] GetLine(Coord from, Coord to)
     {
         var line = new List<Coord>();
 
-        var x = from.TileX;
-        var y = from.TileY;
+        var x = from.x;
+        var y = from.y;
 
-        var dx = to.TileX - x;
-        var dy = to.TileY - y;
+        var dx = to.x - x;
+        var dy = to.y - y;
 
         var step = Math.Sign(dx);
         var gradientStep = Math.Sign(dy);

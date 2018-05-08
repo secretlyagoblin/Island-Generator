@@ -1,20 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-
+using U3D.Threading.Tasks;
 using UnityEngine;
 
-namespace Terrain {
+namespace ProcTerrain {
 
     public class Region {
 
-        HeightmapData _data;
+        TerrainData _terrainData;
+        VoronoiPointBucketManager _voronoiData;
         RegionBucketManager _bucks;
         Chunk[,] _chunks;
         Rect[,] _rects;
 
-        public Region(HeightmapData data)
+        public Region(TerrainData terrainData, VoronoiPointBucketManager voronoiData)
         {
-            _data = data;
+            _terrainData = terrainData;
+            _voronoiData = voronoiData;
         }
 
         public void CreateChunks(int divisions, int mapSize)
@@ -22,7 +24,7 @@ namespace Terrain {
             _chunks = new Chunk[divisions, divisions];
             _rects = new Rect[divisions, divisions];
 
-            var positionSize = _data.Rect.height / divisions;
+            var positionSize = _terrainData.Rect.height / divisions;
             var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
             var offsetVector = new Vector2(offsetSize, offsetSize);
 
@@ -32,7 +34,18 @@ namespace Terrain {
                 {
                     var pos = new Vector2(x * positionSize, y * positionSize);
                     var rect = new Rect(pos, offsetVector);
-                    var mapData = HeightmapData.ChunkVoronoi(_data, new Coord(x, y), mapSize, rect);
+
+                    var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
+
+                    var voronoiRect = new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset);
+
+                    var cellData = _voronoiData.GetSubChunk(voronoiRect);
+                    var voronoiList = GetVoronoiCellsFromBuckets(cellData, voronoiRect);
+
+                    var prebakeMapData = TerrainData.VoronoiPreBake(_terrainData, mapSize, rect);
+
+                    var mapData = TerrainData.ChunkVoronoi(prebakeMapData, voronoiList, mapSize, rect);
+                    //var mapData = TerrainData.PassThroughUntouched(_terrainData, new Coord(0, 0), mapSize, rect);
 
                     var chunk = new Chunk(mapData);
                     _chunks[x, y] = chunk;
@@ -41,10 +54,93 @@ namespace Terrain {
             }
         }
 
+        public void CreateMultithreadedChunks(int divisions, int mapSize, System.Action<Task> callback)
+        {
+            List <Task> tasks = new List<Task>();
+
+            _chunks = new Chunk[divisions, divisions];
+            _rects = new Rect[divisions, divisions];
+
+            var positionSize = _terrainData.Rect.height / divisions;
+            var offsetSize = positionSize;// + (positionSize * (1f / mapSize));
+            var offsetVector = new Vector2(offsetSize, offsetSize);
+
+            for (int x = 0; x < divisions; x++)
+            {
+                for (int y = 0; y < divisions; y++)
+                {
+                    var pos = new Vector2(x * positionSize, y * positionSize);
+                    var rect = new Rect(pos, offsetVector);
+
+                    var voronoiOffset = new Vector2(positionSize / 4, positionSize / 4);
+                    var voronoiRect = new Rect(pos - voronoiOffset, offsetVector + voronoiOffset + voronoiOffset);
+                    //voronoiRect = TerrainData.GrowRectByOne(voronoiRect, mapSize);
+                    var cellData = _voronoiData.GetSubChunk(voronoiRect);
+
+                    var prebakeMapData = TerrainData.VoronoiPreBake(_terrainData, mapSize, rect);
+                    
+
+                    var localX = x;
+                    var localY = y;
+
+                    tasks.Add(Task.Run(() => {
+
+                        var voronoiList = GetVoronoiCellsFromBuckets(cellData, rect);
+
+                        var data = TerrainData.ChunkVoronoi(prebakeMapData, voronoiList, mapSize, rect);
+                        var chunk = new Chunk(data);
+
+                        lock (_chunks)
+                        {
+                            _chunks[localX, localY] = chunk;
+                        }
+
+
+                    }
+                    
+                    ));
+
+                    _rects[x, y] = rect;
+                }
+            }
+
+            Task.WhenAll(tasks.ToArray()).ContinueInMainThreadWith(callback);
+        }
+
+        List<VoronoiCell> GetVoronoiCellsFromBuckets(List<Buckets.Bucket<VoronoiCell>> points, Rect rect)
+        {
+            var outputCells = new List<VoronoiCell>();
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                var p = points[i];
+            
+                for (int u = 0; u < p.Elements.Count; u++)
+                {
+                    var point = p.Elements[u];
+            
+                    //Debug.DrawRay(point, Vector3.up*100f, color,100f);                
+            
+                    var x = Util.InverseLerpUnclamped(rect.position.x, rect.position.x + rect.size.x, point.Position.x);
+                    var z = Util.InverseLerpUnclamped(rect.position.y, rect.position.y + rect.size.y, point.Position.y);
+
+                    var cell = new VoronoiCell(new Vector3(x,point.Height, z));
+                    cell.Inside = point.Inside;
+
+
+                    outputCells.Add(cell);
+                }
+            }
+
+            return outputCells;
+        }
+
+
+
         public void CreateBucketSystem()
         {
             _bucks = new RegionBucketManager();
-            _bucks.CreateBucketSystem(_chunks, _data.Rect);
+            _bucks.CreateBucketSystem(_chunks, _terrainData.Rect);
         }
 
         public void InstantiateRegionCells(Transform transform, Material material)

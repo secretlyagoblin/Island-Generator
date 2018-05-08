@@ -1,22 +1,25 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Meshmasher;
+using MeshMasher;
 using Nurbz;
+using System.Linq;
 
 public class MeshSelector : MonoBehaviour {
 
     public Camera Camera;
     SmartMesh _mesh;
+    MeshState<int> _state;
 
     // Use this for initialization
     void Start () {
 
         _mesh = new SmartMesh(GetComponent<MeshFilter>().sharedMesh);
+        _state = _mesh.GetMeshState<int>();
 
-        foreach (var cell in _mesh.Cells) {
-            cell.State = 1;
-        }
-	
+        for (int i = 0; i < _state.Cells.Length; i++)
+        {
+            _state.Cells[i] = 1;
+        }	
 	}
 
     // Update is called once per frame
@@ -76,33 +79,39 @@ public class MeshSelector : MonoBehaviour {
 
     void MouseClick() {
 
-        _mesh.Cells[_triangleIndex].State = 2;
+        _state.Cells[_triangleIndex] = 2;
 
     }
 
     void MouseRightClick()
     {
-        var boost = _mesh.GetCellGroups();
+        var state = _mesh.SetCellGroups(_state);
 
-        foreach (var boo in boost)
+        var distinctRooms = state.Lines.Distinct().ToList();
+
+
+        foreach (var room in distinctRooms)
         {
-            var orbs = _mesh.GetPolyLines(boo);
-
-
+            var boundingLines = _mesh.GetCellBoundingPolyLines(state, room);
 
             Color color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
 
-            
+            //Debug, got a bit muddled here
 
-            foreach (var bo in boo)
-                foreach (var neigh in bo.Neighbours)
-                    if (bo.Room == neigh.Room)
-                        Debug.DrawLine(bo.Center, neigh.Center, color, 4f);
+            //for (int i = 0; i < distinctRooms.Count; i++)
+            //{
+            //    state.Cells.Where()
+            //}      
+            //
+            //foreach (var bo in room)
+            //    foreach (var neigh in bo.Neighbours)
+            //        if (bo.Room == neigh.Room)
+            //            Debug.DrawLine(bo.Center, neigh.Center, color, 4f);
 
 
-            foreach (var blorb in orbs)
+            foreach (var line in boundingLines)
             {
-                Polyline3 polyline = new Polyline3(SmartMesh.NodeArrayToVector3Array(blorb));
+                Polyline3 polyline = new Polyline3(SmartMesh.NodeArrayToVector3Array(line));
 
                 if (polyline.GetNormal() != Vector3.up)
                 {
@@ -123,7 +132,7 @@ public class MeshSelector : MonoBehaviour {
     {
         foreach(var tri in _mesh.Cells)
         {
-            if(tri.State == 2)
+            if(_state.Cells[tri.Index] == 2)
             {
                 Debug.DrawLine(tri.Nodes[0].Vert, tri.Nodes[1].Vert, Color.red);
                 Debug.DrawLine(tri.Nodes[1].Vert, tri.Nodes[2].Vert, Color.red);
