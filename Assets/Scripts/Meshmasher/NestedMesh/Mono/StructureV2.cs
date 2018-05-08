@@ -65,43 +65,72 @@ public class StructureV2 : MonoBehaviour {
 
         var roomNumber = 1;
 
-
-        for (int i = 0; i < layer2Border.Nodes.Length; i++)
+        if (EnablePreview)
         {
-            if (layer2Border.Nodes[i] == 1)
-                layer2.CellMetadata[i].Code = 0;
+            for (int i = 0; i < layer2Border.Nodes.Length; i++)
+            {
+                if (layer2Border.Nodes[i] == 1)
+                    layer2.CellMetadata[i].Code = 0;
+            }
+
+            for (int i = 0; i < layer2Border.Lines.Length; i++)
+            {
+                if (layer2Border.Lines[i] == 1)
+                    layer2.Mesh.Lines[i].DebugDraw(Color.green, 100f);
+                else if (layer2State.Lines[i] == 1 &&
+                    layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
+                    layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
+                {
+
+                    layer2.Mesh.Lines[i].DebugDraw(Color.red, 100f);
+                }
+                else
+                {
+                    layer2.Mesh.Lines[i].DebugDraw(Color.white, 100f);
+                }
+            }
+
+            for (int i = 0; i < layer2.CellMetadata.Length; i++)
+            {
+                if (layer2.CellMetadata[i].Code != 0)
+                {
+                    layer2.CellMetadata[i].Code = roomNumber;
+                    roomNumber++;
+                    //layer2.CellMetadata[i].SmoothColor = Color.white;
+                }
+                else
+                {
+                    //layer2.CellMetadata[i].Code = 0;
+                    layer2.CellMetadata[i].SmoothColor = Color.black;
+                }
+            }
         }
 
-        for (int i = 0; i < layer2Border.Lines.Length; i++)
+        for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         {
-            if(layer2Border.Lines[i] == 1)
-                layer2.Mesh.Lines[i].DebugDraw(Color.green, 100f);
-            else if (layer2State.Lines[i] == 1 &&
-                layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code!=0 && 
-                layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code !=0)                
-            {
+            var n = layer2.Mesh.Nodes[i];
 
-                layer2.Mesh.Lines[i].DebugDraw(Color.red, 100f);
+            if (layer2Border.Nodes[n.Index] == 1)
+            {
+                layer2.CellMetadata[n.Index].SmoothColor = Color.black;
+                layer2.CellMetadata[n.Index].Code = 0;
             }
+
             else
             {
-                layer2.Mesh.Lines[i].DebugDraw(Color.white, 100f);
+                layer2.CellMetadata[n.Index].Code = i + 1;
+                layer2.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
+                layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
+                layer2.CellMetadata[n.Index].Connections = n
+                    .Lines
+                    .Where(x => layer2State.Lines[x.Index] == 1 )
+                    //&&
+                       // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
+                        //layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
+                    .Select(x => x.GetOtherNode(n).Index + 1)
+                    .Union(new List<int>() { i + 1 })
+                    .ToArray();
             }
-        }
-
-        for (int i = 0; i < layer2.CellMetadata.Length; i++)
-        {     
-            if(layer2.CellMetadata[i].Code != 0)
-            {
-                layer2.CellMetadata[i].Code = roomNumber;
-                roomNumber++;
-                //layer2.CellMetadata[i].SmoothColor = Color.white;
-            }
-            else
-            {
-                //layer2.CellMetadata[i].Code = 0;
-                layer2.CellMetadata[i].SmoothColor = Color.black;
-            }            
         }
 
 
@@ -122,6 +151,22 @@ public class StructureV2 : MonoBehaviour {
         #region layer three
 
         var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray());
+
+        for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
+        {
+            var n = layer3.Mesh.Nodes[i];
+
+            if (layer3.CellMetadata[n.Index].Code == 0)
+            {
+                layer3.CellMetadata[n.Index].SmoothColor = Color.black;
+            }
+            else
+            {
+                layer3.CellMetadata[n.Index].Code = i + 1;
+                layer3.CellMetadata[n.Index].SmoothColor = layer3.CellMetadata[n.Index].Distance < 0.5f ? Color.black : Color.white;
+                layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
+            }
+        }
 
         //for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
         //{
