@@ -25,9 +25,26 @@ public class CleverMesh {
         }
     }
 
+    public CleverMesh(CleverMesh parent, int accessIndex)
+    {
+        var ints = new int[] { accessIndex };
+        _nMesh = new NestedMesh(parent._nMesh, ints);
+        CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, ints);
+        //Need to lerp in here somewhere
+        _sMesh = new SmartMesh(_nMesh.CreateMesh());
+    }
+
     public CleverMesh(CleverMesh parent, int[] accessIndexes)
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes);
+        CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, accessIndexes);
+        //Need to lerp in here somewhere
+        _sMesh = new SmartMesh(_nMesh.CreateMesh());
+    }
+
+    public CleverMesh(CleverMesh parent, int[] accessIndexes, int bulsh)
+    {
+        _nMesh = new NestedMesh(parent._nMesh, accessIndexes,bulsh);
         CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, accessIndexes);
         //Need to lerp in here somewhere
         _sMesh = new SmartMesh(_nMesh.CreateMesh());

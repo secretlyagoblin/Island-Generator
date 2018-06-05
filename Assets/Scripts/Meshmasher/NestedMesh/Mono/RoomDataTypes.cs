@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MeshMasher.NodeDataTypes {
 
-    struct RoomCode : IBarycentricLerpable<RoomCode> {
+    struct RoomCode : IBlerpable<RoomCode> {
 
         public int Value;
 
@@ -16,7 +16,7 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public RoomCode Lerp(RoomCode a, RoomCode b, RoomCode c, Vector3 weight)
+        public RoomCode Blerp(RoomCode a, RoomCode b, RoomCode c, Vector3 weight)
         {
             if (weight.x >= weight.y && weight.x >= weight.z)
             {
@@ -33,7 +33,7 @@ namespace MeshMasher.NodeDataTypes {
         }
     }
 
-    struct RoomColor : IBarycentricLerpable<RoomColor> {
+    struct RoomColor : IBlerpable<RoomColor> {
 
         public Color Value;
 
@@ -78,7 +78,7 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public RoomColor Lerp(RoomColor a, RoomColor b, RoomColor c, Vector3 weight)
+        public RoomColor Blerp(RoomColor a, RoomColor b, RoomColor c, Vector3 weight)
         {
             var r = a.r * weight.x + b.r * weight.y + c.r * weight.z;
             var g = a.g * weight.x + b.g * weight.y + c.g * weight.z;
@@ -89,7 +89,7 @@ namespace MeshMasher.NodeDataTypes {
         }
     }
 
-    struct RoomFloat : IBarycentricLerpable<RoomFloat> {
+    struct RoomFloat : IBlerpable<RoomFloat> {
 
         public float Value;
 
@@ -98,13 +98,13 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public RoomFloat Lerp(RoomFloat a, RoomFloat b, RoomFloat c, Vector3 weight)
+        public RoomFloat Blerp(RoomFloat a, RoomFloat b, RoomFloat c, Vector3 weight)
         {
             return new RoomFloat(a.Value* weight.x + b.Value * weight.y + c.Value * weight.z);
         }
     }
 
-    struct ZoneBoundary : IBarycentricLerpable<ZoneBoundary> {
+    struct ZoneBoundary : IBlerpable<ZoneBoundary> {
 
         public int RoomCode { get { return _roomCode.Value; } set { _roomCode.Value = value; } }
         public float Distance;
@@ -131,9 +131,9 @@ namespace MeshMasher.NodeDataTypes {
         }
 
 
-        public ZoneBoundary Lerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Vector3 weight)
+        public ZoneBoundary Blerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Vector3 weight)
         {
-            var roomCode = a._roomCode.Lerp(a._roomCode, b._roomCode, c._roomCode, weight).Value;
+            var roomCode = a._roomCode.Blerp(a._roomCode, b._roomCode, c._roomCode, weight).Value;
 
             int[] links;
 
@@ -248,7 +248,7 @@ namespace MeshMasher.NodeDataTypes {
         }        
     }
 
-    struct MeshDual : IBarycentricLerpable<MeshDual> {
+    struct MeshDual : IBlerpable<MeshDual> {
 
         public float Value;
 
@@ -257,7 +257,7 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public MeshDual Lerp(MeshDual a, MeshDual b, MeshDual c, Vector3 weight)
+        public MeshDual Blerp(MeshDual a, MeshDual b, MeshDual c, Vector3 weight)
         {
             var dual = new float[] { weight.x, weight.y, weight.z };
 
