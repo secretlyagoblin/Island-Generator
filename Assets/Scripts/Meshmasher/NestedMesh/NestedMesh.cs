@@ -17,15 +17,11 @@ namespace MeshMasher {
         public double Scale = 1.0;
         public int NestedLevel = 0;
 
-        static MeshTile mesh;// = new BuildMesh();
+        private MeshTile _meshTile;
 
-        public NestedMesh(Vector2Int[] tileArray)
+        public NestedMesh(Vector2Int[] tileArray, string meshTileJSON)
         {
-            if (mesh == null)
-            {
-                mesh = new MeshTile();
-                mesh.Init();
-            }
+            _meshTile = new MeshTile(meshTileJSON);
 
             var tiles = new SimpleVector2Int[tileArray.Length];
 
@@ -43,7 +39,7 @@ namespace MeshMasher {
 
             var baseDict = new Dictionary<SimpleVector2Int, int[]>();
 
-            var indexMap = new int[mesh.Positions.Length];
+            var indexMap = new int[_meshTile.Positions.Length];
 
             for (int i = 0; i < indexMap.Length; i++)
             {
@@ -59,7 +55,7 @@ namespace MeshMasher {
 
             for (int i = 0; i < tiles.Length; i++)
             {
-                for (int u = 0; u < mesh.Positions.Length; u++)
+                for (int u = 0; u < _meshTile.Positions.Length; u++)
                 {
                     vertCount++;
 
@@ -74,7 +70,7 @@ namespace MeshMasher {
                     //mat.color = values[i];
                     //instance.GetComponent<MeshRenderer>().material = mat;
 
-                    var pos = mesh.Positions[u] + new Vector3(tiles[i].x * _offsetSize, tiles[i].y * _offsetSize);
+                    var pos = _meshTile.Positions[u] + new Vector3(tiles[i].x * _offsetSize, tiles[i].y * _offsetSize);
 
                     //var instance = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     //instance.transform.position = pos;
@@ -96,13 +92,13 @@ namespace MeshMasher {
 
             for (int i = 0; i < tiles.Length; i++)
             {
-                for (int u = 0; u < mesh.Triangles.Length / 3; u++)
+                for (int u = 0; u < _meshTile.Triangles.Length / 3; u++)
                 {
                     var triangle = u * 3;
 
-                    var oa = mesh.Offsets[triangle];
-                    var ob = mesh.Offsets[triangle + 1];
-                    var oc = mesh.Offsets[triangle + 2];
+                    var oa = _meshTile.Offsets[triangle];
+                    var ob = _meshTile.Offsets[triangle + 1];
+                    var oc = _meshTile.Offsets[triangle + 2];
 
                     var tileA = oa + tiles[i];
                     var tileB = ob + tiles[i];
@@ -111,16 +107,16 @@ namespace MeshMasher {
                     if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
                         continue;
 
-                    var a = mesh.Triangles[triangle];
-                    var b = mesh.Triangles[triangle + 1];
-                    var c = mesh.Triangles[triangle + 2];
+                    var a = _meshTile.Triangles[triangle];
+                    var b = _meshTile.Triangles[triangle + 1];
+                    var c = _meshTile.Triangles[triangle + 2];
 
                     tris.Add(baseDict[tileC][c]);
                     tris.Add(baseDict[tileB][b]);
                     tris.Add(baseDict[tileA][a]);
 
                     derivedTri.Add(u);
-                    derivedOffset.Add(tiles[i] + mesh.CenterOffsets[u]);
+                    derivedOffset.Add(tiles[i] + _meshTile.CenterOffsets[u]);
 
                 }
             }
@@ -140,10 +136,11 @@ namespace MeshMasher {
 
             Scale = originMesh.Scale * 0.25;
             NestedLevel = originMesh.NestedLevel + 1;
+            _meshTile = originMesh._meshTile;
 
             var baseDict = new Dictionary<SimpleVector2Int, int[]>();
 
-            var indexMap = new int[mesh.Positions.Length];
+            var indexMap = new int[_meshTile.Positions.Length];
 
             for (int i = 0; i < indexMap.Length; i++)
             {
@@ -155,9 +152,12 @@ namespace MeshMasher {
             var localOffset = 0f;
             var scale = 50f;
 
+            var tilingAmount = 5;
+            Debug.Log("Goddamn it chris make this metadata");
+
             for (int i = 0; i < NestedLevel; i++)
             {
-                scale = scale / 4;
+                scale = scale / tilingAmount;
                 localOffset += scale;
             }
 
@@ -167,8 +167,8 @@ namespace MeshMasher {
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
-                var subVerts = mesh.ScaledVerts[originMesh.DerivedTri[meshAccessIndices[i]]];
-                var subOffsets = mesh.ScaledOffsets[originMesh.DerivedTri[meshAccessIndices[i]]];
+                var subVerts = _meshTile.ScaledVerts[originMesh.DerivedTri[meshAccessIndices[i]]];
+                var subOffsets = _meshTile.ScaledOffsets[originMesh.DerivedTri[meshAccessIndices[i]]];
                 var offset = originMesh.DerivedOffset[meshAccessIndices[i]];
 
                 for (int u = 0; u < subVerts.Length; u++)
@@ -178,15 +178,15 @@ namespace MeshMasher {
                     //var p = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     //p.transform.localScale = Vector3.one * (float)Scale;
 
-                    var pos = mesh.Positions[subVerts[u]];
+                    var pos = _meshTile.Positions[subVerts[u]];
                     pos += new Vector3(subOffsets[u].x * _offsetSize, subOffsets[u].y * _offsetSize, 0); //suboffset
-                    pos += new Vector3(offset.x * _offsetSize * 4, offset.y * _offsetSize * 4, 0); //offset
+                    pos += new Vector3(offset.x * _offsetSize * tilingAmount, offset.y * _offsetSize * tilingAmount, 0); //offset
                     pos = pos * (float)Scale;
                     pos -= new Vector3((float)localOffset, (float)localOffset, 0); //shift
 
                     verts.Add(pos);
 
-                    var key = subOffsets[u] + (offset * 4);
+                    var key = subOffsets[u] + (offset * tilingAmount);
 
                     if (baseDict.ContainsKey(key))
                     {
@@ -212,13 +212,13 @@ namespace MeshMasher {
 
             for (int i = 0; i < tiles.Length; i++)
             {
-                for (int u = 0; u < mesh.Triangles.Length / 3; u++)
+                for (int u = 0; u < _meshTile.Triangles.Length / 3; u++)
                 {
                     var triangle = u * 3;
 
-                    var oa = mesh.Offsets[triangle];
-                    var ob = mesh.Offsets[triangle + 1];
-                    var oc = mesh.Offsets[triangle + 2];
+                    var oa = _meshTile.Offsets[triangle];
+                    var ob = _meshTile.Offsets[triangle + 1];
+                    var oc = _meshTile.Offsets[triangle + 2];
 
                     var tileA = oa + tiles[i];
                     var tileB = ob + tiles[i];
@@ -227,9 +227,9 @@ namespace MeshMasher {
                     if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
                         continue;
 
-                    var a = mesh.Triangles[triangle];
-                    var b = mesh.Triangles[triangle + 1];
-                    var c = mesh.Triangles[triangle + 2];
+                    var a = _meshTile.Triangles[triangle];
+                    var b = _meshTile.Triangles[triangle + 1];
+                    var c = _meshTile.Triangles[triangle + 2];
 
                     var trueA = baseDict[tileA][a];
                     var trueB = baseDict[tileB][b];
@@ -253,6 +253,7 @@ namespace MeshMasher {
             DerivedOffset = derivedOffset.ToArray();
         }
 
+        /*
         public NestedMesh(NestedMesh originMesh, int[] meshAccessIndices, int bullsht)
         {
             var verts = new List<Vector3>();
@@ -262,10 +263,11 @@ namespace MeshMasher {
 
             Scale = originMesh.Scale * 0.25;
             NestedLevel = originMesh.NestedLevel + 1;
+            _meshTile = originMesh._meshTile;
 
             var baseDict = new Dictionary<SimpleVector2Int, int[]>();
 
-            var indexMap = new int[mesh.Positions.Length];
+            var indexMap = new int[_meshTile.Positions.Length];
 
             for (int i = 0; i < indexMap.Length; i++)
             {
@@ -287,8 +289,8 @@ namespace MeshMasher {
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
-                var centers = mesh.NestedTriangleIndexes[meshAccessIndices[i]];
-                var centerOffsets = mesh.NestedTriangleOffsets[meshAccessIndices[i]];
+                var centers = _meshTile.NestedTriangleIndexes[meshAccessIndices[i]];
+                var centerOffsets = _meshTile.NestedTriangleOffsets[meshAccessIndices[i]];
 
                 var subVerts = new List<int>();
                 var subOffsets = new List<SimpleVector2Int>();
@@ -297,25 +299,25 @@ namespace MeshMasher {
                 for (int u = 0; u < centers.Length; u++)
                 {
                     var index = centers[u] * 3;
-                    if (!subVerts.Contains(mesh.Triangles[index]))
+                    if (!subVerts.Contains(_meshTile.Triangles[index]))
                     {
-                        subVerts.Add(mesh.Triangles[index]);
+                        subVerts.Add(_meshTile.Triangles[index]);
                         subOffsets.Add(centerOffsets[u]+ offset);
                     }
 
                     index++;
 
-                    if (!subVerts.Contains(mesh.Triangles[index]))
+                    if (!subVerts.Contains(_meshTile.Triangles[index]))
                     {
-                        subVerts.Add(mesh.Triangles[index]);
+                        subVerts.Add(_meshTile.Triangles[index]);
                         subOffsets.Add(centerOffsets[u] + offset);
                     }
 
                     index++;
 
-                    if (!subVerts.Contains(mesh.Triangles[index]))
+                    if (!subVerts.Contains(_meshTile.Triangles[index]))
                     {
-                        subVerts.Add(mesh.Triangles[index]);
+                        subVerts.Add(_meshTile.Triangles[index]);
                         subOffsets.Add(centerOffsets[u] + offset);
                     }
                 }
@@ -333,7 +335,7 @@ namespace MeshMasher {
                     //var p = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     //p.transform.localScale = Vector3.one * (float)Scale;
 
-                    var pos = mesh.Positions[subVerts[u]];
+                    var pos = _meshTile.Positions[subVerts[u]];
                     pos += new Vector3(subOffsets[u].x * _offsetSize, subOffsets[u].y * _offsetSize, 0); //suboffset
                     pos += new Vector3(offset.x * _offsetSize * 4, offset.y * _offsetSize * 4, 0); //offset
                     pos = pos * (float)Scale;
@@ -367,13 +369,13 @@ namespace MeshMasher {
 
             for (int i = 0; i < tiles.Length; i++)
             {
-                for (int u = 0; u < mesh.Triangles.Length / 3; u++)
+                for (int u = 0; u < _meshTile.Triangles.Length / 3; u++)
                 {
                     var triangle = u * 3;
 
-                    var oa = mesh.Offsets[triangle];
-                    var ob = mesh.Offsets[triangle + 1];
-                    var oc = mesh.Offsets[triangle + 2];
+                    var oa = _meshTile.Offsets[triangle];
+                    var ob = _meshTile.Offsets[triangle + 1];
+                    var oc = _meshTile.Offsets[triangle + 2];
 
                     var tileA = oa + tiles[i];
                     var tileB = ob + tiles[i];
@@ -382,9 +384,9 @@ namespace MeshMasher {
                     if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
                         continue;
 
-                    var a = mesh.Triangles[triangle];
-                    var b = mesh.Triangles[triangle + 1];
-                    var c = mesh.Triangles[triangle + 2];
+                    var a = _meshTile.Triangles[triangle];
+                    var b = _meshTile.Triangles[triangle + 1];
+                    var c = _meshTile.Triangles[triangle + 2];
 
                     var trueA = baseDict[tileA][a];
                     var trueB = baseDict[tileB][b];
@@ -407,28 +409,31 @@ namespace MeshMasher {
             DerivedTri = derivedTri.ToArray();
             DerivedOffset = derivedOffset.ToArray();
         }
+        */
 
         public T[] LerpBarycentricValues<T>(T[] originValues,  int[] meshTris) where T: IBlerpable<T>
         {
             //var nestedValues = new List<T>();
 
-            var innerScale = Scale * 0.25;
-            var nestedLevel = NestedLevel + 1;
+            //var innerScale = Scale * 0.25;
+            //var nestedLevel = NestedLevel + 1;
 
-            var localOffset = 0f;
-            var scale = 50f;
-
-            for (int i = 0; i < nestedLevel; i++)
-            {
-                scale = scale / 4;
-                localOffset += scale;
-            }
+            //var localOffset = 0f;
+            //var scale = 50f;
+            //var tilingAmount = 5;
+            //Debug.Log("Goddamn it chris make this metadata");
+            //
+            //for (int i = 0; i < nestedLevel; i++)
+            //{
+            //    scale = scale / tilingAmount;
+            //    localOffset += scale;
+            //}
 
             var arraySize = 0;
 
             for (int i = 0; i < meshTris.Length; i++)
             {
-                arraySize += mesh.Barycenters[DerivedTri[meshTris[i]]].Length;
+                arraySize += _meshTile.Barycenters[DerivedTri[meshTris[i]]].Length;
             }
 
             var nestedValues = new T[arraySize];
@@ -436,7 +441,7 @@ namespace MeshMasher {
 
             for (int i = 0; i < meshTris.Length; i++)
             {
-                var barycenters = mesh.Barycenters[DerivedTri[meshTris[i]]];
+                var barycenters = _meshTile.Barycenters[DerivedTri[meshTris[i]]];
                 var offset = DerivedOffset[meshTris[i]];
 
                 for (int u = 0; u < barycenters.Length; u++)

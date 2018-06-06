@@ -11,10 +11,10 @@ public class CleverMesh {
     NestedMesh _nMesh;
     SmartMesh _sMesh;
 
-    public CleverMesh()
+    public CleverMesh(string meshTileJSON)
     {
         var tiles = new List<Vector2Int>() { Vector2Int.zero, new Vector2Int(0, 1), new Vector2Int(-1, 0) };
-        _nMesh = new NestedMesh(tiles.ToArray());
+        _nMesh = new NestedMesh(tiles.ToArray(), meshTileJSON);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
 
         CellMetadata = new NodeMetadata[_nMesh.Verts.Length];
@@ -42,11 +42,11 @@ public class CleverMesh {
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 
-    public CleverMesh(CleverMesh parent, int[] accessIndexes, int bulsh)
-    {
-        _nMesh = new NestedMesh(parent._nMesh, accessIndexes,bulsh);
-        CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, accessIndexes);
-        //Need to lerp in here somewhere
-        _sMesh = new SmartMesh(_nMesh.CreateMesh());
-    }
+    //public CleverMesh(CleverMesh parent, int[] accessIndexes, int bulsh)
+    //{
+    //    _nMesh = new NestedMesh(parent._nMesh, accessIndexes,bulsh);
+    //    CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, accessIndexes);
+    //    //Need to lerp in here somewhere
+    //    _sMesh = new SmartMesh(_nMesh.CreateMesh());
+    //}
 }

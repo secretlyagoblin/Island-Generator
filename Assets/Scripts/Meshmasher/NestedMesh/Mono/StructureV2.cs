@@ -9,6 +9,7 @@ public class StructureV2 : MonoBehaviour {
     public GameObject InstantiationBase;
     public AnimationCurve FalloffCurve;
     public Gradient Gradient;
+    public TextAsset meshTileData;
 
     public bool EnablePreview = true;
 
@@ -31,7 +32,7 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        var layer1 = new CleverMesh();
+        var layer1 = new CleverMesh(meshTileData.text);
         var cellIndex = 126;
 
         /// 2: Give each triangle a different biome (3 zones)
@@ -46,16 +47,18 @@ public class StructureV2 : MonoBehaviour {
             //layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
-        layer1.Mesh.DrawMesh(transform, Color.green, Color.grey);
+        layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
 
         #endregion
 
-        var bubb = 122;
+        var bubb = 43;
 
-        var slayer2 = new CleverMesh(layer1, new int[] { bubb }, 1);
-        var slayer3 = new CleverMesh(layer1, bubb);
+        var slayer2 = new CleverMesh(layer1, new int[] { bubb });
+        var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray());
+        var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
         slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.blue);
+        slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        slayer4.Mesh.DrawMesh(transform, Color.red, Color.clear);
         //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
         //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 
@@ -227,7 +230,7 @@ public class StructureV2 : MonoBehaviour {
 
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
-            var layer4 = new CleverMesh(layer3,new int[] { layer3.Mesh.Cells[i].Index },1);
+            var layer4 = new CleverMesh(layer3,new int[] { layer3.Mesh.Cells[i].Index });
             layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
             //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
             //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
