@@ -11,10 +11,9 @@ public class CleverMesh {
     NestedMesh _nMesh;
     SmartMesh _sMesh;
 
-    public CleverMesh(string meshTileJSON)
+    public CleverMesh(List<Vector2Int> seedTiles,  string meshTileJSON)
     {
-        var tiles = new List<Vector2Int>() { Vector2Int.zero, new Vector2Int(0, 1), new Vector2Int(-1, 0) };
-        _nMesh = new NestedMesh(tiles.ToArray(), meshTileJSON);
+        _nMesh = new NestedMesh(seedTiles.ToArray(), meshTileJSON);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
 
         CellMetadata = new NodeMetadata[_nMesh.Verts.Length];

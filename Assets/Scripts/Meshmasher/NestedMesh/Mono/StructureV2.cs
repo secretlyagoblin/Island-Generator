@@ -32,8 +32,8 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        var layer1 = new CleverMesh(meshTileData.text);
-        var cellIndex = 126;
+        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero, Vector2Int.up, Vector2Int.up*2}, meshTileData.text);
+        var cellIndex = 66;
 
         /// 2: Give each triangle a different biome (3 zones)
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
@@ -47,18 +47,18 @@ public class StructureV2 : MonoBehaviour {
             //layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
-        layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
+        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear);
 
         #endregion
 
-        var bubb = 43;
+        //var bubb = 43;
 
-        var slayer2 = new CleverMesh(layer1, new int[] { bubb });
+        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
         var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray());
-        var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
+        //var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
         slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
         slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        slayer4.Mesh.DrawMesh(transform, Color.red, Color.clear);
+        //slayer4.Mesh.DrawMesh(transform, Color.red, Color.clear);
         //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
         //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 

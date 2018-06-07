@@ -8,7 +8,7 @@ namespace MeshMasher {
 
     public class NestedMesh {
 
-        static int _offsetSize = 50;
+        //static int _offsetSize = 50;
 
         public Vector3[] Verts;
         public int[] Tris;
@@ -70,7 +70,7 @@ namespace MeshMasher {
                     //mat.color = values[i];
                     //instance.GetComponent<MeshRenderer>().material = mat;
 
-                    var pos = _meshTile.Positions[u] + new Vector3(tiles[i].x * _offsetSize, tiles[i].y * _offsetSize);
+                    var pos = _meshTile.Positions[u] + new Vector3(tiles[i].x * _meshTile.Scale, tiles[i].y * _meshTile.Scale);
 
                     //var instance = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     //instance.transform.position = pos;
@@ -129,14 +129,18 @@ namespace MeshMasher {
 
         public NestedMesh(NestedMesh originMesh, int[] meshAccessIndices)
         {
+            _meshTile = originMesh._meshTile;
+
             var verts = new List<Vector3>();
             var tris = new List<int>();
             var derivedTri = new List<int>();
             var derivedOffset = new List<SimpleVector2Int>();
 
-            Scale = originMesh.Scale * 0.25;
+            Debug.Log("Goddamn it chris make this metadata");
+
+            Scale = originMesh.Scale * (1f/ _meshTile.NestingScale);
             NestedLevel = originMesh.NestedLevel + 1;
-            _meshTile = originMesh._meshTile;
+
 
             var baseDict = new Dictionary<SimpleVector2Int, int[]>();
 
@@ -150,15 +154,15 @@ namespace MeshMasher {
             //need to go from offset 0 to offset 12.5 to offset 12.5 + 12.5/4
 
             var localOffset = 0f;
-            var scale = 50f;
+            var localOffsetAdjuster = 50f;
 
-            var tilingAmount = 5;
-            Debug.Log("Goddamn it chris make this metadata");
+            //var tilingAmount = 5;
+            //Debug.Log("Goddamn it chris make this metadata");
 
             for (int i = 0; i < NestedLevel; i++)
             {
-                scale = scale / tilingAmount;
-                localOffset += scale;
+                localOffsetAdjuster = localOffsetAdjuster / _meshTile.NestingScale;
+                localOffset += localOffsetAdjuster;
             }
 
             Debug.Log("Offset Level " + localOffset);
@@ -179,14 +183,14 @@ namespace MeshMasher {
                     //p.transform.localScale = Vector3.one * (float)Scale;
 
                     var pos = _meshTile.Positions[subVerts[u]];
-                    pos += new Vector3(subOffsets[u].x * _offsetSize, subOffsets[u].y * _offsetSize, 0); //suboffset
-                    pos += new Vector3(offset.x * _offsetSize * tilingAmount, offset.y * _offsetSize * tilingAmount, 0); //offset
+                    pos += new Vector3(subOffsets[u].x * _meshTile.Scale, subOffsets[u].y * _meshTile.Scale, 0); //suboffset
+                    pos += new Vector3(offset.x * _meshTile.Scale * _meshTile.NestingScale, offset.y * _meshTile.Scale * _meshTile.NestingScale, 0); //offset
                     pos = pos * (float)Scale;
                     pos -= new Vector3((float)localOffset, (float)localOffset, 0); //shift
 
                     verts.Add(pos);
 
-                    var key = subOffsets[u] + (offset * tilingAmount);
+                    var key = subOffsets[u] + (offset * _meshTile.NestingScale);
 
                     if (baseDict.ContainsKey(key))
                     {

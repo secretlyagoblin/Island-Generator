@@ -16,7 +16,7 @@ public class StructuredTesting : MonoBehaviour {
 
         RNG.DateTimeInit();
 
-        var layer1 = new CleverMesh(meshTileData.text);
+        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero}, meshTileData.text);
         layer1.Mesh.DrawMesh(transform,Color.clear,Color.grey);
 
         var cellIndex = 126;

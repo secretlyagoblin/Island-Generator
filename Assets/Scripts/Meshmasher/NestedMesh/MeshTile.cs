@@ -8,6 +8,9 @@ namespace MeshMasher.MeshTiling {
 
     public class MeshTile {
 
+        public int Scale;
+        public int NestingScale;
+
         public Vector3[] Positions;
         public SimpleVector2Int[] Offsets;
 
@@ -32,6 +35,10 @@ namespace MeshMasher.MeshTiling {
         private void PopulateFromString(string str)
         {
             var importObject = JsonUtility.FromJson<ImportJsonObject>(str);
+
+            //Metadata
+            Scale = importObject.gridScale;
+            NestingScale = importObject.nestingScale;
 
             //Positions
             Positions = new Vector3[importObject.positions.Length / 2];
@@ -102,6 +109,8 @@ namespace MeshMasher.MeshTiling {
         }
 
         private class ImportJsonObject {
+            public int gridScale;
+            public int nestingScale;
             public int[] triangles;
             public int[] offsets;
             public float[] positions;
