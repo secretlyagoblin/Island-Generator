@@ -9,6 +9,7 @@ public class StructureV2 : MonoBehaviour {
     public GameObject InstantiationBase;
     public AnimationCurve FalloffCurve;
     public Gradient Gradient;
+    public TextAsset meshTileData;
 
     public bool EnablePreview = true;
 
@@ -31,8 +32,8 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        var layer1 = new CleverMesh();
-        var cellIndex = 126;
+        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero, Vector2Int.up, Vector2Int.up*2}, meshTileData.text);
+        var cellIndex = 66;
 
         /// 2: Give each triangle a different biome (3 zones)
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
@@ -46,7 +47,32 @@ public class StructureV2 : MonoBehaviour {
             //layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
+        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear);
+
         #endregion
+
+        //var bubb = 43;
+
+        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
+        var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray());
+        //var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
+        slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //slayer4.Mesh.DrawMesh(transform, Color.red, Color.clear);
+        //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
+        //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+
+        var mate = new Material(Shader.Find("Standard"));
+
+        var gameObjecte = new GameObject();
+        var fe = gameObjecte.AddComponent<MeshFilter>();
+        var re = gameObjecte.AddComponent<MeshRenderer>();
+        re.sharedMaterial = mate;
+        //f.mesh = layer5.Mesh.ToXYMesh();
+        fe.mesh = slayer2.Mesh.ToXYMesh();
+        fe.name = "Cell " + 1;
+
+        return;
 
         ///Below we:
         /// 3: Create a boundary area that is a no-go zone.
@@ -64,6 +90,8 @@ public class StructureV2 : MonoBehaviour {
         var layer2State = layer2.Mesh.GenerateSemiConnectedMesh(5, layer2Border);
 
         var roomNumber = 1;
+
+        //layer2.Mesh.DrawMesh(transform, Color.clear, Color.green);
 
         if (EnablePreview)
         {
@@ -110,26 +138,29 @@ public class StructureV2 : MonoBehaviour {
         {
             var n = layer2.Mesh.Nodes[i];
 
-            if (layer2Border.Nodes[n.Index] == 1)
-            {
+            if (layer2Border.Nodes[n.Index] == 1 | layer2.CellMetadata[i].Code == 0)
+            {                                   
                 layer2.CellMetadata[n.Index].SmoothColor = Color.black;
                 layer2.CellMetadata[n.Index].Code = 0;
             }
 
             else
             {
-                layer2.CellMetadata[n.Index].Code = i + 1;
-                layer2.CellMetadata[n.Index].SmoothColor = RNG.GetRandomColor();
+                //var colour = layer2.CellMetadata[n.Index].MeshDual;
+
+
+                //layer2.CellMetadata[n.Index].SmoothColor = new Color(colour,colour,colour);
                 layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
                 layer2.CellMetadata[n.Index].Connections = n
                     .Lines
                     .Where(x => layer2State.Lines[x.Index] == 1 )
-                    //&&
+                   // &&
                        // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
-                        //layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
+                       // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
                     .Select(x => x.GetOtherNode(n).Index + 1)
                     .Union(new List<int>() { i + 1 })
                     .ToArray();
+                layer2.CellMetadata[n.Index].Code = i + 1;
             }
         }
 
@@ -158,12 +189,17 @@ public class StructureV2 : MonoBehaviour {
 
             if (layer3.CellMetadata[n.Index].Code == 0)
             {
-                layer3.CellMetadata[n.Index].SmoothColor = Color.black;
+                //layer3.CellMetadata[n.Index].SmoothColor = Color.black;
             }
             else
             {
+                var colour = layer3.CellMetadata[n.Index].MeshDual;
+                colour = Mathf.Max(layer3.CellMetadata[n.Index].Distance, colour);// < 0.5f ? 0f : (colour);//*0.5f)+0.5f ;
+                //colour = layer3.CellMetadata[n.Index].Distance < 0.5f ? 0f : 1f;//*0.5f)+0.5f ;
+
                 layer3.CellMetadata[n.Index].Code = i + 1;
-                layer3.CellMetadata[n.Index].SmoothColor = layer3.CellMetadata[n.Index].Distance < 0.5f ? Color.black : Color.white;
+                //layer3.CellMetadata[n.Index].SmoothColor = layer3.CellMetadata[n.Index].Distance < 0.5f ? Color.black : Color.white;
+                layer3.CellMetadata[n.Index].SmoothColor = new Color(colour, colour, colour);
                 layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
             }
         }
@@ -175,7 +211,7 @@ public class StructureV2 : MonoBehaviour {
 
         if (EnablePreview)
         {
-            layer3.Mesh.DrawMesh(transform, Color.clear, Color.grey);
+            //layer3.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
         #endregion
@@ -183,11 +219,35 @@ public class StructureV2 : MonoBehaviour {
         ///Below we:
         /// 10: TODO: Actually start only generating this stuff based on distance
         /// 11: TODO: Build an actual heightmesh
+        /// 11.5: TODO: Create Triangle-focused nestedmesh that creates seamless terrains
         /// 12: TODO: Instantiate large props
 
         #region layer four
 
-        var layer4 = new CleverMesh(layer3, layer3.Mesh.Cells.Select(x => x.Index).ToArray());
+        var mat = new Material(Shader.Find("Standard"));
+
+        layer3.Mesh.DrawMesh(transform);
+
+        for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
+        {
+            var layer4 = new CleverMesh(layer3,new int[] { layer3.Mesh.Cells[i].Index });
+            layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+            //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
+            //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+
+            var gameObject = new GameObject();
+            var f = gameObject.AddComponent<MeshFilter>();
+            var r = gameObject.AddComponent<MeshRenderer>();
+            r.sharedMaterial = mat;
+            //f.mesh = layer5.Mesh.ToXYMesh();
+            f.mesh = layer4.Mesh.ToXYMesh();
+            f.name = "Cell " + i;
+        }
+
+        return;
+
+        //var layer4 = 
+        //layer4.Mesh.DrawMesh(transform, Color.green, Color.red);
 
         #endregion
 
@@ -196,28 +256,30 @@ public class StructureV2 : MonoBehaviour {
 
         #region create final mesh
 
-        var pts = layer4.Mesh.Nodes;
-
-        for (int i = 0; i < pts.Count; i++)
-        {
-            //if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
-            //    continue;
-
-            //var jitter = RNG.NextFloat(0.1f);
-            //
-            //var smoothVal = FalloffCurve.Evaluate(layer4.CellMetadata[i].SmoothColor.r+jitter);
-            //
-            //var color = Gradient.Evaluate(smoothVal);
-
-
-            var obj = Instantiate(InstantiationBase);
-            //obj.GetComponent<MeshRenderer>().sharedMaterial = layer4.CellMetadata[i].Distance < 0.8 | layer4.CellMetadata[i].Code == 0 ? matA : matB;
-            obj.GetComponent<MeshRenderer>().material.color = layer4.CellMetadata[i].SmoothColor;
-            obj.transform.position = pts[i].Vert + Vector3.forward * layer4.CellMetadata[i].Height;
-            //obj.transform.position = new Vector3(obj.transform.position.x, -obj.transform.position.z, obj.transform.position.y);
-            obj.transform.localScale = Vector3.one * 0.06f;
-            obj.name = "Room " + layer4.CellMetadata[i].Code;
-        }
+        //var finalLayer = layer4;
+        //var pts = finalLayer.Mesh.Nodes;
+        //
+        //for (int i = 0; i < pts.Count; i++)
+        //{
+        //    //if (layer4.CellMetadata[i].Code == 0 )//|| layer4.CellMetadata[i].Distance < 0.5)
+        //    //    continue;
+        //
+        //    //var jitter = RNG.NextFloat(0.1f);
+        //    //
+        //    //var smoothVal = FalloffCurve.Evaluate(layer4.CellMetadata[i].SmoothColor.r+jitter);
+        //    //
+        //    //var color = Gradient.Evaluate(smoothVal);
+        //    var n = finalLayer.Mesh.Nodes[i];
+        //   // var colour = finalLayer.CellMetadata[n.Index].
+        //
+        //    var obj = Instantiate(InstantiationBase);
+        //    //obj.GetComponent<MeshRenderer>().sharedMaterial = layer4.CellMetadata[i].Distance < 0.8 | layer4.CellMetadata[i].Code == 0 ? matA : matB;
+        //    obj.GetComponent<MeshRenderer>().material.color = finalLayer.CellMetadata[i].SmoothColor;
+        //    obj.transform.position = pts[i].Vert + Vector3.forward * finalLayer.CellMetadata[i].Height;
+        //    //obj.transform.position = new Vector3(obj.transform.position.x, -obj.transform.position.z, obj.transform.position.y);
+        //    obj.transform.localScale = Vector3.one * 0.06f;
+        //    obj.name = "Room " + finalLayer.CellMetadata[i].Code;
+        //}
 
         #endregion
 

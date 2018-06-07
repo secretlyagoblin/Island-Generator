@@ -9,13 +9,14 @@ public class StructuredTesting : MonoBehaviour {
     public GameObject InstantiationBase;
     public AnimationCurve FalloffCurve;
     public Gradient Gradient;
+    public TextAsset meshTileData;
 
 	// Use this for initialization
 	void Start () {
 
         RNG.DateTimeInit();
 
-        var layer1 = new CleverMesh();
+        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero}, meshTileData.text);
         layer1.Mesh.DrawMesh(transform,Color.clear,Color.grey);
 
         var cellIndex = 126;

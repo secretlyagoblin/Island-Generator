@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MeshMasher;
 
-public struct NodeMetadata : IBarycentricLerpable<NodeMetadata> {
+public struct NodeMetadata : IBlerpable<NodeMetadata> {
 
     public int Code { get { return _roomCode.Value; } set { _roomCode.Value = value; _zoneBoundary.RoomCode = value; } }
     public Color SmoothColor { get { return _roomColor.Value; } set { _roomColor.Value = value; } }
@@ -27,15 +27,15 @@ public struct NodeMetadata : IBarycentricLerpable<NodeMetadata> {
         _meshDual = new MeshMasher.NodeDataTypes.MeshDual(0);
     }
 
-    public NodeMetadata Lerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Vector3 weight)
+    public NodeMetadata Blerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Vector3 weight)
     {
         return new NodeMetadata()
         {
-            _roomCode = _roomCode.Lerp(a._roomCode, b._roomCode, c._roomCode, weight),
-            _roomColor = _roomColor.Lerp(a._roomColor, b._roomColor, c._roomColor, weight),
-            _height = _height.Lerp(a._height, b._height, c._height, weight),
-            _zoneBoundary = _zoneBoundary.Lerp(a._zoneBoundary, b._zoneBoundary, c._zoneBoundary, weight),
-            _meshDual = _meshDual.Lerp(a._meshDual, b._meshDual, c._meshDual, weight)
+            _roomCode = _roomCode.Blerp(a._roomCode, b._roomCode, c._roomCode, weight),
+            _roomColor = _roomColor.Blerp(a._roomColor, b._roomColor, c._roomColor, weight),
+            _height = _height.Blerp(a._height, b._height, c._height, weight),
+            _zoneBoundary = _zoneBoundary.Blerp(a._zoneBoundary, b._zoneBoundary, c._zoneBoundary, weight),
+            _meshDual = _meshDual.Blerp(a._meshDual, b._meshDual, c._meshDual, weight)
         };
     }
 }

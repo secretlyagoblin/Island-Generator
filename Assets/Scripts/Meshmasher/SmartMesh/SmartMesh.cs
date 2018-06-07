@@ -118,6 +118,30 @@ namespace MeshMasher {
             return output.ToArray();
         }
 
+        public Mesh ToXZMesh()
+        {
+            var m = new Mesh();
+
+            m.SetVertices(Nodes.Select(x => new Vector3(x.Vert.x,0,x.Vert.y)).ToList());
+            m.SetTriangles(Cells.SelectMany(x => x.Nodes.Select(y => y.Index)).ToList(),0);
+            m.RecalculateBounds();
+            m.RecalculateNormals();
+
+            return m;
+        }
+
+        public Mesh ToXYMesh()
+        {
+            var m = new Mesh();
+
+            m.SetVertices(Nodes.Select(x => new Vector3(x.Vert.x, x.Vert.y,0)).ToList());
+            m.SetTriangles(Cells.SelectMany(x => x.Nodes.Select(y => y.Index)).ToList(), 0);
+            m.RecalculateBounds();
+            m.RecalculateNormals();
+
+            return m;
+        }
+
         /*
 
         public SmartMesh()

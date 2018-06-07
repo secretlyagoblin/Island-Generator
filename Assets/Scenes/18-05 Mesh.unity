@@ -270,6 +270,7 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
+  meshTileData: {fileID: 4900000, guid: e2c2d6300bb416149b7f004d659168fc, type: 3}
   EnablePreview: 1
 --- !u!4 &1476909663
 Transform:

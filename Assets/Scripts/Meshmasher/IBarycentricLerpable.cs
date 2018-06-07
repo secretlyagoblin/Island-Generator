@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace MeshMasher {
 
-    public interface IBarycentricLerpable<T> {
-        T Lerp(T a, T b, T c, Vector3 weight);
+    public interface IBlerpable<T> {
+        T Blerp(T a, T b, T c, Vector3 weight);
     }
 
 
