@@ -19,13 +19,13 @@ namespace MeshMasher.MeshTiling {
         public SimpleVector2Int[] CenterOffsets;
 
         public int[][] ScaledVerts;
-        public SimpleVector2Int[][] ScaledOffsets;
+        public SimpleVector2Int[][] SubTileOffsets;
 
         //public int[][] ScaledTrianglesOwnedByPoints;
 
         public Vector3[][] Barycenters;
         public int[][] NestedTriangleIndexes;
-        public SimpleVector2Int[][] NestedTriangleOffsets;
+        public SimpleVector2Int[][] TriangleSubTileOffsets;
 
         public MeshTile(string meshTileJSON)
         {
@@ -73,13 +73,13 @@ namespace MeshMasher.MeshTiling {
             //InnerIndexList
 
             ScaledVerts = new int[importObject.innerIndexList.Length][];
-            ScaledOffsets = new SimpleVector2Int[importObject.innerIndexList.Length][];
+            SubTileOffsets = new SimpleVector2Int[importObject.innerIndexList.Length][];
 
             //ScaledTrianglesOwnedByPoints= public int[][]
 
             Barycenters = new Vector3[importObject.innerIndexList.Length][];
             NestedTriangleIndexes = new int[importObject.innerIndexList.Length][];
-            NestedTriangleOffsets = new SimpleVector2Int[importObject.innerIndexList.Length][];
+            TriangleSubTileOffsets = new SimpleVector2Int[importObject.innerIndexList.Length][];
 
             var count = 0;
 
@@ -88,20 +88,20 @@ namespace MeshMasher.MeshTiling {
                 var innerCount = importObject.innerIndexList[u];
 
                 ScaledVerts[u] = new int[innerCount];
-                ScaledOffsets[u] = new SimpleVector2Int[innerCount];
+                SubTileOffsets[u] = new SimpleVector2Int[innerCount];
 
                 Barycenters[u] = new Vector3[innerCount];
                 NestedTriangleIndexes[u] = new int[innerCount];
-                NestedTriangleOffsets[u] = new SimpleVector2Int[innerCount];
+                TriangleSubTileOffsets[u] = new SimpleVector2Int[innerCount];
 
                 for (int v = 0; v < innerCount; v++)
                 {
                     ScaledVerts[u][v] = importObject.culledPointIndexes[count];
-                    ScaledOffsets[u][v] = new SimpleVector2Int(importObject.culled2dPointOffsets[count * 2], importObject.culled2dPointOffsets[(count * 2) + 1]);
+                    SubTileOffsets[u][v] = new SimpleVector2Int(importObject.culled2dPointOffsets[count * 2], importObject.culled2dPointOffsets[(count * 2) + 1]);
 
                     Barycenters[u][v] = new Vector3(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2]);
                     NestedTriangleIndexes[u][v] = importObject.culledTriangleIndexes[count];
-                    NestedTriangleOffsets[u][v] = new SimpleVector2Int(importObject.culled2dTriangleOffsets[count * 2], importObject.culled2dTriangleOffsets[(count * 2) + 1]);
+                    TriangleSubTileOffsets[u][v] = new SimpleVector2Int(importObject.culled2dTriangleOffsets[count * 2], importObject.culled2dTriangleOffsets[(count * 2) + 1]);
 
                     count++;
                 }

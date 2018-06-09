@@ -11,7 +11,17 @@ public class CleverMesh {
     NestedMesh _nMesh;
     SmartMesh _sMesh;
 
+    public CleverMesh(Vector2Int seedTile, string meshTileJSON)
+    {
+        Init(new List<Vector2Int>() { seedTile }, meshTileJSON);
+    }
+
     public CleverMesh(List<Vector2Int> seedTiles,  string meshTileJSON)
+    {
+        Init(seedTiles, meshTileJSON);
+    }
+
+    private void Init(List<Vector2Int> seedTiles, string meshTileJSON)
     {
         _nMesh = new NestedMesh(seedTiles.ToArray(), meshTileJSON);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
@@ -24,18 +34,18 @@ public class CleverMesh {
         }
     }
 
-    public CleverMesh(CleverMesh parent, int accessIndex)
+    public CleverMesh(CleverMesh parent, int accessIndex, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
         var ints = new int[] { accessIndex };
-        _nMesh = new NestedMesh(parent._nMesh, ints);
+        _nMesh = new NestedMesh(parent._nMesh, ints, type);
         CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, ints);
         //Need to lerp in here somewhere
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 
-    public CleverMesh(CleverMesh parent, int[] accessIndexes)
+    public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
-        _nMesh = new NestedMesh(parent._nMesh, accessIndexes);
+        _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, accessIndexes);
         //Need to lerp in here somewhere
         _sMesh = new SmartMesh(_nMesh.CreateMesh());

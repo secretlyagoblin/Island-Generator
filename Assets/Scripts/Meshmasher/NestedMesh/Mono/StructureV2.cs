@@ -53,11 +53,16 @@ public class StructureV2 : MonoBehaviour {
 
         //var bubb = 43;
 
-        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
-        var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray());
+        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index);
+        var slayer2Triangle = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
+
+        slayer2.Mesh.DrawMesh(transform);
+
+        //var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
+        //var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
         //var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
-        slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
         //slayer4.Mesh.DrawMesh(transform, Color.red, Color.clear);
         //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
         //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
@@ -69,7 +74,7 @@ public class StructureV2 : MonoBehaviour {
         var re = gameObjecte.AddComponent<MeshRenderer>();
         re.sharedMaterial = mate;
         //f.mesh = layer5.Mesh.ToXYMesh();
-        fe.mesh = slayer2.Mesh.ToXYMesh();
+        fe.mesh = slayer2Triangle.Mesh.ToXYMesh();
         fe.name = "Cell " + 1;
 
         return;
