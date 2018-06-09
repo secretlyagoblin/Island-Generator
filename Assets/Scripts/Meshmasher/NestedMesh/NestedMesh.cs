@@ -276,107 +276,45 @@ namespace MeshMasher {
             //step4:
             //map to derived tris
 
-
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
                 var subTriangleIndexes = _meshTile.NestedTriangleIndexes[originMesh.DerivedTri[meshAccessIndices[i]]];
                 var subTriangleTiles = _meshTile.TriangleSubTileOffsets[originMesh.DerivedTri[meshAccessIndices[i]]];
                 var tile = originMesh.TileOffsets[meshAccessIndices[i]];
 
-                var subVerts = new List<int>();
-                var subTiles = new List<SimpleVector2Int>();
-
                 for (int u = 0; u < subTriangleIndexes.Length; u++)
                 {
-                    var subTriangleVertexIndex = subTriangleIndexes[u] * 3;
-                    for (int v = 0; v < 3; v++)
+                    var subTriangleIndex = subTriangleIndexes[u];
+                    var subTriangleTile = subTriangleTiles[u];
+                    var triangleVertexIndex = subTriangleIndex * 3;
+
+                    for (int v = 2; v >= 0; v--) //TODO: Sort out weird nesting
                     {
-                        var subVert = _meshTile.Triangles[subTriangleVertexIndex + v];
-                        var subTile = subTriangleTiles[u];
-                             // not sure
+                        var vertexIndex = _meshTile.Triangles[triangleVertexIndex + v];
+                        var localTile = _meshTile.Offsets[triangleVertexIndex + v];
+                        localTile += tile;
 
-                        if (subVerts.Contains(subVert))
-                            continue;
+                        var pos = _meshTile.Positions[vertexIndex];
+                        pos += new Vector3(localTile.x * _meshTile.Scale * _meshTile.NestingScale, localTile.y * _meshTile.Scale * _meshTile.NestingScale, 0); //offset
+                        pos += new Vector3(subTriangleTile.x * _meshTile.Scale, subTriangleTile.y * _meshTile.Scale, 0); //suboffset
 
-                        subVerts.Add(subVert);
-                        subTiles.Add(subTile);
+                        pos = pos * (float)Scale;
+                        pos -= new Vector3(currentNestedOffset, currentNestedOffset, 0); //shift
+
+                        //return pos;
+
+                        //var pos = CalculateVertexOffset(subVert, tile, subTile, currentNestedOffset);
+
+
+                        verts.Add(pos);
+                        vertCount++;
+                        tris.Add(vertCount);
                     }
 
-                    
-
+                    derivedTri.Add(subTriangleIndexes[u]);
+                    derivedOffset.Add(subTriangleTiles[u]);
                 }
-
-                for (int u = 0; u < subVerts.Count; u++)
-                {
-                    vertCount++;
-
-                    var subVert = subVerts[u];
-                    var subTile = subTiles[u];
-
-                    var pos = CalculateVertexOffset(subVert, tile, subTile, currentNestedOffset);
-
-                    verts.Add(pos);
-
-                    var key = subTile + (tile * _meshTile.NestingScale);
-
-                    if (baseDict.ContainsKey(key))
-                    {
-                        baseDict[key][subVert] = vertCount;
-                    }
-                    else
-                    {
-                        baseDict.Add(key, (int[])indexMap.Clone());
-                        baseDict[key][subVert] = vertCount;
-                    }
-                }
-            }
-
-            var tiles = baseDict.Keys.ToArray();
-            var tilesX = new int[tiles.Length];
-            var tilesY = new int[tiles.Length];
-
-            for (int i = 0; i < tiles.Length; i++)
-            {
-                tilesX[i] = tiles[i].x;
-                tilesY[i] = tiles[i].y;
-            }
-
-            for (int i = 0; i < tiles.Length; i++)
-            {
-                for (int u = 0; u < _meshTile.Triangles.Length / 3; u++)
-                {
-                    var triangle = u * 3;
-
-                    var oa = _meshTile.Offsets[triangle];
-                    var ob = _meshTile.Offsets[triangle + 1];
-                    var oc = _meshTile.Offsets[triangle + 2];
-
-                    var tileA = oa + tiles[i];
-                    var tileB = ob + tiles[i];
-                    var tileC = oc + tiles[i];
-
-                    if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
-                        continue;
-
-                    var a = _meshTile.Triangles[triangle];
-                    var b = _meshTile.Triangles[triangle + 1];
-                    var c = _meshTile.Triangles[triangle + 2];
-
-                    var trueA = baseDict[tileA][a];
-                    var trueB = baseDict[tileB][b];
-                    var trueC = baseDict[tileC][c];
-
-                    if (trueA == -1 | trueB == -1 | trueC == -1)
-                        continue;
-
-                    tris.Add(trueC);
-                    tris.Add(trueB);
-                    tris.Add(trueA);
-
-                    derivedTri.Add(u);
-                    derivedOffset.Add(tiles[i]);
-                }
-            }
+            } 
 
             Verts = verts.ToArray();
             Tris = tris.ToArray();
@@ -503,6 +441,7 @@ namespace MeshMasher {
 
         private Vector3 CalculateVertexOffset(int vertexIndex, SimpleVector2Int tile, SimpleVector2Int subTile, float offsetMagnitude)
         {
+
             var pos = _meshTile.Positions[vertexIndex];
             pos += new Vector3(subTile.x * _meshTile.Scale, subTile.y * _meshTile.Scale, 0); //suboffset
             pos += new Vector3(tile.x * _meshTile.Scale * _meshTile.NestingScale, tile.y * _meshTile.Scale * _meshTile.NestingScale, 0); //offset

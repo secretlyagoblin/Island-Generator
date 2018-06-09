@@ -72,27 +72,26 @@ namespace MeshMasher.MeshTiling {
 
             //InnerIndexList
 
-            ScaledVerts = new int[importObject.innerIndexList.Length][];
-            SubTileOffsets = new SimpleVector2Int[importObject.innerIndexList.Length][];
+            ScaledVerts = new int[importObject.innerPointIndexList.Length][];
+            SubTileOffsets = new SimpleVector2Int[importObject.innerPointIndexList.Length][];
 
             //ScaledTrianglesOwnedByPoints= public int[][]
 
-            Barycenters = new Vector3[importObject.innerIndexList.Length][];
-            NestedTriangleIndexes = new int[importObject.innerIndexList.Length][];
-            TriangleSubTileOffsets = new SimpleVector2Int[importObject.innerIndexList.Length][];
+            Barycenters = new Vector3[importObject.innerPointIndexList.Length][];
+            NestedTriangleIndexes = new int[importObject.innerTrianglePointIndexList.Length][];
+            TriangleSubTileOffsets = new SimpleVector2Int[importObject.innerTrianglePointIndexList.Length][];
 
             var count = 0;
 
-            for (int u = 0; u < importObject.innerIndexList.Length; u++)
+            for (int u = 0; u < importObject.innerPointIndexList.Length; u++)
             {
-                var innerCount = importObject.innerIndexList[u];
+                var innerCount = importObject.innerPointIndexList[u];
 
                 ScaledVerts[u] = new int[innerCount];
                 SubTileOffsets[u] = new SimpleVector2Int[innerCount];
 
                 Barycenters[u] = new Vector3[innerCount];
-                NestedTriangleIndexes[u] = new int[innerCount];
-                TriangleSubTileOffsets[u] = new SimpleVector2Int[innerCount];
+
 
                 for (int v = 0; v < innerCount; v++)
                 {
@@ -100,9 +99,25 @@ namespace MeshMasher.MeshTiling {
                     SubTileOffsets[u][v] = new SimpleVector2Int(importObject.culled2dPointOffsets[count * 2], importObject.culled2dPointOffsets[(count * 2) + 1]);
 
                     Barycenters[u][v] = new Vector3(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2]);
+
+                    count++;
+                }
+            }
+
+            count = 0;
+
+            for (int u = 0; u < importObject.innerTrianglePointIndexList.Length; u++)
+            {
+                var innerCount = importObject.innerTrianglePointIndexList[u];
+
+                NestedTriangleIndexes[u] = new int[innerCount];
+                TriangleSubTileOffsets[u] = new SimpleVector2Int[innerCount];
+
+
+                for (int v = 0; v < innerCount; v++)
+                {
                     NestedTriangleIndexes[u][v] = importObject.culledTriangleIndexes[count];
                     TriangleSubTileOffsets[u][v] = new SimpleVector2Int(importObject.culled2dTriangleOffsets[count * 2], importObject.culled2dTriangleOffsets[(count * 2) + 1]);
-
                     count++;
                 }
             }
@@ -116,7 +131,8 @@ namespace MeshMasher.MeshTiling {
             public float[] positions;
             public float[] triangleCenters;
             public int[] triangleCenterOffsets;
-            public int[] innerIndexList;
+            public int[] innerPointIndexList;
+            public int[] innerTrianglePointIndexList;
             public int[] culled2dTriangleOffsets;
             public int[] culledTriangleIndexes;
             public int[] culled2dPointOffsets;

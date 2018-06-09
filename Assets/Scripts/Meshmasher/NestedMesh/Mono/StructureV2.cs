@@ -32,8 +32,8 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero, Vector2Int.up, Vector2Int.up*2}, meshTileData.text);
-        var cellIndex = 66;
+        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero}, meshTileData.text);
+        var cellIndex = 2;
 
         /// 2: Give each triangle a different biome (3 zones)
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
@@ -53,13 +53,13 @@ public class StructureV2 : MonoBehaviour {
 
         //var bubb = 43;
 
-        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index);
-        var slayer2Triangle = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
+        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
+        //var slayer2Triangle = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
 
         slayer2.Mesh.DrawMesh(transform);
 
         //var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
-        //var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
+        var slayer3 = new CleverMesh(slayer2, 0,MeshMasher.NestedMeshAccessType.Triangles);
         //var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
         //slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
         //slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
@@ -74,7 +74,7 @@ public class StructureV2 : MonoBehaviour {
         var re = gameObjecte.AddComponent<MeshRenderer>();
         re.sharedMaterial = mate;
         //f.mesh = layer5.Mesh.ToXYMesh();
-        fe.mesh = slayer2Triangle.Mesh.ToXYMesh();
+        fe.mesh = slayer3.Mesh.ToXYMesh();
         fe.name = "Cell " + 1;
 
         return;
