@@ -21,20 +21,18 @@ public class CleverMesh {
         Init(seedTiles, meshTileJSON);
     }
 
-    public CleverMesh(CleverMesh parent, int accessIndex, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
+    public CleverMesh(CleverMesh parent, int accessIndex, NestedMeshAccessType type = NestedMeshAccessType.Vertex):this(
+        parent,
+        new int[] {accessIndex},
+        type
+        )
     {
-        var ints = new int[] { accessIndex };
-        _nMesh = new NestedMesh(parent._nMesh, ints, type);
-        CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata,ints, type);
-        //Need to lerp in here somewhere
-        _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 
     public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata, accessIndexes, type);
-        //Need to lerp in here somewhere
+        //CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata, accessIndexes, type);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 

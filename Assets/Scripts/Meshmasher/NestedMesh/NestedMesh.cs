@@ -317,44 +317,44 @@ namespace MeshMasher {
                 }
             }
 
-            //var distinctValues = new List<KeyValuePair<int, SimpleVector2Int>>();
-            //var distinctVerts = new List<Vector3>();
-            //var indexMap = new int[vertsForCulling.Count];
-            //
-            //
-            //for (int i = 0; i < vertsForCulling.Count; i++)
-            //{
-            //    var test = vertsForCulling[i];
-            //
-            //    var index = distinctValues.Count;
-            //
-            //    for (int u = 0; u < distinctValues.Count; u++)
-            //    {
-            //        var distinct = distinctValues[u];
-            //        if (test.Key == distinct.Key && test.Value == distinct.Value)
-            //        {
-            //            index = u;
-            //            goto resolved;
-            //        }
-            //    }
-            //
-            //    distinctValues.Add(test);
-            //    distinctVerts.Add(verts[i]);
-            //
-            //    resolved:
-            //
-            //    indexMap[i] = index;
-            //    
-            //}
-            //
-            //for (int i = 0; i < tris.Count; i++)
-            //{
-            //    tris[i] = indexMap[i];
-            //}
-            //
-            //Verts = distinctVerts.ToArray();
+            var distinctValues = new List<KeyValuePair<int, SimpleVector2Int>>();
+            var distinctVerts = new List<Vector3>();
+            var indexMap = new int[vertsForCulling.Count];
+            
+            
+            for (int i = 0; i < vertsForCulling.Count; i++)
+            {
+                var test = vertsForCulling[i];
+            
+                var index = distinctValues.Count;
+            
+                for (int u = 0; u < distinctValues.Count; u++)
+                {
+                    var distinct = distinctValues[u];
+                    if (test.Key == distinct.Key && test.Value == distinct.Value)
+                    {
+                        index = u;
+                        goto resolved;
+                    }
+                }
+            
+                distinctValues.Add(test);
+                distinctVerts.Add(verts[i]);
+            
+                resolved:
+            
+                indexMap[i] = index;
+                
+            }
+            
+            for (int i = 0; i < tris.Count; i++)
+            {
+                tris[i] = indexMap[i];
+            }
+            
+            Verts = distinctVerts.ToArray();
 
-            Verts = verts.ToArray();
+            //Verts = verts.ToArray();
             Tris = tris.ToArray();
             DerivedTri = derivedTri.ToArray();
             TileOffsets = derivedOffset.ToArray();
