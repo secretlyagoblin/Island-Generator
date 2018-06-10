@@ -32,7 +32,7 @@ public class CleverMesh {
     public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        //CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata, accessIndexes, type);
+        CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata, accessIndexes, type);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 

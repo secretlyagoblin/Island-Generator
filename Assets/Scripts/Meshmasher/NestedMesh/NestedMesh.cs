@@ -366,8 +366,7 @@ namespace MeshMasher {
             switch (type)
             {
                 case NestedMeshAccessType.Triangles:
-                    // Debug.Log("Not Implimented! Some barycentric values sit outside of triangle");
-                    return null;
+                    throw new System.NotImplementedException();
                 
                 case NestedMeshAccessType.Vertex:
                     return BlerpValuesByVertex(originValues, meshTris);

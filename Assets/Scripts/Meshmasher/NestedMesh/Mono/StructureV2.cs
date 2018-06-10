@@ -51,50 +51,6 @@ public class StructureV2 : MonoBehaviour {
 
         #endregion
 
-        //var bubb = 43;
-
-        //var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index);
-        //var slayer2Triangle = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
-
-        //slayer2.Mesh.DrawMesh(transform);
-
-        Debug.Log("Drawing Layer 2");
-
-        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(),MeshMasher.NestedMeshAccessType.Vertex);
-
-        slayer2.Mesh.DrawMesh(transform, Color.red, Color.grey, 100f);
-
-
-        //var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
-
-        Debug.Log("Drawing Layer 3");
-        var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
-
-
-        //var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
-        //slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        //slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        //slayer4.Mesh.DrawMesh(transform, Color.red, Color.clear);
-        //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
-        //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-
-
-
-        StartCoroutine(CreateBit(slayer2, 100));
-
-
-        var mate = new Material(Shader.Find("Standard"));
-        
-        var gameObjecte = new GameObject();
-        var fe = gameObjecte.AddComponent<MeshFilter>();
-        var re = gameObjecte.AddComponent<MeshRenderer>();
-        re.sharedMaterial = mate;
-        //f.mesh = layer5.Mesh.ToXYMesh();
-        fe.mesh = slayer3.Mesh.ToXYMesh();
-        fe.name = "Cell " + 1;
-
-        return;
-
         ///Below we:
         /// 3: Create a boundary area that is a no-go zone.
         /// 2: Calculate a connectivity graph between regions (TODO: fix distance to be based on distance from node center based on layer 1)
@@ -185,7 +141,6 @@ public class StructureV2 : MonoBehaviour {
             }
         }
 
-
         #endregion
 
         ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
@@ -251,8 +206,8 @@ public class StructureV2 : MonoBehaviour {
 
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
-            var layer4 = new CleverMesh(layer3,new int[] { layer3.Mesh.Cells[i].Index });
-            layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+            var layer4 = new CleverMesh(layer3,new int[] { layer3.Mesh.Cells[i].Index },MeshMasher.NestedMeshAccessType.Triangles);
+            //layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
             //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
             //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 
