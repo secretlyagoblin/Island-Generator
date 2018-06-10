@@ -25,7 +25,7 @@ public class CleverMesh {
     {
         var ints = new int[] { accessIndex };
         _nMesh = new NestedMesh(parent._nMesh, ints, type);
-        CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, ints);
+        CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata,ints, type);
         //Need to lerp in here somewhere
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
@@ -33,7 +33,7 @@ public class CleverMesh {
     public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        CellMetadata = parent._nMesh.LerpBarycentricValues(parent.CellMetadata, accessIndexes);
+        CellMetadata = parent._nMesh.BlerpValues(parent.CellMetadata, accessIndexes, type);
         //Need to lerp in here somewhere
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }

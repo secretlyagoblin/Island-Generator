@@ -47,19 +47,23 @@ public class StructureV2 : MonoBehaviour {
             //layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
-        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear);
+        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear,100f);
 
         #endregion
 
         //var bubb = 43;
 
-        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
+        //var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index);
         //var slayer2Triangle = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].Index, MeshMasher.NestedMeshAccessType.Triangles);
 
-        slayer2.Mesh.DrawMesh(transform);
+        //slayer2.Mesh.DrawMesh(transform);
 
         //var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
-        var slayer3 = new CleverMesh(slayer2, 0,MeshMasher.NestedMeshAccessType.Triangles);
+
+        var slayer2 = new CleverMesh(layer1, layer1.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
+        //var slayer3 = new CleverMesh(slayer2, slayer2.Mesh.Cells.Select(x => x.Index).ToArray());
+
+
         //var slayer4 = new CleverMesh(slayer3, slayer3.Mesh.Cells.Select(x => x.Index).ToArray());
         //slayer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
         //slayer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
@@ -67,15 +71,18 @@ public class StructureV2 : MonoBehaviour {
         //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
         //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 
-        var mate = new Material(Shader.Find("Standard"));
+        StartCoroutine(CreateBit(slayer2, 100));
 
-        var gameObjecte = new GameObject();
-        var fe = gameObjecte.AddComponent<MeshFilter>();
-        var re = gameObjecte.AddComponent<MeshRenderer>();
-        re.sharedMaterial = mate;
-        //f.mesh = layer5.Mesh.ToXYMesh();
-        fe.mesh = slayer3.Mesh.ToXYMesh();
-        fe.name = "Cell " + 1;
+
+        //var mate = new Material(Shader.Find("Standard"));
+        //
+        //var gameObjecte = new GameObject();
+        //var fe = gameObjecte.AddComponent<MeshFilter>();
+        //var re = gameObjecte.AddComponent<MeshRenderer>();
+        //re.sharedMaterial = mate;
+        ////f.mesh = layer5.Mesh.ToXYMesh();
+        //fe.mesh = slayer3.Mesh.ToXYMesh();
+        //fe.name = "Cell " + 1;
 
         return;
 
@@ -288,5 +295,36 @@ public class StructureV2 : MonoBehaviour {
 
         #endregion
 
+    }
+
+    IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
+    {
+        var mate = new Material(Shader.Find("Standard"));
+
+        var waitTime = new WaitForSeconds(0.1f);
+
+        var current = 0;
+
+        for (int i = 0; i < mesh.Mesh.Cells.Count; i++)
+        {
+            var slayer4 = new CleverMesh(mesh, mesh.Mesh.Cells[i].Index, MeshMasher.NestedMeshAccessType.Vertex);
+
+            var gameObjecte = new GameObject();
+            var fe = gameObjecte.AddComponent<MeshFilter>();
+            var re = gameObjecte.AddComponent<MeshRenderer>();
+            re.sharedMaterial = mate;
+            //f.mesh = layer5.Mesh.ToXYMesh();
+            fe.mesh = slayer4.Mesh.ToXYMesh();
+            fe.name = "Cell " + i;
+
+            current++;
+
+            if (current >= chunkSize)
+            {
+                current = 0;
+                yield return null;
+            }
+
+        }
     }
 }

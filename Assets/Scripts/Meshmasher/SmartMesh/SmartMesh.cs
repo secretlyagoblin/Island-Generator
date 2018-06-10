@@ -191,6 +191,11 @@ namespace MeshMasher {
 
         public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor)
         {
+            DrawMesh(transform, graphColor, inverseGraphColor, 0f);
+        }
+
+            public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor, float time)
+        {
 
             foreach (var cell in Cells)
             {
@@ -201,13 +206,13 @@ namespace MeshMasher {
                     float scale = 0.5f;
                     scaledVector = new Vector3(scaledVector.x * scale, scaledVector.y * scale, scaledVector.z * scale);
 
-                    Debug.DrawLine(transform.TransformPoint(cell.Center), transform.TransformPoint(scaledVector), inverseGraphColor);
+                    Debug.DrawLine(transform.TransformPoint(cell.Center), transform.TransformPoint(scaledVector), inverseGraphColor, time);
                 }
             }
 
             foreach (var line in Lines)
             {
-                Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), graphColor);
+                Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), graphColor, time);
             }
 
         }
