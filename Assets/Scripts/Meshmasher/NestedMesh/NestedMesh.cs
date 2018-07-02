@@ -375,7 +375,7 @@ namespace MeshMasher {
             throw new System.Exception("BAD");
         } 
 
-        private T[] BlerpValuesByVertex<T>(T[] originValues, int[] meshTris) where T : IBlerpable<T>
+        private T[] BlerpValuesByTriangle<T>(T[] originValues, int[] meshTris) where T : IBlerpable<T>
         {
             var arraySize = 0;
 
@@ -384,31 +384,24 @@ namespace MeshMasher {
                 arraySize += _meshTile.Barycenters[DerivedTri[meshTris[i]]].Length;
             }
 
+            //okay step 1
+            //iterate over triangles, update barycenters
+
             var nestedValues = new T[arraySize];
-            var nestedValuesIndex = 0;
+            //var nestedValuesIndex = 0;
 
             for (int i = 0; i < meshTris.Length; i++)
             {
-                var barycenters = _meshTile.Barycenters[DerivedTri[meshTris[i]]];
+                var meshTriIndex = meshTris[i];
+                var originTriIndex = DerivedTri[meshTriIndex];
                 var offset = TileOffsets[meshTris[i]];
-
-                for (int u = 0; u < barycenters.Length; u++)
-                {
-                    var bc = barycenters[u];
-                    var index = meshTris[i] * 3;
-
-                    var a = originValues[Tris[index]];
-                    var b = originValues[Tris[index + 1]];
-                    var c = originValues[Tris[index + 2]];
-
-                    nestedValues[nestedValuesIndex] = (originValues[0].Blerp(a, b, c, bc));
-                    nestedValuesIndex++;
-                }
             }
-            return nestedValues;
+
+
+                return nestedValues;
         }
 
-        private T[] BlerpValuesByTriangle<T>(T[] originValues, int[] meshTris) where T : IBlerpable<T>
+        private T[] BlerpValuesByVertex<T>(T[] originValues, int[] meshTris) where T : IBlerpable<T>
         {
             var arraySize = 0;
 

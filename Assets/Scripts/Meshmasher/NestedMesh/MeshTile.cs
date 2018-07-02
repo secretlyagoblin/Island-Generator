@@ -140,6 +140,9 @@ namespace MeshMasher.MeshTiling {
             public float[] barycentricCoordinates;
             public float[] innerBarycentricCoordinates;
             public int[] innerBarycentricIndices;
+            public int[] triangleAccessBarcenticListLength;
+            public float[] triangleAccessBarycenters;
+            public bool[] triangleAccessBarcenticInternalMask;
         }
     }
 }
