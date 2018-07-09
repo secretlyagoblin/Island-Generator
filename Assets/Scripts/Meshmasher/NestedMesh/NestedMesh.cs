@@ -14,6 +14,7 @@ namespace MeshMasher {
         public SimpleVector2Int[] TileOffsets;
 
         private Vector3[] _barycenters;
+        private int[] _triangleParentMap;
         private BarycentricData[] _triangleBarycenters;
 
         public double Scale = 1.0;
@@ -275,6 +276,7 @@ namespace MeshMasher {
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
             var barys = new List<BarycentricData>();
+            var triangleParents = new List<int>();
 
             //Debug.Log("Creating Triangle Access Mesh at Offset Level " + currentNestedOffset);
 
@@ -329,6 +331,7 @@ namespace MeshMasher {
 
                         var innerBarycenter = innerBarycenters[u*3 + v];
                         barys.Add(innerBarycenter);
+                        triangleParents.Add(meshAccessIndices[i]);
 
                     }
 
@@ -340,6 +343,7 @@ namespace MeshMasher {
             var distinctValues = new List<KeyValuePair<int, SimpleVector2Int>>();
             var distinctVerts = new List<Vector3>();
             var distinctBarycenters = new List<BarycentricData>();
+            var distinctTriangleParentMap = new List<int>();
 
             var indexMap = new int[vertsForCulling.Count];
 
@@ -380,6 +384,7 @@ namespace MeshMasher {
                     distinctValues.Add(test);
                     distinctVerts.Add(verts[i]);
                     distinctBarycenters.Add(barys[i]);
+                    distinctTriangleParentMap.Add(triangleParents[i]);
                 }
                        
                 indexMap[i] = index;                
@@ -394,84 +399,33 @@ namespace MeshMasher {
 
             //Verts = verts.ToArray();
             Tris = tris.ToArray();
+            _triangleParentMap = distinctTriangleParentMap.ToArray();
             _triangleBarycenters = distinctBarycenters.ToArray();
             DerivedTri = derivedTri.ToArray();
             TileOffsets = derivedOffset.ToArray();
 
         }
 
-        public T[] BlerpValues<T>(T[] originValues, int[] meshTris, NestedMeshAccessType type) where T: IBlerpable<T>
+        public T[] BlerpValues<T>(T[] originValues, NestedMesh nestedMesh) where T: IBlerpable<T>
         {
-            switch (type)
+
+            var nestedValues = new T[Verts.Length];
+
+            for (int i = 0; i < Verts.Length; i++)
             {
-                case NestedMeshAccessType.Triangles:
-                    throw new System.NotImplementedException();
-                
-                case NestedMeshAccessType.Vertex:
-                    return BlerpValuesByVertex(originValues, meshTris);
+                var barycenter = _triangleBarycenters[i];
+                var parentTriangle = _triangleParentMap[i];
+                var index = parentTriangle * 3;
+
+                var a = originValues[nestedMesh.Tris[index]];
+                var b = originValues[nestedMesh.Tris[index + 1]];
+                var c = originValues[nestedMesh.Tris[index + 2]];
+
+                var weight = new Vector3(barycenter.u, barycenter.v, barycenter.w);
+
+                nestedValues[i] = (originValues[0].Blerp(a, b, c, weight));
             }
-
-            throw new System.Exception("BAD");
-        } 
-
-        private T[] BlerpValuesByTriangle<T>(T[] originValues, int[] meshTris) where T : IBlerpable<T>
-        {
-            var arraySize = 0;
-
-            for (int i = 0; i < meshTris.Length; i++)
-            {
-                arraySize += _meshTile.Barycenters[DerivedTri[meshTris[i]]].Length;
-            }
-
-            //okay step 1
-            //iterate over triangles, update barycenters
-
-            var nestedValues = new T[arraySize];
-            //var nestedValuesIndex = 0;
-
-            for (int i = 0; i < meshTris.Length; i++)
-            {
-                var meshTriIndex = meshTris[i];
-                var originTriIndex = DerivedTri[meshTriIndex];
-                var offset = TileOffsets[meshTris[i]];
-            }
-
-
-                return nestedValues;
-        }
-
-        private T[] BlerpValuesByVertex<T>(T[] originValues, int[] meshTris) where T : IBlerpable<T>
-        {
-            var arraySize = 0;
-
-            okay, so we gotta blerp in the child, using a map back into the parent...
-
-            for (int i = 0; i < meshTris.Length; i++)
-            {
-                arraySize += _meshTile.Barycenters[DerivedTri[meshTris[i]]].Length;
-            }
-
-            var nestedValues = new T[arraySize];
-            var nestedValuesIndex = 0;
-
-            for (int i = 0; i < meshTris.Length; i++)
-            {
-                var barycenters = _meshTile.Barycenters[DerivedTri[meshTris[i]]];
-                var offset = TileOffsets[meshTris[i]];
-
-                for (int u = 0; u < barycenters.Length; u++)
-                {
-                    var bc = barycenters[u];
-                    var index = meshTris[i] * 3;
-
-                    var a = originValues[Tris[index]];
-                    var b = originValues[Tris[index + 1]];
-                    var c = originValues[Tris[index + 2]];
-
-                    nestedValues[nestedValuesIndex] = (originValues[0].Blerp(a, b, c, bc));
-                    nestedValuesIndex++;
-                }
-            }
+            
             return nestedValues;
         }
 
