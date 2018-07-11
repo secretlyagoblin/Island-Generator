@@ -44,4 +44,9 @@ public class CleverMesh {
         }
     }
 
+    public Mesh GetBarycenterDebugMesh()
+    {
+        return _nMesh.CreateBaryDebugMesh();
+    }
+
 }

@@ -11,13 +11,55 @@ public class StructureV2 : MonoBehaviour {
     public Gradient Gradient;
     public TextAsset meshTileData;
 
+    public Material _meshColours;
+
     public bool EnablePreview = true;
+
+    Material _mat;
 
     // Use this for initialization
     void Start()
     {
         RNG.DateTimeInit();
 
+        _mat = new Material(Shader.Find("Standard"));
+
+        OffsetTest();
+    }
+
+    IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
+    {
+        var mate = new Material(Shader.Find("Standard"));
+
+        var waitTime = new WaitForSeconds(0.1f);
+
+        var current = 0;
+
+        for (int i = 0; i < mesh.Mesh.Cells.Count; i++)
+        {
+            var slayer4 = new CleverMesh(mesh, mesh.Mesh.Cells[i].Index, MeshMasher.NestedMeshAccessType.Triangles);
+
+            var gameObjecte = new GameObject();
+            var fe = gameObjecte.AddComponent<MeshFilter>();
+            var re = gameObjecte.AddComponent<MeshRenderer>();
+            re.sharedMaterial = mate;
+            //f.mesh = layer5.Mesh.ToXYMesh();
+            fe.mesh = slayer4.Mesh.ToXYMesh();
+            fe.name = "Cell " + i;
+
+            current++;
+
+            if (current >= chunkSize)
+            {
+                current = 0;
+                yield return null;
+            }
+
+        }
+    }
+
+    public void MainTest()
+    {
         var colors = new Color[] { Color.red, Color.green, Color.yellow };
 
         ///Assumptions:
@@ -32,7 +74,7 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero}, meshTileData.text);
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, meshTileData.text);
         var cellIndex = 2;
 
         /// 2: Give each triangle a different biome (3 zones)
@@ -47,7 +89,7 @@ public class StructureV2 : MonoBehaviour {
             //layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
         }
 
-        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear,100f);
+        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear, 100f);
 
         #endregion
 
@@ -116,7 +158,7 @@ public class StructureV2 : MonoBehaviour {
             var n = layer2.Mesh.Nodes[i];
 
             if (layer2Border.Nodes[n.Index] == 1 | layer2.CellMetadata[i].Code == 0)
-            {                                   
+            {
                 layer2.CellMetadata[n.Index].SmoothColor = Color.black;
                 layer2.CellMetadata[n.Index].Code = 0;
             }
@@ -130,10 +172,10 @@ public class StructureV2 : MonoBehaviour {
                 layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
                 layer2.CellMetadata[n.Index].Connections = n
                     .Lines
-                    .Where(x => layer2State.Lines[x.Index] == 1 )
-                   // &&
-                       // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
-                       // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
+                    .Where(x => layer2State.Lines[x.Index] == 1)
+                    // &&
+                    // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
+                    // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
                     .Select(x => x.GetOtherNode(n).Index + 1)
                     .Union(new List<int>() { i + 1 })
                     .ToArray();
@@ -200,24 +242,17 @@ public class StructureV2 : MonoBehaviour {
 
         #region layer four
 
-        var mat = new Material(Shader.Find("Standard"));
-
         layer3.Mesh.DrawMesh(transform);
 
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
-            var layer4 = new CleverMesh(layer3,new int[] { layer3.Mesh.Cells[i].Index },MeshMasher.NestedMeshAccessType.Triangles);
-            //layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+            var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[i].Index }, MeshMasher.NestedMeshAccessType.Vertex);
+            layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
             //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
             //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 
-            var gameObject = new GameObject();
-            var f = gameObject.AddComponent<MeshFilter>();
-            var r = gameObject.AddComponent<MeshRenderer>();
-            r.sharedMaterial = mat;
-            //f.mesh = layer5.Mesh.ToXYMesh();
-            f.mesh = layer4.Mesh.ToXYMesh();
-            f.name = "Cell " + i;
+            var go = CreateObject(layer4);
+            go.name = "Cell " + i;
         }
 
         return;
@@ -258,37 +293,104 @@ public class StructureV2 : MonoBehaviour {
         //}
 
         #endregion
-
     }
 
-    IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
+    public void OffsetTest()
     {
-        var mate = new Material(Shader.Find("Standard"));
+        var cellIndex = 2;
+        var colors = new Color[] { Color.red, Color.green, Color.blue };
 
-        var waitTime = new WaitForSeconds(0.1f);
+        Debug.Log("Layer 1: ");
 
-        var current = 0;
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, meshTileData.text);
+        layer1.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 
-        for (int i = 0; i < mesh.Mesh.Cells.Count; i++)
+        for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
         {
-            var slayer4 = new CleverMesh(mesh, mesh.Mesh.Cells[i].Index, MeshMasher.NestedMeshAccessType.Triangles);
-
-            var gameObjecte = new GameObject();
-            var fe = gameObjecte.AddComponent<MeshFilter>();
-            var re = gameObjecte.AddComponent<MeshRenderer>();
-            re.sharedMaterial = mate;
-            //f.mesh = layer5.Mesh.ToXYMesh();
-            fe.mesh = slayer4.Mesh.ToXYMesh();
-            fe.name = "Cell " + i;
-
-            current++;
-
-            if (current >= chunkSize)
-            {
-                current = 0;
-                yield return null;
-            }
-
+            var n = layer1.Mesh.Cells[cellIndex].Nodes[i];
+            layer1.CellMetadata[n.Index] = new NodeMetadata(i + 1, colors[i], new int[] { }, RNG.NextFloat(5));
         }
+
+        Debug.Log("Layer 2: ");
+
+        var hood = layer1.Mesh.Cells[cellIndex].GetNeighbourhood();
+
+        for (int i = 0; i < hood.Length; i++)
+        {
+            var layer2 = new CleverMesh(layer1, hood[i], MeshMasher.NestedMeshAccessType.Vertex);
+            layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+            CreateObject(layer2).name = "Layer2";
+        }
+
+        
+        //var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Vertex);
+        
+
+        
+
+        Debug.Log("Layer 3: ");
+        
+        //var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Vertex);
+        ////layer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //
+        //var go = CreateObject(layer3);
+        //go.name = "Layer3";
+        //go.transform.Translate(Vector3.back);
+        //
+        //Debug.Log("Layer 4: ");
+        //
+        //for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
+        //{
+        //    var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[i].Index }, MeshMasher.NestedMeshAccessType.Vertex);
+        //    go = CreateObject(layer4);
+        //    go.name = "Cell " + i;
+        //}
+
+        /*
+
+        var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[0].Index }, MeshMasher.NestedMeshAccessType.Vertex);
+        layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+
+        CreateObject(layer4).name = "Layer4";
+
+        Debug.Log("Layer 5: ");
+
+        var layer5 = new CleverMesh(layer4, new int[] { layer4.Mesh.Cells[0].Index }, MeshMasher.NestedMeshAccessType.Vertex);
+        layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+
+    */
+
+        //CreateObject(layer4).name = "Cell " + i;
+
     }
+
+    public GameObject CreateObject(CleverMesh mesh)
+    {
+        var gameObject = new GameObject();
+        var f = gameObject.AddComponent<MeshFilter>();
+        var r = gameObject.AddComponent<MeshRenderer>();
+        r.sharedMaterial = _meshColours;
+        //f.mesh = layer5.Mesh.ToXYMesh();
+        f.mesh = mesh.Mesh.ToXYMesh();
+        f.mesh.SetColors(mesh.CellMetadata.Select(x => x.SmoothColor).ToList());
+
+        return gameObject;
+    }
+
+    public GameObject CreateBaryObject(CleverMesh mesh)
+    {
+        var gameObject = new GameObject();
+        var f = gameObject.AddComponent<MeshFilter>();
+        var r = gameObject.AddComponent<MeshRenderer>();
+        r.sharedMaterial = _meshColours;
+        //f.mesh = layer5.Mesh.ToXYMesh();
+        f.mesh = mesh.GetBarycenterDebugMesh();
+        //f.mesh.SetColors(mesh.CellMetadata.Select(x => x.SmoothColor).ToList());
+
+        return gameObject;
+    }
+
+
+
+
 }

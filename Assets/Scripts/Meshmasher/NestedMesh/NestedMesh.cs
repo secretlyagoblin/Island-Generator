@@ -163,6 +163,7 @@ namespace MeshMasher {
             var indexMap = new int[_meshTile.Positions.Length];
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
+            //Debug.Log("Current Nested Level " + NestedLevel);
             //Debug.Log("Creating Vertex Access Mesh at Offset Level " + currentNestedOffset);
 
             for (int i = 0; i < indexMap.Length; i++)
@@ -193,6 +194,7 @@ namespace MeshMasher {
                     verts.Add(pos);
                     bary.Add(subBarycenter);
                     baryMap.Add(meshAccessIndices[i]);
+                    //baryMap.Add(originMesh.)
 
 
                     var key = subTile + (tile * _meshTile.NestingScale);
@@ -436,6 +438,22 @@ namespace MeshMasher {
                 name = "generatedMesh",
                 vertices = Verts,
                 triangles = Tris,
+                //colors = _barycenters.Select(x => new Color(x.u, x.v, x.w)).ToArray()
+            };
+
+            return mesh;
+        }
+
+        //Create Debug Mesh
+
+        public Mesh CreateBaryDebugMesh()
+        {
+            var mesh = new Mesh()
+            {
+                name = "generatedMesh",
+                vertices = Verts,
+                triangles = Tris,
+                colors = _barycenters.Select(x => new Color(x.u, x.v, x.w)).ToArray()
             };
 
             return mesh;
@@ -498,7 +516,7 @@ namespace MeshMasher {
         {
             //need to go from offset 0 to offset 12.5 to offset 12.5 + 12.5/4
             var localOffset = 0f;
-            var localOffsetAdjuster = _meshTile.Scale;
+            float localOffsetAdjuster = _meshTile.Scale;
 
             for (int i = 0; i < nestingLevel; i++)
             {
