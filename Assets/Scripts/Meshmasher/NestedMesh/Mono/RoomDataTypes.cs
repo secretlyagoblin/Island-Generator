@@ -96,9 +96,9 @@ namespace MeshMasher.NodeDataTypes {
 
         public RoomColor Blerp(RoomColor a, RoomColor b, RoomColor c, Barycenter weight)
         {
-            var r = a.r * weight.u + b.r * weight.u + c.r * weight.u;
-            var g = a.g * weight.v + b.g * weight.v + c.g * weight.v;
-            var bee = a.b * weight.w + b.b * weight.w + c.b * weight.w;
+            var r = a.r * weight.u + b.r * weight.v + c.r * weight.w;
+            var g = a.g * weight.u + b.g * weight.v + c.g * weight.w;
+            var bee = a.b * weight.u + b.b * weight.v + c.b * weight.w;
 
             return new RoomColor(new Color(r, g, bee));
             

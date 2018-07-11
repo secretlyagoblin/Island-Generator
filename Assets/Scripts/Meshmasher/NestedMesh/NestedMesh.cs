@@ -311,7 +311,9 @@ namespace MeshMasher {
                     var subTriangleTile = subTriangleTiles[u];
                     var triangleVertexIndex = subTriangleIndex * 3;
 
-                    for (int v = 2; v >= 0; v--) //TODO: Sort out weird nesting
+                    //for (int v = 0; v < 3; v++)
+ 
+                        for (int v = 2; v >= 0; v--) //TODO: Sort out weird nesting
                     {
                         var vertexIndex = _meshTile.Triangles[triangleVertexIndex + v];
 
@@ -420,8 +422,8 @@ namespace MeshMasher {
                 var index = parentTriangle * 3;
 
                 var a = originValues[parentMesh.Tris[index]];
-                var b = originValues[parentMesh.Tris[index + 1]];
-                var c = originValues[parentMesh.Tris[index + 2]];
+                var b = originValues[parentMesh.Tris[index+1]];
+                var c = originValues[parentMesh.Tris[index+2]];
 
                 nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
             }
