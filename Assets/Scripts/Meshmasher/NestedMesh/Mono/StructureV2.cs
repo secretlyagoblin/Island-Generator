@@ -315,40 +315,46 @@ public class StructureV2 : MonoBehaviour {
 
         var hood = layer1.Mesh.Cells[cellIndex].GetNeighbourhood();
         
-        for (int i = 0; i < hood.Length; i++)
-        {
-            var layer2 = new CleverMesh(layer1, hood[i], MeshMasher.NestedMeshAccessType.Vertex);
-            layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-            CreateObject(layer2).name = "Layer2";
-        }
-        
-        for (int i = 0; i < hood.Length; i++)
-        {
-            var layer2 = new CleverMesh(layer1, hood[i], MeshMasher.NestedMeshAccessType.Triangles);
-            layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-            CreateObject(layer2).name = "SLayer2";
-        }
+        //for (int i = 0; i < hood.Length; i++)
+        //{
+        //    var layer2 = new CleverMesh(layer1, hood[i], MeshMasher.NestedMeshAccessType.Vertex);
+        //    layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //    CreateObject(layer2).name = "Layer2";
+        //}
+        //
+        //for (int i = 0; i < hood.Length; i++)
+        //{
+        //    var layer2 = new CleverMesh(layer1, hood[i], MeshMasher.NestedMeshAccessType.Triangles);
+        //    layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //    CreateObject(layer2).name = "Layer2 - " + i;
+        //}
 
 
         //var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Vertex);
+        //
+        //CreateObject(layer2).name = "Layer2";
+
+        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Vertex);
+        //layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        //CreateObject(layer2).name = "Layer2";
 
 
 
 
         Debug.Log("Layer 3: ");
         
-        //var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Vertex);
+        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
         //layer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
         
-        //var go = CreateObject(layer3);
+        var go = CreateObject(layer3);
         //go.name = "Layer3";
         //go.transform.Translate(Vector3.back);
-        //
+        
         //Debug.Log("Layer 4: ");
         //
         //for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         //{
-        //    var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[i].Index }, MeshMasher.NestedMeshAccessType.Vertex);
+        //    var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[i].Index }, MeshMasher.NestedMeshAccessType.Triangles);
         //    go = CreateObject(layer4);
         //    go.name = "Cell " + i;
         //}

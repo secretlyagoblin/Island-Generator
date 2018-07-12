@@ -269,9 +269,6 @@ namespace MeshMasher {
 
         public void PopulateMeshByTriangleCenterContainment(NestedMesh originMesh, int[] meshAccessIndices)
         {
-            //if (meshAccessIndices[0] == 9)
-            //    Debug.Log("Why hello there");
-
             var verts = new List<Vector3>();
             var tris = new List<int>();
             var derivedTri = new List<int>();
@@ -311,23 +308,12 @@ namespace MeshMasher {
                     var subTriangleTile = subTriangleTiles[u];
                     var triangleVertexIndex = subTriangleIndex * 3;
 
-                    //for (int v = 0; v < 3; v++)
- 
-                        for (int v = 2; v >= 0; v--) //TODO: Sort out weird nesting
+                    for (int v = 2; v >= 0; v--)
                     {
                         var vertexIndex = _meshTile.Triangles[triangleVertexIndex + v];
+                        var localOffset = _meshTile.Offsets[triangleVertexIndex + v] + subTriangleTile;
 
-
-                        var localOffset = _meshTile.Offsets[triangleVertexIndex + v];
-                        localOffset += subTriangleTile;
-
-                        var pos = _meshTile.Positions[vertexIndex];
-                        pos += new Vector3(localOffset.x * _meshTile.Scale, localOffset.y * _meshTile.Scale, 0); //offset
-                        pos = pos * (float)Scale;
-
-                        pos += new Vector3(tile.x * parentNestedLevel, tile.y * parentNestedLevel, 0);
-
-                        pos -= new Vector3(currentNestedOffset, currentNestedOffset, 0); //shift
+                        var pos = CalculateVertexOffset(vertexIndex, tile, localOffset, currentNestedOffset);
 
                         verts.Add(pos);
                         vertCount++;
@@ -338,7 +324,6 @@ namespace MeshMasher {
                         var innerBarycenter = innerBarycenters[u*3 + v];
                         barys.Add(innerBarycenter);
                         triangleParents.Add(meshAccessIndices[i]);
-
                     }
 
                     derivedTri.Add(subTriangleIndexes[u]);
@@ -356,22 +341,22 @@ namespace MeshMasher {
             for (int i = 0; i < vertsForCulling.Count; i++)
             {
                 var test = vertsForCulling[i];
-                var testBary = barys[i];
-            
+                var testBary = barys[i];            
                 var index = distinctValues.Count;
-
                 var resolved = false;
 
                 for (int u = 0; u < distinctValues.Count; u++)
                 {
                     var distinct = distinctValues[u];
                     var distinctBary = distinctBarycenters[u];
+                    var distinctTriangleParent = distinctTriangleParentMap[u];
 
                     if (test.Key == distinct.Key && test.Value == distinct.Value)
                     {
-                        if(testBary.contained == true)
+                        if (testBary.contained == true)
                         {
                             distinctBarycenters[u] = testBary;
+                            distinctTriangleParentMap[u] = triangleParents[i];
                         }
 
                         if (resolved == false)
@@ -399,8 +384,6 @@ namespace MeshMasher {
             }
             
             Verts = distinctVerts.ToArray();
-
-            //Verts = verts.ToArray();
             Tris = tris.ToArray();
             _barycenterParentMap = distinctTriangleParentMap.ToArray();
             _barycenters = distinctBarycenters.ToArray();
