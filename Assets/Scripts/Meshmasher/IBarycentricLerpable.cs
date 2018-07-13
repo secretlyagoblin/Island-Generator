@@ -7,7 +7,7 @@ using UnityEngine;
 namespace MeshMasher {
 
     public interface IBlerpable<T> {
-        T Blerp(T a, T b, T c, Vector3 weight);
+        T Blerp(T a, T b, T c, Barycenter barycenter);
     }
 
 

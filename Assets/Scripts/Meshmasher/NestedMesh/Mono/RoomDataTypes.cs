@@ -16,13 +16,13 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public RoomCode Blerp(RoomCode a, RoomCode b, RoomCode c, Vector3 weight)
+        public RoomCode Blerp(RoomCode a, RoomCode b, RoomCode c, Barycenter weight)
         {
-            if (weight.x >= weight.y && weight.x >= weight.z)
+            if (weight.u >= weight.v && weight.u >= weight.w)
             {
                 return a;
             }
-            else if (weight.y >= weight.z && weight.y >= weight.x)
+            else if (weight.v >= weight.w && weight.v >= weight.u)
             {
                 return b;
             }
@@ -30,6 +30,22 @@ namespace MeshMasher.NodeDataTypes {
             {
                 return c;
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is RoomCode))
+            {
+                return false;
+            }
+
+            var code = (RoomCode)obj;
+            return Value == code.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return -1937169414 + Value.GetHashCode();
         }
     }
 
@@ -78,13 +94,13 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public RoomColor Blerp(RoomColor a, RoomColor b, RoomColor c, Vector3 weight)
+        public RoomColor Blerp(RoomColor a, RoomColor b, RoomColor c, Barycenter weight)
         {
-            var r = a.r * weight.x + b.r * weight.y + c.r * weight.z;
-            var g = a.g * weight.x + b.g * weight.y + c.g * weight.z;
-            var cb = a.b * weight.x + b.b * weight.y + c.b * weight.z;
+            var r = a.r * weight.u + b.r * weight.v + c.r * weight.w;
+            var g = a.g * weight.u + b.g * weight.v + c.g * weight.w;
+            var bee = a.b * weight.u + b.b * weight.v + c.b * weight.w;
 
-            return new RoomColor(new Color(r, g, cb));
+            return new RoomColor(new Color(r, g, bee));
             
         }
     }
@@ -98,9 +114,9 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public RoomFloat Blerp(RoomFloat a, RoomFloat b, RoomFloat c, Vector3 weight)
+        public RoomFloat Blerp(RoomFloat a, RoomFloat b, RoomFloat c, Barycenter weight)
         {
-            return new RoomFloat(a.Value* weight.x + b.Value * weight.y + c.Value * weight.z);
+            return new RoomFloat(a.Value* weight.u + b.Value * weight.v + c.Value * weight.w);
         }
     }
 
@@ -131,7 +147,7 @@ namespace MeshMasher.NodeDataTypes {
         }
 
 
-        public ZoneBoundary Blerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Vector3 weight)
+        public ZoneBoundary Blerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Barycenter weight)
         {
             var roomCode = a._roomCode.Blerp(a._roomCode, b._roomCode, c._roomCode, weight).Value;
 
@@ -166,50 +182,50 @@ namespace MeshMasher.NodeDataTypes {
             int HighestCellCode, SecondHighestCellCode;
             float HighestBarycenter, SecondHighestBarycenter;
 
-            if (weight.x >= weight.y && weight.x >= weight.z)
+            if (weight.u >= weight.v && weight.u >= weight.w)
             {
                 HighestCellCode = a.RoomCode;
-                HighestBarycenter = weight.x;
+                HighestBarycenter = weight.u;
 
-                if (weight.y >= weight.z)
+                if (weight.v >= weight.w)
                 {
                     SecondHighestCellCode = b.RoomCode;
-                    SecondHighestBarycenter = weight.y;
+                    SecondHighestBarycenter = weight.v;
                 }else
                 {
                     SecondHighestCellCode = c.RoomCode;
-                    SecondHighestBarycenter = weight.z;
+                    SecondHighestBarycenter = weight.w;
                 }
-            } else if (weight.y >= weight.z && weight.y >= weight.x)
+            } else if (weight.v >= weight.w && weight.v >= weight.u)
             {
                 HighestCellCode = b.RoomCode;
-                HighestBarycenter = weight.y;
+                HighestBarycenter = weight.v;
 
-                if (weight.x >= weight.z)
+                if (weight.u >= weight.w)
                 {
                     SecondHighestCellCode = a.RoomCode;
-                    SecondHighestBarycenter = weight.x;
+                    SecondHighestBarycenter = weight.u;
                 }
                 else
                 {
                     SecondHighestCellCode = c.RoomCode;
-                    SecondHighestBarycenter = weight.z;
+                    SecondHighestBarycenter = weight.w;
                 }
             }
             else
             {
                 HighestCellCode = c.RoomCode;
-                HighestBarycenter = weight.z;
+                HighestBarycenter = weight.w;
 
-                if (weight.x >= weight.y)
+                if (weight.u >= weight.v)
                 {
                     SecondHighestCellCode = a.RoomCode;
-                    SecondHighestBarycenter = weight.x;
+                    SecondHighestBarycenter = weight.u;
                 }
                 else
                 {
                     SecondHighestCellCode = b.RoomCode;
-                    SecondHighestBarycenter = weight.y;
+                    SecondHighestBarycenter = weight.v;
                 }
             }
 
@@ -257,27 +273,27 @@ namespace MeshMasher.NodeDataTypes {
             Value = value;
         }
 
-        public MeshDual Blerp(MeshDual a, MeshDual b, MeshDual c, Vector3 weight)
+        public MeshDual Blerp(MeshDual a, MeshDual b, MeshDual c, Barycenter weight)
         {
-            var dual = new float[] { weight.x, weight.y, weight.z };
+            var dual = new float[] { weight.u, weight.v, weight.w };
 
             int highest;
             int secondHighest;
 
-            if (weight.x >= weight.y && weight.x >= weight.z)
+            if (weight.u >= weight.v && weight.u >= weight.w)
             {
                 highest = 0;
-                secondHighest = weight.y > weight.z ? 1 : 2;
+                secondHighest = weight.v > weight.w ? 1 : 2;
             }
-            else if (weight.y >= weight.z && weight.y >= weight.x)
+            else if (weight.v >= weight.w && weight.v >= weight.u)
             {
                 highest =  1;
-                secondHighest = weight.x > weight.z ? 0 : 2;
+                secondHighest = weight.u > weight.w ? 0 : 2;
             }
             else
             {
                 highest = 2;
-                secondHighest = weight.x > weight.y ? 0 : 1;
+                secondHighest = weight.u > weight.v ? 0 : 1;
             }
 
             var result = dual[highest] - dual[secondHighest];

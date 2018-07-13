@@ -27,7 +27,7 @@ public class CleverMesh {
     public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        CellMetadata = _nMesh.BlerpValues(parent.CellMetadata, parent._nMesh);
+        CellMetadata = _nMesh.BlerpParentValues(parent.CellMetadata, parent._nMesh);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 
@@ -42,6 +42,11 @@ public class CleverMesh {
         {
             CellMetadata[i] = new NodeMetadata(0, Color.black, new int[] { 0 });
         }
+    }
+
+    public Mesh GetBarycenterDebugMesh()
+    {
+        return _nMesh.CreateBaryDebugMesh();
     }
 
 }

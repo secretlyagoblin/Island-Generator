@@ -23,11 +23,11 @@ namespace MeshMasher.MeshTiling {
 
         //public int[][] ScaledTrianglesOwnedByPoints;
 
-        public Vector3[][] Barycenters;
+        public Barycenter[][] Barycenters;
         public int[][] NestedTriangleIndexes;
         public SimpleVector2Int[][] TriangleSubTileOffsets;
 
-        public BarycentricData[][] TriangleBarycentricContainment;
+        public Barycenter[][] TriangleBarycentricContainment;
 
         public MeshTile(string meshTileJSON)
         {
@@ -76,7 +76,7 @@ namespace MeshMasher.MeshTiling {
 
             ScaledVerts = new int[importObject.innerPointIndexList.Length][];
             SubTileOffsets = new SimpleVector2Int[importObject.innerPointIndexList.Length][];
-            Barycenters = new Vector3[importObject.innerPointIndexList.Length][];
+            Barycenters = new Barycenter[importObject.innerPointIndexList.Length][];
 
             //ScaledTrianglesOwnedByPoints= public int[][]            
 
@@ -89,7 +89,7 @@ namespace MeshMasher.MeshTiling {
                 ScaledVerts[u] = new int[innerCount];
                 SubTileOffsets[u] = new SimpleVector2Int[innerCount];
 
-                Barycenters[u] = new Vector3[innerCount];
+                Barycenters[u] = new Barycenter[innerCount];
 
 
                 for (int v = 0; v < innerCount; v++)
@@ -97,7 +97,7 @@ namespace MeshMasher.MeshTiling {
                     ScaledVerts[u][v] = importObject.culledPointIndexes[count];
                     SubTileOffsets[u][v] = new SimpleVector2Int(importObject.culled2dPointOffsets[count * 2], importObject.culled2dPointOffsets[(count * 2) + 1]);
 
-                    Barycenters[u][v] = new Vector3(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2]);
+                    Barycenters[u][v] = new Barycenter(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2],true,false);
 
                     count++;
                 }
@@ -127,17 +127,17 @@ namespace MeshMasher.MeshTiling {
 
             count = 0;
 
-            TriangleBarycentricContainment = new BarycentricData[importObject.triangleAccessBarcenticListLength.Length][];
+            TriangleBarycentricContainment = new Barycenter[importObject.triangleAccessBarcenticListLength.Length][];
 
             for (int u = 0; u < importObject.triangleAccessBarcenticListLength.Length; u++)
             {
                 var innerCount = importObject.triangleAccessBarcenticListLength[u];
-                TriangleBarycentricContainment[u] = new BarycentricData[innerCount];
+                TriangleBarycentricContainment[u] = new Barycenter[innerCount];
 
                 for (int v = 0; v < innerCount; v++)
                 {
-                    TriangleBarycentricContainment[u][v] = new BarycentricData(
-                            u,
+                    TriangleBarycentricContainment[u][v] = new Barycenter(
+                            //u,
                             importObject.triangleAccessBarycenters[count * 3],
                             importObject.triangleAccessBarycenters[count * 3 + 1],
                             importObject.triangleAccessBarycenters[count * 3 + 2],

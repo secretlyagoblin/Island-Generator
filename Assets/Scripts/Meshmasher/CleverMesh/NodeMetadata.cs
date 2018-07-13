@@ -27,7 +27,7 @@ public struct NodeMetadata : IBlerpable<NodeMetadata> {
         _meshDual = new MeshMasher.NodeDataTypes.MeshDual(0);
     }
 
-    public NodeMetadata Blerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Vector3 weight)
+    public NodeMetadata Blerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Barycenter weight)
     {
         return new NodeMetadata()
         {
