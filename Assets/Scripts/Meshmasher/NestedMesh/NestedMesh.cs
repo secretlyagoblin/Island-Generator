@@ -280,15 +280,17 @@ namespace MeshMasher {
 
         public void PopulateMeshByTriangleCenterContainment(NestedMesh originMesh, int[] meshAccessIndices)
         {
-            var verts = new List<Vector3>();
-            var tris = new List<int>();
-            var derivedTri = new List<int>();
-            var derivedOffset = new List<SimpleVector2Int>();
+            var defaultSize = meshAccessIndices.Length*35;
+
+            var verts = new List<Vector3>(defaultSize);
+            var tris = new List<int>(defaultSize*3);
+            var derivedTri = new List<int>(defaultSize);
+            var derivedOffset = new List<SimpleVector2Int>(defaultSize);
             var parentNestedLevel = CalcuateOffset(NestedLevel - 1);
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
-            var vertexBarycenters = new List<Barycenter>();
-            var vertexTriangleParents = new List<int>();
+            var vertexBarycenters = new List<Barycenter>(defaultSize);
+            var vertexTriangleParents = new List<int>(defaultSize);
 
             //Debug.Log("Creating Triangle Access Mesh at Offset Level " + currentNestedOffset);
 
@@ -345,9 +347,9 @@ namespace MeshMasher {
             }
 
             var distinctValues = new List<KeyValuePair<int, SimpleVector2Int>>();
-            var distinctVerts = new List<Vector3>();
-            var distinctBarycenters = new List<Barycenter>();
-            var distinctBarycenterParentMap = new List<int>();
+            var distinctVerts = new List<Vector3>(defaultSize);
+            var distinctBarycenters = new List<Barycenter>(defaultSize);
+            var distinctBarycenterParentMap = new List<int>(defaultSize);
 
             var indexMap = new int[vertsForCulling.Count];
 

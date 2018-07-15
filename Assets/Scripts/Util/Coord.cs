@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System;
 
-public struct Coord {
+public struct Coord: IEquatable<Coord>
+{
     public int x
     { get; set; }
     public int y
@@ -97,5 +98,25 @@ public struct Coord {
             }
         }
         return line.ToArray();
+    }
+
+    bool IEquatable<Coord>.Equals(Coord other)
+    {
+        return other.x == x && other.y == y;
+    }
+
+    public bool Equals(Coord other)
+    {
+        return x == other.x && y == other.y;
+    }
+
+    public override int GetHashCode()
+    {
+        return x.GetHashCode() * y.GetHashCode();
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
     }
 }

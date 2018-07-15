@@ -92,7 +92,7 @@ namespace ProcTerrain {
 
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
-            var sMesh = new MeshMasher.SmartMesh(mesh);
+            var sMesh = new MeshMasher.SmartMesh(mesh.vertices, mesh.triangles);
             mesh = sMesh.BuildMeshSurfaceWithCliffs(sMesh.GenerateSemiConnectedMesh(6));
 
             var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
@@ -157,7 +157,7 @@ namespace ProcTerrain {
 
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(baseNoiseMap, 0.06f);
-            mesh = new MeshMasher.SmartMesh(mesh).BuildMeshSurfaceWithCliffs();
+            mesh = new MeshMasher.SmartMesh(mesh.vertices, mesh.triangles).BuildMeshSurfaceWithCliffs();
 
             var heightMap = Map.Clone(baseNoiseMap).GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Display().Add(
                 Map.BlankMap(size, size)
@@ -214,7 +214,7 @@ namespace ProcTerrain {
 
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.04f);
-            var sMesh = new MeshMasher.SmartMesh(mesh);
+            var sMesh = new MeshMasher.SmartMesh(mesh.vertices, mesh.triangles);
             var minTree = sMesh.MinimumSpanningTree();
             //minTree = sMesh.CullToSingleLine(minTree);
             mesh = sMesh.BuildMeshSurfaceWithCliffs(minTree);
@@ -252,7 +252,7 @@ namespace ProcTerrain {
                 .Display();
 
             var mesh = MeshMasher.DelaunayGen.GetMeshFromMap(finalMap, 0.04f);
-            mesh = new MeshMasher.SmartMesh(mesh).BuildMeshSurfaceWithCliffs();
+            mesh = new MeshMasher.SmartMesh(mesh.vertices,mesh.triangles).BuildMeshSurfaceWithCliffs();
 
             var heightMap = Map.Clone(finalMap);//.GetHeightmapFromSquareXZMesh(mesh).SmoothMap(3).Normalise().Clamp(0, 0.8f).Normalise().Display();
 

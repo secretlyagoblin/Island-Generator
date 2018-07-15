@@ -30,13 +30,13 @@ public class CleverMesh {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
         CellMetadata = _nMesh.BlerpNodeToCellValues(NodeMetadata);
-        _sMesh = new SmartMesh(_nMesh.CreateMesh());
+        _sMesh = new SmartMesh(_nMesh.Verts,_nMesh.Tris);
     }
 
     private void Init(List<Vector2Int> seedTiles, MeshTile meshTileJSON)
     {
         _nMesh = new NestedMesh(seedTiles.ToArray(), meshTileJSON);
-        _sMesh = new SmartMesh(_nMesh.CreateMesh());
+        _sMesh = new SmartMesh(_nMesh.Verts, _nMesh.Tris);
 
         NodeMetadata = new NodeMetadata[_nMesh.Verts.Length];
 

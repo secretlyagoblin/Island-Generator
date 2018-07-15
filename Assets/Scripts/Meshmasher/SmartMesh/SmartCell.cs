@@ -24,9 +24,9 @@ namespace MeshMasher {
         public SmartCell(SmartNode nodeA, SmartNode nodeB, SmartNode nodeC)
         {
 
-            Nodes = new List<SmartNode>(new SmartNode[] { nodeA, nodeB, nodeC });
-            Neighbours = new List<SmartCell>();
-            Lines = new List<SmartLine>();
+            Nodes = new List<SmartNode>(3) { nodeA, nodeB, nodeC };
+            Neighbours = new List<SmartCell>(3);
+            Lines = new List<SmartLine>(3);
 
             Center = nodeA.Vert + nodeB.Vert + nodeC.Vert;
             float scale = 1f / 3f;
@@ -37,15 +37,15 @@ namespace MeshMasher {
 
         public void CreateNodeConnections()
         {
-            foreach (var node in Nodes)
+            for (int i = 0; i < Nodes.Count; i++)
             {
-                node.AddCell(this);
+                Nodes[i].AddCell(this);
             }
         }
 
         public void CreateCellConnections()
         {
-            var nodes = new List<SmartNode>();
+            //var nodes = new List<SmartNode>();
 
             //for (int i = 0; i < Nodes.Count; i++)
             //{

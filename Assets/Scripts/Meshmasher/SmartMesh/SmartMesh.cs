@@ -15,15 +15,15 @@ namespace MeshMasher {
 
         #region constructors
 
-        public SmartMesh(Mesh mesh) : this(mesh.vertices,mesh.triangles)
-        {    
-        }
+        //public SmartMesh(Mesh mesh) : this(mesh.vertices,mesh.triangles)
+        //{    
+        //}
 
         public SmartMesh(Vector3[] vertices, int[] triangles)
         {
-            Nodes = new List<SmartNode>();
-            Cells = new List<SmartCell>();
-            Lines = new List<SmartLine>();
+            Nodes = new List<SmartNode>(vertices.Length);
+            Cells = new List<SmartCell>(triangles.Length/3);
+            Lines = new List<SmartLine>(triangles.Length);
 
             var verts = vertices;
 

@@ -28,8 +28,8 @@ namespace MeshMasher {
         public SmartLine(SmartNode nodeA, SmartNode nodeB)
         {
 
-            Nodes = new List<SmartNode>(new SmartNode[] { nodeA, nodeB });
-            Neighbours = new List<SmartCell>();
+            Nodes = new List<SmartNode>(2){ nodeA, nodeB };
+            Neighbours = new List<SmartCell>(2);
             //Lines = new List<SmartLine>();
 
             nodeA.AddLine(this);

@@ -214,7 +214,7 @@ public class StructureV2 : MonoBehaviour {
             
         }
 
-        StartCoroutine(CreateSet(layer3, cellDicts,0.1f));
+        StartCoroutine(CreateSet(layer3, cellDicts,0.1f,5));
 
         //foreach (var roomCode in cellDicts)
         //{
@@ -398,9 +398,11 @@ public class StructureV2 : MonoBehaviour {
         return gameObject;
     }
 
-    IEnumerator CreateSet(CleverMesh parent, Dictionary<int,List<int>> sets, float timeDelay)
+    IEnumerator CreateSet(CleverMesh parent, Dictionary<int,List<int>> sets, float timeDelay, int batchCount)
     {
         var waitForSeconds = new WaitForSeconds(timeDelay);
+
+        var count = 0;
 
         foreach (var roomCode in sets)
         {
@@ -423,7 +425,17 @@ public class StructureV2 : MonoBehaviour {
                 Debug.Log("MeshCreationFailed");
             }
 
-            yield return waitForSeconds;
+            count++;
+
+            if(count == batchCount)
+            {
+                count = 0;
+                yield return waitForSeconds;
+            }
+
+            
+
+            
         }
     }
 

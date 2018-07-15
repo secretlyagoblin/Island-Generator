@@ -35,9 +35,9 @@ namespace MeshMasher {
             this.Vert = vert;
             this.Index = index;
 
-            Nodes = new List<SmartNode>();
-            Cells = new List<SmartCell>();
-            Lines = new List<SmartLine>();
+            Nodes = new List<SmartNode>(10);
+            Cells = new List<SmartCell>(10);
+            Lines = new List<SmartLine>(10);
         }
 
         public void AddCell(SmartCell cell)
