@@ -6,18 +6,19 @@ using MeshMasher;
 public class CleverMesh {
 
     public SmartMesh Mesh { get { return _sMesh; } }
-    public NodeMetadata[] CellMetadata;
+    public NodeMetadata[] NodeMetadata;
+    public NodeMetadata[] CellMetadata; // this is readonly and can cause issues if it is set directly
 
     private NestedMesh _nMesh;
     private SmartMesh _sMesh;
 
     //Create from scratch
 
-    public CleverMesh(Vector2Int seedTile, string meshTileJSON):this(new List<Vector2Int>() { seedTile }, meshTileJSON){}
+    public CleverMesh(Vector2Int seedTile, MeshTile meshTile) :this(new List<Vector2Int>() { seedTile }, meshTile){}
 
-    public CleverMesh(List<Vector2Int> seedTiles,  string meshTileJSON)
+    public CleverMesh(List<Vector2Int> seedTiles,  MeshTile meshTile)
     {
-        Init(seedTiles, meshTileJSON);
+        Init(seedTiles, meshTile);
     }
 
     //Create nested later
@@ -27,16 +28,24 @@ public class CleverMesh {
     public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        CellMetadata = _nMesh.BlerpParentValues(parent.CellMetadata, parent._nMesh);
+        NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
+        //CellMetadata = _nMesh.Bler
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 
-    private void Init(List<Vector2Int> seedTiles, string meshTileJSON)
+    private void Init(List<Vector2Int> seedTiles, MeshTile meshTileJSON)
     {
         _nMesh = new NestedMesh(seedTiles.ToArray(), meshTileJSON);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
 
-        CellMetadata = new NodeMetadata[_nMesh.Verts.Length];
+        NodeMetadata = new NodeMetadata[_nMesh.Verts.Length];
+
+        for (int i = 0; i < NodeMetadata.Length; i++)
+        {
+            NodeMetadata[i] = new NodeMetadata(0, Color.black, new int[] { 0 });
+        }
+
+        CellMetadata = new NodeMetadata[_nMesh.Tris.Length];
 
         for (int i = 0; i < CellMetadata.Length; i++)
         {

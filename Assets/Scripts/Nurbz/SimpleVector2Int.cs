@@ -65,7 +65,7 @@ public struct SimpleVector2Int : IEquatable<SimpleVector2Int> {
 
     public override string ToString()
     {
-        return base.ToString();
+        return "(" + x +", " + y + ")";
     }
 
     public SimpleVector2Int(int x, int y)

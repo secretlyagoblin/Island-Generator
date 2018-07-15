@@ -24,7 +24,7 @@ public class StructureV2 : MonoBehaviour {
 
         _mat = new Material(Shader.Find("Standard"));
 
-        OffsetTest();
+        MainTest();
     }
 
     IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
@@ -60,7 +60,7 @@ public class StructureV2 : MonoBehaviour {
 
     public void MainTest()
     {
-        var colors = new Color[] { Color.red, Color.green, Color.yellow };
+        var colors = new Color[] { Color.red, Color.green, Color.blue };
 
         ///Assumptions:
         /// Currently not considering height differences
@@ -74,122 +74,85 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, meshTileData.text);
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
         var cellIndex = 2;
 
         /// 2: Give each triangle a different biome (3 zones)
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
         {
             var n = layer1.Mesh.Cells[cellIndex].Nodes[i];
-            layer1.CellMetadata[n.Index] = new NodeMetadata(i + 1, colors[i], new int[] { }, RNG.NextFloat(5));
+            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, colors[i], new int[] { }, RNG.NextFloat(5));
         }
-
-        if (EnablePreview)
-        {
-            //layer1.Mesh.DrawMesh(transform, Color.clear, Color.grey);
-        }
-
-        layer1.Mesh.DrawMesh(transform, Color.grey, Color.clear, 100f);
 
         #endregion
 
         ///Below we:
-        /// 3: Create a boundary area that is a no-go zone.
+        /// 1: Create a boundary area that is a no-go zone.
         /// 2: Calculate a connectivity graph between regions (TODO: fix distance to be based on distance from node center based on layer 1)
         /// 3: Give each walkable node a special room code
-        /// 4: TODO: Give each walkable node a connectivity map
+        /// 4: Give each walkable node a connectivity map
         /// 5: TODO: Create mini-valleys using voronoi falloff where connectivity should be broken.
         /// 6: TODO: Define higher level biomes based on parent colour
 
         #region layer two
 
-        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
+        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(),MeshMasher.NestedMeshAccessType.Triangles);
+
+        // 1: Create a boundary area that is a no-go zone.
 
         var layer2Border = layer2.Mesh.GetBorderNodes();
+
+        for (int i = 0; i < layer2Border.Nodes.Length; i++)
+        {
+            if (layer2Border.Nodes[i] == 1)
+                layer2.NodeMetadata[i].Code = 0;
+        }
+
+        // 2: Calculate a connectivity graph between regions (TODO: fix distance to be based on distance from node center based on layer 1)
+
         var layer2State = layer2.Mesh.GenerateSemiConnectedMesh(5, layer2Border);
+
+        // 3: Give each walkable node a special room code and color
 
         var roomNumber = 1;
 
-        //layer2.Mesh.DrawMesh(transform, Color.clear, Color.green);
-
-        if (EnablePreview)
+        for (int i = 0; i < layer2.NodeMetadata.Length; i++)
         {
-            for (int i = 0; i < layer2Border.Nodes.Length; i++)
+            if (layer2.NodeMetadata[i].Code != 0)
             {
-                if (layer2Border.Nodes[i] == 1)
-                    layer2.CellMetadata[i].Code = 0;
+                layer2.NodeMetadata[i].Code = roomNumber;
+                roomNumber++;
+                //layer2.CellMetadata[i].SmoothColor = Color.white;
             }
-
-            for (int i = 0; i < layer2Border.Lines.Length; i++)
+            else
             {
-                if (layer2Border.Lines[i] == 1)
-                    layer2.Mesh.Lines[i].DebugDraw(Color.green, 100f);
-                else if (layer2State.Lines[i] == 1 &&
-                    layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
-                    layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
-                {
-
-                    layer2.Mesh.Lines[i].DebugDraw(Color.red, 100f);
-                }
-                else
-                {
-                    layer2.Mesh.Lines[i].DebugDraw(Color.white, 100f);
-                }
-            }
-
-            for (int i = 0; i < layer2.CellMetadata.Length; i++)
-            {
-                if (layer2.CellMetadata[i].Code != 0)
-                {
-                    layer2.CellMetadata[i].Code = roomNumber;
-                    roomNumber++;
-                    //layer2.CellMetadata[i].SmoothColor = Color.white;
-                }
-                else
-                {
-                    //layer2.CellMetadata[i].Code = 0;
-                    layer2.CellMetadata[i].SmoothColor = Color.black;
-                }
+                //layer2.CellMetadata[i].Code = 0;
+                layer2.NodeMetadata[i].SmoothColor = Color.black;
             }
         }
+
+        // 4: TODO: Give each walkable node a connectivity map
 
         for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         {
             var n = layer2.Mesh.Nodes[i];
-
-            if (layer2Border.Nodes[n.Index] == 1 | layer2.CellMetadata[i].Code == 0)
-            {
-                layer2.CellMetadata[n.Index].SmoothColor = Color.black;
-                layer2.CellMetadata[n.Index].Code = 0;
-            }
-
-            else
-            {
-                //var colour = layer2.CellMetadata[n.Index].MeshDual;
-
-
-                //layer2.CellMetadata[n.Index].SmoothColor = new Color(colour,colour,colour);
-                layer2.CellMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
-                layer2.CellMetadata[n.Index].Connections = n
+        
+            if (layer2Border.Nodes[n.Index] == 1 | layer2.NodeMetadata[i].Code == 0)
+                continue;
+        
+                layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
+                layer2.NodeMetadata[n.Index].Connections = n
                     .Lines
                     .Where(x => layer2State.Lines[x.Index] == 1)
-                    // &&
-                    // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
-                    // layer2.CellMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
                     .Select(x => x.GetOtherNode(n).Index + 1)
                     .Union(new List<int>() { i + 1 })
                     .ToArray();
-                layer2.CellMetadata[n.Index].Code = i + 1;
-            }
+                layer2.NodeMetadata[n.Index].Code = i + 1;            
         }
 
-        #endregion
+        //CreateObject(layer2);
 
-        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
-        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
-        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
-        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
-        ///NO NEED TO GO BELOW HERE BUDDY, JUST FOCUS ON THE BIG PICTURE!
+        #endregion
 
         ///Below we:
         /// 6: TODO: Identify key paths in and out of layer 3 regions
@@ -205,32 +168,21 @@ public class StructureV2 : MonoBehaviour {
         {
             var n = layer3.Mesh.Nodes[i];
 
-            if (layer3.CellMetadata[n.Index].Code == 0)
+            if (layer3.NodeMetadata[n.Index].Code == 0)
             {
-                //layer3.CellMetadata[n.Index].SmoothColor = Color.black;
+                layer3.NodeMetadata[n.Index].SmoothColor = Color.black;
+                continue;
             }
-            else
-            {
-                var colour = layer3.CellMetadata[n.Index].MeshDual;
-                colour = Mathf.Max(layer3.CellMetadata[n.Index].Distance, colour);// < 0.5f ? 0f : (colour);//*0.5f)+0.5f ;
-                //colour = layer3.CellMetadata[n.Index].Distance < 0.5f ? 0f : 1f;//*0.5f)+0.5f ;
 
-                layer3.CellMetadata[n.Index].Code = i + 1;
-                //layer3.CellMetadata[n.Index].SmoothColor = layer3.CellMetadata[n.Index].Distance < 0.5f ? Color.black : Color.white;
-                layer3.CellMetadata[n.Index].SmoothColor = new Color(colour, colour, colour);
-                layer3.CellMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
-            }
+            var colour = layer3.NodeMetadata[n.Index].MeshDual;
+            colour = Mathf.Max(layer3.NodeMetadata[n.Index].Distance, colour);
+            //layer3.CellMetadata[n.Index].Code = i + 1;
+            layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
+            //layer3.CellMetadata[n.Index].SmoothColor = new Color(colour, colour, colour);
+            layer3.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         }
 
-        //for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
-        //{
-        //   
-        //}
-
-        if (EnablePreview)
-        {
-            //layer3.Mesh.DrawMesh(transform, Color.clear, Color.grey);
-        }
+        CreateObject(layer3);
 
         #endregion
 
@@ -242,18 +194,36 @@ public class StructureV2 : MonoBehaviour {
 
         #region layer four
 
-        layer3.Mesh.DrawMesh(transform);
+        //layer3.Mesh.DrawMesh(transform);
+
+        var cellDicts = new Dictionary<int, List<int>>();
 
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
-            var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[i].Index }, MeshMasher.NestedMeshAccessType.Vertex);
-            layer4.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-            //var layer5 = new CleverMesh(layer4, layer4.Mesh.Cells.Select(x => x.Index).ToArray(),1);
-            //layer5.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+            for (int u = 0; u < layer3.Mesh.Cells[i].Nodes.Count; u++)
+            {
+                var code = layer3.NodeMetadata[layer3.Mesh.Cells[i].Nodes[u].Index].Code;
 
-            var go = CreateObject(layer4);
-            go.name = "Cell " + i;
+                if (cellDicts.ContainsKey(code))
+                {
+                    cellDicts[code].Add(i);
+                }
+                else
+                {
+                    cellDicts.Add(code, new List<int>() { i });
+                }
+            }
         }
+
+        StartCoroutine(CreateSet(layer3, cellDicts,0.1f));
+
+        //foreach (var roomCode in cellDicts)
+        //{
+        //    var layer4 = new CleverMesh(layer3, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+        //
+        //    var go = CreateObject(layer4);
+        //    go.name = "Region " +roomCode.Key;
+        //}
 
         return;
 
@@ -293,6 +263,32 @@ public class StructureV2 : MonoBehaviour {
         //}
 
         #endregion
+
+        if (EnablePreview)
+        {
+            //layer3.Mesh.DrawMesh(transform, Color.grey, Color.clear);
+            //layer2.Mesh.DrawMesh(transform, Color.blue, Color.clear);
+            layer1.Mesh.DrawMesh(transform, Color.clear, Color.white);
+
+            // Preview Border
+
+            for (int i = 0; i < layer2Border.Lines.Length; i++)
+            {
+                if (layer2Border.Lines[i] == 1)
+                    layer2.Mesh.Lines[i].DebugDraw(Color.green, 100f);
+                else if (layer2State.Lines[i] == 1 &&
+                    layer2.NodeMetadata[layer2.Mesh.Lines[i].Nodes[0].Index].Code != 0 &&
+                    layer2.NodeMetadata[layer2.Mesh.Lines[i].Nodes[1].Index].Code != 0)
+                {
+
+                    //layer2.Mesh.Lines[i].DebugDraw(Color.red, 100f);
+                }
+                else
+                {
+                    //layer2.Mesh.Lines[i].DebugDraw(Color.white, 100f);
+                }
+            }
+        }
     }
 
     public void OffsetTest()
@@ -302,13 +298,13 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 1: ");
 
-        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, meshTileData.text);
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
         layer1.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
 
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
         {
             var n = layer1.Mesh.Cells[cellIndex].Nodes[i];
-            layer1.CellMetadata[n.Index] = new NodeMetadata(i + 1, colors[i], new int[] { }, RNG.NextFloat(5));
+            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, colors[i], new int[] { }, RNG.NextFloat(5));
         }
 
         Debug.Log("Layer 2: ");
@@ -385,7 +381,7 @@ public class StructureV2 : MonoBehaviour {
         r.sharedMaterial = _meshColours;
         //f.mesh = layer5.Mesh.ToXYMesh();
         f.mesh = mesh.Mesh.ToXYMesh();
-        f.mesh.SetColors(mesh.CellMetadata.Select(x => x.SmoothColor).ToList());
+        f.mesh.SetColors(mesh.NodeMetadata.Select(x => x.SmoothColor).ToList());
 
         return gameObject;
     }
@@ -401,6 +397,27 @@ public class StructureV2 : MonoBehaviour {
         //f.mesh.SetColors(mesh.CellMetadata.Select(x => x.SmoothColor).ToList());
 
         return gameObject;
+    }
+
+    IEnumerator CreateSet(CleverMesh parent, Dictionary<int,List<int>> sets, float timeDelay)
+    {
+        var waitForSeconds = new WaitForSeconds(timeDelay);
+
+        foreach (var roomCode in sets)
+        {
+            if (roomCode.Key == 0)
+            {
+                Debug.Log("Nope!!");
+                continue;
+            }
+
+            var layer4 = new CleverMesh(parent, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+
+            var go = CreateObject(layer4);
+            go.name = "Region " + roomCode.Key;
+
+            yield return waitForSeconds;
+        }
     }
 
 

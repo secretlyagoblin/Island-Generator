@@ -715,9 +715,9 @@ namespace MeshMasher {
         public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<int> outline)
         {
             var state = MinimumSpanningTree(outline);
-            var walkState = WalkThroughRooms(state.Clone());
-            var roomState = CalculateRooms(state.Clone());
-            state = RemoveLargeRooms(state, roomState, walkState, 8);
+            //var walkState = WalkThroughRooms(state.Clone());
+            //var roomState = CalculateRooms(state.Clone());
+            //state = RemoveLargeRooms(state, roomState, walkState, 8);
             return state;
         }
 

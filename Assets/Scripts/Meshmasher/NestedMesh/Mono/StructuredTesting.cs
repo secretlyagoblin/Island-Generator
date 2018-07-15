@@ -9,14 +9,14 @@ public class StructuredTesting : MonoBehaviour {
     public GameObject InstantiationBase;
     public AnimationCurve FalloffCurve;
     public Gradient Gradient;
-    public TextAsset meshTileData;
+    public TextAsset MeshTileData;
 
 	// Use this for initialization
 	void Start () {
 
         RNG.DateTimeInit();
 
-        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero}, meshTileData.text);
+        var layer1 = new CleverMesh(new List<Vector2Int>() {Vector2Int.zero}, new MeshTile(MeshTileData.text));
         layer1.Mesh.DrawMesh(transform,Color.clear,Color.grey);
 
         var cellIndex = 126;
@@ -27,7 +27,7 @@ public class StructuredTesting : MonoBehaviour {
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
         {
             var n = layer1.Mesh.Cells[cellIndex].Nodes[i];
-            layer1.CellMetadata[n.Index] = new NodeMetadata(i + 1, colors[i],new int[] { } ,RNG.NextFloat(5));
+            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, colors[i],new int[] { } ,RNG.NextFloat(5));
         }
 
         var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
@@ -77,11 +77,11 @@ public class StructuredTesting : MonoBehaviour {
         {
             var n = layer3.Mesh.Nodes[i];
         
-            var color = layer3.CellMetadata[n.Index].MeshDual;
+            var color = layer3.NodeMetadata[n.Index].MeshDual;
         
             color = Mathf.Clamp01((color * 1.5f) - 0.25f);
         
-            layer3.CellMetadata[n.Index].SmoothColor = new Color(color, color, color);
+            layer3.NodeMetadata[n.Index].SmoothColor = new Color(color, color, color);
         
             //if (layer3.CellMetadata[n.Index].Code == 0)
             //{
@@ -146,7 +146,7 @@ public class StructuredTesting : MonoBehaviour {
 
             var jitter = RNG.NextFloat(0.2f);
 
-            var smoothVal = FalloffCurve.Evaluate(layer4.CellMetadata[i].SmoothColor.r);
+            var smoothVal = FalloffCurve.Evaluate(layer4.NodeMetadata[i].SmoothColor.r);
 
             var color = Gradient.Evaluate(smoothVal);
 
@@ -154,10 +154,10 @@ public class StructuredTesting : MonoBehaviour {
             var obj = Instantiate(InstantiationBase);
             //obj.GetComponent<MeshRenderer>().sharedMaterial = layer4.CellMetadata[i].Distance < 0.8 | layer4.CellMetadata[i].Code == 0 ? matA : matB;
             obj.GetComponent<MeshRenderer>().material.color = color;
-            obj.transform.position = pts[i].Vert+ Vector3.forward* layer4.CellMetadata[i].Height;
+            obj.transform.position = pts[i].Vert+ Vector3.forward* layer4.NodeMetadata[i].Height;
             //obj.transform.position = new Vector3(obj.transform.position.x, -obj.transform.position.z, obj.transform.position.y);
             obj.transform.localScale = Vector3.one * 0.06f;
-            obj.name = "Room " + layer4.CellMetadata[i].Code;
+            obj.name = "Room " + layer4.NodeMetadata[i].Code;
         }    
 
     }

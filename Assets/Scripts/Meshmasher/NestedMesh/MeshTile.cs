@@ -3,8 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-
-namespace MeshMasher.MeshTiling {
+using MeshMasher;
 
     public class MeshTile {
 
@@ -25,6 +24,7 @@ namespace MeshMasher.MeshTiling {
 
         public Barycenter[][] Barycenters;
         public int[][] NestedTriangleIndexes;
+        public Barycenter[][] TriangleCenterBarycenters;
         public SimpleVector2Int[][] TriangleSubTileOffsets;
 
         public Barycenter[][] TriangleBarycentricContainment;
@@ -108,19 +108,26 @@ namespace MeshMasher.MeshTiling {
             
             NestedTriangleIndexes = new int[importObject.innerTrianglePointIndexList.Length][];
             TriangleSubTileOffsets = new SimpleVector2Int[importObject.innerTrianglePointIndexList.Length][];
-
+            TriangleCenterBarycenters = new Barycenter[importObject.innerTrianglePointIndexList.Length][]
+;
             for (int u = 0; u < importObject.innerTrianglePointIndexList.Length; u++)
             {
                 var innerCount = importObject.innerTrianglePointIndexList[u];
 
                 NestedTriangleIndexes[u] = new int[innerCount];
                 TriangleSubTileOffsets[u] = new SimpleVector2Int[innerCount];
+                TriangleCenterBarycenters[u] = new Barycenter[innerCount * 3];
+
 
 
                 for (int v = 0; v < innerCount; v++)
                 {
                     NestedTriangleIndexes[u][v] = importObject.culledTriangleIndexes[count];
                     TriangleSubTileOffsets[u][v] = new SimpleVector2Int(importObject.culled2dTriangleOffsets[count * 2], importObject.culled2dTriangleOffsets[(count * 2) + 1]);
+
+                    var bc = count * 3;
+
+                    TriangleCenterBarycenters[u][v] = new Barycenter(importObject.triangleCenterBarycenters[bc], importObject.triangleCenterBarycenters[bc + 1], importObject.triangleCenterBarycenters[bc + 2], true, false);
                     count++;
                 }
             }
@@ -171,6 +178,6 @@ namespace MeshMasher.MeshTiling {
             public float[] triangleAccessBarycenters;
             public bool[] triangleAccessBarcenticInternalMask;
             public bool[] triangleAccessEdgeMask;
+            public float[] triangleCenterBarycenters;
         }
     }
-}
