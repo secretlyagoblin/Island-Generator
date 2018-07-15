@@ -14,9 +14,6 @@ namespace MeshMasher {
         public double Scale = 1.0;
         public int NestedLevel = 0;
 
-        private int[] _triangleBarycenterParentMap;
-        private Barycenter[] _triangleBarycenters;
-
         private int[] _barycenterParentMap;
         private Barycenter[] _barycenters;
         private MeshTile _meshTile;
@@ -433,22 +430,19 @@ namespace MeshMasher {
             return nestedValues;
         }
 
-        public T[] BlerpParentCellValues<T>(T[] originValues, NestedMesh parentMesh) where T : IBlerpable<T>
+        public T[] BlerpNodeToCellValues<T>(T[] nodeValues) where T : IBlerpable<T>
         {
+            var len = Tris.Length / 3;
+            var nestedValues = new T[len];
 
-            var nestedValues = new T[DerivedTri.Length];
-
-            for (int i = 0; i < DerivedTri.Length; i++)
+            for (int i = 0; i < len; i++)
             {
-                var barycenter = _triangleBarycenters[i];
-                var parentTriangle = _triangleBarycenterParentMap[i];
-                var index = parentTriangle * 3;
+                var index = i * 3;
+                var a = nodeValues[Tris[index]];
+                var b = nodeValues[Tris[index + 1]];
+                var c = nodeValues[Tris[index + 2]];
 
-                var a = originValues[parentMesh.Tris[index]];
-                var b = originValues[parentMesh.Tris[index + 1]];
-                var c = originValues[parentMesh.Tris[index + 2]];
-
-                nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
+                nestedValues[i] = (nodeValues[0].Blerp(a, b, c, Barycenter.center));
             }
 
             return nestedValues;

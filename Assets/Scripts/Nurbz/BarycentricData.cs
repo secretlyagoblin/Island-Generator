@@ -13,7 +13,8 @@ namespace MeshMasher
         public bool contained;
         public bool bounding;
         public bool isEdge;
-        //public int index;
+
+        public static Barycenter center { get { return new Barycenter(THIRD, THIRD, THIRD, true, false); } }
 
         public Barycenter(
             //int index, 
@@ -25,9 +26,13 @@ namespace MeshMasher
             this.w = w;
             this.contained = contained;
             this.bounding = bounding;
-            isEdge = (contained || !bounding);
+            isEdge = (!contained || bounding);
 
 
         }
+
+        private const float THIRD = 1f / 3f;
+
+        
     }
 }

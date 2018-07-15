@@ -29,7 +29,7 @@ public class CleverMesh {
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
-        //CellMetadata = _nMesh.Bler
+        CellMetadata = _nMesh.BlerpNodeToCellValues(NodeMetadata);
         _sMesh = new SmartMesh(_nMesh.CreateMesh());
     }
 

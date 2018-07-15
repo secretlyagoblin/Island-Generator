@@ -150,7 +150,7 @@ public class StructureV2 : MonoBehaviour {
                 layer2.NodeMetadata[n.Index].Code = i + 1;            
         }
 
-        //CreateObject(layer2);
+        CreateObject(layer2);
 
         #endregion
 
@@ -200,9 +200,8 @@ public class StructureV2 : MonoBehaviour {
 
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
-            for (int u = 0; u < layer3.Mesh.Cells[i].Nodes.Count; u++)
-            {
-                var code = layer3.NodeMetadata[layer3.Mesh.Cells[i].Nodes[u].Index].Code;
+
+                var code = layer3.CellMetadata[i].Code;
 
                 if (cellDicts.ContainsKey(code))
                 {
@@ -212,7 +211,7 @@ public class StructureV2 : MonoBehaviour {
                 {
                     cellDicts.Add(code, new List<int>() { i });
                 }
-            }
+            
         }
 
         StartCoroutine(CreateSet(layer3, cellDicts,0.1f));
@@ -332,7 +331,7 @@ public class StructureV2 : MonoBehaviour {
 
         var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Triangles);
         //layer2.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        //CreateObject(layer2).name = "Layer2";
+        CreateObject(layer2).name = "Layer2";
 
 
 
@@ -343,7 +342,7 @@ public class StructureV2 : MonoBehaviour {
         //layer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
         
         var go = CreateObject(layer3);
-        //go.name = "Layer3";
+        go.name = "Layer3";
         //go.transform.Translate(Vector3.back);
         
         Debug.Log("Layer 4: ");
@@ -411,10 +410,18 @@ public class StructureV2 : MonoBehaviour {
                 continue;
             }
 
-            var layer4 = new CleverMesh(parent, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+            try
+            {
+                var layer4 = new CleverMesh(parent, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
 
-            var go = CreateObject(layer4);
-            go.name = "Region " + roomCode.Key;
+                var go = CreateObject(layer4);
+                go.name = "Region " + roomCode.Key;
+
+            }
+            catch
+            {
+                Debug.Log("MeshCreationFailed");
+            }
 
             yield return waitForSeconds;
         }
