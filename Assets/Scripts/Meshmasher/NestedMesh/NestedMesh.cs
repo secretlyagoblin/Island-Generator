@@ -164,8 +164,8 @@ namespace MeshMasher {
             var indexMap = new int[_meshTile.Positions.Length];
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
-            var triangleBarycenters = new List<Barycenter>();
-            var triangleBarycenterParentMap = new List<int>();
+            //var triangleBarycenters = new List<Barycenter>();
+            //var triangleBarycenterParentMap = new List<int>();
 
             //Debug.Log("Current Nested Level " + NestedLevel);
             //Debug.Log("Creating Vertex Access Mesh at Offset Level " + currentNestedOffset);
@@ -273,7 +273,7 @@ namespace MeshMasher {
                 verts.ToArray(),
                 tris.ToArray(),
                 derivedTri.ToArray(),
-                derivedOffset.ToArray(),,,
+                derivedOffset.ToArray(),
                 //triangleBarycenterParentMap.ToArray(),
                 //triangleBarycenters.ToArray(),
                 baryMap.ToArray(),
@@ -289,9 +289,6 @@ namespace MeshMasher {
             var derivedOffset = new List<SimpleVector2Int>();
             var parentNestedLevel = CalcuateOffset(NestedLevel - 1);
             var currentNestedOffset = CalcuateOffset(NestedLevel);
-
-            var derivedTriangleBarycenters = new List<Barycenter>();
-            var derivedTriangleBarycenterParents = new List<int>();
 
             var vertexBarycenters = new List<Barycenter>();
             var vertexTriangleParents = new List<int>();
@@ -347,8 +344,6 @@ namespace MeshMasher {
 
                     derivedTri.Add(subTriangleIndexes[u]);
                     derivedOffset.Add(subTriangleTiles[u]);
-                    derivedTriangleBarycenters.Add(innerTriangleBarycenter);
-                    derivedTriangleBarycenterParents.Add(meshAccessIndices[i]);
                 }
             }
 
@@ -410,8 +405,6 @@ namespace MeshMasher {
                 tris.ToArray(),
                 derivedTri.ToArray(),
                 derivedOffset.ToArray(),
-                derivedTriangleBarycenterParents.ToArray(),
-                derivedTriangleBarycenters.ToArray(),
                 distinctBarycenterParentMap.ToArray(),
                 distinctBarycenters.ToArray()
             );
@@ -578,8 +571,6 @@ namespace MeshMasher {
             int[] tris,
             int[] derivedTri,
             SimpleVector2Int[] tileOffsets,
-            int[] triangleBarycenterParentMap,
-            Barycenter[] triangleBarycenters,
             int[] barycenterParentMap,
             Barycenter[] barycenters)
         {
@@ -588,8 +579,6 @@ namespace MeshMasher {
             DerivedTri = derivedTri;
             TileOffsets = tileOffsets;
 
-            _triangleBarycenterParentMap = triangleBarycenterParentMap;
-            _triangleBarycenters = triangleBarycenters;
 
             _barycenterParentMap = barycenterParentMap;
             _barycenters = barycenters;
