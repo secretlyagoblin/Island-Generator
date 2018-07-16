@@ -25,6 +25,7 @@ public class StructureV2 : MonoBehaviour {
         _mat = new Material(Shader.Find("Standard"));
 
         MainTest();
+        //SingleTest();
     }
 
     IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
@@ -60,7 +61,7 @@ public class StructureV2 : MonoBehaviour {
 
     public void MainTest()
     {
-        var colors = new Color[] { Color.red, Color.green, Color.blue };
+        var colors = new Color[] { Color.red, Color.green, Color.yellow };
 
         ///Assumptions:
         /// Currently not considering height differences
@@ -150,7 +151,7 @@ public class StructureV2 : MonoBehaviour {
                 layer2.NodeMetadata[n.Index].Code = i + 1;            
         }
 
-        CreateObject(layer2);
+        //CreateObject(layer2);
 
         #endregion
 
@@ -182,7 +183,7 @@ public class StructureV2 : MonoBehaviour {
             layer3.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         }
 
-        CreateObject(layer3);
+        //CreateObject(layer3);
 
         #endregion
 
@@ -214,7 +215,7 @@ public class StructureV2 : MonoBehaviour {
             
         }
 
-        StartCoroutine(CreateSet(layer3, cellDicts,0.1f,5));
+        StartCoroutine(CreateSet(layer3, cellDicts,0.01f,5));
 
         //foreach (var roomCode in cellDicts)
         //{
@@ -370,6 +371,21 @@ public class StructureV2 : MonoBehaviour {
 
         //CreateObject(layer4).name = "Cell " + i;
 
+    }
+
+    public void SingleTest()
+    {
+        var cellIndex = 2;
+        var colors = new Color[] { Color.red, Color.green, Color.blue };
+
+        Debug.Log("Layer 1: ");
+
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
+
+        Debug.Log("Layer 2: ");
+
+        var layer2 = new CleverMesh(layer1, new int[] { cellIndex }, MeshMasher.NestedMeshAccessType.Triangles);
+        CreateObject(layer2);
     }
 
     public GameObject CreateObject(CleverMesh mesh)

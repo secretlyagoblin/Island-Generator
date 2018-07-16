@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 namespace MeshMasher {
 
@@ -305,7 +306,9 @@ namespace MeshMasher {
             //step4:
             //map to derived tris
 
-            var vertsForCulling = new List<KeyValuePair<int, SimpleVector2Int>>();
+            var vertsForCulling = new List<DistinctIndex>(defaultSize);
+
+            UnityEngine.Profiling.Profiler.BeginSample("Initial Mesh Sampling");
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
@@ -334,7 +337,7 @@ namespace MeshMasher {
                         vertCount++;
                         tris.Add(vertCount);
 
-                        vertsForCulling.Add(new KeyValuePair<int, SimpleVector2Int>(vertexIndex, localOffset));
+                        vertsForCulling.Add(new DistinctIndex(vertexIndex, localOffset.x,localOffset.y));
 
                         var innerBarycenter = innerBarycenters[u * 3 + v];
                         vertexBarycenters.Add(innerBarycenter);
@@ -346,51 +349,58 @@ namespace MeshMasher {
                 }
             }
 
-            var distinctValues = new List<KeyValuePair<int, SimpleVector2Int>>();
-            var distinctVerts = new List<Vector3>(defaultSize);
-            var distinctBarycenters = new List<Barycenter>(defaultSize);
-            var distinctBarycenterParentMap = new List<int>(defaultSize);
+            UnityEngine.Profiling.Profiler.EndSample();
 
-            var indexMap = new int[vertsForCulling.Count];
+            UnityEngine.Profiling.Profiler.BeginSample("Final Resolution");
 
-            for (int i = 0; i < vertsForCulling.Count; i++)
+            var distinctValues = new List<DistinctIndex>(defaultSize);
+
+
+            var distinctDict = new Dictionary<DistinctIndex,int >();
+
+            var vertCullLength = vertsForCulling.Count;
+            var distinctValueCount = 0;
+
+            var indexMap = new int[vertCullLength];
+
+            var distinctIndices = new List<int>(defaultSize);
+
+            for (int i = 0; i < vertCullLength; i++)
             {
                 var test = vertsForCulling[i];
                 var testBary = vertexBarycenters[i];
-                var index = distinctValues.Count;
-                var resolved = false;
+                var index = distinctValueCount;
 
-                for (int u = 0; u < distinctValues.Count; u++)
+                //speed info here https://stackoverflow.com/questions/2728500/hashsett-versus-dictionaryk-v-w-r-t-searching-time-to-find-if-an-item-exist#10348367
+                if (distinctDict.ContainsKey(test))
                 {
-                    var distinct = distinctValues[u];
-                    var distinctBary = distinctBarycenters[u];
-                    var distinctTriangleParent = distinctBarycenterParentMap[u];
+                    index = distinctDict[test];
 
-                    if (test.Key == distinct.Key && test.Value == distinct.Value)
-                    {
-                        if (testBary.contained == true)
-                        {
-                            distinctBarycenters[u] = testBary;
-                            distinctBarycenterParentMap[u] = vertexTriangleParents[i];
-                        }
-
-                        if (resolved == false)
-                        {
-                            index = u;
-                            resolved = true;
-                        }
+                    if (testBary.contained == true)
+                    {                        
+                        distinctIndices[distinctDict[test]] = i;
+                        //distinctDict[test] = index;
                     }
                 }
-
-                if (resolved == false)
+                else
                 {
-                    distinctValues.Add(test);
-                    distinctVerts.Add(verts[i]);
-                    distinctBarycenters.Add(vertexBarycenters[i]);
-                    distinctBarycenterParentMap.Add(vertexTriangleParents[i]);
+                    distinctDict.Add(test, index);
+                    distinctIndices.Add(i);
+                    distinctValueCount++;
                 }
 
                 indexMap[i] = index;
+            }
+
+            var distinctVerts = new Vector3[distinctIndices.Count];
+            var distinctBarycenters = new Barycenter[distinctIndices.Count];
+            var distinctBarycenterParentMap = new int[distinctIndices.Count];
+
+            for (int i = 0; i < distinctIndices.Count; i++)
+            {
+                distinctVerts[i] = verts[distinctIndices[i]];
+                distinctBarycenters[i] = vertexBarycenters[distinctIndices[i]];
+                distinctBarycenterParentMap[i] = vertexTriangleParents[distinctIndices[i]];
             }
 
             for (int i = 0; i < tris.Count; i++)
@@ -398,14 +408,16 @@ namespace MeshMasher {
                 tris[i] = indexMap[i];
             }
 
+            UnityEngine.Profiling.Profiler.EndSample();
+
 
             FinaliseData(
-                distinctVerts.ToArray(),
+                distinctVerts,
                 tris.ToArray(),
                 derivedTri.ToArray(),
                 derivedOffset.ToArray(),
-                distinctBarycenterParentMap.ToArray(),
-                distinctBarycenters.ToArray()
+                distinctBarycenterParentMap,
+                distinctBarycenters
             );
         }
 
@@ -560,8 +572,6 @@ namespace MeshMasher {
             return pos;
         }
 
-        //Datastruct required for setting.
-
         private void FinaliseData(
             Vector3[] verts,
             int[] tris,
@@ -578,6 +588,48 @@ namespace MeshMasher {
 
             _barycenterParentMap = barycenterParentMap;
             _barycenters = barycenters;
+
+        }
+
+        private struct DistinctIndex : IEquatable<DistinctIndex>
+        {
+            public int i;
+            public int x;
+            public int y;
+
+            public DistinctIndex(int i, int x, int y)
+            {
+                this.i = i;
+                this.x = x;
+                this.y = y;
+            }
+
+            bool IEquatable<DistinctIndex>.Equals(DistinctIndex other)
+            {
+                return other.x == x && other.y == y && other.i == i;
+            }
+
+            public bool Equals(DistinctIndex other)
+            {
+                return x == other.x && y == other.y && other.i == i;
+            }
+
+            public override int GetHashCode()
+            {
+                return x.GetHashCode() * y.GetHashCode() * i.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return base.Equals(obj);
+            }
+        }
+
+        private struct BarycenterWithParent
+        {
+            public Barycenter b;
+            public int i; //index
+            public int p; //parent
 
         }
     }
