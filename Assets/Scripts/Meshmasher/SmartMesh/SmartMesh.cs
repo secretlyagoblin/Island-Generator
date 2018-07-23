@@ -10,6 +10,9 @@ namespace MeshMasher {
         public List<SmartCell> Cells { get; private set; }
         public List<SmartLine> Lines { get; private set; }
 
+        private Vector3[] _vertices;
+        private int[] _triangles;
+
         Bounds _bounds = new Bounds();
         List<SmartNode>[,,] _buckets;
 
@@ -25,27 +28,27 @@ namespace MeshMasher {
             Cells = new List<SmartCell>(triangles.Length/3);
             Lines = new List<SmartLine>(triangles.Length);
 
-            var verts = vertices;
+            _vertices = vertices;
 
-            for (int i = 0; i < verts.Length; i++)
+            for (int i = 0; i < _vertices.Length; i++)
             {
-                Nodes.Add(new SmartNode(verts[i], i));
-                _bounds.Encapsulate(verts[i]);
+                Nodes.Add(new SmartNode(_vertices[i], i));
+                _bounds.Encapsulate(_vertices[i]);
             }
 
-            var tris = triangles;
+            _triangles = triangles;
 
             var halfEdges = new Dictionary<Coord, SmartLine>();
 
-            for (var x = 0; x < tris.Length; x += 3)
+            for (var x = 0; x < _triangles.Length; x += 3)
             {
-                var cell = new SmartCell(Nodes[tris[x ]], Nodes[tris[x + 1]], Nodes[tris[x + 2]]);
+                var cell = new SmartCell(Nodes[_triangles[x ]], Nodes[_triangles[x + 1]], Nodes[_triangles[x + 2]]);
                 cell.CreateNodeConnections();
                 Cells.Add(cell);
 
-                CreateLineConnections(tris, halfEdges, cell, x, x + 1);
-                CreateLineConnections(tris, halfEdges, cell, x+1, x + 2);
-                CreateLineConnections(tris, halfEdges, cell, x+2, x);
+                CreateLineConnections(_triangles, halfEdges, cell, x, x + 1);
+                CreateLineConnections(_triangles, halfEdges, cell, x+1, x + 2);
+                CreateLineConnections(_triangles, halfEdges, cell, x+2, x);
 
             }
 
@@ -132,10 +135,12 @@ namespace MeshMasher {
 
         public Mesh ToXYMesh()
         {
-            var m = new Mesh();
+            var m = new Mesh
+            {
+                vertices = _vertices,
+                triangles = _triangles
+            };
 
-            m.SetVertices(Nodes.Select(x => new Vector3(x.Vert.x, x.Vert.y,0)).ToList());
-            m.SetTriangles(Cells.SelectMany(x => x.Nodes.Select(y => y.Index)).ToList(), 0);
             m.RecalculateBounds();
             m.RecalculateNormals();
 

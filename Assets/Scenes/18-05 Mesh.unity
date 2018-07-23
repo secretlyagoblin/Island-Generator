@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 973172106}
   - component: {fileID: 973172105}
   - component: {fileID: 973172104}
+  - component: {fileID: 973172108}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -187,13 +188,26 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 973172103}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.054571055, y: 0.8241604, z: 0.080611326, w: 0.55792785}
+  m_LocalPosition: {x: 18.170422, y: 47.079033, z: 1.0210406}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -11.173, y: 111.80701, z: 0}
+--- !u!114 &973172108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 973172103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108d9a1ac854e524082f6f24b30e1126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Speed: 0.01
+  MoveForward: 1
 --- !u!1 &1476909661
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,8 +285,11 @@ MonoBehaviour:
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   meshTileData: {fileID: 4900000, guid: e2c2d6300bb416149b7f004d659168fc, type: 3}
-  _meshColours: {fileID: 2100000, guid: 278595ba8bf1e5043b21354721ed94b2, type: 2}
+  MeshColourMaterial: {fileID: 2100000, guid: 278595ba8bf1e5043b21354721ed94b2, type: 2}
+  BlankTemplate: {fileID: 1580762146238424, guid: 4c0f1ab06c6869f46be5f47d8b7a497d,
+    type: 2}
   EnablePreview: 1
+  RunAsync: 1
 --- !u!4 &1476909663
 Transform:
   m_ObjectHideFlags: 0

@@ -308,7 +308,7 @@ namespace MeshMasher {
 
             var vertsForCulling = new List<DistinctIndex>(defaultSize);
 
-            UnityEngine.Profiling.Profiler.BeginSample("Initial Mesh Sampling");
+            //UnityEngine.Profiling.Profiler.BeginSample("Initial Mesh Sampling");
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
@@ -349,9 +349,9 @@ namespace MeshMasher {
                 }
             }
 
-            UnityEngine.Profiling.Profiler.EndSample();
+            //UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("Final Resolution");
+            //UnityEngine.Profiling.Profiler.BeginSample("Final Resolution");
 
             var distinctValues = new List<DistinctIndex>(defaultSize);
 
@@ -408,7 +408,7 @@ namespace MeshMasher {
                 tris[i] = indexMap[i];
             }
 
-            UnityEngine.Profiling.Profiler.EndSample();
+            //UnityEngine.Profiling.Profiler.EndSample();
 
 
             FinaliseData(

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using U3D.Threading.Tasks;
 
 public class StructureV2 : MonoBehaviour {
 
@@ -11,11 +12,15 @@ public class StructureV2 : MonoBehaviour {
     public Gradient Gradient;
     public TextAsset meshTileData;
 
-    public Material _meshColours;
+    public Material MeshColourMaterial;
+    public GameObject BlankTemplate;
 
     public bool EnablePreview = true;
+    public bool RunAsync = false;
 
     Material _mat;
+
+    Queue<CleverMesh> _workQueue = new Queue<CleverMesh>();
 
     // Use this for initialization
     void Start()
@@ -26,6 +31,20 @@ public class StructureV2 : MonoBehaviour {
 
         MainTest();
         //SingleTest();
+    }
+
+    private void Update()
+    {
+        var count = 0;
+
+        while(_workQueue.Count > 0 && count <5)
+        {
+            count++;
+            CreateObject(_workQueue.Dequeue());
+        }
+
+        //if (_workQueue.Count > 0)
+        //    CreateObject(_workQueue.Dequeue());
     }
 
     IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
@@ -75,6 +94,8 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
+        /// 
+
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
         var cellIndex = 2;
 
@@ -215,7 +236,23 @@ public class StructureV2 : MonoBehaviour {
             
         }
 
-        StartCoroutine(CreateSet(layer3, cellDicts,0.01f,5));
+        if (RunAsync)
+        {
+            StartCoroutine(CreateSetAsync(layer3, cellDicts, 1, 0f));
+        }
+        else
+        {
+            StartCoroutine(CreateSet(layer3, cellDicts, 0, 1));
+        }
+
+
+
+
+
+        return;
+
+
+        
 
         //foreach (var roomCode in cellDicts)
         //{
@@ -225,7 +262,7 @@ public class StructureV2 : MonoBehaviour {
         //    go.name = "Region " +roomCode.Key;
         //}
 
-        return;
+
 
         //var layer4 = 
         //layer4.Mesh.DrawMesh(transform, Color.green, Color.red);
@@ -388,25 +425,36 @@ public class StructureV2 : MonoBehaviour {
         CreateObject(layer2);
     }
 
+    List<Color> _createObjectColors = new List<Color>(100);
+
     public GameObject CreateObject(CleverMesh mesh)
     {
-        var gameObject = new GameObject();
+
+        var gameObject = Instantiate(BlankTemplate, transform);
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
-        r.sharedMaterial = _meshColours;
+        r.sharedMaterial = MeshColourMaterial;
         //f.mesh = layer5.Mesh.ToXYMesh();
         f.mesh = mesh.Mesh.ToXYMesh();
-        f.mesh.SetColors(mesh.NodeMetadata.Select(x => x.SmoothColor).ToList());
+
+        _createObjectColors.Clear();
+
+        for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+        {
+            _createObjectColors.Add(mesh.NodeMetadata[i].SmoothColor);
+        }
+
+        f.mesh.SetColors(_createObjectColors);
 
         return gameObject;
     }
 
     public GameObject CreateBaryObject(CleverMesh mesh)
     {
-        var gameObject = new GameObject();
+        var gameObject = Instantiate(BlankTemplate,transform);
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
-        r.sharedMaterial = _meshColours;
+        r.sharedMaterial = MeshColourMaterial;
         //f.mesh = layer5.Mesh.ToXYMesh();
         f.mesh = mesh.GetBarycenterDebugMesh();
         //f.mesh.SetColors(mesh.CellMetadata.Select(x => x.SmoothColor).ToList());
@@ -446,12 +494,67 @@ public class StructureV2 : MonoBehaviour {
             if(count == batchCount)
             {
                 count = 0;
-                yield return waitForSeconds;
+
+                if(timeDelay == 0)
+                {
+                    yield return null;
+                }
+                else
+                {
+                    yield return waitForSeconds;
+                }                
             }
 
             
 
             
+        }
+    }
+
+    IEnumerator CreateSetAsync(CleverMesh parent, Dictionary<int, List<int>> sets, int divisions, float timeDelay)
+    {
+        yield return new WaitForSeconds(timeDelay);
+
+        var queues = new Queue<KeyValuePair<int, List<int>>>[divisions];
+
+        for (int i = 0; i < divisions; i++)
+        {
+            queues[i] = new Queue<KeyValuePair<int, List<int>>>();
+        }
+
+        var iterator = 0;
+
+        foreach (var roomCode in sets)
+        {
+            queues[iterator].Enqueue(roomCode);
+            iterator++;
+            if (iterator == divisions)
+                iterator = 0;
+        }
+
+        for (int i = 0; i < divisions; i++)
+        {
+            var q = queues[i];
+
+            Task.Run(() =>
+            {
+                while (q.Count > 0)
+                {
+                    var roomCode = q.Dequeue();
+
+                    if (roomCode.Key == 0)
+                        continue;
+
+                    var cleverMesh = new CleverMesh(parent, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+
+                    lock (_workQueue)
+                    {
+                        _workQueue.Enqueue(cleverMesh);
+                    }
+                }
+            });
+
+            yield return null;
         }
     }
 
