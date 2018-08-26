@@ -39,6 +39,8 @@ public class StructureV2 : MonoBehaviour {
 
         while(_workQueue.Count > 0 && count <5)
         {
+            var mesh = _workQueue.Dequeue();
+
             count++;
             CreateObject(_workQueue.Dequeue());
         }
@@ -118,7 +120,7 @@ public class StructureV2 : MonoBehaviour {
 
         #region layer two
 
-        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(),MeshMasher.NestedMeshAccessType.Triangles);
+        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Triangles);
 
         // 1: Create a boundary area that is a no-go zone.
 
@@ -158,18 +160,18 @@ public class StructureV2 : MonoBehaviour {
         for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         {
             var n = layer2.Mesh.Nodes[i];
-        
+
             if (layer2Border.Nodes[n.Index] == 1 | layer2.NodeMetadata[i].Code == 0)
                 continue;
-        
-                layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
-                layer2.NodeMetadata[n.Index].Connections = n
-                    .Lines
-                    .Where(x => layer2State.Lines[x.Index] == 1)
-                    .Select(x => x.GetOtherNode(n).Index + 1)
-                    .Union(new List<int>() { i + 1 })
-                    .ToArray();
-                layer2.NodeMetadata[n.Index].Code = i + 1;            
+
+            layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
+            layer2.NodeMetadata[n.Index].Connections = n
+                .Lines
+                .Where(x => layer2State.Lines[x.Index] == 1)
+                .Select(x => x.GetOtherNode(n).Index + 1)
+                .Union(new List<int>() { i + 1 })
+                .ToArray();
+            layer2.NodeMetadata[n.Index].Code = i + 1;
         }
 
         //CreateObject(layer2);
@@ -222,18 +224,16 @@ public class StructureV2 : MonoBehaviour {
 
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
+            var code = layer3.CellMetadata[i].Code;
 
-                var code = layer3.CellMetadata[i].Code;
-
-                if (cellDicts.ContainsKey(code))
-                {
-                    cellDicts[code].Add(i);
-                }
-                else
-                {
-                    cellDicts.Add(code, new List<int>() { i });
-                }
-            
+            if (cellDicts.ContainsKey(code))
+            {
+                cellDicts[code].Add(i);
+            }
+            else
+            {
+                cellDicts.Add(code, new List<int>() { i });
+            }
         }
 
         if (RunAsync)
@@ -245,14 +245,10 @@ public class StructureV2 : MonoBehaviour {
             StartCoroutine(CreateSet(layer3, cellDicts, 0, 1));
         }
 
-
-
-
-
         return;
 
 
-        
+
 
         //foreach (var roomCode in cellDicts)
         //{

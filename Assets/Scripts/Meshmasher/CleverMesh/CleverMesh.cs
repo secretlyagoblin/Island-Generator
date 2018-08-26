@@ -29,7 +29,18 @@ public class CleverMesh {
     {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
-        CellMetadata = _nMesh.BlerpNodeToCellValues(NodeMetadata);
+
+        switch (type)
+        {
+            case NestedMeshAccessType.Vertex:
+                CellMetadata = _nMesh.BlerpNodeToCellValuesUsingDerivedCenter(NodeMetadata);
+                break;
+            case NestedMeshAccessType.Triangles:
+                CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata);
+                break;
+        }
+
+
         _sMesh = new SmartMesh(_nMesh.Verts,_nMesh.Tris);
     }
 
@@ -57,5 +68,4 @@ public class CleverMesh {
     {
         return _nMesh.CreateBaryDebugMesh();
     }
-
 }

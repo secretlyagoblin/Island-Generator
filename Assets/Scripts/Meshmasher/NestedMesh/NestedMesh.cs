@@ -16,7 +16,10 @@ namespace MeshMasher {
         public int NestedLevel = 0;
 
         private int[] _barycenterParentMap;
+
         private Barycenter[] _barycenters;
+        private Barycenter[] _centerBarycenters;
+
         private MeshTile _meshTile;
         private double _parentScale;
 
@@ -267,7 +270,7 @@ namespace MeshMasher {
                 }
             }
 
-            FinaliseData(            
+            FinaliseData(
                 verts.ToArray(),
                 tris.ToArray(),
                 derivedTri.ToArray(),
@@ -275,22 +278,24 @@ namespace MeshMasher {
                 //triangleBarycenterParentMap.ToArray(),
                 //triangleBarycenters.ToArray(),
                 baryMap.ToArray(),
-                bary.ToArray()
+                bary.ToArray(),
+                new Barycenter[] {}
             );
         }
 
         public void PopulateMeshByTriangleCenterContainment(NestedMesh originMesh, int[] meshAccessIndices)
         {
-            var defaultSize = meshAccessIndices.Length*35;
+            var defaultSize = meshAccessIndices.Length * 35;
 
             var verts = new List<Vector3>(defaultSize);
-            var tris = new List<int>(defaultSize*3);
+            var tris = new List<int>(defaultSize * 3);
             var derivedTri = new List<int>(defaultSize);
             var derivedOffset = new List<SimpleVector2Int>(defaultSize);
             var parentNestedLevel = CalcuateOffset(NestedLevel - 1);
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
             var vertexBarycenters = new List<Barycenter>(defaultSize);
+            var triangeBarycenters = new List<Barycenter>(defaultSize);
             var vertexTriangleParents = new List<int>(defaultSize);
 
             //Debug.Log("Creating Triangle Access Mesh at Offset Level " + currentNestedOffset);
@@ -337,13 +342,15 @@ namespace MeshMasher {
                         vertCount++;
                         tris.Add(vertCount);
 
-                        vertsForCulling.Add(new DistinctIndex(vertexIndex, localOffset.x,localOffset.y));
+                        vertsForCulling.Add(new DistinctIndex(vertexIndex, localOffset.x, localOffset.y));
 
                         var innerBarycenter = innerBarycenters[u * 3 + v];
                         vertexBarycenters.Add(innerBarycenter);
                         vertexTriangleParents.Add(meshAccessIndices[i]);
+
                     }
 
+                    triangeBarycenters.Add(innerTriangleBarycenter);
                     derivedTri.Add(subTriangleIndexes[u]);
                     derivedOffset.Add(subTriangleTiles[u]);
                 }
@@ -356,7 +363,7 @@ namespace MeshMasher {
             var distinctValues = new List<DistinctIndex>(defaultSize);
 
 
-            var distinctDict = new Dictionary<DistinctIndex,int >();
+            var distinctDict = new Dictionary<DistinctIndex, int>();
 
             var vertCullLength = vertsForCulling.Count;
             var distinctValueCount = 0;
@@ -377,7 +384,7 @@ namespace MeshMasher {
                     index = distinctDict[test];
 
                     if (testBary.contained == true)
-                    {                        
+                    {
                         distinctIndices[distinctDict[test]] = i;
                         //distinctDict[test] = index;
                     }
@@ -417,8 +424,9 @@ namespace MeshMasher {
                 derivedTri.ToArray(),
                 derivedOffset.ToArray(),
                 distinctBarycenterParentMap,
-                distinctBarycenters
-            );
+                distinctBarycenters,
+                triangeBarycenters.ToArray()
+                );
         }
 
         //Blerp based on parents
@@ -444,7 +452,7 @@ namespace MeshMasher {
             return nestedValues;
         }
 
-        public T[] BlerpNodeToCellValues<T>(T[] nodeValues) where T : IBlerpable<T>
+        public T[] BlerpNodeToCellValuesUsingDerivedCenter<T>(T[] nodeValues) where T : IBlerpable<T>
         {
             var len = Tris.Length / 3;
             var nestedValues = new T[len];
@@ -458,7 +466,25 @@ namespace MeshMasher {
 
                 nestedValues[i] = (nodeValues[0].Blerp(a, b, c, Barycenter.center));
             }
+            return nestedValues;
+        }
 
+        public T[] BlerpNodeToCellValuesUsingParentCenter<T>(T[] originValues) where T : IBlerpable<T>
+        {
+            var len = Tris.Length / 3;
+            var nestedValues = new T[len];
+
+            for (int i = 0; i < len; i++)
+            {
+                var barycenter = _centerBarycenters[i];
+                var index = i * 3;
+
+                var a = originValues[Tris[index]];
+                var b = originValues[Tris[index + 1]];
+                var c = originValues[Tris[index + 2]];
+
+                nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
+            }
             return nestedValues;
         }
 
@@ -488,7 +514,6 @@ namespace MeshMasher {
                 triangles = Tris,
                 colors = _barycenters.Select(x => new Color(x.u, x.v, x.w)).ToArray()
             };
-
             return mesh;
         }
 
@@ -562,7 +587,6 @@ namespace MeshMasher {
 
         private Vector3 CalculateVertexOffset(int vertexIndex, SimpleVector2Int tile, SimpleVector2Int subTile, float offsetMagnitude)
         {
-
             var pos = _meshTile.Positions[vertexIndex];
             pos += new Vector3(subTile.x * _meshTile.Scale, subTile.y * _meshTile.Scale, 0); //suboffset
             pos += new Vector3(tile.x * _meshTile.Scale * _meshTile.NestingScale, tile.y * _meshTile.Scale * _meshTile.NestingScale, 0); //offset
@@ -578,7 +602,8 @@ namespace MeshMasher {
             int[] derivedTri,
             SimpleVector2Int[] tileOffsets,
             int[] barycenterParentMap,
-            Barycenter[] barycenters)
+            Barycenter[] barycenters,
+            Barycenter[] centerBarycenters)
         {
             Verts = verts;
             Tris = tris;
@@ -588,6 +613,7 @@ namespace MeshMasher {
 
             _barycenterParentMap = barycenterParentMap;
             _barycenters = barycenters;
+            _centerBarycenters = centerBarycenters;
 
         }
 
