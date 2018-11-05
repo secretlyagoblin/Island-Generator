@@ -469,7 +469,7 @@ namespace MeshMasher {
             return nestedValues;
         }
 
-        public T[] BlerpNodeToCellValuesUsingParentCenter<T>(T[] originValues) where T : IBlerpable<T>
+        public T[] BlerpNodeToCellValuesUsingParentCenter<T>(T[] originValues, NestedMesh parentMesh) where T : IBlerpable<T>
         {
             var len = Tris.Length / 3;
             var nestedValues = new T[len];
@@ -479,9 +479,9 @@ namespace MeshMasher {
                 var barycenter = _centerBarycenters[i];
                 var index = i * 3;
 
-                var a = originValues[Tris[index]];
-                var b = originValues[Tris[index + 1]];
-                var c = originValues[Tris[index + 2]];
+                var a = originValues[parentMesh.Tris[index]];
+                var b = originValues[parentMesh.Tris[index + 1]];
+                var c = originValues[parentMesh.Tris[index + 2]];
 
                 nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
             }

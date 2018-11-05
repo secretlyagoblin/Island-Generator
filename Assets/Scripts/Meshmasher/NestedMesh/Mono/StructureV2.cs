@@ -39,14 +39,9 @@ public class StructureV2 : MonoBehaviour {
 
         while(_workQueue.Count > 0 && count <5)
         {
-            var mesh = _workQueue.Dequeue();
-
             count++;
             CreateObject(_workQueue.Dequeue());
         }
-
-        //if (_workQueue.Count > 0)
-        //    CreateObject(_workQueue.Dequeue());
     }
 
     IEnumerator CreateBit(CleverMesh mesh, int chunkSize)
@@ -96,7 +91,6 @@ public class StructureV2 : MonoBehaviour {
         #region layer one
 
         /// 1: Create a single triangle
-        /// 
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
         var cellIndex = 2;
@@ -120,7 +114,7 @@ public class StructureV2 : MonoBehaviour {
 
         #region layer two
 
-        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Triangles);
+        var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood(), MeshMasher.NestedMeshAccessType.Vertex);
 
         // 1: Create a boundary area that is a no-go zone.
 
@@ -186,7 +180,7 @@ public class StructureV2 : MonoBehaviour {
 
         #region layer three
 
-        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray());
+        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
 
         for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
         {
@@ -238,7 +232,7 @@ public class StructureV2 : MonoBehaviour {
 
         if (RunAsync)
         {
-            StartCoroutine(CreateSetAsync(layer3, cellDicts, 1, 0f));
+            CreateSetAsync(layer3, cellDicts, 1);
         }
         else
         {
@@ -425,7 +419,6 @@ public class StructureV2 : MonoBehaviour {
 
     public GameObject CreateObject(CleverMesh mesh)
     {
-
         var gameObject = Instantiate(BlankTemplate, transform);
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
@@ -499,18 +492,12 @@ public class StructureV2 : MonoBehaviour {
                 {
                     yield return waitForSeconds;
                 }                
-            }
-
-            
-
-            
+            }         
         }
     }
 
-    IEnumerator CreateSetAsync(CleverMesh parent, Dictionary<int, List<int>> sets, int divisions, float timeDelay)
+    void CreateSetAsync(CleverMesh parent, Dictionary<int, List<int>> sets, int divisions)
     {
-        yield return new WaitForSeconds(timeDelay);
-
         var queues = new Queue<KeyValuePair<int, List<int>>>[divisions];
 
         for (int i = 0; i < divisions; i++)
@@ -548,13 +535,7 @@ public class StructureV2 : MonoBehaviour {
                         _workQueue.Enqueue(cleverMesh);
                     }
                 }
-            });
-
-            yield return null;
+            }).ContinueInMainThreadWith((x)=> { Debug.Log("Hell yeah we completed that one"); });
         }
     }
-
-
-
-
 }

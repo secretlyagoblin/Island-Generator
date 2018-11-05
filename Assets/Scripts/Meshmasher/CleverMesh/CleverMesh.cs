@@ -36,7 +36,7 @@ public class CleverMesh {
                 CellMetadata = _nMesh.BlerpNodeToCellValuesUsingDerivedCenter(NodeMetadata);
                 break;
             case NestedMeshAccessType.Triangles:
-                CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata);
+                CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata,parent._nMesh);
                 break;
         }
 
