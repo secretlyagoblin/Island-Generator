@@ -29,8 +29,8 @@ public class StructureV2 : MonoBehaviour {
 
         _mat = new Material(Shader.Find("Standard"));
 
-        MainTest();
-        //SingleTest();
+        //MainTest();
+        SingleTest();
     }
 
     private void Update()
@@ -402,16 +402,20 @@ public class StructureV2 : MonoBehaviour {
 
     public void SingleTest()
     {
-        var cellIndex = 2;
+        var cellIndex = 3;
         var colors = new Color[] { Color.red, Color.green, Color.blue };
 
         Debug.Log("Layer 1: ");
 
-        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero, Vector2Int.right, Vector2Int.one }, new MeshTile(meshTileData.text));
+
+        CreateObject(layer1);
+
+        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ConvertAll(x => x.Index).ToArray();
 
         Debug.Log("Layer 2: ");
-
-        var layer2 = new CleverMesh(layer1, new int[] { cellIndex }, MeshMasher.NestedMeshAccessType.Triangles);
+        
+        var layer2 = new CleverMesh(layer1,neighbourhood, MeshMasher.NestedMeshAccessType.Triangles);
         CreateObject(layer2);
     }
 

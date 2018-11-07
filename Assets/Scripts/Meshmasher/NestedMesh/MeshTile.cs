@@ -29,6 +29,9 @@ public class MeshTile {
 
     public Barycenter[][] TriangleBarycentricContainment;
 
+    public int[][] MeshTopology;
+    public SimpleVector2Int[][] MeshTopologyOffset;
+
     public MeshTile(string meshTileJSON)
     {
         PopulateFromString(meshTileJSON);
@@ -74,8 +77,7 @@ public class MeshTile {
 
         //InnerIndexList
 
-        ScaledVerts = new int[importObject.innerPointIndexList.Length][];
-        SubTileOffsets = new SimpleVector2Int[importObject.innerPointIndexList.Length][];
+
         Barycenters = new Barycenter[importObject.innerPointIndexList.Length][];
 
         //ScaledTrianglesOwnedByPoints= public int[][]            
@@ -86,19 +88,62 @@ public class MeshTile {
         {
             var innerCount = importObject.innerPointIndexList[u];
 
-            ScaledVerts[u] = new int[innerCount];
-            SubTileOffsets[u] = new SimpleVector2Int[innerCount];
+            //ScaledVerts[u] = new int[innerCount];
+            //SubTileOffsets[u] = new SimpleVector2Int[innerCount];
 
             Barycenters[u] = new Barycenter[innerCount];
 
 
             for (int v = 0; v < innerCount; v++)
             {
-                ScaledVerts[u][v] = importObject.nestedPointIndexes[count];
-                SubTileOffsets[u][v] = new SimpleVector2Int(importObject.nested2dPointOffsets[count * 2], importObject.nested2dPointOffsets[(count * 2) + 1]);
+                //ScaledVerts[u][v] = importObject.nestedPointIndexes[count];
+                //SubTileOffsets[u][v] = new SimpleVector2Int(importObject.nested2dPointOffsets[count * 2], importObject.nested2dPointOffsets[(count * 2) + 1]);
 
                 Barycenters[u][v] = new Barycenter(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2], true, false);
 
+                count++;
+            }
+        }
+
+        count = 0;
+
+        ScaledVerts = new int[importObject.innerPointIndexList.Length][];
+        SubTileOffsets = new SimpleVector2Int[importObject.innerPointIndexList.Length][];
+
+        for (int u = 0; u < importObject.innerCellPointIndexList.Length; u++)
+        {
+            var innerCount = importObject.innerCellPointIndexList[u];
+
+            ScaledVerts[u] = new int[innerCount];
+            SubTileOffsets[u] = new SimpleVector2Int[innerCount];
+
+            for (int v = 0; v < innerCount; v++)
+            {
+                var count2 = count * 2;
+                ScaledVerts[u][v] = importObject.nestedPointIndexes[count];
+                SubTileOffsets[u][v] = new SimpleVector2Int(importObject.nested2dPointOffsets[count2], importObject.nested2dPointOffsets[(count2) + 1]);
+
+                count++;
+            }
+        }
+
+        count = 0;
+
+        MeshTopology = new int[importObject.topologyCount.Length][];
+        MeshTopologyOffset = new SimpleVector2Int[importObject.topologyCount.Length][];
+
+        for (int u = 0; u < importObject.topologyCount.Length; u++)
+        {
+            var innerCount = importObject.topologyCount[u];
+
+            MeshTopology[u] = new int[innerCount];
+            MeshTopologyOffset[u] = new SimpleVector2Int[innerCount];
+
+            for (int v = 0; v < innerCount; v++)
+            {
+                var count2 = count * 2;
+                MeshTopology[u][v] = importObject.topology[count];
+                MeshTopologyOffset[u][v] = new SimpleVector2Int(importObject.topologyOffset[count2], importObject.topologyOffset[(count2) + 1]);
                 count++;
             }
         }
@@ -179,6 +224,7 @@ public class MeshTile {
         public float[] nestedDistanceFromNodeCenter;
         public int[] topologyCount;
         public int[] topology;
-        public float[] topologyOffset;
+        public int[] topologyOffset;
+        public int[] innerCellPointIndexList;
     }
 }

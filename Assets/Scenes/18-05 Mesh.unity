@@ -284,7 +284,7 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
-  meshTileData: {fileID: 4900000, guid: e2c2d6300bb416149b7f004d659168fc, type: 3}
+  meshTileData: {fileID: 4900000, guid: ae479c7c3e14fe34abb0d533c943b1c2, type: 3}
   MeshColourMaterial: {fileID: 2100000, guid: 278595ba8bf1e5043b21354721ed94b2, type: 2}
   BlankTemplate: {fileID: 1580762146238424, guid: 4c0f1ab06c6869f46be5f47d8b7a497d,
     type: 2}

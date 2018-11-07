@@ -14,12 +14,12 @@ public class CleverMesh {
 
     //Create from scratch
 
-    public CleverMesh(Vector2Int seedTile, MeshTile meshTile) :this(new List<Vector2Int>() { seedTile }, meshTile){}
-
-    public CleverMesh(List<Vector2Int> seedTiles,  MeshTile meshTile)
+    public CleverMesh(List<Vector2Int> seedTiles, MeshTile meshTile)
     {
         Init(seedTiles, meshTile);
     }
+
+    public CleverMesh(Vector2Int seedTile, MeshTile meshTile) :this(new List<Vector2Int>() { seedTile }, meshTile){}
 
     //Create nested later
 
