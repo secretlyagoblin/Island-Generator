@@ -415,7 +415,7 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 2: ");
         
-        var layer2 = new CleverMesh(layer1,neighbourhood, MeshMasher.NestedMeshAccessType.Triangles);
+        var layer2 = new CleverMesh(layer1,neighbourhood, MeshMasher.NestedMeshAccessType.Vertex);
         CreateObject(layer2);
     }
 

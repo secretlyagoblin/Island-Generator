@@ -62,22 +62,7 @@ namespace MeshMasher {
                 {
                     vertCount++;
 
-                    //var instance = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    //instance.transform.position = mesh.Positions[u] + new Vector3(chunksToSpawn[i].x * intOffset, chunksToSpawn[i].y * intOffset);
-                    //instance.transform.localScale = Vector3.one*0.65f;
-                    //values[u] = new Color(Random.Range(0.1f, 1f), Random.Range(0.2f, 1f), Random.Range(0.3f, 1f));
-                    //valuesHeight[u] = Random.Range(0.1f, 15f);
-
-                    //var mat = new Material(instance.GetComponent<MeshRenderer>().material);
-                    //
-                    //mat.color = values[i];
-                    //instance.GetComponent<MeshRenderer>().material = mat;
-
                     var pos = _meshTile.Positions[u] + new Vector3(tiles[i].x * _meshTile.Scale, tiles[i].y * _meshTile.Scale);
-
-                    //var instance = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    //instance.transform.position = pos;
-
                     verts.Add(pos);
 
                     baseDict[tiles[i]][u] = vertCount;
