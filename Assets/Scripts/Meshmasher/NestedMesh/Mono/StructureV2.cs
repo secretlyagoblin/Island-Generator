@@ -37,7 +37,9 @@ public class StructureV2 : MonoBehaviour {
     {
         var count = 0;
 
-        while(_workQueue.Count > 0 && count <5)
+        //Debug.Log("Work Queue = " + _workQueue.Count);
+
+        while(_workQueue.Count > 0 && count <12)
         {
             count++;
             CreateObject(_workQueue.Dequeue());
@@ -409,14 +411,18 @@ public class StructureV2 : MonoBehaviour {
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero, Vector2Int.right, Vector2Int.one }, new MeshTile(meshTileData.text));
 
-        CreateObject(layer1);
+        //CreateObject(layer1);
 
-        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ConvertAll(x => x.Index).ToArray();
+        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ConvertAll(x => x.Index);
+        neighbourhood.Add(cellIndex);
 
         Debug.Log("Layer 2: ");
         
-        var layer2 = new CleverMesh(layer1,neighbourhood, MeshMasher.NestedMeshAccessType.Vertex);
-        CreateObject(layer2);
+        var layer2 = new CleverMesh(layer1, neighbourhood.ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+        //CreateObject(layer2);
+
+        CreateSimpleVertexJobAsync(layer2);
+        
     }
 
     List<Color> _createObjectColors = new List<Color>(100);
@@ -542,4 +548,25 @@ public class StructureV2 : MonoBehaviour {
             }).ContinueInMainThreadWith((x)=> { Debug.Log("Hell yeah we completed that one"); });
         }
     }
+
+    void CreateSimpleVertexJobAsync(CleverMesh parent)
+    {
+        var count = parent.Mesh.Nodes.Count;
+
+        Task.Run(() =>
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, MeshMasher.NestedMeshAccessType.Vertex);
+
+                lock (_workQueue)
+                {
+                    _workQueue.Enqueue(cleverMesh);
+                }
+            }
+        });//.ContinueInMainThreadWith((x) => { Debug.Log("Task completed: " + x.IsCompleted); });
+
+    }
+
+
 }

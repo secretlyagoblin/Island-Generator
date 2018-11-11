@@ -10,7 +10,7 @@ namespace MeshMasher {
 
         public Vector3[] Verts;
         public int[] Tris;
-        public int[] DerivedTri;//1/3 tris
+        public int[] DerivedVerts;//1/3 tris
         public SimpleVector2Int[] TileOffsets;
         public double Scale = 1.0;
         public int NestedLevel = 0;
@@ -37,7 +37,7 @@ namespace MeshMasher {
 
             var verts = new List<Vector3>();
             var tris = new List<int>();
-            var derivedTri = new List<int>();
+            var derivedVerts = new List<int>();
             var derivedOffset = new List<SimpleVector2Int>();
 
             var baseDict = new Dictionary<SimpleVector2Int, int[]>();
@@ -64,6 +64,9 @@ namespace MeshMasher {
 
                     var pos = _meshTile.Positions[u] + new Vector3(tiles[i].x * _meshTile.Scale, tiles[i].y * _meshTile.Scale);
                     verts.Add(pos);
+
+                    derivedVerts.Add(u);
+                    derivedOffset.Add(tiles[i]);
 
                     baseDict[tiles[i]][u] = vertCount;
                 }
@@ -103,15 +106,15 @@ namespace MeshMasher {
                     tris.Add(baseDict[tileB][b]);
                     tris.Add(baseDict[tileA][a]);
 
-                    derivedTri.Add(u);
-                    derivedOffset.Add(tiles[i] + _meshTile.CenterOffsets[u]);
+                    //derivedVerts.Add(u);
+                    //
 
                 }
             }
 
             Verts = verts.ToArray();
             Tris = tris.ToArray();
-            DerivedTri = derivedTri.ToArray();
+            DerivedVerts = derivedVerts.ToArray();
             TileOffsets = derivedOffset.ToArray();
         }
 
@@ -144,7 +147,7 @@ namespace MeshMasher {
             var tris = new List<int>(defaultSize*3);
             var bary = new List<Barycenter>(defaultSize);
             var baryMap = new List<int>(defaultSize);
-            var derivedTri = new List<int>(defaultSize);
+            var derivedVerts = new List<int>(defaultSize);
             var derivedOffset = new List<SimpleVector2Int>(defaultSize);
             var baseDict = new Dictionary<SimpleVector2Int, int[]>(defaultSize);
             var indexMap = new int[_meshTile.Positions.Length];
@@ -165,11 +168,11 @@ namespace MeshMasher {
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
-                var subVerts = _meshTile.ScaledVerts[originMesh.DerivedTri[meshAccessIndices[i]]];
-                var subTiles = _meshTile.SubTileOffsets[originMesh.DerivedTri[meshAccessIndices[i]]];
+                var subVerts = _meshTile.ScaledVerts[originMesh.DerivedVerts[meshAccessIndices[i]]];
+                var subTiles = _meshTile.SubTileOffsets[originMesh.DerivedVerts[meshAccessIndices[i]]];
                 var tile = originMesh.TileOffsets[meshAccessIndices[i]];
 
-                var subBarycenters = _meshTile.Barycenters[originMesh.DerivedTri[meshAccessIndices[i]]];
+                var subBarycenters = _meshTile.Barycenters[originMesh.DerivedVerts[meshAccessIndices[i]]];
 
                 for (int u = 0; u < subVerts.Length; u++)
                 {
@@ -198,6 +201,9 @@ namespace MeshMasher {
                         baseDict.Add(key, (int[])indexMap.Clone());
                         baseDict[key][subVert] = vertCount;
                     }
+
+                    derivedVerts.Add(subVert);
+                    derivedOffset.Add(key);
                 }
             }
 
@@ -250,15 +256,13 @@ namespace MeshMasher {
                     tris.Add(trueB);
                     tris.Add(trueA);
 
-                    derivedTri.Add(u);
-                    derivedOffset.Add(tiles[i]);
                 }
             }
 
             FinaliseData(
                 verts.ToArray(),
                 tris.ToArray(),
-                derivedTri.ToArray(),
+                derivedVerts.ToArray(),
                 derivedOffset.ToArray(),
                 //triangleBarycenterParentMap.ToArray(),
                 //triangleBarycenters.ToArray(),
@@ -302,11 +306,11 @@ namespace MeshMasher {
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
-                var subTriangleIndexes = _meshTile.NestedTriangleIndexes[originMesh.DerivedTri[meshAccessIndices[i]]];
-                var subTriangleTiles = _meshTile.TriangleSubTileOffsets[originMesh.DerivedTri[meshAccessIndices[i]]];
-                var innerBarycenters = _meshTile.TriangleBarycentricContainment[originMesh.DerivedTri[meshAccessIndices[i]]];
+                var subTriangleIndexes = _meshTile.NestedTriangleIndexes[originMesh.DerivedVerts[meshAccessIndices[i]]];
+                var subTriangleTiles = _meshTile.TriangleSubTileOffsets[originMesh.DerivedVerts[meshAccessIndices[i]]];
+                var innerBarycenters = _meshTile.TriangleBarycentricContainment[originMesh.DerivedVerts[meshAccessIndices[i]]];
                 var tile = originMesh.TileOffsets[meshAccessIndices[i]];
-                var innerTriangleBarycenters = _meshTile.TriangleCenterBarycenters[originMesh.DerivedTri[meshAccessIndices[i]]];
+                var innerTriangleBarycenters = _meshTile.TriangleCenterBarycenters[originMesh.DerivedVerts[meshAccessIndices[i]]];
 
 
                 for (int u = 0; u < subTriangleIndexes.Length; u++)
@@ -592,7 +596,7 @@ namespace MeshMasher {
         {
             Verts = verts;
             Tris = tris;
-            DerivedTri = derivedTri;
+            DerivedVerts = derivedTri;
             TileOffsets = tileOffsets;
 
 
