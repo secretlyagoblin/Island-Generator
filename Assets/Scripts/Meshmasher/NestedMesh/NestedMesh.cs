@@ -134,7 +134,6 @@ namespace MeshMasher {
                     PopulateMeshByTriangleCenterContainment(originMesh, meshAccessIndices);
                     break;
             }
-
         }
 
         // Populate Mesh
@@ -187,8 +186,6 @@ namespace MeshMasher {
                     verts.Add(pos);
                     bary.Add(subBarycenter);
                     baryMap.Add(meshAccessIndices[i]);
-                    //baryMap.Add(originMesh.)
-
 
                     var key = subTile + (tile * _meshTile.NestingScale);
 
@@ -278,7 +275,7 @@ namespace MeshMasher {
 
             var verts = new List<Vector3>(defaultSize);
             var tris = new List<int>(defaultSize * 3);
-            var derivedTri = new List<int>(defaultSize);
+            var derivedVerts = new List<int>(defaultSize);
             var derivedOffset = new List<SimpleVector2Int>(defaultSize);
             var parentNestedLevel = CalcuateOffset(NestedLevel - 1);
             var currentNestedOffset = CalcuateOffset(NestedLevel);
@@ -340,8 +337,8 @@ namespace MeshMasher {
                     }
 
                     triangeBarycenters.Add(innerTriangleBarycenter);
-                    derivedTri.Add(subTriangleIndexes[u]);
-                    derivedOffset.Add(subTriangleTiles[u]);
+                    //derivedVerts.Add(subTriangleIndexes[u]);
+                    //derivedOffset.Add(subTriangleTiles[u]);
                 }
             }
 
@@ -349,39 +346,34 @@ namespace MeshMasher {
 
             //UnityEngine.Profiling.Profiler.BeginSample("Final Resolution");
 
-            var distinctValues = new List<DistinctIndex>(defaultSize);
-
-
             var distinctDict = new Dictionary<DistinctIndex, int>();
-
             var vertCullLength = vertsForCulling.Count;
             var distinctValueCount = 0;
-
             var indexMap = new int[vertCullLength];
-
             var distinctIndices = new List<int>(defaultSize);
 
             for (int i = 0; i < vertCullLength; i++)
             {
-                var test = vertsForCulling[i];
-                var testBary = vertexBarycenters[i];
+                var testVertex = vertsForCulling[i];
+                var testBarycenter = vertexBarycenters[i];
                 var index = distinctValueCount;
 
                 //speed info here https://stackoverflow.com/questions/2728500/hashsett-versus-dictionaryk-v-w-r-t-searching-time-to-find-if-an-item-exist#10348367
-                if (distinctDict.ContainsKey(test))
+                if (distinctDict.ContainsKey(testVertex))
                 {
-                    index = distinctDict[test];
+                    index = distinctDict[testVertex];
 
-                    if (testBary.contained == true)
+                    if (testBarycenter.contained == true)
                     {
-                        distinctIndices[distinctDict[test]] = i;
-                        //distinctDict[test] = index;
+                        distinctIndices[distinctDict[testVertex]] = i;
                     }
                 }
                 else
                 {
-                    distinctDict.Add(test, index);
+                    distinctDict.Add(testVertex, index);
                     distinctIndices.Add(i);
+                    derivedVerts.Add(testVertex.i);
+                    derivedOffset.Add(new SimpleVector2Int(testVertex.x, testVertex.y));
                     distinctValueCount++;
                 }
 
@@ -410,7 +402,7 @@ namespace MeshMasher {
             FinaliseData(
                 distinctVerts,
                 tris.ToArray(),
-                derivedTri.ToArray(),
+                derivedVerts.ToArray(),
                 derivedOffset.ToArray(),
                 distinctBarycenterParentMap,
                 distinctBarycenters,
@@ -422,7 +414,6 @@ namespace MeshMasher {
 
         public T[] BlerpParentNodeValues<T>(T[] originValues, NestedMesh parentMesh) where T: IBlerpable<T>
         {
-
             var nestedValues = new T[Verts.Length];
 
             for (int i = 0; i < Verts.Length; i++)
