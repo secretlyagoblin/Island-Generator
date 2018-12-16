@@ -32,6 +32,9 @@ public class MeshTile {
     public int[][] MeshTopology;
     public SimpleVector2Int[][] MeshTopologyOffset;
 
+    public int[][] BarycentricParentIndices;
+    public SimpleVector2Int[][] BarycentricParentOffsets;
+
     public MeshTile(string meshTileJSON)
     {
         PopulateFromString(meshTileJSON);
@@ -79,7 +82,8 @@ public class MeshTile {
 
 
         Barycenters = new Barycenter[importObject.innerPointIndexList.Length][];
-
+        BarycentricParentIndices = new int[importObject.innerPointIndexList.Length][];
+        BarycentricParentOffsets = new SimpleVector2Int[importObject.innerPointIndexList.Length][];
         //ScaledTrianglesOwnedByPoints= public int[][]            
 
         var count = 0;
@@ -92,7 +96,8 @@ public class MeshTile {
             //SubTileOffsets[u] = new SimpleVector2Int[innerCount];
 
             Barycenters[u] = new Barycenter[innerCount];
-
+            BarycentricParentIndices[u] = new int[innerCount];
+            BarycentricParentOffsets[u] = new SimpleVector2Int[innerCount];
 
             for (int v = 0; v < innerCount; v++)
             {
@@ -100,7 +105,8 @@ public class MeshTile {
                 //SubTileOffsets[u][v] = new SimpleVector2Int(importObject.nested2dPointOffsets[count * 2], importObject.nested2dPointOffsets[(count * 2) + 1]);
 
                 Barycenters[u][v] = new Barycenter(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2], true, false);
-
+                BarycentricParentIndices[u][v] = importObject.barycentricParentIndices[count];
+                BarycentricParentOffsets[u][v] = new SimpleVector2Int(importObject.barycentricParentOffsets[count*2], importObject.barycentricParentOffsets[(count * 2)+1]);
                 count++;
             }
         }
@@ -226,5 +232,7 @@ public class MeshTile {
         public int[] topology;
         public int[] topologyOffset;
         public int[] innerCellPointIndexList;
+        public int[] barycentricParentIndices;
+        public int[] barycentricParentOffsets;
     }
 }

@@ -424,9 +424,9 @@ public class StructureV2 : MonoBehaviour {
             MeshMasher.NestedMeshAccessType.Vertex);
         //CreateObject(layer2);
 
-        //StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
+        StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
-        CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
+        //CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
 
        
         

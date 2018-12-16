@@ -331,12 +331,18 @@ namespace MeshMasher {
                         vertsForCulling.Add(new DistinctIndex(vertexIndex, localOffset.x, localOffset.y));
 
                         var innerBarycenter = innerBarycenters[u * 3 + v];
+                        //here we are - i think what needs to happen is vert barycenters and maps need to find their way to parameters
+                        
+
                         vertexBarycenters.Add(innerBarycenter);
                         vertexTriangleParents.Add(meshAccessIndices[i]);
 
                     }
 
                     triangeBarycenters.Add(innerTriangleBarycenter);
+
+                    //parentIndexes.Add(
+
                     //derivedVerts.Add(subTriangleIndexes[u]);
                     //derivedOffset.Add(subTriangleTiles[u]);
                 }
