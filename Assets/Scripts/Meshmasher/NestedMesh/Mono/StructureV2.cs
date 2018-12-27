@@ -404,15 +404,16 @@ public class StructureV2 : MonoBehaviour {
 
     public void SingleTest()
     {
-        var cellIndex = 3;
+        var cellIndex = 122;
         var colors = new Color[] { Color.red, Color.green, Color.blue };
 
         Debug.Log("Layer 1: ");
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero, Vector2Int.right, Vector2Int.one }, new MeshTile(meshTileData.text));
-        
-        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.SelectMany(x => x.Nodes).Distinct().ToList().ConvertAll(x => x.Index);
-        //neighbourhood.Add(cellIndex);
+
+        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ToList().ConvertAll(x => x.Index);
+        var widerNeighbourhood = neighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
+        neighbourhood.Add(cellIndex);
 
         for (int i = 0; i < neighbourhood.Count; i++)
         {
@@ -422,8 +423,8 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 2: ");
         
-        var layer2 = new CleverMesh(layer1, 
-            neighbourhood.ToArray(), 
+        var layer2 = new CleverMesh(layer1,
+            widerNeighbourhood.ToArray(), 
             //cellIndex,
             MeshMasher.NestedMeshAccessType.Vertex);
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MeshMasher;
+using System.Linq;
 
 public class CleverMesh {
 
@@ -11,6 +12,8 @@ public class CleverMesh {
 
     private NestedMesh _nMesh;
     private SmartMesh _sMesh;
+
+    private int[] _widerNeighbourhoodRemap;
 
     //Create from scratch
 
@@ -27,6 +30,7 @@ public class CleverMesh {
 
     public CleverMesh(CleverMesh parent, int[] accessIndexes, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
     {
+
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
 

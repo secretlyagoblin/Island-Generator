@@ -23,6 +23,10 @@ namespace MeshMasher {
 
         private Dictionary<DistinctIndex, int> _meshTileToTriangle; //
 
+        private int[] _ring;
+        private Dictionary<DistinctIndex, int> _meshTileToTriangleBuffer; //
+
+
         private MeshTile _meshTile;
         private double _parentScale;
 
@@ -164,6 +168,8 @@ namespace MeshMasher {
             var indexMap = new int[_meshTile.Positions.Length];
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
+            var ringTestTriangles = new List<DistinctIndex>(defaultSize * 3);
+
             //var triangleBarycenters = new List<Barycenter>();
             //var triangleBarycenterParentMap = new List<int>();
 
@@ -183,13 +189,7 @@ namespace MeshMasher {
                 var subTiles = _meshTile.SubTileOffsets[originMesh.DerivedVerts[meshAccessIndices[i]]];
                 var tile = originMesh.TileOffsets[meshAccessIndices[i]];
 
-                if (i == 0)
-                {
-                    Debug.Log("Start Here Welchy");
-                }
-
                 var subBarycenters = _meshTile.Barycenters[originMesh.DerivedVerts[meshAccessIndices[i]]];
-                //new stuff below>>
                 var subBarycenterParentMap = _meshTile.BarycentricParentIndices[originMesh.DerivedVerts[meshAccessIndices[i]]];
                 var subBarycentersParentOffset = _meshTile.BarycentricParentOffsets[originMesh.DerivedVerts[meshAccessIndices[i]]];
 
@@ -210,7 +210,24 @@ namespace MeshMasher {
                     baryMap.Add(subBarycenterParent);
                     //var baryMapKey = subBarycenterParentOffset + (tile * _meshTile.NestingScale);
                     //baryMapOffset.Add(baryMapKey);
-                    baryMapOffset.Add(tile + subBarycenterParentOffset);
+                    baryMapOffset.Add(tile + subBarycenterParentOffset); //<------ could be issues here with tile offsets
+
+
+                    //get the triangle neighbourhood of this generated thing
+                    var triangleNeighbourhood = _meshTile.MeshTriangleTopology[subVert];
+                    var triangleNeighbourhoodOffset = _meshTile.MeshTriangleTopologyOffset[subVert];
+
+                    var distinctTriangles = new DistinctIndex[triangleNeighbourhood.Length];
+
+                    for (int v = 0; v < distinctTriangles.Length; v++)
+                    {
+                        var offset = triangleNeighbourhoodOffset[v];
+                        offset = offset + tile; //<---------------- could be issues with tile offsets
+                        distinctTriangles[v] = new DistinctIndex(triangleNeighbourhood[v], offset.x, offset.y);
+                    }
+
+                    ringTestTriangles.AddRange(distinctTriangles);
+
 
                     var key = subTile + (tile * _meshTile.NestingScale);
 
@@ -279,7 +296,11 @@ namespace MeshMasher {
                     if (trueA == -1 | trueB == -1 | trueC == -1)
                         continue;
 
-                    _meshTileToTriangle.Add(new DistinctIndex(u, tiles[i].x, tiles[i].y), trianglesCount);
+                    _meshTileToTriangle.Add(new DistinctIndex(
+                        u, //original map
+                        tiles[i].x, //original tile
+                        tiles[i].y //
+                        ), trianglesCount);
                     trianglesCount++;
 
                     tris.Add(trueC);
@@ -288,6 +309,33 @@ namespace MeshMasher {
 
                 }
             }
+
+            _meshTileToTriangleBuffer = new Dictionary<DistinctIndex, int>();
+
+            //Perform Ring Calculations
+            ringTestTriangles = ringTestTriangles.Distinct().ToList();
+            var ring = new List<int>();
+
+            var count = 0;
+
+            for (int i = 0; i < ringTestTriangles.Count; i++)
+            {
+                if (_meshTileToTriangle.ContainsKey(ringTestTriangles[i]))
+                {
+                    continue;
+                }
+                else
+                {
+                    ring.Add(count);
+                    _meshTileToTriangleBuffer.Add(ringTestTriangles[i], count);
+                    count++;
+                }
+            }
+
+            //
+            Debug.Log("Start here welch");
+            //Need to actually define the ring, with verts for metadata to hook into
+
 
             FinaliseData(
                 verts.ToArray(),
@@ -466,14 +514,26 @@ namespace MeshMasher {
 
                 var testDistinctIndex = new DistinctIndex(parentTriangle, parentOffset.x, parentOffset.y);
                 var finalTri = -1;
-                try
+
+                if (parentMesh._meshTileToTriangle.ContainsKey(testDistinctIndex))
                 {
                     finalTri = parentMesh._meshTileToTriangle[testDistinctIndex];
                 }
-                catch
+                else
                 {
-                    throw new Exception("Invalid Parent Key for Barycentric nesting. Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() +", was searching for " + testDistinctIndex);
+                    try
+                    {
+                        finalTri = parentMesh._meshTileToTriangleBuffer[testDistinctIndex];
+                    }
+                    catch
+                    {
+                        throw new Exception("Invalid Parent Key for Barycentric nesting. \n" +
+                            "You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. \n");// +
+                           // "Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", was searching for " + testDistinctIndex);
+                    }
                 }
+
+
 
                 
                 //parentMesh.
