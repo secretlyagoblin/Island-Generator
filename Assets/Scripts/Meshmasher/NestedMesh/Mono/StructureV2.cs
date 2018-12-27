@@ -410,11 +410,15 @@ public class StructureV2 : MonoBehaviour {
         Debug.Log("Layer 1: ");
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero, Vector2Int.right, Vector2Int.one }, new MeshTile(meshTileData.text));
+        
+        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.SelectMany(x => x.Nodes).Distinct().ToList().ConvertAll(x => x.Index);
+        //neighbourhood.Add(cellIndex);
 
-        //CreateObject(layer1);
-
-        var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ConvertAll(x => x.Index);
-        neighbourhood.Add(cellIndex);
+        for (int i = 0; i < neighbourhood.Count; i++)
+        {
+            var n = layer1.Mesh.Nodes[neighbourhood[i]];
+            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
+        }
 
         Debug.Log("Layer 2: ");
         
@@ -422,7 +426,10 @@ public class StructureV2 : MonoBehaviour {
             neighbourhood.ToArray(), 
             //cellIndex,
             MeshMasher.NestedMeshAccessType.Vertex);
-        //CreateObject(layer2);
+
+        CreateObject(layer2);
+
+        Debug.Log("Layer 3: ");
 
         StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
@@ -454,7 +461,7 @@ public class StructureV2 : MonoBehaviour {
         }
         catch
         {
-            //Debug.LogError("No colours to add");
+            Debug.LogError("No colours to add");
         }
 
         f.mesh.SetColors(_createObjectColors);
@@ -595,7 +602,7 @@ public class StructureV2 : MonoBehaviour {
             var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
             
 
-            var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+            var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
             CreateObject(layer2cleverMesh).name = "Cell " + i;
 
             yield return waitForSeconds;

@@ -16,9 +16,12 @@ namespace MeshMasher {
         public int NestedLevel = 0;
 
         private int[] _barycenterParentMap;
+        private SimpleVector2Int[] _barycenterParentMapOffset;
 
         private Barycenter[] _barycenters;
         private Barycenter[] _centerBarycenters;
+
+        private Dictionary<DistinctIndex, int> _meshTileToTriangle; //
 
         private MeshTile _meshTile;
         private double _parentScale;
@@ -43,6 +46,8 @@ namespace MeshMasher {
             var baseDict = new Dictionary<SimpleVector2Int, int[]>();
 
             var indexMap = new int[_meshTile.Positions.Length];
+
+            _meshTileToTriangle = new Dictionary<DistinctIndex, int>();
 
             for (int i = 0; i < indexMap.Length; i++)
             {
@@ -83,6 +88,8 @@ namespace MeshMasher {
 
             for (int i = 0; i < tiles.Length; i++)
             {
+                var trianglesCount = 0;
+
                 for (int u = 0; u < _meshTile.Triangles.Length / 3; u++)
                 {
                     var triangle = u * 3;
@@ -105,6 +112,9 @@ namespace MeshMasher {
                     tris.Add(baseDict[tileC][c]);
                     tris.Add(baseDict[tileB][b]);
                     tris.Add(baseDict[tileA][a]);
+
+                    _meshTileToTriangle.Add(new DistinctIndex(u, tiles[i].x, tiles[i].y), trianglesCount);
+                    trianglesCount++;
 
                     //derivedVerts.Add(u);
                     //
@@ -146,6 +156,8 @@ namespace MeshMasher {
             var tris = new List<int>(defaultSize*3);
             var bary = new List<Barycenter>(defaultSize);
             var baryMap = new List<int>(defaultSize);
+            var baryMapOffset = new List<SimpleVector2Int>(defaultSize);
+            var parentTriangleMap = new List<int>(defaultSize);
             var derivedVerts = new List<int>(defaultSize);
             var derivedOffset = new List<SimpleVector2Int>(defaultSize);
             var baseDict = new Dictionary<SimpleVector2Int, int[]>(defaultSize);
@@ -171,7 +183,15 @@ namespace MeshMasher {
                 var subTiles = _meshTile.SubTileOffsets[originMesh.DerivedVerts[meshAccessIndices[i]]];
                 var tile = originMesh.TileOffsets[meshAccessIndices[i]];
 
+                if (i == 0)
+                {
+                    Debug.Log("Start Here Welchy");
+                }
+
                 var subBarycenters = _meshTile.Barycenters[originMesh.DerivedVerts[meshAccessIndices[i]]];
+                //new stuff below>>
+                var subBarycenterParentMap = _meshTile.BarycentricParentIndices[originMesh.DerivedVerts[meshAccessIndices[i]]];
+                var subBarycentersParentOffset = _meshTile.BarycentricParentOffsets[originMesh.DerivedVerts[meshAccessIndices[i]]];
 
                 for (int u = 0; u < subVerts.Length; u++)
                 {
@@ -180,12 +200,17 @@ namespace MeshMasher {
                     var subVert = subVerts[u];
                     var subTile = subTiles[u];
                     var subBarycenter = subBarycenters[u];
+                    var subBarycenterParent = subBarycenterParentMap[u];
+                    var subBarycenterParentOffset = subBarycentersParentOffset[u];
 
                     var pos = CalculateVertexOffset(subVert, tile, subTile, currentNestedOffset);
 
                     verts.Add(pos);
                     bary.Add(subBarycenter);
-                    baryMap.Add(meshAccessIndices[i]);
+                    baryMap.Add(subBarycenterParent);
+                    //var baryMapKey = subBarycenterParentOffset + (tile * _meshTile.NestingScale);
+                    //baryMapOffset.Add(baryMapKey);
+                    baryMapOffset.Add(tile + subBarycenterParentOffset);
 
                     var key = subTile + (tile * _meshTile.NestingScale);
 
@@ -214,6 +239,9 @@ namespace MeshMasher {
                 tilesY[i] = tiles[i].y;
             }
 
+            _meshTileToTriangle = new Dictionary<DistinctIndex, int>();
+            var trianglesCount = 0;
+
             for (int i = 0; i < tiles.Length; i++)
             {
                 //TODO hey in theory I should just be able to test this against the relevant triangles instead of the whole set
@@ -222,6 +250,8 @@ namespace MeshMasher {
                 //{
                 //    var triangle = originMesh.DerivedTri[meshAccessIndices[i]];
                 //    triangle = u * 3;
+
+
 
                 for (int u = 0; u < _meshTile.Triangles.Length / 3; u++) 
                 {
@@ -249,6 +279,9 @@ namespace MeshMasher {
                     if (trueA == -1 | trueB == -1 | trueC == -1)
                         continue;
 
+                    _meshTileToTriangle.Add(new DistinctIndex(u, tiles[i].x, tiles[i].y), trianglesCount);
+                    trianglesCount++;
+
                     tris.Add(trueC);
                     tris.Add(trueB);
                     tris.Add(trueA);
@@ -265,7 +298,8 @@ namespace MeshMasher {
                 //triangleBarycenters.ToArray(),
                 baryMap.ToArray(),
                 bary.ToArray(),
-                new Barycenter[] {}
+                new Barycenter[] {},
+                baryMapOffset.ToArray()
             );
         }
 
@@ -404,6 +438,7 @@ namespace MeshMasher {
 
             //UnityEngine.Profiling.Profiler.EndSample();
 
+            Debug.Log("This bub ain't set up right yet");
 
             FinaliseData(
                 distinctVerts,
@@ -412,7 +447,8 @@ namespace MeshMasher {
                 derivedOffset.ToArray(),
                 distinctBarycenterParentMap,
                 distinctBarycenters,
-                triangeBarycenters.ToArray()
+                triangeBarycenters.ToArray(),
+                new SimpleVector2Int[] { }
                 );
         }
 
@@ -426,7 +462,25 @@ namespace MeshMasher {
             {
                 var barycenter = _barycenters[i];
                 var parentTriangle = _barycenterParentMap[i];
-                var index = parentTriangle * 3;
+                var parentOffset = _barycenterParentMapOffset[i];
+
+                var testDistinctIndex = new DistinctIndex(parentTriangle, parentOffset.x, parentOffset.y);
+                var finalTri = -1;
+                try
+                {
+                    finalTri = parentMesh._meshTileToTriangle[testDistinctIndex];
+                }
+                catch
+                {
+                    throw new Exception("Invalid Parent Key for Barycentric nesting. Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() +", was searching for " + testDistinctIndex);
+                }
+
+                
+                //parentMesh.
+
+                //needs an indexMap back to the parent
+
+                var index = finalTri * 3;
 
                 var a = originValues[parentMesh.Tris[index]];
                 var b = originValues[parentMesh.Tris[index+1]];
@@ -434,6 +488,8 @@ namespace MeshMasher {
 
                 nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
             }
+
+            Debug.Log("Succesfully blerped a layer");
             
             return nestedValues;
         }
@@ -589,18 +645,18 @@ namespace MeshMasher {
             SimpleVector2Int[] tileOffsets,
             int[] barycenterParentMap,
             Barycenter[] barycenters,
-            Barycenter[] centerBarycenters)
+            Barycenter[] centerBarycenters,
+            SimpleVector2Int[] barycenterParentMapOffset)
         {
             Verts = verts;
             Tris = tris;
             DerivedVerts = derivedTri;
             TileOffsets = tileOffsets;
 
-
             _barycenterParentMap = barycenterParentMap;
             _barycenters = barycenters;
             _centerBarycenters = centerBarycenters;
-
+            _barycenterParentMapOffset = barycenterParentMapOffset;
         }
 
         private struct DistinctIndex : IEquatable<DistinctIndex>
@@ -614,6 +670,11 @@ namespace MeshMasher {
                 this.i = i;
                 this.x = x;
                 this.y = y;
+            }
+
+            public override string ToString()
+            {
+                return "("+i + "," + x + "," + y + ")";
             }
 
             bool IEquatable<DistinctIndex>.Equals(DistinctIndex other)
@@ -642,7 +703,6 @@ namespace MeshMasher {
             public Barycenter b;
             public int i; //index
             public int p; //parent
-
         }
     }
 

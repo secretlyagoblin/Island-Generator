@@ -30,17 +30,19 @@ public class CleverMesh {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
 
-        switch (type)
-        {
-            case NestedMeshAccessType.Vertex:
-                    CellMetadata = _nMesh.BlerpNodeToCellValuesUsingDerivedCenter(NodeMetadata);
+        //convinced at this point that it's safe to keep this commented out
 
-                break;
-            case NestedMeshAccessType.Triangles:
-
-                    CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata, parent._nMesh);
-                break;
-        }
+        //switch (type)
+        //{
+        //    case NestedMeshAccessType.Vertex:
+        //            CellMetadata = _nMesh.BlerpNodeToCellValuesUsingDerivedCenter(NodeMetadata);
+        //
+        //        break;
+        //    case NestedMeshAccessType.Triangles:
+        //
+        //            CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata, parent._nMesh);
+        //        break;
+        //}
 
 
         _sMesh = new SmartMesh(_nMesh.Verts,_nMesh.Tris);
