@@ -168,7 +168,7 @@ namespace MeshMasher {
             var indexMap = new int[_meshTile.Positions.Length];
             var currentNestedOffset = CalcuateOffset(NestedLevel);
 
-            var ringTestTriangles = new List<DistinctIndex>(defaultSize * 3);
+            var allTriangles = new List<DistinctIndex>(defaultSize * 3);
 
             //var triangleBarycenters = new List<Barycenter>();
             //var triangleBarycenterParentMap = new List<int>();
@@ -219,17 +219,17 @@ namespace MeshMasher {
 
                     var distinctTriangles = new DistinctIndex[triangleNeighbourhood.Length];
 
+                    var key = subTile + (tile * _meshTile.NestingScale);
+
+                    //get a list of all triangles
                     for (int v = 0; v < distinctTriangles.Length; v++)
                     {
                         var offset = triangleNeighbourhoodOffset[v];
-                        offset = offset + tile; //<---------------- could be issues with tile offsets
+                        offset = offset + key;
                         distinctTriangles[v] = new DistinctIndex(triangleNeighbourhood[v], offset.x, offset.y);
                     }
 
-                    ringTestTriangles.AddRange(distinctTriangles);
-
-
-                    var key = subTile + (tile * _meshTile.NestingScale);
+                    allTriangles.AddRange(distinctTriangles);
 
                     if (baseDict.ContainsKey(key))
                     {
@@ -259,30 +259,26 @@ namespace MeshMasher {
             _meshTileToTriangle = new Dictionary<DistinctIndex, int>();
             var trianglesCount = 0;
 
-            for (int i = 0; i < tiles.Length; i++)
+            //Perform Ring Calculations
+            allTriangles = allTriangles.Distinct().ToList();
+            var ring = new List<int>();
+
+            for (int i = 0; i < allTriangles.Count; i++)
             {
-                //TODO hey in theory I should just be able to test this against the relevant triangles instead of the whole set
-
-                //for (int u = 0; u < meshAccessIndices.Length; u++)
-                //{
-                //    var triangle = originMesh.DerivedTri[meshAccessIndices[i]];
-                //    triangle = u * 3;
+                var distinctTriangle = allTriangles[i];
+                var triangle = distinctTriangle.i * 3;
 
 
-
-                for (int u = 0; u < _meshTile.Triangles.Length / 3; u++) 
-                {
-                    var triangle = u * 3;
-
-                    var oa = _meshTile.Offsets[triangle];
+                var oa = _meshTile.Offsets[triangle];
                     var ob = _meshTile.Offsets[triangle + 1];
                     var oc = _meshTile.Offsets[triangle + 2];
 
-                    var tileA = oa + tiles[i];
-                    var tileB = ob + tiles[i];
-                    var tileC = oc + tiles[i];
+                var tileA = oa + distinctTriangle.tile;
+                var tileB = ob + distinctTriangle.tile;
+                var tileC = oc + distinctTriangle.tile;
 
-                    if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
+
+                if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
                         continue;
 
                     var a = _meshTile.Triangles[triangle];
@@ -294,40 +290,47 @@ namespace MeshMasher {
                     var trueC = baseDict[tileC][c];
 
                     if (trueA == -1 | trueB == -1 | trueC == -1)
-                        continue;
+                    { }
+                    else
+                    {
+                    try
+                    {
+                        _meshTileToTriangle.Add(new DistinctIndex(
+                            i, //original map
+                            distinctTriangle.x, //original tile
+                            distinctTriangle.y //
+                            ), trianglesCount);
+                    }
+                    catch
+                    {
+                        throw new Exception("OOPS");
+                    }
+                        trianglesCount++;
 
-                    _meshTileToTriangle.Add(new DistinctIndex(
-                        u, //original map
-                        tiles[i].x, //original tile
-                        tiles[i].y //
-                        ), trianglesCount);
-                    trianglesCount++;
+                        tris.Add(trueC);
+                        tris.Add(trueB);
+                        tris.Add(trueA);
+                    }
 
-                    tris.Add(trueC);
-                    tris.Add(trueB);
-                    tris.Add(trueA);
-
-                }
+                
             }
 
             _meshTileToTriangleBuffer = new Dictionary<DistinctIndex, int>();
 
-            //Perform Ring Calculations
-            ringTestTriangles = ringTestTriangles.Distinct().ToList();
-            var ring = new List<int>();
+
 
             var count = 0;
 
-            for (int i = 0; i < ringTestTriangles.Count; i++)
+            for (int i = 0; i < allTriangles.Count; i++)
             {
-                if (_meshTileToTriangle.ContainsKey(ringTestTriangles[i]))
+                if (_meshTileToTriangle.ContainsKey(allTriangles[i]))
                 {
                     continue;
                 }
                 else
                 {
                     ring.Add(count);
-                    _meshTileToTriangleBuffer.Add(ringTestTriangles[i], count);
+                    _meshTileToTriangleBuffer.Add(allTriangles[i], count);
                     count++;
                 }
             }
@@ -724,6 +727,10 @@ namespace MeshMasher {
             public int i;
             public int x;
             public int y;
+            public SimpleVector2Int tile
+            {
+                get { return new SimpleVector2Int(x, y); }
+            }
 
             public DistinctIndex(int i, int x, int y)
             {
