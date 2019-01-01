@@ -162,7 +162,7 @@ namespace MeshMasher {
             var baryMap = new List<int>(defaultSize);
             var baryMapOffset = new List<SimpleVector2Int>(defaultSize);
             var parentTriangleMap = new List<int>(defaultSize);
-            var derivedVerts = new List<int>(defaultSize);
+            var vertMap = new List<int>(defaultSize);
             var derivedOffset = new List<SimpleVector2Int>(defaultSize);
             var baseDict = new Dictionary<SimpleVector2Int, int[]>(defaultSize);
             var indexMap = new int[_meshTile.Positions.Length];
@@ -241,7 +241,7 @@ namespace MeshMasher {
                         baseDict[key][subVert] = vertCount;
                     }
 
-                    derivedVerts.Add(subVert);
+                    vertMap.Add(subVert);
                     derivedOffset.Add(key);
                 }
             }
@@ -257,6 +257,7 @@ namespace MeshMasher {
             }
 
             _meshTileToTriangle = new Dictionary<DistinctIndex, int>();
+            _meshTileToTriangleBuffer = new Dictionary<DistinctIndex, int>();
             var trianglesCount = 0;
 
             //Perform Ring Calculations
@@ -289,61 +290,40 @@ namespace MeshMasher {
                     var trueB = baseDict[tileB][b];
                     var trueC = baseDict[tileC][c];
 
-                    if (trueA == -1 | trueB == -1 | trueC == -1)
-                    { }
-                    else
-                    {
-                    try
-                    {
-                        _meshTileToTriangle.Add(new DistinctIndex(
-                            i, //original map
+                var finalDistinctIndex = new DistinctIndex(
+                            distinctTriangle.i, //original map
                             distinctTriangle.x, //original tile
                             distinctTriangle.y //
-                            ), trianglesCount);
-                    }
-                    catch
+                            );
+
+                    if (trueA == -1 | trueB == -1 | trueC == -1)
                     {
-                        throw new Exception("OOPS");
-                    }
+
+                    _meshTileToTriangleBuffer.Add(
+                        finalDistinctIndex, 
+                        trianglesCount);
+
+                }
+                    else
+                    {
+                    //throw new Exception("Start here today");
+
+                        _meshTileToTriangle.Add(
+                            finalDistinctIndex, //<--------- map back to the original source
+                            trianglesCount);    //<--------- 
+
                         trianglesCount++;
 
                         tris.Add(trueC);
                         tris.Add(trueB);
                         tris.Add(trueA);
-                    }
-
-                
+                    }                
             }
-
-            _meshTileToTriangleBuffer = new Dictionary<DistinctIndex, int>();
-
-
-
-            var count = 0;
-
-            for (int i = 0; i < allTriangles.Count; i++)
-            {
-                if (_meshTileToTriangle.ContainsKey(allTriangles[i]))
-                {
-                    continue;
-                }
-                else
-                {
-                    ring.Add(count);
-                    _meshTileToTriangleBuffer.Add(allTriangles[i], count);
-                    count++;
-                }
-            }
-
-            //
-            Debug.Log("Start here welch");
-            //Need to actually define the ring, with verts for metadata to hook into
-
 
             FinaliseData(
                 verts.ToArray(),
                 tris.ToArray(),
-                derivedVerts.ToArray(),
+                vertMap.ToArray(),
                 derivedOffset.ToArray(),
                 //triangleBarycenterParentMap.ToArray(),
                 //triangleBarycenters.ToArray(),
@@ -544,12 +524,19 @@ namespace MeshMasher {
                 //needs an indexMap back to the parent
 
                 var index = finalTri * 3;
+                try
+                {
+                    var a = originValues[parentMesh.Tris[index]];
+                    var b = originValues[parentMesh.Tris[index + 1]];
+                    var c = originValues[parentMesh.Tris[index + 2]];
 
-                var a = originValues[parentMesh.Tris[index]];
-                var b = originValues[parentMesh.Tris[index+1]];
-                var c = originValues[parentMesh.Tris[index+2]];
+                    nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
+                }
+                catch{
+                    throw new Exception("If we hit the triangle buffer, what origin values are we refering to?!?!?!?");
+                }
 
-                nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
+                
             }
 
             Debug.Log("Succesfully blerped a layer");
