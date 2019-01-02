@@ -485,7 +485,7 @@ namespace MeshMasher {
 
         //Blerp based on parents
 
-        public T[] BlerpParentNodeValues<T>(T[] originValues, NestedMesh parentMesh) where T: IBlerpable<T>
+        public T[] BlerpParentNodeValues<T>(T[] parentBarycenterValues, NestedMesh parentMesh) where T: IBlerpable<T>
         {
             var nestedValues = new T[Verts.Length];
 
@@ -526,11 +526,11 @@ namespace MeshMasher {
                 var index = finalTri * 3;
                 try
                 {
-                    var a = originValues[parentMesh.Tris[index]];
-                    var b = originValues[parentMesh.Tris[index + 1]];
-                    var c = originValues[parentMesh.Tris[index + 2]];
+                    var a = parentBarycenterValues[parentMesh.Tris[index]];
+                    var b = parentBarycenterValues[parentMesh.Tris[index + 1]];
+                    var c = parentBarycenterValues[parentMesh.Tris[index + 2]];
 
-                    nestedValues[i] = (originValues[0].Blerp(a, b, c, barycenter));
+                    nestedValues[i] = (parentBarycenterValues[0].Blerp(a, b, c, barycenter));
                 }
                 catch{
                     throw new Exception("If we hit the triangle buffer, what origin values are we refering to?!?!?!?");
