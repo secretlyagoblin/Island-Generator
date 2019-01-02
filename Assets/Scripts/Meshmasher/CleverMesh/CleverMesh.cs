@@ -8,7 +8,9 @@ public class CleverMesh {
 
     public SmartMesh Mesh { get { return _sMesh; } }
     public NodeMetadata[] NodeMetadata;
-    public NodeMetadata[] CellMetadata; // this is readonly and can cause issues if it is set directly
+    //public NodeMetadata[] CellMetadata; // this is readonly and can cause issues if it is set directly
+
+    private NodeMetadata[] _ringNodeMetadata;
 
     private NestedMesh _nMesh;
     private SmartMesh _sMesh;
@@ -32,7 +34,17 @@ public class CleverMesh {
     {
 
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._nMesh);
+        NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
+
+        try
+        {
+            _ringNodeMetadata = _nMesh.BlerpRingNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
+        }
+        catch
+        {
+            Debug.Log("Failed to blerp ring metadata");
+        }
+
 
         //convinced at this point that it's safe to keep this commented out
 
@@ -58,18 +70,19 @@ public class CleverMesh {
         _sMesh = new SmartMesh(_nMesh.Verts, _nMesh.Tris);
 
         NodeMetadata = new NodeMetadata[_nMesh.Verts.Length];
+        _ringNodeMetadata = new NodeMetadata[0];
 
         for (int i = 0; i < NodeMetadata.Length; i++)
         {
             NodeMetadata[i] = new NodeMetadata(0, Color.black, new int[] { 0 });
         }
 
-        CellMetadata = new NodeMetadata[_nMesh.Tris.Length];
-
-        for (int i = 0; i < CellMetadata.Length; i++)
-        {
-            CellMetadata[i] = new NodeMetadata(0, Color.black, new int[] { 0 });
-        }
+        //CellMetadata = new NodeMetadata[_nMesh.Tris.Length];
+        //
+        //for (int i = 0; i < CellMetadata.Length; i++)
+        //{
+        //    CellMetadata[i] = new NodeMetadata(0, Color.black, new int[] { 0 });
+        //}
     }
 
     public Mesh GetBarycenterDebugMesh()

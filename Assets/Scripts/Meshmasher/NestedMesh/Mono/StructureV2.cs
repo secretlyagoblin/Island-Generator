@@ -218,28 +218,28 @@ public class StructureV2 : MonoBehaviour {
 
         var cellDicts = new Dictionary<int, List<int>>();
 
-        for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
-        {
-            var code = layer3.CellMetadata[i].Code;
-
-            if (cellDicts.ContainsKey(code))
-            {
-                cellDicts[code].Add(i);
-            }
-            else
-            {
-                cellDicts.Add(code, new List<int>() { i });
-            }
-        }
-
-        if (RunAsync)
-        {
-            CreateSetAsync(layer3, cellDicts, 1);
-        }
-        else
-        {
-            StartCoroutine(CreateSet(layer3, cellDicts, 0, 1));
-        }
+        //for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
+        //{
+        //    var code = layer3.CellMetadata[i].Code;
+        //
+        //    if (cellDicts.ContainsKey(code))
+        //    {
+        //        cellDicts[code].Add(i);
+        //    }
+        //    else
+        //    {
+        //        cellDicts.Add(code, new List<int>() { i });
+        //    }
+        //}
+        //
+        //if (RunAsync)
+        //{
+        //    CreateSetAsync(layer3, cellDicts, 1);
+        //}
+        //else
+        //{
+        //    StartCoroutine(CreateSet(layer3, cellDicts, 0, 1));
+        //}
 
         return;
 

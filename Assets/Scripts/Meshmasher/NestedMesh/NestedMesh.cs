@@ -8,41 +8,22 @@ namespace MeshMasher {
 
     public class NestedMesh {
 
-        private class NestedMeshData {
-            public Vector3[] Verts;
-            public int[] Tris;
-            public int[] DerivedVerts;//1/3 tris
-            public SimpleVector2Int[] TileOffsets;
-            public int[] BarycenterParentMap;
-            public SimpleVector2Int[] BarycenterParentMapOffset;
-            public Barycenter[] Barycenters;
-
-            //public NestedMeshData
-        }
-
         public Vector3[] Verts { get { return _mesh.Verts; } }
         public int[] Tris { get { return _mesh.Tris; } }
 
         private NestedMeshData _mesh;
-
-
+        private NestedMeshData _ringMesh;
+        
         public double Scale = 1.0;
         public int NestedLevel = 0;
 
-
-
-
-
-        //private Barycenter[] _centerBarycenters;
+        private MeshTile _meshTile;
+        private double _parentScale;
 
         private Dictionary<DistinctIndex, int> _meshTileToTriangle; //
 
         private int[] _ring;
         private Dictionary<DistinctIndex, int> _meshTileToTriangleBuffer; //
-
-
-        private MeshTile _meshTile;
-        private double _parentScale;
 
         public NestedMesh(Vector2Int[] tileArray, MeshTile meshTile)
         {
@@ -146,7 +127,9 @@ namespace MeshMasher {
                 Tris = tris.ToArray(),
                 DerivedVerts = derivedVerts.ToArray(),
                 TileOffsets = derivedOffset.ToArray(),
-            };     
+            };
+
+            _ringMesh = new NestedMeshData();
         }
 
         public NestedMesh(NestedMesh originMesh, int[] meshAccessIndices, NestedMeshAccessType type = NestedMeshAccessType.Vertex)
@@ -279,7 +262,13 @@ namespace MeshMasher {
 
             //Perform Ring Calculations
             allTriangles = allTriangles.Distinct().ToList();
-            var ring = new List<int>();
+            //var ring = new List<int>();
+
+            var distinctRingDict = new Dictionary<DistinctIndex, int>();
+            var inverseDistinctRingDict = new List<KeyValuePair<int, DistinctIndex>>();
+            var ringTris = new List<int>();
+            var ringTrisCount = 0;
+            var ringVertCount = 0;
 
             for (int i = 0; i < allTriangles.Count; i++)
             {
@@ -288,8 +277,8 @@ namespace MeshMasher {
 
 
                 var oa = _meshTile.Offsets[triangle];
-                    var ob = _meshTile.Offsets[triangle + 1];
-                    var oc = _meshTile.Offsets[triangle + 2];
+                var ob = _meshTile.Offsets[triangle + 1];
+                var oc = _meshTile.Offsets[triangle + 2];
 
                 var tileA = oa + distinctTriangle.tile;
                 var tileB = ob + distinctTriangle.tile;
@@ -297,15 +286,15 @@ namespace MeshMasher {
 
 
                 if (!SetContainsPoints(tilesX, tilesY, tileA, tileB, tileC))
-                        continue;
+                    continue;
 
-                    var a = _meshTile.Triangles[triangle];
-                    var b = _meshTile.Triangles[triangle + 1];
-                    var c = _meshTile.Triangles[triangle + 2];
+                var a = _meshTile.Triangles[triangle];
+                var b = _meshTile.Triangles[triangle + 1];
+                var c = _meshTile.Triangles[triangle + 2];
 
-                    var trueA = baseDict[tileA][a];
-                    var trueB = baseDict[tileB][b];
-                    var trueC = baseDict[tileC][c];
+                var trueA = baseDict[tileA][a];
+                var trueB = baseDict[tileB][b];
+                var trueC = baseDict[tileC][c];
 
                 var finalDistinctIndex = new DistinctIndex(
                             distinctTriangle.i, //original map
@@ -313,28 +302,82 @@ namespace MeshMasher {
                             distinctTriangle.y //
                             );
 
-                    if (trueA == -1 | trueB == -1 | trueC == -1)
+                if (trueA == -1 | trueB == -1 | trueC == -1)
+                {
+                    //ADD TO RING
+
+                    var distinctIndexA = new DistinctIndex(a, tileA.x, tileA.y);
+                    var distinctIndexB = new DistinctIndex(b, tileB.x, tileB.y);
+                    var distinctIndexC = new DistinctIndex(c, tileC.x, tileC.y);
+
+                    var indexA = -1;
+                    var indexB = -1;
+                    var indexC = -1;
+
+                    //testVertexA
+                    if (distinctRingDict.ContainsKey(distinctIndexA))
                     {
-
-                    _meshTileToTriangleBuffer.Add(
-                        finalDistinctIndex, 
-                        trianglesCount);
-
-                }
+                        indexA = distinctRingDict[distinctIndexA];
+                    }
                     else
                     {
-                    //throw new Exception("Start here today");
+                        distinctRingDict.Add(distinctIndexA, ringVertCount);
+                        inverseDistinctRingDict.Add(new KeyValuePair<int,DistinctIndex>(ringVertCount, distinctIndexA));
+                        indexA = ringVertCount;
+                        ringVertCount++;
+                    }
 
-                        _meshTileToTriangle.Add(
-                            finalDistinctIndex, //<--------- map back to the original source
-                            trianglesCount);    //<--------- 
+                    //testVertexB
+                    if (distinctRingDict.ContainsKey(distinctIndexB))
+                    {
+                        indexB = distinctRingDict[distinctIndexB];
+                    }
+                    else
+                    {
+                        distinctRingDict.Add(distinctIndexB, ringVertCount);
+                        inverseDistinctRingDict.Add(new KeyValuePair<int, DistinctIndex>(ringVertCount, distinctIndexB));
+                        indexB = ringVertCount;
+                        ringVertCount++;
+                    }
 
-                        trianglesCount++;
+                    //testVertexC
+                    if (distinctRingDict.ContainsKey(distinctIndexC))
+                    {
+                        indexC = distinctRingDict[distinctIndexC];
+                    }
+                    else
+                    {
+                        distinctRingDict.Add(distinctIndexC, ringVertCount);
+                        inverseDistinctRingDict.Add(new KeyValuePair<int, DistinctIndex>(ringVertCount, distinctIndexC));
+                        indexC = ringVertCount;
+                        ringVertCount++;
+                    }
 
-                        tris.Add(trueC);
-                        tris.Add(trueB);
-                        tris.Add(trueA);
-                    }                
+                    ringTris.Add(indexA);
+                    ringTris.Add(indexB);
+                    ringTris.Add(indexC);
+
+                    _meshTileToTriangleBuffer.Add(
+                        finalDistinctIndex,
+                        ringTrisCount);
+
+                    ringTrisCount++;
+
+                }
+                else
+                {
+                    //Add to existing
+                    
+                    _meshTileToTriangle.Add(
+                        finalDistinctIndex, 
+                        trianglesCount);                                                   
+
+                    trianglesCount++;
+
+                    tris.Add(trueC);
+                    tris.Add(trueB);
+                    tris.Add(trueA);
+                }
             }
 
             _mesh = new NestedMeshData()
@@ -346,6 +389,29 @@ namespace MeshMasher {
                 Barycenters = bary.ToArray(),
                 BarycenterParentMap = baryMap.ToArray(),
                 BarycenterParentMapOffset = baryMapOffset.ToArray()
+            };
+
+            var derivedRingVerts = new int[inverseDistinctRingDict.Count];
+            var derivedRingOffsets = new SimpleVector2Int[inverseDistinctRingDict.Count];
+            for (int i = 0; i < inverseDistinctRingDict.Count; i++)
+            {
+                var pair = inverseDistinctRingDict[i];
+                derivedRingVerts[i] = pair.Value.i;
+                derivedRingOffsets[i] = pair.Value.tile;
+            }
+
+            Debug.Log("Barycenters aren't implimented on ring, causing failure");
+
+            _ringMesh = new NestedMeshData()
+            {
+                //Verts <-- shouldn't need this
+                Tris = ringTris.ToArray(),
+                DerivedVerts = derivedRingVerts,
+                TileOffsets = derivedRingOffsets,
+                Barycenters = null,
+                BarycenterParentMap = null,
+                BarycenterParentMapOffset = null
+
             };
         }
 
@@ -500,7 +566,7 @@ namespace MeshMasher {
 
         //Blerp based on parents
 
-        public T[] BlerpParentNodeValues<T>(T[] parentBarycenterValues, NestedMesh parentMesh) where T: IBlerpable<T>
+        public T[] BlerpParentNodeValues<T>(T[] parentBarycenterValues, T[] parentBarycenterRingValues, NestedMesh parentMesh) where T: IBlerpable<T>
         {
             var nestedValues = new T[_mesh.Verts.Length];
 
@@ -516,6 +582,14 @@ namespace MeshMasher {
                 if (parentMesh._meshTileToTriangle.ContainsKey(testDistinctIndex))
                 {
                     finalTri = parentMesh._meshTileToTriangle[testDistinctIndex];
+
+                    var index = finalTri * 3;
+
+                    var a = parentBarycenterValues[parentMesh._mesh.Tris[index]];
+                    var b = parentBarycenterValues[parentMesh._mesh.Tris[index + 1]];
+                    var c = parentBarycenterValues[parentMesh._mesh.Tris[index + 2]];
+
+                    nestedValues[i] = (parentBarycenterValues[0].Blerp(a, b, c, barycenter));
                 }
                 else
                 {
@@ -529,33 +603,80 @@ namespace MeshMasher {
                             "You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. \n");// +
                            // "Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", was searching for " + testDistinctIndex);
                     }
-                }
 
+                    try
+                    {
 
+                        var index = finalTri * 3;
 
-                
-                //parentMesh.
+                        var a = parentBarycenterRingValues[parentMesh._ringMesh.Tris[index]];
+                        var b = parentBarycenterRingValues[parentMesh._ringMesh.Tris[index + 1]];
+                        var c = parentBarycenterRingValues[parentMesh._ringMesh.Tris[index + 2]];
 
-                //needs an indexMap back to the parent
+                        nestedValues[i] = (parentBarycenterValues[0].Blerp(a, b, c, barycenter));
+                    }
+                    catch
+                    {
+                        throw new Exception("Cannot find index of ring values for blerpin.");
+                    }
+                }                
+            }
 
-                var index = finalTri * 3;
-                try
+            Debug.Log("Succesfully blerped a layer");
+            
+            return nestedValues;
+        }
+
+        public T[] BlerpRingNodeValues<T>(T[] parentBarycenterValues, T[] parentBarycenterRingValues, NestedMesh parentMesh) where T : IBlerpable<T>
+        {
+            var nestedValues = new T[_ringMesh.DerivedVerts.Length];
+
+            for (int i = 0; i < _ringMesh.DerivedVerts.Length; i++)
+            {
+                var barycenter = _ringMesh.Barycenters[i];
+                var parentTriangle = _ringMesh.BarycenterParentMap[i];
+                var parentOffset = _ringMesh.BarycenterParentMapOffset[i];
+
+                var testDistinctIndex = new DistinctIndex(parentTriangle, parentOffset.x, parentOffset.y);
+                var finalTri = -1;
+
+                if (parentMesh._meshTileToTriangle.ContainsKey(testDistinctIndex))
                 {
+                    finalTri = parentMesh._meshTileToTriangle[testDistinctIndex];
+
+                    var index = finalTri * 3;
+
                     var a = parentBarycenterValues[parentMesh._mesh.Tris[index]];
                     var b = parentBarycenterValues[parentMesh._mesh.Tris[index + 1]];
                     var c = parentBarycenterValues[parentMesh._mesh.Tris[index + 2]];
 
                     nestedValues[i] = (parentBarycenterValues[0].Blerp(a, b, c, barycenter));
                 }
-                catch{
-                    throw new Exception("If we hit the triangle buffer, what origin values are we refering to?!?!?!?");
-                }
+                else
+                {
+                    try
+                    {
+                        finalTri = parentMesh._meshTileToTriangleBuffer[testDistinctIndex];
+                    }
+                    catch
+                    {
+                        throw new Exception("Invalid Parent Key for Barycentric nesting. \n" +
+                            "You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. \n");// +
+                                                                                                                    // "Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", was searching for " + testDistinctIndex);
+                    }
 
-                
+                    var index = finalTri * 3;
+
+                    var a = parentBarycenterRingValues[parentMesh._ringMesh.Tris[index]];
+                    var b = parentBarycenterRingValues[parentMesh._ringMesh.Tris[index + 1]];
+                    var c = parentBarycenterRingValues[parentMesh._ringMesh.Tris[index + 2]];
+
+                    nestedValues[i] = (parentBarycenterValues[0].Blerp(a, b, c, barycenter));
+                }
             }
 
-            Debug.Log("Succesfully blerped a layer");
-            
+            Debug.Log("Succesfully blerped a ring layer");
+
             return nestedValues;
         }
 
@@ -772,6 +893,26 @@ namespace MeshMasher {
             public Barycenter b;
             public int i; //index
             public int p; //parent
+        }
+
+        private class NestedMeshData {
+            public Vector3[] Verts;
+            public int[] Tris;
+            public int[] DerivedVerts;//1/3 tris
+            public SimpleVector2Int[] TileOffsets;
+            public int[] BarycenterParentMap;
+            public SimpleVector2Int[] BarycenterParentMapOffset;
+            public Barycenter[] Barycenters;
+
+            public NestedMeshData()
+            {
+                Verts = new Vector3[0];
+                Tris = new int[0];
+                DerivedVerts = new int[0];
+                Barycenters = new Barycenter[0];
+            }
+
+            //public NestedMeshData
         }
     }
 
