@@ -37,6 +37,12 @@ public class MeshTile {
     public int[][] BarycentricParentIndices;
     public SimpleVector2Int[][] BarycentricParentOffsets;
 
+    public int[][] RingBarycentricParentIdices;
+    public SimpleVector2Int[][] RingBarycentricParentOffsets;
+    public Barycenter[][] RingBarycenters;
+    public int[][] RingIndices;
+    public SimpleVector2Int[][] RingOffsets;
+
 
     public MeshTile(string meshTileJSON)
     {
@@ -212,6 +218,47 @@ public class MeshTile {
                 count++;
             }
         }
+
+        count = 0;
+
+        RingIndices = new int[Positions.Length][];
+        RingOffsets = new SimpleVector2Int[Positions.Length][];
+        RingBarycenters = new Barycenter[Positions.Length][];
+        RingBarycentricParentIdices = new int[Positions.Length][];
+        RingBarycentricParentOffsets = new SimpleVector2Int[Positions.Length][];
+
+        for (int u = 0; u < RingIndices.Length; u++)
+        {
+            var innerCount = importObject.ringIndexCount[u];
+
+            RingIndices[u] = new int[innerCount];
+            RingOffsets[u] = new SimpleVector2Int[innerCount];
+            RingBarycenters[u] = new Barycenter[innerCount];
+            RingBarycentricParentIdices[u] = new int[innerCount];
+            RingBarycentricParentOffsets[u] = new SimpleVector2Int[innerCount];
+
+            for (int v = 0; v < innerCount; v++)
+            {
+                RingIndices[u][v] = importObject.ringIndices[count];
+                RingOffsets[u][v] = new SimpleVector2Int(
+                        importObject.ringOffsets[count * 2],
+                        importObject.ringOffsets[count * 2 + 1]
+                    );
+                RingBarycentricParentIdices[u][v] = importObject.ringBarycentricParentIdices[count];
+                RingBarycentricParentOffsets[u][v] = new SimpleVector2Int(
+                        importObject.ringBarycentricParentOffsets[count * 2],
+                        importObject.ringBarycentricParentOffsets[count * 2 + 1]
+                    );
+                    RingBarycenters[u][v] = new Barycenter(
+                                                importObject.ringBarycenters[count * 3],
+                            importObject.ringBarycenters[count * 3 + 1],
+                            importObject.ringBarycenters[count * 3 + 2],
+                            true,
+                            true
+                        );
+count++;
+            }
+        }
     }
 
     private class ImportJsonObject {
@@ -245,5 +292,11 @@ public class MeshTile {
         public int[] barycentricParentOffsets;
         public int[] triTopologyData;
         public int[] triOffsetData;
+        public int[] ringIndexCount;
+        public int[] ringBarycentricParentIdices;
+        public int[] ringBarycentricParentOffsets;
+        public float[] ringBarycenters;
+        public int[] ringIndices;
+        public int[] ringOffsets;
     }
 }
