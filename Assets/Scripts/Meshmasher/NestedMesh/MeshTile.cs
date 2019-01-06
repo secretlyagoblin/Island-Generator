@@ -42,6 +42,7 @@ public class MeshTile {
     public Barycenter[][] RingBarycenters;
     public int[][] RingIndices;
     public SimpleVector2Int[][] RingOffsets;
+    public Vector3[][] RingPositions;
 
 
     public MeshTile(string meshTileJSON)
@@ -226,6 +227,7 @@ public class MeshTile {
         RingBarycenters = new Barycenter[Positions.Length][];
         RingBarycentricParentIdices = new int[Positions.Length][];
         RingBarycentricParentOffsets = new SimpleVector2Int[Positions.Length][];
+        RingPositions = new Vector3[Positions.Length][];
 
         for (int u = 0; u < RingIndices.Length; u++)
         {
@@ -236,6 +238,7 @@ public class MeshTile {
             RingBarycenters[u] = new Barycenter[innerCount];
             RingBarycentricParentIdices[u] = new int[innerCount];
             RingBarycentricParentOffsets[u] = new SimpleVector2Int[innerCount];
+            RingPositions[u] = new Vector3[innerCount];
 
             for (int v = 0; v < innerCount; v++)
             {
@@ -249,13 +252,18 @@ public class MeshTile {
                         importObject.ringBarycentricParentOffsets[count * 2],
                         importObject.ringBarycentricParentOffsets[count * 2 + 1]
                     );
-                    RingBarycenters[u][v] = new Barycenter(
-                                                importObject.ringBarycenters[count * 3],
+               RingBarycenters[u][v] = new Barycenter(
+                            importObject.ringBarycenters[count * 3],
                             importObject.ringBarycenters[count * 3 + 1],
                             importObject.ringBarycenters[count * 3 + 2],
                             true,
                             true
                         );
+                RingPositions[u][v] = new Vector3(
+                    importObject.ringPositions[count * 2],
+                     importObject.ringPositions[count * 2 + 1],
+                     0
+                    );
 count++;
             }
         }
@@ -298,5 +306,6 @@ count++;
         public float[] ringBarycenters;
         public int[] ringIndices;
         public int[] ringOffsets;
+        public float[] ringPositions;
     }
 }

@@ -404,12 +404,17 @@ public class StructureV2 : MonoBehaviour {
 
     public void SingleTest()
     {
-        var cellIndex = 122;
+        var cellIndex = 159; //<- known error with edge
+        //var cellIndex = 155; //<- known error with edge
+        //var cellIndex = 133; //<- known error with colour bleeding
+        //var cellIndex = 122; //<- known error with edge
         var colors = new Color[] { Color.red, Color.green, Color.blue };
 
         Debug.Log("Layer 1: ");
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero, Vector2Int.right, Vector2Int.one }, new MeshTile(meshTileData.text));
+
+        //CreateObject(layer1);
 
         var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ToList().ConvertAll(x => x.Index);
         var widerNeighbourhood = neighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
@@ -428,7 +433,11 @@ public class StructureV2 : MonoBehaviour {
             //cellIndex,
             MeshMasher.NestedMeshAccessType.Vertex);
 
-        CreateObject(layer2);
+        var layer2obj = CreateObject(layer2);
+        var layer2ring = CreateRing(layer2);
+        layer2ring.transform.parent = layer2obj.transform;
+        layer2ring.name = "Layer2ring";
+        layer2obj.transform.Translate(Vector3.back);
 
         Debug.Log("Layer 3: ");
 
@@ -459,13 +468,54 @@ public class StructureV2 : MonoBehaviour {
             {
                 _createObjectColors.Add(mesh.NodeMetadata[i].SmoothColor);
             }
+
+
+            if (mesh.NodeMetadata.Length == f.mesh.vertices.Length)
+            {
+                f.mesh.SetColors(_createObjectColors);
+            }
         }
         catch
         {
             Debug.LogError("No colours to add");
         }
 
-        f.mesh.SetColors(_createObjectColors);
+
+
+        return gameObject;
+    }
+
+    public GameObject CreateRing(CleverMesh mesh)
+    {
+        var gameObject = Instantiate(BlankTemplate, transform);
+        var f = gameObject.AddComponent<MeshFilter>();
+        var r = gameObject.AddComponent<MeshRenderer>();
+        r.sharedMaterial = MeshColourMaterial;
+        //f.mesh = layer5.Mesh.ToXYMesh();
+        f.mesh = mesh.RingMesh.ToXYMesh();
+
+        _createObjectColors.Clear();
+
+        try
+        {
+            for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+            {
+                _createObjectColors.Add(mesh.NodeMetadata[i].SmoothColor);
+            }
+
+            if(mesh.NodeMetadata.Length == f.mesh.vertices.Length)
+            {
+                f.mesh.SetColors(_createObjectColors);
+            }
+
+            
+        }
+        catch
+        {
+            Debug.LogError("No colours to add");
+        }
+
+        
 
         return gameObject;
     }
@@ -600,11 +650,27 @@ public class StructureV2 : MonoBehaviour {
 
         for (int i = 0; i < count; i++)
         {
-            var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
-            
 
-            var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
-            CreateObject(layer2cleverMesh).name = "Cell " + i;
+                var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
+
+                var cleverMeshMesh = CreateObject(cleverMesh);
+                cleverMeshMesh.name = "Cell " + i; ;
+                var cleverMeshRing = CreateRing(cleverMesh);
+                cleverMeshRing.transform.parent = cleverMeshMesh.transform;
+
+            try
+            { 
+                var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
+                //CreateObject(cleverMesh).name = "Cell " + i;
+                CreateObject(layer2cleverMesh).name = "Cell " + i +" - 2";
+
+            }
+            catch(System.Exception e)
+            {
+                var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
+                Debug.Log(data[0] + " " + data[1] + " "+ data[2] + " ");
+                Debug.LogError(e);
+            }
 
             yield return waitForSeconds;
         }

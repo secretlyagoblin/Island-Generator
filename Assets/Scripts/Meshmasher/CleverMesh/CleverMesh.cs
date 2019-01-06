@@ -7,6 +7,7 @@ using System.Linq;
 public class CleverMesh {
 
     public SmartMesh Mesh { get { return _sMesh; } }
+    public SmartMesh RingMesh;
     public NodeMetadata[] NodeMetadata;
     //public NodeMetadata[] CellMetadata; // this is readonly and can cause issues if it is set directly
 
@@ -36,14 +37,14 @@ public class CleverMesh {
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
         NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
 
-        try
-        {
+        //try
+        //{
             _ringNodeMetadata = _nMesh.BlerpRingNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
-        }
-        catch
-        {
-            Debug.Log("Failed to blerp ring metadata");
-        }
+        //}
+        //catch
+        //{
+        //    throw new System.Exception("Failed to blerp ring metadata");
+        //}
 
 
         //convinced at this point that it's safe to keep this commented out
@@ -62,6 +63,7 @@ public class CleverMesh {
 
 
         _sMesh = new SmartMesh(_nMesh.Verts,_nMesh.Tris);
+        RingMesh = new SmartMesh(_nMesh.RingVerts, _nMesh.RingTris);
     }
 
     private void Init(List<Vector2Int> seedTiles, MeshTile meshTileJSON)
@@ -88,5 +90,10 @@ public class CleverMesh {
     public Mesh GetBarycenterDebugMesh()
     {
         return _nMesh.CreateBaryDebugMesh();
+    }
+
+    public float[] GetDataAboutVertex(int index)
+    {
+        return _nMesh.GetDataAtIndex(index);
     }
 }
