@@ -35,35 +35,40 @@ public class CleverMesh {
     {
 
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
-        NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
 
-        //try
-        //{
+        if (type == NestedMeshAccessType.Vertex)
+        {
+
+            NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
+
+            //try
+            //{
             _ringNodeMetadata = _nMesh.BlerpRingNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
-        //}
-        //catch
-        //{
-        //    throw new System.Exception("Failed to blerp ring metadata");
-        //}
+            //}
+            //catch
+            //{
+            //    throw new System.Exception("Failed to blerp ring metadata");
+            //}
 
 
-        //convinced at this point that it's safe to keep this commented out
+            //convinced at this point that it's safe to keep this commented out
 
-        //switch (type)
-        //{
-        //    case NestedMeshAccessType.Vertex:
-        //            CellMetadata = _nMesh.BlerpNodeToCellValuesUsingDerivedCenter(NodeMetadata);
-        //
-        //        break;
-        //    case NestedMeshAccessType.Triangles:
-        //
-        //            CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata, parent._nMesh);
-        //        break;
-        //}
-
+            //switch (type)
+            //{
+            //    case NestedMeshAccessType.Vertex:
+            //            CellMetadata = _nMesh.BlerpNodeToCellValuesUsingDerivedCenter(NodeMetadata);
+            //
+            //        break;
+            //    case NestedMeshAccessType.Triangles:
+            //
+            //            CellMetadata = _nMesh.BlerpNodeToCellValuesUsingParentCenter(parent.NodeMetadata, parent._nMesh);
+            //        break;
+            //}
+            RingMesh = new SmartMesh(_nMesh.RingVerts, _nMesh.RingTris);
+        }
 
         _sMesh = new SmartMesh(_nMesh.Verts,_nMesh.Tris);
-        RingMesh = new SmartMesh(_nMesh.RingVerts, _nMesh.RingTris);
+        
     }
 
     private void Init(List<Vector2Int> seedTiles, MeshTile meshTileJSON)

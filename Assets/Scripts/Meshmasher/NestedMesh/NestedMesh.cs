@@ -165,6 +165,15 @@ namespace MeshMasher {
 
         private void PopulateMeshByVertexContainment(NestedMesh originMesh, int[] meshAccessIndices)
         {
+            //if (originMesh.NestedLevel == 1)
+            //{
+            //    if (originMesh._mesh.DerivedVerts[meshAccessIndices[0]] == 322)
+            //    {
+            //        Debug.Log("Daniel!!");
+            //    }
+            //}
+
+
             var defaultSize = 200;
 
             var verts = new List<Vector3>(defaultSize);
@@ -316,13 +325,21 @@ namespace MeshMasher {
                         ringTriangleIndex = ringVertCount;
                         ringVertCount++;
                     }
+
+                    if (baseDict.ContainsKey(key))
+                    {
+                    }
+                    else
+                    {
+                        baseDict.Add(key, (int[])indexMap.Clone());
+                    }
                 }
             }
 
             var tiles = baseDict.Keys.ToArray();
             var tilesX = new int[tiles.Length];
             var tilesY = new int[tiles.Length];
-
+            
             for (int i = 0; i < tiles.Length; i++)
             {
                 tilesX[i] = tiles[i].x;
@@ -603,12 +620,15 @@ namespace MeshMasher {
             var distinctVerts = new Vector3[distinctIndices.Count];
             var distinctBarycenters = new Barycenter[distinctIndices.Count];
             var distinctBarycenterParentMap = new int[distinctIndices.Count];
+            //var distinctBarycenterOffsetMap = new int[distinctIndices.Count];
 
             for (int i = 0; i < distinctIndices.Count; i++)
             {
                 distinctVerts[i] = verts[distinctIndices[i]];
                 distinctBarycenters[i] = vertexBarycenters[distinctIndices[i]];
                 distinctBarycenterParentMap[i] = vertexTriangleParents[distinctIndices[i]];
+                //distinctBarycenterOffsetMap = 
+
             }
 
             for (int i = 0; i < tris.Count; i++)
@@ -618,7 +638,7 @@ namespace MeshMasher {
 
             //UnityEngine.Profiling.Profiler.EndSample();
 
-            Debug.Log("This bub ain't set up right yet");
+            //Debug.Log("This bub ain't set up right yet");
 
             _mesh = new NestedMeshData()
             {
@@ -668,8 +688,8 @@ namespace MeshMasher {
                     catch
                     {
                         throw new Exception("Invalid Parent Key for Barycentric nesting. " +
-                            "You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. " +
-                            "Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", was searching for " + testDistinctIndex);
+                            "You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. ");
+                            //"Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", was searching for " + testDistinctIndex);
                     }
 
                     try

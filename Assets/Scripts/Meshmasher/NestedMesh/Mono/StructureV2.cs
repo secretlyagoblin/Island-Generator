@@ -441,9 +441,9 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 3: ");
 
-        StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
+        //StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
-        //CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
+        CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
 
        
         
@@ -477,7 +477,7 @@ public class StructureV2 : MonoBehaviour {
         }
         catch
         {
-            Debug.LogError("No colours to add");
+            //Debug.LogError("No colours to add");
         }
 
 
@@ -630,12 +630,23 @@ public class StructureV2 : MonoBehaviour {
             for (int i = 0; i < count; i++)
             {
                 var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
-
-                var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
-
-                lock (_workQueue)
+                try
                 {
-                    _workQueue.Enqueue(layer2cleverMesh);
+
+
+                    var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+
+                    lock (_workQueue)
+                    {
+                        _workQueue.Enqueue(layer2cleverMesh);
+                    }
+                }
+                catch
+                {
+                    lock (_workQueue)
+                    {
+                        _workQueue.Enqueue(cleverMesh);
+                    }
                 }
             }
         });//.ContinueInMainThreadWith((x) => { Debug.Log("Task completed: " + x.IsCompleted); });
@@ -657,20 +668,21 @@ public class StructureV2 : MonoBehaviour {
                 cleverMeshMesh.name = "Cell " + i; ;
                 var cleverMeshRing = CreateRing(cleverMesh);
                 cleverMeshRing.transform.parent = cleverMeshMesh.transform;
+            cleverMeshMesh.transform.Translate(Vector3.back * 0.5f);
 
-            try
-            { 
-                var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
+           //try
+           //{ 
+                var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
                 //CreateObject(cleverMesh).name = "Cell " + i;
                 CreateObject(layer2cleverMesh).name = "Cell " + i +" - 2";
 
-            }
-            catch(System.Exception e)
-            {
-                var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
-                Debug.Log(data[0] + " " + data[1] + " "+ data[2] + " ");
-                Debug.LogError(e);
-            }
+            //}
+            //catch(System.Exception e)
+            //{
+            //    var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
+            //    Debug.Log(i + " " + data[0] + " " + data[1] + " "+ data[2] + " ");
+            //    Debug.LogError(e);
+            //}
 
             yield return waitForSeconds;
         }
