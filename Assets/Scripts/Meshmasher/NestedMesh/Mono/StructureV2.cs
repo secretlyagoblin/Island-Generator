@@ -39,7 +39,7 @@ public class StructureV2 : MonoBehaviour {
 
         //Debug.Log("Work Queue = " + _workQueue.Count);
 
-        while(_workQueue.Count > 0 && count <1)
+        while (_workQueue.Count > 0 && count < 1)
         {
             count++;
             CreateObject(_workQueue.Dequeue());
@@ -182,7 +182,7 @@ public class StructureV2 : MonoBehaviour {
 
         #region layer three
 
-        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Triangles);
+        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
 
         for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
         {
@@ -339,7 +339,7 @@ public class StructureV2 : MonoBehaviour {
         Debug.Log("Layer 2: ");
 
         var hood = layer1.Mesh.Cells[cellIndex].GetNeighbourhood();
-        
+
         //for (int i = 0; i < hood.Length; i++)
         //{
         //    var layer2 = new CleverMesh(layer1, hood[i], MeshMasher.NestedMeshAccessType.Vertex);
@@ -367,16 +367,16 @@ public class StructureV2 : MonoBehaviour {
 
 
         Debug.Log("Layer 3: ");
-        
-        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(),MeshMasher.NestedMeshAccessType.Vertex);
+
+        var layer3 = new CleverMesh(layer2, layer2.Mesh.Cells.Select(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
         //layer3.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
-        
+
         var go = CreateObject(layer3);
         go.name = "Layer3";
         //go.transform.Translate(Vector3.back);
-        
+
         Debug.Log("Layer 4: ");
-        
+
         for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
         {
             var layer4 = new CleverMesh(layer3, new int[] { layer3.Mesh.Cells[i].Index }, MeshMasher.NestedMeshAccessType.Triangles);
@@ -427,9 +427,9 @@ public class StructureV2 : MonoBehaviour {
         }
 
         Debug.Log("Layer 2: ");
-        
+
         var layer2 = new CleverMesh(layer1,
-            widerNeighbourhood.ToArray(), 
+            widerNeighbourhood.ToArray(),
             //cellIndex,
             MeshMasher.NestedMeshAccessType.Vertex);
 
@@ -441,12 +441,12 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 3: ");
 
-        //StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
+        StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
-        CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
+        //CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
 
-       
-        
+
+
     }
 
     List<Color> _createObjectColors = new List<Color>(100);
@@ -503,26 +503,22 @@ public class StructureV2 : MonoBehaviour {
                 _createObjectColors.Add(mesh.NodeMetadata[i].SmoothColor);
             }
 
-            if(mesh.NodeMetadata.Length == f.mesh.vertices.Length)
+            if (mesh.NodeMetadata.Length == f.mesh.vertices.Length)
             {
                 f.mesh.SetColors(_createObjectColors);
             }
-
-            
         }
         catch
         {
             Debug.LogError("No colours to add");
         }
 
-        
-
         return gameObject;
     }
 
     public GameObject CreateBaryObject(CleverMesh mesh)
     {
-        var gameObject = Instantiate(BlankTemplate,transform);
+        var gameObject = Instantiate(BlankTemplate, transform);
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
         r.sharedMaterial = MeshColourMaterial;
@@ -533,7 +529,7 @@ public class StructureV2 : MonoBehaviour {
         return gameObject;
     }
 
-    IEnumerator CreateSet(CleverMesh parent, Dictionary<int,List<int>> sets, float timeDelay, int batchCount)
+    IEnumerator CreateSet(CleverMesh parent, Dictionary<int, List<int>> sets, float timeDelay, int batchCount)
     {
         var waitForSeconds = new WaitForSeconds(timeDelay);
 
@@ -562,19 +558,19 @@ public class StructureV2 : MonoBehaviour {
 
             count++;
 
-            if(count == batchCount)
+            if (count == batchCount)
             {
                 count = 0;
 
-                if(timeDelay == 0)
+                if (timeDelay == 0)
                 {
                     yield return null;
                 }
                 else
                 {
                     yield return waitForSeconds;
-                }                
-            }         
+                }
+            }
         }
     }
 
@@ -617,7 +613,7 @@ public class StructureV2 : MonoBehaviour {
                         _workQueue.Enqueue(cleverMesh);
                     }
                 }
-            }).ContinueInMainThreadWith((x)=> { Debug.Log("Hell yeah we completed that one"); });
+            }).ContinueInMainThreadWith((x) => { Debug.Log("Hell yeah we completed that one"); });
         }
     }
 
@@ -634,7 +630,7 @@ public class StructureV2 : MonoBehaviour {
                 {
 
 
-                    var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+                    var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
 
                     lock (_workQueue)
                     {
@@ -662,20 +658,25 @@ public class StructureV2 : MonoBehaviour {
         for (int i = 0; i < count; i++)
         {
 
-                var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
+            var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
 
-                var cleverMeshMesh = CreateObject(cleverMesh);
-                cleverMeshMesh.name = "Cell " + i; ;
+            var cleverMeshMesh = CreateObject(cleverMesh);
+            cleverMeshMesh.name = "Cell " + i;
+            ;
+
+            if (type == MeshMasher.NestedMeshAccessType.Vertex)
+            {
                 var cleverMeshRing = CreateRing(cleverMesh);
                 cleverMeshRing.transform.parent = cleverMeshMesh.transform;
+            }
             cleverMeshMesh.transform.Translate(Vector3.back * 0.5f);
 
-           //try
-           //{ 
-                var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
-                //CreateObject(cleverMesh).name = "Cell " + i;
-                CreateObject(layer2cleverMesh).name = "Cell " + i +" - 2";
-
+            ////try
+            ////{ 
+                var layer2cleverMesh = new CleverMesh(cleverMesh, 0, MeshMasher.NestedMeshAccessType.Triangles);
+                 //CreateObject(cleverMesh).name = "Cell " + i;
+                 CreateObject(layer2cleverMesh).name = "Cell " + i +" - 2";
+            //
             //}
             //catch(System.Exception e)
             //{
@@ -687,6 +688,4 @@ public class StructureV2 : MonoBehaviour {
             yield return waitForSeconds;
         }
     }
-
-
 }

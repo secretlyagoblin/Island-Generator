@@ -37,6 +37,9 @@ public class MeshTile {
     public int[][] BarycentricParentIndices;
     public SimpleVector2Int[][] BarycentricParentOffsets;
 
+    public int[][] TriangleAccessBarycentricParentIndices;
+    public SimpleVector2Int[][] TriangleAccessBarycentricOffsets;
+
     public int[][] RingBarycentricParentIdices;
     public SimpleVector2Int[][] RingBarycentricParentOffsets;
     public Barycenter[][] RingBarycenters;
@@ -116,7 +119,7 @@ public class MeshTile {
 
                 Barycenters[u][v] = new Barycenter(importObject.barycentricCoordinates[count * 3], importObject.barycentricCoordinates[(count * 3) + 1], importObject.barycentricCoordinates[(count * 3) + 2], true, false);
                 BarycentricParentIndices[u][v] = importObject.barycentricParentIndices[count];
-                BarycentricParentOffsets[u][v] = new SimpleVector2Int(importObject.barycentricParentOffsets[count*2], importObject.barycentricParentOffsets[(count * 2)+1]);
+                BarycentricParentOffsets[u][v] = new SimpleVector2Int(importObject.barycentricParentOffsets[count * 2], importObject.barycentricParentOffsets[(count * 2) + 1]);
                 count++;
             }
         }
@@ -199,21 +202,30 @@ public class MeshTile {
         count = 0;
 
         TriangleBarycentricContainment = new Barycenter[importObject.triangleAccessBarcenticListLength.Length][];
+        TriangleAccessBarycentricParentIndices = new int[importObject.triangleAccessBarcenticListLength.Length][];
+        TriangleAccessBarycentricOffsets = new SimpleVector2Int[importObject.triangleAccessBarcenticListLength.Length][];
 
         for (int u = 0; u < importObject.triangleAccessBarcenticListLength.Length; u++)
         {
             var innerCount = importObject.triangleAccessBarcenticListLength[u];
             TriangleBarycentricContainment[u] = new Barycenter[innerCount];
+            TriangleAccessBarycentricParentIndices[u] = new int[innerCount];
+            TriangleAccessBarycentricOffsets[u] = new SimpleVector2Int[innerCount];
 
             for (int v = 0; v < innerCount; v++)
             {
                 TriangleBarycentricContainment[u][v] = new Barycenter(
-                        //u,
                         importObject.triangleAccessBarycenters[count * 3],
                         importObject.triangleAccessBarycenters[count * 3 + 1],
                         importObject.triangleAccessBarycenters[count * 3 + 2],
-                        importObject.triangleAccessBarcenticInternalMask[count],
-                        importObject.triangleAccessEdgeMask[count]
+                        true,
+                        true
+                    );
+
+                TriangleAccessBarycentricParentIndices[u][v] = importObject.triangleAccessBarycentricParents[count];
+                TriangleAccessBarycentricOffsets[u][v] = new SimpleVector2Int(
+                        importObject.triangleAccessBarycentricOffsets[count * 2],
+                        importObject.triangleAccessBarycentricOffsets[count * 2 + 1]
                     );
 
                 count++;
@@ -243,28 +255,33 @@ public class MeshTile {
             for (int v = 0; v < innerCount; v++)
             {
                 RingIndices[u][v] = importObject.ringIndices[count];
+
                 RingOffsets[u][v] = new SimpleVector2Int(
                         importObject.ringOffsets[count * 2],
                         importObject.ringOffsets[count * 2 + 1]
                     );
+
                 RingBarycentricParentIdices[u][v] = importObject.ringBarycentricParentIdices[count];
+
                 RingBarycentricParentOffsets[u][v] = new SimpleVector2Int(
                         importObject.ringBarycentricParentOffsets[count * 2],
                         importObject.ringBarycentricParentOffsets[count * 2 + 1]
                     );
-               RingBarycenters[u][v] = new Barycenter(
-                            importObject.ringBarycenters[count * 3],
-                            importObject.ringBarycenters[count * 3 + 1],
-                            importObject.ringBarycenters[count * 3 + 2],
-                            true,
-                            true
-                        );
+
+                RingBarycenters[u][v] = new Barycenter(
+                             importObject.ringBarycenters[count * 3],
+                             importObject.ringBarycenters[count * 3 + 1],
+                             importObject.ringBarycenters[count * 3 + 2],
+                             true,
+                             true
+                         );
+
                 RingPositions[u][v] = new Vector3(
                     importObject.ringPositions[count * 2],
                      importObject.ringPositions[count * 2 + 1],
                      0
                     );
-count++;
+                count++;
             }
         }
     }
@@ -288,8 +305,8 @@ count++;
         public int[] innerBarycentricIndices;
         public int[] triangleAccessBarcenticListLength;
         public float[] triangleAccessBarycenters;
-        public bool[] triangleAccessBarcenticInternalMask;
-        public bool[] triangleAccessEdgeMask;
+        public int[] triangleAccessBarycentricOffsets;
+        public int[] triangleAccessBarycentricParents;
         public float[] triangleCenterBarycenters;
         public float[] nestedDistanceFromNodeCenter;
         public int[] topologyCount;

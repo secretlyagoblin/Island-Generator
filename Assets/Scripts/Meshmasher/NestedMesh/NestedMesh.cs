@@ -232,28 +232,17 @@ namespace MeshMasher {
                     var subBarycenter = subBarycenters[u];
                     var subBarycenterParent = subBarycenterParentMap[u];
                     var subBarycenterParentOffset = subBarycentersParentOffset[u];
-
-                    //if(subVert == 224)
-                    //{
-                    //    Debug.Log("Hello sailor");
-                    //}
-
                     var pos = CalculateVertexOffset(subVert, tile, subTile, currentNestedOffset);
 
                     verts.Add(pos);
                     bary.Add(subBarycenter);
                     baryMap.Add(subBarycenterParent);
-                    //var baryMapKey = subBarycenterParentOffset + (tile * _meshTile.NestingScale);
-                    //baryMapOffset.Add(baryMapKey);
-                    baryMapOffset.Add(tile + subBarycenterParentOffset); //<------ could be issues here with tile offsets
-
+                    baryMapOffset.Add(tile + subBarycenterParentOffset);
 
                     //get the triangle neighbourhood of this generated thing
                     var triangleNeighbourhood = _meshTile.MeshTriangleTopology[subVert];
                     var triangleNeighbourhoodOffset = _meshTile.MeshTriangleTopologyOffset[subVert];
-
                     var distinctTriangles = new DistinctIndex[triangleNeighbourhood.Length];
-
                     var key = subTile + (tile * _meshTile.NestingScale);
 
                     //get a list of all triangles
@@ -289,22 +278,15 @@ namespace MeshMasher {
 
                 for (int u = 0; u < subRingIndices.Length; u++)
                 {
-                    //Put stuff here
-
                     var subVert = subRingPositions[u];
-                    
-
                     var subVertIndex = subRingIndices[u];
                     var subVertOffset = subRingOffsets[u];
                     var subBarycenter = subRingBarycenters[u];
                     var subBarycenterParent = subRingBarycenterParentMap[u];
                     var subBarycenterParentOffset = subRingBarycentersParentOffset[u];
-
                     var pos = CalculateVertexOffset(subVertIndex, tile, subVertOffset, currentNestedOffset);
                     var key = subVertOffset + (tile * _meshTile.NestingScale);
-
                     var distinctIndex = new DistinctIndex(subVertIndex, key.x, key.y);
-
                     var ringTriangleIndex = -1;
 
                     if (distinctRingDict.ContainsKey(distinctIndex))
@@ -486,8 +468,6 @@ namespace MeshMasher {
                 ringBarycenterParentMapOffset[i] = pair.barycenterParentOffset;
             }
 
-            //Debug.Log("Barycenters aren't implimented on ring, causing failure");
-
             _ringMesh = new NestedMeshData()
             {
                 Verts = actualRingVerts,
@@ -514,6 +494,7 @@ namespace MeshMasher {
             var vertexBarycenters = new List<Barycenter>(defaultSize);
             var triangeBarycenters = new List<Barycenter>(defaultSize);
             var vertexTriangleParents = new List<int>(defaultSize);
+            var vertexBarycenterOffsets = new List<SimpleVector2Int>(defaultSize);
 
             //Debug.Log("Creating Triangle Access Mesh at Offset Level " + currentNestedOffset);
 
@@ -534,19 +515,23 @@ namespace MeshMasher {
 
             for (int i = 0; i < meshAccessIndices.Length; i++)
             {
-                var subTriangleIndexes = _meshTile.NestedTriangleIndexes[originMesh._mesh.DerivedVerts[meshAccessIndices[i]]];
-                var subTriangleTiles = _meshTile.TriangleSubTileOffsets[originMesh._mesh.DerivedVerts[meshAccessIndices[i]]];
-                var innerBarycenters = _meshTile.TriangleBarycentricContainment[originMesh._mesh.DerivedVerts[meshAccessIndices[i]]];
-                var tile = originMesh._mesh.TileOffsets[meshAccessIndices[i]];
-                var innerTriangleBarycenters = _meshTile.TriangleCenterBarycenters[originMesh._mesh.DerivedVerts[meshAccessIndices[i]]];
+                var index = originMesh._mesh.DerivedVerts[meshAccessIndices[i]];
 
+                var subTriangleIndexes = _meshTile.NestedTriangleIndexes[index];
+                var subTriangleTiles = _meshTile.TriangleSubTileOffsets[index];
+
+                var innerBarycenters = _meshTile.TriangleBarycentricContainment[index];
+                var innerBarycenterParents = _meshTile.TriangleAccessBarycentricParentIndices[index];
+                var innerBarycenterOffsets = _meshTile.TriangleAccessBarycentricOffsets[index];
+
+                var tile = originMesh._mesh.TileOffsets[meshAccessIndices[i]];
+                var innerTriangleBarycenters = _meshTile.TriangleCenterBarycenters[index];
 
                 for (int u = 0; u < subTriangleIndexes.Length; u++)
                 {
                     var subTriangleIndex = subTriangleIndexes[u];
                     var subTriangleTile = subTriangleTiles[u];
                     var triangleVertexIndex = subTriangleIndex * 3;
-                    var innerTriangleBarycenter = innerTriangleBarycenters[u];
 
                     for (int v = 2; v >= 0; v--)
                     {
@@ -562,14 +547,20 @@ namespace MeshMasher {
                         vertsForCulling.Add(new DistinctIndex(vertexIndex, localOffset.x, localOffset.y));
 
                         var innerBarycenter = innerBarycenters[u * 3 + v];
-                        //here we are - i think what needs to happen is vert barycenters and maps need to find their way to parameters
-                        
+                        var innerParent = innerBarycenterParents[u * 3 + v];
+                        var innerOffset = innerBarycenterOffsets[u * 3 + v];
+                        //here we are - i think what needs to happen is vert barycenters and maps need to find their way to parameters                       
+
+                        //var key = tile;
 
                         vertexBarycenters.Add(innerBarycenter);
-                        vertexTriangleParents.Add(meshAccessIndices[i]);
+                        vertexTriangleParents.Add(innerParent);
+                        vertexBarycenterOffsets.Add(innerOffset);
 
                     }
 
+                    //do we need this
+                    var innerTriangleBarycenter = innerTriangleBarycenters[u];
                     triangeBarycenters.Add(innerTriangleBarycenter);
 
                     //parentIndexes.Add(
@@ -620,14 +611,14 @@ namespace MeshMasher {
             var distinctVerts = new Vector3[distinctIndices.Count];
             var distinctBarycenters = new Barycenter[distinctIndices.Count];
             var distinctBarycenterParentMap = new int[distinctIndices.Count];
-            //var distinctBarycenterOffsetMap = new int[distinctIndices.Count];
+            var distinctBarycenterOffset = new SimpleVector2Int[distinctIndices.Count];
 
             for (int i = 0; i < distinctIndices.Count; i++)
             {
                 distinctVerts[i] = verts[distinctIndices[i]];
                 distinctBarycenters[i] = vertexBarycenters[distinctIndices[i]];
                 distinctBarycenterParentMap[i] = vertexTriangleParents[distinctIndices[i]];
-                //distinctBarycenterOffsetMap = 
+                distinctBarycenterOffset[i] = vertexBarycenterOffsets[distinctIndices[i]];
 
             }
 
@@ -648,7 +639,7 @@ namespace MeshMasher {
                 TileOffsets = derivedOffset.ToArray(),
                 Barycenters = distinctBarycenters,
                 BarycenterParentMap = distinctBarycenterParentMap,
-                //BarycenterParentMapOffset = baryMapOffset.ToArray()
+                BarycenterParentMapOffset = distinctBarycenterOffset
             };
         }
 
