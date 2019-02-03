@@ -39,7 +39,7 @@ public class StructureV2 : MonoBehaviour {
 
         //Debug.Log("Work Queue = " + _workQueue.Count);
 
-        while (_workQueue.Count > 0 && count < 1)
+        while (_workQueue.Count > 0 && count < 3)
         {
             count++;
             CreateObject(_workQueue.Dequeue());
@@ -404,8 +404,8 @@ public class StructureV2 : MonoBehaviour {
 
     public void SingleTest()
     {
-        var cellIndex = 159; //<- known error with edge
-        //var cellIndex = 155; //<- known error with edge
+        //var cellIndex = 159; //<- known error with edge
+        var cellIndex = 155; //<- known error with edge
         //var cellIndex = 133; //<- known error with colour bleeding
         //var cellIndex = 122; //<- known error with edge
         var colors = new Color[] { Color.red, Color.green, Color.blue };
@@ -441,9 +441,9 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 3: ");
 
-        StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
+        //StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
-        //CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
+        CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
 
 
 
@@ -630,19 +630,22 @@ public class StructureV2 : MonoBehaviour {
                 {
 
 
-                    var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
+                    var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
 
                     lock (_workQueue)
                     {
                         _workQueue.Enqueue(layer2cleverMesh);
                     }
                 }
-                catch
+                catch (System.Exception e)
                 {
-                    lock (_workQueue)
-                    {
-                        _workQueue.Enqueue(cleverMesh);
-                    }
+                    var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
+                    Debug.Log(i + " " + data[0] + " " + data[1] + " " + data[2] + " ");
+                    Debug.LogError(e);
+                    //lock (_workQueue)
+                    //{
+                    //    _workQueue.Enqueue(cleverMesh);
+                    //}
                 }
             }
         });//.ContinueInMainThreadWith((x) => { Debug.Log("Task completed: " + x.IsCompleted); });
@@ -660,6 +663,7 @@ public class StructureV2 : MonoBehaviour {
 
             var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
 
+            /*
             var cleverMeshMesh = CreateObject(cleverMesh);
             cleverMeshMesh.name = "Cell " + i;
             ;
@@ -671,19 +675,20 @@ public class StructureV2 : MonoBehaviour {
             }
             cleverMeshMesh.transform.Translate(Vector3.back * 0.5f);
 
-            ////try
-            ////{ 
-                var layer2cleverMesh = new CleverMesh(cleverMesh, 0, MeshMasher.NestedMeshAccessType.Triangles);
+    */
+            try
+            { 
+                var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
                  //CreateObject(cleverMesh).name = "Cell " + i;
                  CreateObject(layer2cleverMesh).name = "Cell " + i +" - 2";
-            //
-            //}
-            //catch(System.Exception e)
-            //{
-            //    var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
-            //    Debug.Log(i + " " + data[0] + " " + data[1] + " "+ data[2] + " ");
-            //    Debug.LogError(e);
-            //}
+            
+            }
+            catch(System.Exception e)
+            {
+                var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
+                Debug.Log(i + " " + data[0] + " " + data[1] + " "+ data[2] + " ");
+                Debug.LogError(e);
+            }
 
             yield return waitForSeconds;
         }

@@ -551,11 +551,11 @@ namespace MeshMasher {
                         var innerOffset = innerBarycenterOffsets[u * 3 + v];
                         //here we are - i think what needs to happen is vert barycenters and maps need to find their way to parameters                       
 
-                        //var key = tile;
+                        var key = innerOffset + (tile); //* _meshTile.NestingScale);
 
                         vertexBarycenters.Add(innerBarycenter);
                         vertexTriangleParents.Add(innerParent);
-                        vertexBarycenterOffsets.Add(innerOffset);
+                        vertexBarycenterOffsets.Add(key);
 
                     }
 
