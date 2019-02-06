@@ -150,8 +150,7 @@ public class MeshTile {
 
         MeshTopology = new int[importObject.topologyCount.Length][];
         MeshTopologyOffset = new SimpleVector2Int[importObject.topologyCount.Length][];
-        MeshTriangleTopology = new int[importObject.topologyCount.Length][];
-        MeshTriangleTopologyOffset = new SimpleVector2Int[importObject.topologyCount.Length][];
+
 
         for (int u = 0; u < importObject.topologyCount.Length; u++)
         {
@@ -159,19 +158,37 @@ public class MeshTile {
 
             MeshTopology[u] = new int[innerCount];
             MeshTopologyOffset[u] = new SimpleVector2Int[innerCount];
-            MeshTriangleTopology[u] = new int[innerCount];
-            MeshTriangleTopologyOffset[u] = new SimpleVector2Int[innerCount];
+
 
             for (int v = 0; v < innerCount; v++)
             {
                 var count2 = count * 2;
                 MeshTopology[u][v] = importObject.topology[count];
                 MeshTopologyOffset[u][v] = new SimpleVector2Int(importObject.topologyOffset[count2], importObject.topologyOffset[(count2) + 1]);
-                MeshTriangleTopology[u][v] = importObject.triTopologyData[count];
-                MeshTriangleTopologyOffset[u][v] = new SimpleVector2Int(importObject.triOffsetData[count2], importObject.triOffsetData[(count2) + 1]);
+
                 count++;
             }
         }
+
+        count = 0;
+
+        MeshTriangleTopology = new int[importObject.topologyCount.Length][];
+        MeshTriangleTopologyOffset = new SimpleVector2Int[importObject.topologyCount.Length][];
+
+        for (int u = 0; u < importObject.topologyCount.Length; u++)
+        {
+            var innerCount = importObject.triTopologyCount[u];
+            MeshTriangleTopology[u] = new int[innerCount];
+            MeshTriangleTopologyOffset[u] = new SimpleVector2Int[innerCount];
+
+            for (int v = 0; v < innerCount; v++)
+            {
+                var count2 = count * 2;
+                MeshTriangleTopology[u][v] = importObject.triTopologyData[count];
+                MeshTriangleTopologyOffset[u][v] = new SimpleVector2Int(importObject.triOffsetData[count2], importObject.triOffsetData[(count2) + 1]);
+            }
+        }
+        
 
         count = 0;
 
@@ -324,5 +341,6 @@ public class MeshTile {
         public int[] ringIndices;
         public int[] ringOffsets;
         public float[] ringPositions;
+        public int[] triTopologyCount;
     }
 }

@@ -167,10 +167,14 @@ namespace MeshMasher {
         {
             //if (originMesh.NestedLevel == 1)
             //{
-            //    if (originMesh._mesh.DerivedVerts[meshAccessIndices[0]] == 322)
-            //    {
-            //        Debug.Log("Daniel!!");
-            //    }
+
+            var triggerDebug = false;
+
+                if (originMesh._mesh.DerivedVerts[meshAccessIndices[0]] == 322)
+                {
+                    Debug.Log("Daniel!!");
+                triggerDebug = true;
+                }
             //}
 
 
@@ -245,12 +249,32 @@ namespace MeshMasher {
                     var distinctTriangles = new DistinctIndex[triangleNeighbourhood.Length];
                     var key = subTile + (tile * _meshTile.NestingScale);
 
+                    var keySet = new SimpleVector2Int[triangleNeighbourhood.Length + 1];
+                    keySet[0] = key;
+
                     //get a list of all triangles
                     for (int v = 0; v < distinctTriangles.Length; v++)
                     {
                         var offset = triangleNeighbourhoodOffset[v];
                         offset = offset + key;
                         distinctTriangles[v] = new DistinctIndex(triangleNeighbourhood[v], offset.x, offset.y);
+
+                        //var triangle = distinctTriangles[v].i * 3;
+                        //
+                        //var oa = _meshTile.Offsets[triangle];
+                        //var ob = _meshTile.Offsets[triangle + 1];
+                        //var oc = _meshTile.Offsets[triangle + 2];
+                        //
+                        //var dictTestSet = new SimpleVector2Int[]{ oa + offset, ob + offset, oc + offset};
+                        //
+                        //for (int w = 0; w < dictTestSet.Length; w++)
+                        //{
+                        //    var innerKey = dictTestSet[w];
+                        //    if (!baseDict.ContainsKey(innerKey))
+                        //    { 
+                        //        baseDict.Add(innerKey, (int[])indexMap.Clone());
+                        //    }
+                        //}
                     }
 
                     allTriangles.AddRange(distinctTriangles);
@@ -344,7 +368,14 @@ namespace MeshMasher {
 
             for (int i = 0; i < allTriangles.Count; i++)
             {
+
                 var distinctTriangle = allTriangles[i];
+
+                if(distinctTriangle.i == 304)
+                {
+                    Debug.Log("Sailor!!!");
+                }
+
                 var triangle = distinctTriangle.i * 3;
 
 
@@ -679,8 +710,9 @@ namespace MeshMasher {
                     catch
                     {
                         throw new Exception("Invalid Parent Key for Barycentric nesting. " +
-                            "You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. ");
-                            //"Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", was searching for " + testDistinctIndex);
+                            "Failed in the buffer. You need to ensure each mesh has a 'safe ring' around the neighbourhood you want. "//);
+                            //"Parent neighbourhood was roundabout " + parentMesh._meshTileToTriangle.Keys.First() + ", 
+                            +"was searching for " + testDistinctIndex);
                     }
 
                     try

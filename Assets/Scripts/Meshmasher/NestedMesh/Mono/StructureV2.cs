@@ -6,6 +6,7 @@ using U3D.Threading.Tasks;
 
 public class StructureV2 : MonoBehaviour {
 
+    public int CellIndex;
 
     public GameObject InstantiationBase;
     public AnimationCurve FalloffCurve;
@@ -405,17 +406,21 @@ public class StructureV2 : MonoBehaviour {
     public void SingleTest()
     {
         //var cellIndex = 159; //<- known error with edge
-        var cellIndex = 155; //<- known error with edge
+        //var cellIndex = 155; //<- known error with edge
         //var cellIndex = 133; //<- known error with colour bleeding
         //var cellIndex = 122; //<- known error with edge
+        var cellIndex = CellIndex;
         var colors = new Color[] { Color.red, Color.green, Color.blue };
 
         Debug.Log("Layer 1: ");
 
-        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero, Vector2Int.right, Vector2Int.one }, new MeshTile(meshTileData.text));
+        var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero}, new MeshTile(meshTileData.text));
 
-        //CreateObject(layer1);
+        CreateObject(layer1);
+        //CreateRing(layer1);
 
+
+        /*
         var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ToList().ConvertAll(x => x.Index);
         var widerNeighbourhood = neighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
         neighbourhood.Add(cellIndex);
@@ -426,12 +431,27 @@ public class StructureV2 : MonoBehaviour {
             layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
         }
 
-        Debug.Log("Layer 2: ");
+          Debug.Log("Layer 2: ");
 
         var layer2 = new CleverMesh(layer1,
             widerNeighbourhood.ToArray(),
             //cellIndex,
             MeshMasher.NestedMeshAccessType.Vertex);
+
+        */
+
+        Debug.Log("Layer 2: ");
+
+        var layer2 = new CleverMesh(layer1,
+            cellIndex,
+            //cellIndex,
+            MeshMasher.NestedMeshAccessType.Vertex);
+
+        CreateObject(layer2);
+        CreateRing(layer2);
+
+
+        return;
 
         var layer2obj = CreateObject(layer2);
         var layer2ring = CreateRing(layer2);
@@ -441,9 +461,21 @@ public class StructureV2 : MonoBehaviour {
 
         Debug.Log("Layer 3: ");
 
-        //StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
+        var layer3 = new CleverMesh(layer2,
+            layer2.Mesh.Nodes[0].Index,
+            //cellIndex,
+            MeshMasher.NestedMeshAccessType.Vertex);
 
-        CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
+        var layer4 = new CleverMesh(layer3,
+            layer3.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(),
+            //cellIndex,
+            MeshMasher.NestedMeshAccessType.Vertex);
+
+
+        Debug.Log("Layer 4: ");
+        StartCoroutine(CreateSimple(layer4, MeshMasher.NestedMeshAccessType.Vertex));
+
+        //CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
 
 
 
@@ -674,8 +706,8 @@ public class StructureV2 : MonoBehaviour {
                 cleverMeshRing.transform.parent = cleverMeshMesh.transform;
             }
             cleverMeshMesh.transform.Translate(Vector3.back * 0.5f);
+            */
 
-    */
             try
             { 
                 var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
@@ -685,6 +717,13 @@ public class StructureV2 : MonoBehaviour {
             }
             catch(System.Exception e)
             {
+                var cleverMeshMesh = CreateObject(cleverMesh);
+                cleverMeshMesh.name = "Cell " + i;
+
+                var cleverMeshRing = CreateRing(cleverMesh);
+                cleverMeshRing.transform.parent = cleverMeshMesh.transform;
+
+
                 var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
                 Debug.Log(i + " " + data[0] + " " + data[1] + " "+ data[2] + " ");
                 Debug.LogError(e);

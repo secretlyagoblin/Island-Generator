@@ -235,6 +235,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a342f55aa726fa45badfc17d06752bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CellIndex: 322
   InstantiationBase: {fileID: 1767580495089616, guid: 6e0e4e2cda470404c87133207c080df5,
     type: 2}
   FalloffCurve:
