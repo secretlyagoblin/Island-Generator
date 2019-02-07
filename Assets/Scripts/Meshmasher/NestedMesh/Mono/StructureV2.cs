@@ -416,11 +416,11 @@ public class StructureV2 : MonoBehaviour {
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero}, new MeshTile(meshTileData.text));
 
-        CreateObject(layer1);
+        //CreateObject(layer1);
         //CreateRing(layer1);
 
 
-        /*
+        
         var neighbourhood = layer1.Mesh.Nodes[cellIndex].Nodes.ToList().ConvertAll(x => x.Index);
         var widerNeighbourhood = neighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
         neighbourhood.Add(cellIndex);
@@ -438,7 +438,7 @@ public class StructureV2 : MonoBehaviour {
             //cellIndex,
             MeshMasher.NestedMeshAccessType.Vertex);
 
-        */
+        /*
 
         Debug.Log("Layer 2: ");
 
@@ -450,8 +450,9 @@ public class StructureV2 : MonoBehaviour {
         CreateObject(layer2);
         CreateRing(layer2);
 
+        */
 
-        return;
+        //return;
 
         var layer2obj = CreateObject(layer2);
         var layer2ring = CreateRing(layer2);
@@ -459,21 +460,21 @@ public class StructureV2 : MonoBehaviour {
         layer2ring.name = "Layer2ring";
         layer2obj.transform.Translate(Vector3.back);
 
-        Debug.Log("Layer 3: ");
-
-        var layer3 = new CleverMesh(layer2,
-            layer2.Mesh.Nodes[0].Index,
-            //cellIndex,
-            MeshMasher.NestedMeshAccessType.Vertex);
-
-        var layer4 = new CleverMesh(layer3,
-            layer3.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(),
-            //cellIndex,
-            MeshMasher.NestedMeshAccessType.Vertex);
+        //Debug.Log("Layer 3: ");
+        //
+        //var layer3 = new CleverMesh(layer2,
+        //    layer2.Mesh.Nodes[0].Index,
+        //    //cellIndex,
+        //    MeshMasher.NestedMeshAccessType.Vertex);
+        //
+        //var layer4 = new CleverMesh(layer3,
+        //    layer3.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(),
+        //    //cellIndex,
+        //    MeshMasher.NestedMeshAccessType.Vertex);
 
 
         Debug.Log("Layer 4: ");
-        StartCoroutine(CreateSimple(layer4, MeshMasher.NestedMeshAccessType.Vertex));
+        StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
         //CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
 

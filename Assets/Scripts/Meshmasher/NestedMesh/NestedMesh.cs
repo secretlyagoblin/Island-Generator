@@ -165,19 +165,6 @@ namespace MeshMasher {
 
         private void PopulateMeshByVertexContainment(NestedMesh originMesh, int[] meshAccessIndices)
         {
-            //if (originMesh.NestedLevel == 1)
-            //{
-
-            var triggerDebug = false;
-
-                if (originMesh._mesh.DerivedVerts[meshAccessIndices[0]] == 322)
-                {
-                    Debug.Log("Daniel!!");
-                triggerDebug = true;
-                }
-            //}
-
-
             var defaultSize = 200;
 
             var verts = new List<Vector3>(defaultSize);
@@ -248,9 +235,6 @@ namespace MeshMasher {
                     var triangleNeighbourhoodOffset = _meshTile.MeshTriangleTopologyOffset[subVert];
                     var distinctTriangles = new DistinctIndex[triangleNeighbourhood.Length];
                     var key = subTile + (tile * _meshTile.NestingScale);
-
-                    var keySet = new SimpleVector2Int[triangleNeighbourhood.Length + 1];
-                    keySet[0] = key;
 
                     //get a list of all triangles
                     for (int v = 0; v < distinctTriangles.Length; v++)
@@ -370,14 +354,7 @@ namespace MeshMasher {
             {
 
                 var distinctTriangle = allTriangles[i];
-
-                if(distinctTriangle.i == 304)
-                {
-                    Debug.Log("Sailor!!!");
-                }
-
                 var triangle = distinctTriangle.i * 3;
-
 
                 var oa = _meshTile.Offsets[triangle];
                 var ob = _meshTile.Offsets[triangle + 1];
