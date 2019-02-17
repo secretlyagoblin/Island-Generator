@@ -123,10 +123,11 @@ namespace MeshMasher {
 
         public Mesh ToXZMesh()
         {
-            var m = new Mesh();
-
-            m.SetVertices(Nodes.Select(x => new Vector3(x.Vert.x,0,x.Vert.y)).ToList());
-            m.SetTriangles(Cells.SelectMany(x => x.Nodes.Select(y => y.Index)).ToList(),0);
+            var m = new Mesh
+            {
+                vertices = _vertices.Select(x => new Vector3(x.x,0,x.y)).ToArray(),
+                triangles = _triangles
+            };
             m.RecalculateBounds();
             m.RecalculateNormals();
 
@@ -720,9 +721,9 @@ namespace MeshMasher {
         public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<int> outline)
         {
             var state = MinimumSpanningTree(outline);
-            //var walkState = WalkThroughRooms(state.Clone());
-            //var roomState = CalculateRooms(state.Clone());
-            //state = RemoveLargeRooms(state, roomState, walkState, 8);
+            var walkState = WalkThroughRooms(state.Clone());
+            var roomState = CalculateRooms(state.Clone());
+            state = RemoveLargeRooms(state, roomState, walkState, 8);
             return state;
         }
 

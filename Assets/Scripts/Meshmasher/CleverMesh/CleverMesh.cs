@@ -11,7 +11,7 @@ public class CleverMesh {
     public NodeMetadata[] NodeMetadata;
     //public NodeMetadata[] CellMetadata; // this is readonly and can cause issues if it is set directly
 
-    private NodeMetadata[] _ringNodeMetadata;
+    public NodeMetadata[] RingNodeMetadata;
 
     private NestedMesh _nMesh;
     private SmartMesh _sMesh;
@@ -36,11 +36,11 @@ public class CleverMesh {
 
         _nMesh = new NestedMesh(parent._nMesh, accessIndexes, type);
 
-        NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
+        NodeMetadata = _nMesh.BlerpParentNodeValues(parent.NodeMetadata, parent.RingNodeMetadata, parent._nMesh);
 
         if (type == NestedMeshAccessType.Vertex)
         {
-            _ringNodeMetadata = _nMesh.BlerpRingNodeValues(parent.NodeMetadata, parent._ringNodeMetadata, parent._nMesh);
+            RingNodeMetadata = _nMesh.BlerpRingNodeValues(parent.NodeMetadata, parent.RingNodeMetadata, parent._nMesh);
 
             RingMesh = new SmartMesh(_nMesh.RingVerts, _nMesh.RingTris);
         }
@@ -55,7 +55,7 @@ public class CleverMesh {
         _sMesh = new SmartMesh(_nMesh.Verts, _nMesh.Tris);
 
         NodeMetadata = new NodeMetadata[_nMesh.Verts.Length];
-        _ringNodeMetadata = new NodeMetadata[0];
+        RingNodeMetadata = new NodeMetadata[0];
 
         for (int i = 0; i < NodeMetadata.Length; i++)
         {

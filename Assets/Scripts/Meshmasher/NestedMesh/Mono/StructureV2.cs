@@ -106,10 +106,17 @@ public class StructureV2 : MonoBehaviour {
 
         /// 2: Give each node a different biome
 
-        for (int i = 0; i < neighbourhood.Count; i++)
+        //for (int i = 0; i < neighbourhood.Count; i++)
+        //{
+        //    var n = layer1.Mesh.Nodes[neighbourhood[i]];
+        //    layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
+        //}
+
+        for (int i = 0; i < widerNeighbourhood.Count; i++)
         {
-            var n = layer1.Mesh.Nodes[neighbourhood[i]];
-            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
+            var n = layer1.Mesh.Nodes[widerNeighbourhood[i]].Index;
+            layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
+
         }
 
         #endregion
@@ -140,6 +147,12 @@ public class StructureV2 : MonoBehaviour {
                 layer2.NodeMetadata[i].Code = 0;
                 layer2.NodeMetadata[i].SmoothColor = Color.white;
             }                
+        }
+
+        for (int i = 0; i < layer2.RingNodeMetadata.Length; i++)
+        {
+            layer2.RingNodeMetadata[i].Code = 0;
+            layer2.RingNodeMetadata[i].SmoothColor = Color.white;
         }
 
         // 2: Calculate a connectivity graph between regions (TODO: fix distance to be based on distance from node center based on layer 1)
@@ -177,7 +190,11 @@ public class StructureV2 : MonoBehaviour {
             var n = layer2.Mesh.Nodes[i];
 
             if (layer2Border.Nodes[n.Index] == 1 | layer2.NodeMetadata[i].Code == 0)
+            {
+                layer2.NodeMetadata[n.Index].SmoothColor = Color.magenta;
                 continue;
+            }
+                
 
             layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
             layer2.NodeMetadata[n.Index].Connections = n
@@ -189,7 +206,8 @@ public class StructureV2 : MonoBehaviour {
             layer2.NodeMetadata[n.Index].Code = i + 1;
         }
 
-        CreateObject(layer2);
+        //CreateObject(layer2);
+        //return;
 
         #endregion
 
@@ -216,12 +234,15 @@ public class StructureV2 : MonoBehaviour {
             var colour = layer3.NodeMetadata[n.Index].MeshDual;
             colour = Mathf.Max(layer3.NodeMetadata[n.Index].Distance, colour);
             //layer3.CellMetadata[n.Index].Code = i + 1;
+            var dist = layer3.NodeMetadata[n.Index].Distance;
             layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
             //layer3.CellMetadata[n.Index].SmoothColor = new Color(colour, colour, colour);
             layer3.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         }
 
         CreateObject(layer3);
+
+        return;
 
         #endregion
 
@@ -235,30 +256,30 @@ public class StructureV2 : MonoBehaviour {
 
         //layer3.Mesh.DrawMesh(transform);
 
-        var cellDicts = new Dictionary<int, List<int>>();
+        var nodeDicts = new Dictionary<int, List<int>>();
 
-        //for (int i = 0; i < layer3.Mesh.Cells.Count; i++)
-        //{
-        //    var code = layer3.CellMetadata[i].Code;
-        //
-        //    if (cellDicts.ContainsKey(code))
-        //    {
-        //        cellDicts[code].Add(i);
-        //    }
-        //    else
-        //    {
-        //        cellDicts.Add(code, new List<int>() { i });
-        //    }
-        //}
-        //
-        //if (RunAsync)
-        //{
-        //    CreateSetAsync(layer3, cellDicts, 1);
-        //}
-        //else
-        //{
-        //    StartCoroutine(CreateSet(layer3, cellDicts, 0, 1));
-        //}
+        for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
+        {
+            var code = layer3.NodeMetadata[i].Code;
+        
+            if (nodeDicts.ContainsKey(code))
+            {
+                nodeDicts[code].Add(i);
+            }
+            else
+            {
+                nodeDicts.Add(code, new List<int>() { i });
+            }
+        }
+        
+        if (RunAsync)
+        {
+            CreateSetAsync(layer3, nodeDicts, 1);
+        }
+        else
+        {
+            StartCoroutine(CreateSet(layer3, nodeDicts, 0, 1));
+        }
 
         return;
 
@@ -508,7 +529,6 @@ public class StructureV2 : MonoBehaviour {
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
         r.sharedMaterial = MeshColourMaterial;
-        //f.mesh = layer5.Mesh.ToXYMesh();
         f.mesh = mesh.Mesh.ToXYMesh();
 
         _createObjectColors.Clear();
