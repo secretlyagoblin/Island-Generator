@@ -171,7 +171,7 @@ namespace WorldGen {
 
         MeshMasher.MeshState<int> GenerateRooms()
         {
-            var state = _mesh.GetMeshState<int>();
+            var state = _mesh.CreateMeshState<int>();
 
             foreach (var pair in _regionVertexIndex)
             {
@@ -268,7 +268,7 @@ namespace WorldGen {
 
         MeshMasher.MeshState<int> ConsolidateSmallRooms(MeshMasher.MeshState<int> rooms, int minRoomSize, Dictionary<KeyValuePair<int, int>, List<int>> adjacencySets)
         {
-            var consolidatedRooms = _mesh.GetMeshState<int>();
+            var consolidatedRooms = _mesh.CreateMeshState<int>();
             var smallRooms = new List<Region>();
             var oldIdDict = new Dictionary<int, Region>();
             var oldRegionDict = new Dictionary<Region, int>();
@@ -936,7 +936,7 @@ namespace WorldGen {
         void MakeSmallerMesh(MeshMasher.MeshState<int> rooms)
         {
             var smallerMesh = MeshMasher.DelaunayGen.FromBounds(_bounds, _settings.DelaunayBoundsRatio * 0.25f);
-            var smallNodes = smallerMesh.GetMeshState<int>();
+            var smallNodes = smallerMesh.CreateMeshState<int>();
             var roadCells = new Dictionary<int, List<int>>();
 
             var offset = Vector3.right * 15f;

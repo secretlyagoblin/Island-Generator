@@ -119,6 +119,47 @@ public class StructureV2 : MonoBehaviour {
 
         }
 
+        var pairs = new List<SimpleVector2Int>();
+
+        var border1State = layer1.Mesh.CreateMeshState<int>();
+        widerNeighbourhood
+            .SelectMany(x => layer1.Mesh.Nodes[x].Lines)
+            .Distinct()
+            .Where(x => widerNeighbourhood.Contains(x.Nodes[0].Index) && widerNeighbourhood.Contains(x.Nodes[1].Index))
+            .ToList()
+            .ForEach(x => {
+                if (RNG.SmallerThan(0.7f)) { border1State.Lines[x.Index] = 1; } else { border1State.Lines[x.Index] = 0; } });
+
+        layer1.Mesh.Lines.ForEach(x =>
+        {
+            var nodeA = x.Nodes[0].Index;
+            var nodeB = x.Nodes[1].Index;
+
+            if (border1State.Lines[x.Index] == 1 )
+            {
+                border1State.Lines[x.Index] = 1;
+
+                var codeA = layer1.NodeMetadata[nodeA].Code;
+                var codeB = layer1.NodeMetadata[nodeB].Code;
+
+                pairs.Add(codeA < codeB ? new SimpleVector2Int(codeA, codeB) : new SimpleVector2Int(codeB, codeA));
+            }
+        });
+
+        pairs = pairs.Distinct().ToList();
+
+
+        //layer2.Mesh.DrawMesh(this.transform);
+        layer1.Mesh.DrawRoads(
+            this.transform,
+            border1State,
+            //layer1.Mesh.GenerateSemiConnectedMesh(
+            //    5,
+            //    layer1.Mesh.CreateMeshState<int>()),
+            Color.cyan,
+            100f
+            );
+
         #endregion
 
         Debug.Log("Layer 2: ");
@@ -155,10 +196,47 @@ public class StructureV2 : MonoBehaviour {
             layer2.RingNodeMetadata[i].SmoothColor = Color.white;
         }
 
+        var splines = RNG.Shuffle(layer2.Mesh.Lines);
+        var layer2State = layer2.Mesh.CreateMeshState<int>();
+
+        foreach (var line in splines)
+        {
+            var codeA = layer2.NodeMetadata[line.Nodes[0].Index].Code;
+            var codeB = layer2.NodeMetadata[line.Nodes[1].Index].Code;
+            var testCode = codeA < codeB ? new SimpleVector2Int(codeA, codeB) : new SimpleVector2Int(codeB, codeA);
+            if (codeA == codeB && RNG.SmallerThan(0.7))
+            {
+                layer2State.Lines[line.Index] = 1;
+                //line.DebugDraw(layer2.NodeMetadata[line.Nodes[0].Index].SmoothColor, 100f);
+                layer2State.Nodes[line.Nodes[0].Index] = 1;
+                layer2State.Nodes[line.Nodes[1].Index] = 1;
+            } else if(pairs.Contains(testCode)){
+                pairs.Remove(testCode);
+                layer2State.Lines[line.Index] = 1;
+                //line.DebugDraw(layer2.NodeMetadata[line.Nodes[0].Index].SmoothColor, 100f);
+                layer2State.Nodes[line.Nodes[0].Index] = 1;
+                layer2State.Nodes[line.Nodes[1].Index] = 1;
+            }
+        }
+
+        //foreach (var node in layer2.Mesh.Nodes)
+        //{
+        //    if (RNG.SmallerThan(0.2) | layer2.NodeMetadata[node.Index].Code == 0)
+        //        continue;
+        //
+        //    layer2State.Lines[RNG.GetRandomItem(node.Lines).Index] = 0;
+        //}
+
+        //var roomz = layer2.Mesh.GenerateSemiConnectedMesh(3, layer2State);
+
         // 2: Calculate a connectivity graph between regions (TODO: fix distance to be based on distance from node center based on layer 1)
 
-        var layer2State = layer2.Mesh.GenerateSemiConnectedMesh(5, layer2Border);
+        //var layer2State = layer2.Mesh.GenerateSemiConnectedMesh(5, layer2Border);
+
         //layer2.Mesh.DrawMesh(this.transform);
+        layer2.Mesh.DrawRoads(this.transform, layer2State);
+
+        //return;
 
         // 3: Give each walkable node a special room code and color
 
@@ -240,9 +318,7 @@ public class StructureV2 : MonoBehaviour {
             layer3.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         }
 
-        CreateObject(layer3);
-
-        return;
+        //CreateObject(layer3);
 
         #endregion
 
@@ -529,7 +605,7 @@ public class StructureV2 : MonoBehaviour {
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
         r.sharedMaterial = MeshColourMaterial;
-        f.mesh = mesh.Mesh.ToXYMesh();
+        f.mesh = mesh.Mesh.ToXZMesh(mesh.NodeMetadata.Select(x => -Mathf.InverseLerp(0f,0.05f,Mathf.Min(x.SmoothColor.grayscale,0.05f))*0.2f).ToArray());
 
         _createObjectColors.Clear();
 
@@ -771,4 +847,6 @@ public class StructureV2 : MonoBehaviour {
             yield return waitForSeconds;
         }
     }
+
+
 }

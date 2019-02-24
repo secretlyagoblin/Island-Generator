@@ -44,6 +44,16 @@ public static class RNG {
         _initialised = true;
     }
 
+    public static bool SmallerThan(float value)
+    {
+        return _pseudoRandom.NextDouble() < value;
+    }
+
+    public static bool SmallerThan(double value)
+    {
+        return _pseudoRandom.NextDouble() < value;
+    }
+
     public static int Next()
     {
         return _pseudoRandom.Next();
@@ -133,10 +143,32 @@ public static class RNG {
         return array[item];
     }
 
+    public static T GetRandomItem<T>(List<T> list)
+    {
+        var item = Next(list.Count);
+        return list[item];
+    }
+
     public static Color GetRandomColor()
     {
         return new Color(NextFloat(), NextFloat(), NextFloat());
 
+    }
+
+    public static List<T> Shuffle<T>(List<T> list)
+    {
+        var intList = new T[list.Count];
+        list.CopyTo(intList);
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = RNG.Next(n + 1);
+            T value = intList[k];
+            intList[k] = intList[n];
+            intList[n] = value;
+        }
+        return new List<T>(intList);
     }
 
 }

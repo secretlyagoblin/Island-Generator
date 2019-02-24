@@ -94,7 +94,7 @@ namespace MeshMasher {
 
         #endregion        
 
-        public MeshState<T> GetMeshState<T>()
+        public MeshState<T> CreateMeshState<T>()
         {
             return new MeshState<T>()
             {
@@ -123,10 +123,39 @@ namespace MeshMasher {
 
         public Mesh ToXZMesh()
         {
+            var triangles = new int[_triangles.Length];
+            for (int i = 0; i < _triangles.Length; i+=3)
+            {
+                triangles[i] = _triangles[i + 2];
+                triangles[i + 1] = _triangles[i + 1];
+                triangles[i+2] = _triangles[i];
+            } 
+
             var m = new Mesh
             {
                 vertices = _vertices.Select(x => new Vector3(x.x,0,x.y)).ToArray(),
-                triangles = _triangles
+                triangles = triangles
+            };
+            m.RecalculateBounds();
+            m.RecalculateNormals();
+
+            return m;
+        }
+
+        public Mesh ToXZMesh(float[] heights)
+        {
+            var triangles = new int[_triangles.Length];
+            for (int i = 0; i < _triangles.Length; i += 3)
+            {
+                triangles[i] = _triangles[i + 2];
+                triangles[i + 1] = _triangles[i + 1];
+                triangles[i + 2] = _triangles[i];
+            }
+
+            var m = new Mesh
+            {
+                vertices = _vertices.Select((x,i) => new Vector3(x.x, heights[i], x.y)).ToArray(),
+                triangles = triangles
             };
             m.RecalculateBounds();
             m.RecalculateNormals();
@@ -200,9 +229,8 @@ namespace MeshMasher {
             DrawMesh(transform, graphColor, inverseGraphColor, 0f);
         }
 
-            public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor, float time)
+        public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor, float time)
         {
-
             foreach (var cell in Cells)
             {
                 foreach (var neighbour in cell.Neighbours)
@@ -221,6 +249,22 @@ namespace MeshMasher {
                 Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), graphColor, time);
             }
 
+        }
+
+        public void DrawRoads(Transform transform, MeshState<int> connections)
+        {
+            DrawRoads(transform, connections, Color.red, 0f);
+        }
+
+        public void DrawRoads(Transform transform, MeshState<int> connections, Color graphColor, float time)
+        {
+            foreach (var line in Lines)
+            {
+                if(connections.Lines[line.Index] == 1)
+                {
+                    Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), graphColor, time);
+                }                
+            }
         }
             
         public List<List<SmartNode>> GetCellBoundingPolyLines(MeshState<int> state, int key)
@@ -372,25 +416,18 @@ namespace MeshMasher {
 
         public MeshState<int> MinimumSpanningTree()
         {
-            return MinimumSpanningTree(GetMeshState<int>());
+            return MinimumSpanningTree(CreateMeshState<int>());
         }
 
         public MeshState<int> MinimumSpanningTree(MeshState<int> state)
         {
             var isPartOfCurrentSortingEvent = new bool[Nodes.Count];
-
             var nodeCount = 0;
+            var newState = CreateMeshState<int>();
+            var visitedNodesList = new List<SmartNode>();
+            var visitedNodes = (int[])newState.Nodes.Clone();
 
             SmartNode firstNode = null;
-
-
-
-            var newState = GetMeshState<int>();
-
-            var visitedNodesList = new List<SmartNode>();
-            //var visitedLines = new List<SmartLine>();
-
-            var visitedNodes = (int[])newState.Nodes.Clone();
 
             for (int i = 0; i < Nodes.Count; i++)
             {
@@ -412,11 +449,8 @@ namespace MeshMasher {
 
             var visitedLines = (int[])newState.Lines.Clone();
             var visitedLinesIteration = (int[])newState.Lines.Clone();
-
             visitedNodesList.Add(firstNode);
-
             visitedNodes[firstNode.Index] = 1;
-
             var lines = new List<SmartLine>();
             var iteration = 0;
 
@@ -461,7 +495,6 @@ namespace MeshMasher {
 
                 isPartOfCurrentSortingEvent[bestLine.Nodes[0].Index] = true;
                 isPartOfCurrentSortingEvent[bestLine.Nodes[1].Index] = true;
-
                 visitedLines[bestLine.Index] = 1;
 
                 for (int i = 0; i < bestLine.Nodes.Count; i++)
@@ -474,6 +507,7 @@ namespace MeshMasher {
                     }
                 }
             }
+
             newState.Lines = visitedLines;
 
             return newState;
@@ -729,7 +763,7 @@ namespace MeshMasher {
 
         public MeshState<int> ApplyRoomsBasedOnWeights(MeshState<int> state)
         {
-            var newState = GetMeshState<int>();
+            var newState = CreateMeshState<int>();
             var diffusionWeight = new int[Nodes.Count];
             var nodeOwnership = new int[Nodes.Count];
             var nodeTraversed = new bool[Nodes.Count];
@@ -793,7 +827,7 @@ namespace MeshMasher {
 
         public MeshState<int> DrawRoomOutlines(MeshState<int> state)
         {
-            var newState = GetMeshState<int>();
+            var newState = CreateMeshState<int>();
             var nodeOwnership = new int[Nodes.Count];
 
             for (int i = 0; i < Nodes.Count; i++)
@@ -820,7 +854,7 @@ namespace MeshMasher {
 
         public MeshState<int> SecretSauceRoomsBasedOnWeights(MeshState<int> state)
         {
-            var newState = GetMeshState<int>();
+            var newState = CreateMeshState<int>();
             var diffusionWeight = new int[Nodes.Count];
             var nodeOwnership = new int[Nodes.Count];
             var nodeTraversed = new bool[Nodes.Count];
@@ -878,7 +912,7 @@ namespace MeshMasher {
 
         public MeshState<int> BubbleMesh(int iterations)
         {
-            var newState = GetMeshState<int>();
+            var newState = CreateMeshState<int>();
 
             for (int u = 0; u < iterations; u++)
             {
@@ -1140,7 +1174,7 @@ namespace MeshMasher {
 
         public MeshState<int> GetBorderNodes()
         {
-            var state = GetMeshState<int>();
+            var state = CreateMeshState<int>();
 
             for (int i = 0; i < Lines.Count; i++)
             {

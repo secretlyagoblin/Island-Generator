@@ -16,7 +16,7 @@ public class MeshSelector : MonoBehaviour {
         var mesh = GetComponent<MeshFilter>().sharedMesh;
 
         _mesh = new SmartMesh(mesh.vertices,mesh.triangles);
-        _state = _mesh.GetMeshState<int>();
+        _state = _mesh.CreateMeshState<int>();
 
         for (int i = 0; i < _state.Cells.Length; i++)
         {
