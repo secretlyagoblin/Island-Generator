@@ -272,7 +272,12 @@ public class StructureV2 : MonoBehaviour {
                 layer2.NodeMetadata[n.Index].SmoothColor = Color.magenta;
                 continue;
             }
-                
+
+            //layer2.NodeMetadata[n.Index].SmoothColor = layer2State.Nodes[n.Index] == 1 ? layer2.NodeMetadata[n.Index].SmoothColor : Color.black;
+
+
+
+
 
             layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
             layer2.NodeMetadata[n.Index].Connections = n
@@ -313,12 +318,21 @@ public class StructureV2 : MonoBehaviour {
             colour = Mathf.Max(layer3.NodeMetadata[n.Index].Distance, colour);
             //layer3.CellMetadata[n.Index].Code = i + 1;
             var dist = layer3.NodeMetadata[n.Index].Distance;
-            layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
+            //layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
+            layer3.NodeMetadata[n.Index].SmoothColor = new Color(
+                Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.r),
+                Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.g),
+                Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.b));
+                
+                
+                //layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
+
             //layer3.CellMetadata[n.Index].SmoothColor = new Color(colour, colour, colour);
             layer3.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         }
 
-        //CreateObject(layer3);
+        CreateObject(layer3);
+        return;
 
         #endregion
 
@@ -605,7 +619,10 @@ public class StructureV2 : MonoBehaviour {
         var f = gameObject.AddComponent<MeshFilter>();
         var r = gameObject.AddComponent<MeshRenderer>();
         r.sharedMaterial = MeshColourMaterial;
-        f.mesh = mesh.Mesh.ToXZMesh(mesh.NodeMetadata.Select(x => -Mathf.InverseLerp(0f,0.05f,Mathf.Min(x.SmoothColor.grayscale,0.05f))*0.2f).ToArray());
+        //f.mesh = mesh.Mesh.ToXZMesh(mesh.NodeMetadata.Select(x => -Mathf.InverseLerp(0f,0.05f,Mathf.Min(x.SmoothColor.grayscale,0.05f))*0.2f).ToArray());
+        f.mesh = mesh.Mesh.ToXYMesh();
+        //(mesh.NodeMetadata.Select(x => -Mathf.InverseLerp(0f, 0.05f, Mathf.Min(x.SmoothColor.grayscale, 0.05f)) * 0.2f).ToArray());
+
 
         _createObjectColors.Clear();
 
