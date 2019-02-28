@@ -11,20 +11,25 @@ public struct NodeMetadata : IBlerpable<NodeMetadata> {
     public float Distance { get { return _zoneBoundary.Distance; } }
     public int[] Connections { get { return _zoneBoundary.Links; } set { _zoneBoundary.Links = value; } }
     public float MeshDual { get { return _meshDual.Value; } set { _meshDual.Value = value; } }
+    public bool Walkable { get { return _cliffData.Walkable.Value; } set { _cliffData.Walkable.Value = value; } }
+    public float CliffDistance { get { return _cliffData.Distance.Value; } set { _cliffData.Distance.Value = value; } }
 
-    MeshMasher.NodeDataTypes.RoomCode _roomCode;
+
+    MeshMasher.NodeDataTypes.RoomInt _roomCode;
     MeshMasher.NodeDataTypes.RoomColor _roomColor;
     MeshMasher.NodeDataTypes.RoomFloat _height;
     MeshMasher.NodeDataTypes.ZoneBoundary _zoneBoundary;
     MeshMasher.NodeDataTypes.MeshDual _meshDual;
+    MeshMasher.NodeDataTypes.CliffData _cliffData;
 
     public NodeMetadata(int roomCode, Color roomColor, int[] links, float height = 0f)
     {
-        _roomCode = new MeshMasher.NodeDataTypes.RoomCode(roomCode);
+        _roomCode = new MeshMasher.NodeDataTypes.RoomInt(roomCode);
         _roomColor = new MeshMasher.NodeDataTypes.RoomColor(roomColor);
         _height = new MeshMasher.NodeDataTypes.RoomFloat(height);
         _zoneBoundary = new MeshMasher.NodeDataTypes.ZoneBoundary(roomCode, 1, links);
         _meshDual = new MeshMasher.NodeDataTypes.MeshDual(0);
+        _cliffData = new MeshMasher.NodeDataTypes.CliffData(0, true);
     }
 
     public NodeMetadata Blerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Barycenter weight)

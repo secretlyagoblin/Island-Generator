@@ -115,7 +115,7 @@ public class StructureV2 : MonoBehaviour {
         for (int i = 0; i < widerNeighbourhood.Count; i++)
         {
             var n = layer1.Mesh.Nodes[widerNeighbourhood[i]].Index;
-            layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
+            layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5));
 
         }
 
@@ -233,8 +233,8 @@ public class StructureV2 : MonoBehaviour {
 
         //var layer2State = layer2.Mesh.GenerateSemiConnectedMesh(5, layer2Border);
 
-        //layer2.Mesh.DrawMesh(this.transform);
-        layer2.Mesh.DrawRoads(this.transform, layer2State);
+        layer2.Mesh.DrawMesh(this.transform);
+        //layer2.Mesh.DrawRoads(this.transform, layer2State);
 
         //return;
 
@@ -304,13 +304,19 @@ public class StructureV2 : MonoBehaviour {
 
         var layer3 = new CleverMesh(layer2, layer2.Mesh.Nodes.Select(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
 
+        var valuesToIterateOver = new List<int>();
+
         for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
         {
             var n = layer3.Mesh.Nodes[i];
 
             if (layer3.NodeMetadata[n.Index].Code == 0)
             {
-                layer3.NodeMetadata[n.Index].SmoothColor = Color.black;
+                valuesToIterateOver.Add(i);
+                //layer3.NodeMetadata[n.Index].SmoothColor = Color.grey;
+                layer3.NodeMetadata[n.Index].Walkable = false;
+                layer3.NodeMetadata[n.Index].CliffDistance = 0.2f;
+                layer3.NodeMetadata[n.Index].SmoothColor = new Color(0.2f, 0.2f, 0.2f);
                 continue;
             }
 
@@ -318,20 +324,79 @@ public class StructureV2 : MonoBehaviour {
             colour = Mathf.Max(layer3.NodeMetadata[n.Index].Distance, colour);
             //layer3.CellMetadata[n.Index].Code = i + 1;
             var dist = layer3.NodeMetadata[n.Index].Distance;
-            //layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
-            layer3.NodeMetadata[n.Index].SmoothColor = new Color(
-                Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.r),
-                Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.g),
-                Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.b));
-                
-                
-                //layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
+
+            if(layer3.NodeMetadata[n.Index].Distance < 0.5f)
+            {
+                valuesToIterateOver.Add(i);
+                layer3.NodeMetadata[n.Index].Walkable = false;
+                layer3.NodeMetadata[n.Index].CliffDistance = 0.2f;
+                layer3.NodeMetadata[n.Index].SmoothColor = new Color(0.2f, 0.2f, 0.2f);
+
+                //layer3.NodeMetadata[n.Index].SmoothColor = Color.grey;
+            }
+            else
+            {
+                layer3.NodeMetadata[n.Index].Walkable = true;
+                //layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].SmoothColor;
+                //layer3.NodeMetadata[n.Index].SmoothColor = new Color(
+            }
+
+
+            //    Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.r),
+            //    Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.g),
+            //    Mathf.Min(layer3.NodeMetadata[n.Index].Distance, layer3.NodeMetadata[n.Index].SmoothColor.b));
+
+
+            //layer3.NodeMetadata[n.Index].Distance < 0.5f ? Color.black : layer3.NodeMetadata[n.Index].SmoothColor;
 
             //layer3.CellMetadata[n.Index].SmoothColor = new Color(colour, colour, colour);
             layer3.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.1f, 0.1f);
         }
 
-        CreateObject(layer3);
+        var color = 0.2f;
+
+        for (int v = 0; v < 4; v++)
+        {
+            var valuesToSplunge = new List<int>();
+
+            for (int i = 0; i < valuesToIterateOver.Count; i++)
+            {
+                var n = layer3.Mesh.Nodes[valuesToIterateOver[i]];
+
+
+                for (int u = 0; u < n.Nodes.Count; u++)
+                {
+                    var neigh = n.Nodes[u];
+                    if (layer3.NodeMetadata[neigh.Index].CliffDistance != color)
+                    {
+                        goto end;
+                    }
+                }
+                valuesToSplunge.Add(n.Index);
+                end:
+                ;
+            }
+
+            color = color + 0.2f;
+
+            for (int i = 0; i < valuesToSplunge.Count; i++)
+            {
+                layer3.NodeMetadata[valuesToSplunge[i]].SmoothColor = new Color(color,color,color);
+                layer3.NodeMetadata[valuesToSplunge[i]].CliffDistance = color;
+            }
+
+        }
+
+        for (int i = 0; i < layer3.Mesh.Nodes.Count; i++)
+        {
+            var n = layer3.Mesh.Nodes[i];
+            layer3.NodeMetadata[n.Index].SmoothColor = layer3.NodeMetadata[n.Index].Walkable? Color.white:Color.black;
+
+        }
+
+
+
+            CreateObject(layer3);
         return;
 
         #endregion
@@ -458,7 +523,7 @@ public class StructureV2 : MonoBehaviour {
         Debug.Log("Layer 1: ");
 
         var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, new MeshTile(meshTileData.text));
-        layer1.Mesh.DrawMesh(transform, RNG.GetRandomColor(), Color.clear);
+        layer1.Mesh.DrawMesh(transform, RNG.NextColor(), Color.clear);
 
         for (int i = 0; i < layer1.Mesh.Cells[cellIndex].Nodes.Count; i++)
         {
@@ -557,7 +622,7 @@ public class StructureV2 : MonoBehaviour {
         for (int i = 0; i < neighbourhood.Count; i++)
         {
             var n = layer1.Mesh.Nodes[neighbourhood[i]];
-            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, RNG.GetRandomColor(), new int[] { }, RNG.NextFloat(5));
+            layer1.NodeMetadata[n.Index] = new NodeMetadata(i + 1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5));
         }
 
           Debug.Log("Layer 2: ");

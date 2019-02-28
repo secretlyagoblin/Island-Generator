@@ -149,7 +149,7 @@ public static class RNG {
         return list[item];
     }
 
-    public static Color GetRandomColor()
+    public static Color NextColor()
     {
         return new Color(NextFloat(), NextFloat(), NextFloat());
 

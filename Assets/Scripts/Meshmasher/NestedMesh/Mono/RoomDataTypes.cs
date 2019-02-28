@@ -4,19 +4,19 @@ using UnityEngine;
 
 namespace MeshMasher.NodeDataTypes {
 
-    struct RoomCode : IBlerpable<RoomCode> {
+    struct RoomInt : IBlerpable<RoomInt> {
 
         public int Value;
 
-        public static bool operator ==(RoomCode a, RoomCode b) { return a.Value == b.Value; }
-        public static bool operator !=(RoomCode a, RoomCode b) { return a.Value != b.Value; }
+        public static bool operator ==(RoomInt a, RoomInt b) { return a.Value == b.Value; }
+        public static bool operator !=(RoomInt a, RoomInt b) { return a.Value != b.Value; }
 
-        public RoomCode(int value)
+        public RoomInt(int value)
         {
             Value = value;
         }
 
-        public RoomCode Blerp(RoomCode a, RoomCode b, RoomCode c, Barycenter weight)
+        public RoomInt Blerp(RoomInt a, RoomInt b, RoomInt c, Barycenter weight)
         {
             if (weight.u >= weight.v && weight.u >= weight.w)
             {
@@ -34,18 +34,63 @@ namespace MeshMasher.NodeDataTypes {
 
         public override bool Equals(object obj)
         {
-            if (!(obj is RoomCode))
+            if (!(obj is RoomInt))
             {
                 return false;
             }
 
-            var code = (RoomCode)obj;
+            var code = (RoomInt)obj;
             return Value == code.Value;
         }
 
         public override int GetHashCode()
         {
             return -1937169414 + Value.GetHashCode();
+        }
+    }
+
+    struct RoomBool : IBlerpable<RoomBool> {
+
+        public bool Value;
+
+        public static bool operator ==(RoomBool a, RoomBool b) { return a.Value == b.Value; }
+        public static bool operator !=(RoomBool a, RoomBool b) { return a.Value != b.Value; }
+
+        public RoomBool(bool value)
+        {
+            Value = value;
+        }
+
+        public RoomBool Blerp(RoomBool a, RoomBool b, RoomBool c, Barycenter weight)
+        {
+            if (weight.u >= weight.v && weight.u >= weight.w)
+            {
+                return a;
+            }
+            else if (weight.v >= weight.w && weight.v >= weight.u)
+            {
+                return b;
+            }
+            else
+            {
+                return c;
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is RoomBool))
+            {
+                return false;
+            }
+
+            var code = (RoomBool)obj;
+            return Value == code.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
         }
     }
 
@@ -126,7 +171,7 @@ namespace MeshMasher.NodeDataTypes {
         public float Distance;
         public int[] Links { get { return _links; } set { _links = value; } }
 
-        RoomCode _roomCode;
+        RoomInt _roomCode;
         int[] _links;
 
         const float _threshold = 0.6f;
@@ -134,14 +179,14 @@ namespace MeshMasher.NodeDataTypes {
 
         public ZoneBoundary(int roomCode)
         {
-            _roomCode = new RoomCode(roomCode);
+            _roomCode = new RoomInt(roomCode);
             Distance = 0;
             _links = new int[] {roomCode};
         }
 
         public ZoneBoundary(int roomCode, float distance, int[] links)
         {
-            _roomCode = new RoomCode(roomCode);
+            _roomCode = new RoomInt(roomCode);
             Distance = distance;
             _links = links;
         }
@@ -302,5 +347,27 @@ namespace MeshMasher.NodeDataTypes {
             return new MeshDual(result);
         }
 
+    }
+
+    struct CliffData : IBlerpable<CliffData>{
+
+        public RoomFloat Distance;
+        public RoomBool Walkable;
+
+        public CliffData(float distance, bool walkable)
+        {
+            Distance = new RoomFloat(distance);
+            Walkable = new RoomBool(walkable);
+        }
+
+
+        public CliffData Blerp(CliffData a, CliffData b, CliffData c, Barycenter barycenter)
+        {
+            return new CliffData()
+            {
+                Distance = Distance.Blerp(a.Distance, b.Distance, c.Distance, barycenter),
+                Walkable = Walkable.Blerp(a.Walkable, b.Walkable, c.Walkable, barycenter)
+            };
+        }
     }
 }
