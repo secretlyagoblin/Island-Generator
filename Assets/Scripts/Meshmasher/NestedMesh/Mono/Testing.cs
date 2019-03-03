@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MeshMasher;
-using MeshMasher.NodeDataTypes;
+using MeshMasher.NodeData;
 using System.Linq;
 using System;
 

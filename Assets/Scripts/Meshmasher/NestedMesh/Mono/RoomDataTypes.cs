@@ -2,176 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MeshMasher.NodeDataTypes {
+namespace MeshMasher.NodeData.Types {
 
-    struct RoomInt : IBlerpable<RoomInt> {
+    public struct ZoneBoundary : IBlerpable<ZoneBoundary> {
 
-        public int Value;
-
-        public static bool operator ==(RoomInt a, RoomInt b) { return a.Value == b.Value; }
-        public static bool operator !=(RoomInt a, RoomInt b) { return a.Value != b.Value; }
-
-        public RoomInt(int value)
-        {
-            Value = value;
-        }
-
-        public RoomInt Blerp(RoomInt a, RoomInt b, RoomInt c, Barycenter weight)
-        {
-            if (weight.u >= weight.v && weight.u >= weight.w)
-            {
-                return a;
-            }
-            else if (weight.v >= weight.w && weight.v >= weight.u)
-            {
-                return b;
-            }
-            else
-            {
-                return c;
-            }
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is RoomInt))
-            {
-                return false;
-            }
-
-            var code = (RoomInt)obj;
-            return Value == code.Value;
-        }
-
-        public override int GetHashCode()
-        {
-            return -1937169414 + Value.GetHashCode();
-        }
-    }
-
-    struct RoomBool : IBlerpable<RoomBool> {
-
-        public bool Value;
-
-        public static bool operator ==(RoomBool a, RoomBool b) { return a.Value == b.Value; }
-        public static bool operator !=(RoomBool a, RoomBool b) { return a.Value != b.Value; }
-
-        public RoomBool(bool value)
-        {
-            Value = value;
-        }
-
-        public RoomBool Blerp(RoomBool a, RoomBool b, RoomBool c, Barycenter weight)
-        {
-            if (weight.u >= weight.v && weight.u >= weight.w)
-            {
-                return a;
-            }
-            else if (weight.v >= weight.w && weight.v >= weight.u)
-            {
-                return b;
-            }
-            else
-            {
-                return c;
-            }
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is RoomBool))
-            {
-                return false;
-            }
-
-            var code = (RoomBool)obj;
-            return Value == code.Value;
-        }
-
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode();
-        }
-    }
-
-    struct RoomColor : IBlerpable<RoomColor> {
-
-        public Color Value;
-
-        public float r
-        {
-            get
-            {
-                return Value.r;
-            }
-            set
-            {
-                Value.r = value;
-            }
-        }
-
-        public float g
-        {
-            get
-            {
-                return Value.g;
-            }
-            set
-            {
-                Value.g = value;
-            }
-        }
-
-        public float b
-        {
-            get
-            {
-                return Value.b;
-            }
-            set
-            {
-                Value.b = value;
-            }
-        }
-
-        public RoomColor(Color value)
-        {
-            Value = value;
-        }
-
-        public RoomColor Blerp(RoomColor a, RoomColor b, RoomColor c, Barycenter weight)
-        {
-            var r = a.r * weight.u + b.r * weight.v + c.r * weight.w;
-            var g = a.g * weight.u + b.g * weight.v + c.g * weight.w;
-            var bee = a.b * weight.u + b.b * weight.v + c.b * weight.w;
-
-            return new RoomColor(new Color(r, g, bee));
-            
-        }
-    }
-
-    struct RoomFloat : IBlerpable<RoomFloat> {
-
-        public float Value;
-
-        public RoomFloat(float value)
-        {
-            Value = value;
-        }
-
-        public RoomFloat Blerp(RoomFloat a, RoomFloat b, RoomFloat c, Barycenter weight)
-        {
-            return new RoomFloat(a.Value* weight.u + b.Value * weight.v + c.Value * weight.w);
-        }
-    }
-
-    struct ZoneBoundary : IBlerpable<ZoneBoundary> {
-
-        public int RoomCode { get { return _roomCode.Value; } set { _roomCode.Value = value; } }
-        public float Distance;
+        public int RoomCode { get { return _roomCode; } set { _roomCode = value; } }
+        public bool IsEdgeNode;
         public int[] Links { get { return _links; } set { _links = value; } }
 
-        RoomInt _roomCode;
+        int _roomCode;
         int[] _links;
 
         const float _threshold = 0.6f;
@@ -179,30 +18,30 @@ namespace MeshMasher.NodeDataTypes {
 
         public ZoneBoundary(int roomCode)
         {
-            _roomCode = new RoomInt(roomCode);
-            Distance = 0;
-            _links = new int[] {roomCode};
+            _roomCode = roomCode;
+            IsEdgeNode = false;
+            _links = new int[] { roomCode };
         }
 
-        public ZoneBoundary(int roomCode, float distance, int[] links)
+        public ZoneBoundary(int roomCode, bool partOfBoundary, int[] links)
         {
-            _roomCode = new RoomInt(roomCode);
-            Distance = distance;
+            _roomCode = roomCode;
+            IsEdgeNode = partOfBoundary;
             _links = links;
         }
 
 
         public ZoneBoundary Blerp(ZoneBoundary a, ZoneBoundary b, ZoneBoundary c, Barycenter weight)
         {
-            var roomCode = a._roomCode.Blerp(a._roomCode, b._roomCode, c._roomCode, weight).Value;
+            var roomCode = a._roomCode.Blerp(a._roomCode, b._roomCode, c._roomCode, weight);
 
             int[] links;
 
-            if (roomCode == a._roomCode.Value)
+            if (roomCode == a._roomCode)
                 links = a._links;
-            else if (roomCode == b._roomCode.Value)
+            else if (roomCode == b._roomCode)
                 links = b._links;
-            else            
+            else
                 links = c._links;
 
             //return fine if everything is matching
@@ -218,8 +57,8 @@ namespace MeshMasher.NodeDataTypes {
                 if (c.RoomCode == allLinks[i])
                     other2 = true;
 
-                if(other1 && other2)
-                    return new ZoneBoundary(roomCode, 1, (int[])links.Clone());
+                if (other1 && other2)
+                    return new ZoneBoundary(roomCode, true, (int[])links.Clone());
             }
 
             //calculate second highest thing
@@ -236,12 +75,14 @@ namespace MeshMasher.NodeDataTypes {
                 {
                     SecondHighestCellCode = b.RoomCode;
                     SecondHighestBarycenter = weight.v;
-                }else
+                }
+                else
                 {
                     SecondHighestCellCode = c.RoomCode;
                     SecondHighestBarycenter = weight.w;
                 }
-            } else if (weight.v >= weight.w && weight.v >= weight.u)
+            }
+            else if (weight.v >= weight.w && weight.v >= weight.u)
             {
                 HighestCellCode = b.RoomCode;
                 HighestBarycenter = weight.v;
@@ -283,15 +124,15 @@ namespace MeshMasher.NodeDataTypes {
                     inSameZone = true;
                     continue;
                 }
-                    
+
             }
 
             var withinThreshold = (Mathf.Abs(HighestBarycenter - SecondHighestBarycenter) > _threshold);
 
-            if(inSameZone || withinThreshold)
-                return new ZoneBoundary(roomCode, 1, (int[])links.Clone());
+            if (inSameZone || withinThreshold)
+                return new ZoneBoundary(roomCode, true, (int[])links.Clone());
             else
-                return new ZoneBoundary(roomCode, 0, (int[])links.Clone());
+                return new ZoneBoundary(roomCode, false, (int[])links.Clone());
         }
 
         bool CheckConnection(int roomCodeA, int roomCodeB, float weightA, float weightB)
@@ -306,10 +147,10 @@ namespace MeshMasher.NodeDataTypes {
                     return true;
                 return false;
             }
-        }        
+        }
     }
 
-    struct MeshDual : IBlerpable<MeshDual> {
+    public struct MeshDual : IBlerpable<MeshDual> {
 
         public float Value;
 
@@ -332,7 +173,7 @@ namespace MeshMasher.NodeDataTypes {
             }
             else if (weight.v >= weight.w && weight.v >= weight.u)
             {
-                highest =  1;
+                highest = 1;
                 secondHighest = weight.u > weight.w ? 0 : 2;
             }
             else
@@ -349,15 +190,15 @@ namespace MeshMasher.NodeDataTypes {
 
     }
 
-    struct CliffData : IBlerpable<CliffData>{
+    public struct CliffData : IBlerpable<CliffData> {
 
-        public RoomFloat Distance;
-        public RoomBool Walkable;
+        public float Distance;
+        public bool FuzzyBoundary;
 
         public CliffData(float distance, bool walkable)
         {
-            Distance = new RoomFloat(distance);
-            Walkable = new RoomBool(walkable);
+            Distance = distance;
+            FuzzyBoundary = walkable;
         }
 
 
@@ -366,8 +207,60 @@ namespace MeshMasher.NodeDataTypes {
             return new CliffData()
             {
                 Distance = Distance.Blerp(a.Distance, b.Distance, c.Distance, barycenter),
-                Walkable = Walkable.Blerp(a.Walkable, b.Walkable, c.Walkable, barycenter)
+                FuzzyBoundary = FuzzyBoundary.Blerp(a.FuzzyBoundary, b.FuzzyBoundary, c.FuzzyBoundary, barycenter)
             };
+        }
+    }
+
+    public static class Utils {
+
+        public static float Blerp(this float f, float a, float b, float c, Barycenter weight)
+        {
+            return a * weight.u + b * weight.v + c * weight.w;
+        }
+
+        public static int Blerp(this int i, int a, int b, int c, Barycenter weight)
+        {
+            if (weight.u >= weight.v && weight.u >= weight.w)
+            {
+                return a;
+            }
+            else if (weight.v >= weight.w && weight.v >= weight.u)
+            {
+                return b;
+            }
+            else
+            {
+                return c;
+            }
+        }
+
+        public static bool Blerp(this bool boo, bool a, bool b, bool c, Barycenter weight)
+        {
+            if (weight.u >= weight.v && weight.u >= weight.w)
+            {
+                return a;
+            }
+            else if (weight.v >= weight.w && weight.v >= weight.u)
+            {
+                return b;
+            }
+            else
+            {
+                return c;
+            }
+        }
+
+        public static Color Blerp(this Color col, Color a, Color b, Color c, Barycenter weight)
+        {
+            var r = a.r * weight.u + b.r * weight.v + c.r * weight.w;
+            var g = a.g * weight.u + b.g * weight.v + c.g * weight.w;
+            var bee = a.b * weight.u + b.b * weight.v + c.b * weight.w;
+
+            return new Color(r, g, bee);
+
+
+
         }
     }
 }
