@@ -58,7 +58,7 @@ namespace MeshMasher.NodeData.Types {
                     other2 = true;
 
                 if (other1 && other2)
-                    return new ZoneBoundary(roomCode, true, (int[])links.Clone());
+                    return new ZoneBoundary(roomCode, false, (int[])links.Clone());
             }
 
             //calculate second highest thing
@@ -130,9 +130,9 @@ namespace MeshMasher.NodeData.Types {
             var withinThreshold = (Mathf.Abs(HighestBarycenter - SecondHighestBarycenter) > _threshold);
 
             if (inSameZone || withinThreshold)
-                return new ZoneBoundary(roomCode, true, (int[])links.Clone());
-            else
                 return new ZoneBoundary(roomCode, false, (int[])links.Clone());
+            else
+                return new ZoneBoundary(roomCode, true, (int[])links.Clone());
         }
 
         bool CheckConnection(int roomCodeA, int roomCodeB, float weightA, float weightB)

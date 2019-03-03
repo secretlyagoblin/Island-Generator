@@ -30,6 +30,11 @@ namespace LevelGenerator {
 
         public bool DequeueAsyncMesh()
         {
+            if(_workQueue == null)
+            {
+                return false;
+            }
+
             if (_workQueue.Count == 0)
                 return false;
 

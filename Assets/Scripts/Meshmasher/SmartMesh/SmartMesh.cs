@@ -416,10 +416,10 @@ namespace MeshMasher {
 
         public MeshState<int> MinimumSpanningTree()
         {
-            return MinimumSpanningTree(CreateMeshState<int>());
+            return MinimumSpanningTree(CreateMeshState<bool>());
         }
 
-        public MeshState<int> MinimumSpanningTree(MeshState<int> state)
+        public MeshState<int> MinimumSpanningTree(MeshState<bool> state)
         {
             var isPartOfCurrentSortingEvent = new bool[Nodes.Count];
             var nodeCount = 0;
@@ -436,7 +436,13 @@ namespace MeshMasher {
                     nodeCount++;
                     visitedNodes[i] = 1;
                 }
-                else if (state.Nodes[i] == 1)
+                else if(
+                    Nodes[i].Lines.ConvertAll(x => (state.Lines[x.Index] ==true)?0:1).Sum() == 0)
+                {
+                    nodeCount++;
+                    visitedNodes[i] = 1;
+                }
+                else if (state.Nodes[i])
                 {
                     visitedNodes[i] = 1;
                     nodeCount++;
@@ -448,6 +454,15 @@ namespace MeshMasher {
             }
 
             var visitedLines = (int[])newState.Lines.Clone();
+
+            for (int i = 0; i < state.Lines.Length; i++)
+            {
+                if (state.Lines[i])
+                {
+                    visitedLines[i] = 1;
+                }
+            }
+
             var visitedLinesIteration = (int[])newState.Lines.Clone();
             visitedNodesList.Add(firstNode);
             visitedNodes[firstNode.Index] = 1;
@@ -467,7 +482,7 @@ namespace MeshMasher {
                     {
                         if (visitedLines[n.Lines[u].Index] == 0 && 
                             visitedLinesIteration[n.Lines[u].Index] != iteration &&
-                            state.Nodes[n.Lines[u].GetOtherNode(n).Index] != 1)
+                            state.Nodes[n.Lines[u].GetOtherNode(n).Index] == false)                            
                         {
                             lines.Add(n.Lines[u]);
                             visitedLinesIteration[n.Lines[u].Index] = iteration;
@@ -492,8 +507,15 @@ namespace MeshMasher {
                     length = line.Length;
                     bestLine = line;
                 }
-
-                isPartOfCurrentSortingEvent[bestLine.Nodes[0].Index] = true;
+                try
+                {
+                    isPartOfCurrentSortingEvent[bestLine.Nodes[0].Index] = true;
+                }
+                catch
+                {
+                    Debug.Log("Whey");
+                }
+                
                 isPartOfCurrentSortingEvent[bestLine.Nodes[1].Index] = true;
                 visitedLines[bestLine.Index] = 1;
 
@@ -752,7 +774,7 @@ namespace MeshMasher {
             return state;
         }
 
-        public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<int> outline)
+        public MeshState<int> GenerateSemiConnectedMesh(int maxCliffLength, MeshState<bool> outline)
         {
             var state = MinimumSpanningTree(outline);
             var walkState = WalkThroughRooms(state.Clone());
@@ -1172,9 +1194,9 @@ namespace MeshMasher {
             }
         }
 
-        public MeshState<int> GetBorderNodes()
+        public MeshState<bool> GetBorderNodes()
         {
-            var state = CreateMeshState<int>();
+            var state = CreateMeshState<bool>();
 
             for (int i = 0; i < Lines.Count; i++)
             {
@@ -1182,13 +1204,13 @@ namespace MeshMasher {
 
                 if(l.Neighbours.Count != 2)
                 {
-                    state.Lines[i] = 1;
-                    state.Nodes[l.Nodes[0].Index] = 1;
-                    state.Nodes[l.Nodes[1].Index] = 1;
+                    state.Lines[i] = true;
+                    state.Nodes[l.Nodes[0].Index] = true;
+                    state.Nodes[l.Nodes[1].Index] = true;
                 }
                 else
                 {
-                    state.Lines[i] = 0;
+                    state.Lines[i] = false;
                 }                
             }
 

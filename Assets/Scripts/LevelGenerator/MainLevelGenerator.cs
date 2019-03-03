@@ -18,8 +18,10 @@ namespace LevelGenerator {
         public override void Generate()
         {
             var layer2 = CreateWalkableTerrain();
-            //var layer3 = CreateLayer3(layer2);
             CreateObject(layer2);
+            return;
+            var layer3 = CreateLayer3(layer2);
+            CreateObject(layer3);
             
         }
 
@@ -92,15 +94,16 @@ namespace LevelGenerator {
             var layer2 = new CleverMesh(layer1, layer1WiderNeighbourhood.ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
 
             // 1: Create a boundary area that is a no-go zone.
-            var layer2Border = layer2.Mesh.GetBorderNodes();
-            for (int i = 0; i < layer2Border.Nodes.Length; i++)
+            var layer2IsExteriorBorder = layer2.Mesh.GetBorderNodes();
+
+            for (int i = 0; i < layer2IsExteriorBorder.Nodes.Length; i++)
             {
-                if (layer2Border.Nodes[i] == 1)
+                if (layer2IsExteriorBorder.Nodes[i] == true)
                 {
                     layer2.NodeMetadata[i].Code = 0;
                     layer2.NodeMetadata[i].SmoothColor = Color.white;
                 }
-            }
+            }            
 
             for (int i = 0; i < layer2.RingNodeMetadata.Length; i++)
             {
@@ -108,49 +111,59 @@ namespace LevelGenerator {
                 layer2.RingNodeMetadata[i].SmoothColor = Color.white;
             }
 
-            var splines = RNG.Shuffle(layer2.Mesh.Lines);
-            var layer2State = layer2.Mesh.CreateMeshState<int>();
+            var layer2IsBorder = layer2IsExteriorBorder.Clone();
 
-            foreach (var line in splines)
+            var splines = RNG.Shuffle(layer2.Mesh.Lines);
+            for (int i = 0; i < layer2IsBorder.Lines.Length; i++)
             {
+                var line = splines[i];
+                if (layer2IsExteriorBorder.Lines[line.Index] | (layer2IsExteriorBorder.Nodes[line.Nodes[0].Index] && layer2IsExteriorBorder.Nodes[line.Nodes[1].Index]))
+                {
+                    line.DebugDraw(Color.white, 100f);
+                    continue;
+                }
+                   
+
                 var codeA = layer2.NodeMetadata[line.Nodes[0].Index].Code;
+
                 var codeB = layer2.NodeMetadata[line.Nodes[1].Index].Code;
                 var testCode = codeA < codeB ? new SimpleVector2Int(codeA, codeB) : new SimpleVector2Int(codeB, codeA);
-                if (codeA == codeB && RNG.SmallerThan(0.7))
+                if (codeA == codeB )
                 {
-                    layer2State.Lines[line.Index] = 1;
+                    layer2IsBorder.Lines[line.Index] = false;
                     //line.DebugDraw(layer2.NodeMetadata[line.Nodes[0].Index].SmoothColor, 100f);
-                    layer2State.Nodes[line.Nodes[0].Index] = 1;
-                    layer2State.Nodes[line.Nodes[1].Index] = 1;
+                    layer2IsBorder.Nodes[line.Nodes[0].Index] = false;
+                    layer2IsBorder.Nodes[line.Nodes[1].Index] = false;
+                    //line.DebugDraw(Color.green, 100f);
+
                 }
                 else if (layer1RegionConnections.Contains(testCode))
                 {
                     layer1RegionConnections.Remove(testCode);
-                    layer2State.Lines[line.Index] = 1;
+                    layer2IsBorder.Lines[line.Index] = false;
                     //line.DebugDraw(layer2.NodeMetadata[line.Nodes[0].Index].SmoothColor, 100f);
-                    layer2State.Nodes[line.Nodes[0].Index] = 1;
-                    layer2State.Nodes[line.Nodes[1].Index] = 1;
+                    layer2IsBorder.Nodes[line.Nodes[0].Index] = false;
+                    layer2IsBorder.Nodes[line.Nodes[1].Index] = false;
+                    line.DebugDraw(Color.green, 100f);
                 }
-            }
+                else
+                {
+                    layer2IsBorder.Lines[line.Index] = true;
+                    layer2IsBorder.Nodes[line.Nodes[0].Index] = true;
+                    layer2IsBorder.Nodes[line.Nodes[1].Index] = true;
+                    line.DebugDraw(Color.blue, 100f);
+                }
+            }        
 
-            //foreach (var node in layer2.Mesh.Nodes)
-            //{
-            //    if (RNG.SmallerThan(0.2) | layer2.NodeMetadata[node.Index].Code == 0)
-            //        continue;
-            //
-            //    layer2State.Lines[RNG.GetRandomItem(node.Lines).Index] = 0;
-            //}
-
-            //var roomz = layer2.Mesh.GenerateSemiConnectedMesh(3, layer2State);
 
             // 2: Calculate a connectivity graph between regions (TODO: fix distance to be based on distance from node center based on layer 1)
 
-            //var layer2State = layer2.Mesh.GenerateSemiConnectedMesh(5, layer2Border);
+            var minimum = layer2.Mesh.MinimumSpanningTree(layer2IsBorder);
 
             //layer2.Mesh.DrawMesh(Root.transform);
-            //layer2.Mesh.DrawRoads(this.transform, layer2State);
+            layer2.Mesh.DrawRoads(Root.transform, minimum);
 
-            //return;
+           // return layer2;
 
             // 3: Give each walkable node a special room code and color
 
@@ -181,7 +194,7 @@ namespace LevelGenerator {
             {
                 var n = layer2.Mesh.Nodes[i];
 
-                if (layer2Border.Nodes[n.Index] == 1 | layer2.NodeMetadata[i].Code == 0)
+                if (layer2IsBorder.Nodes[n.Index] | layer2.NodeMetadata[i].Code == 0)
                 {
                     layer2.NodeMetadata[n.Index].SmoothColor = Color.magenta;
                     continue;
@@ -196,7 +209,7 @@ namespace LevelGenerator {
                 layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
                 layer2.NodeMetadata[n.Index].Connections = n
                     .Lines
-                    .Where(x => layer2State.Lines[x.Index] == 1)
+                    .Where(x => layer2IsBorder.Lines[x.Index])
                     .Select(x => x.GetOtherNode(n).Index + 1)
                     .Union(new List<int>() { i + 1 })
                     .ToArray();
@@ -233,7 +246,7 @@ namespace LevelGenerator {
                 colour = layer.NodeMetadata[n.Index].IsTrueBoundary ? 1: colour;
                 var dist = layer.NodeMetadata[n.Index].IsTrueBoundary;
 
-                if (layer.NodeMetadata[n.Index].IsTrueBoundary)
+                if (layer.NodeMetadata[n.Index].IsTrueBoundary == true)
                 {
                     valuesToIterateOver.Add(i);
                     layer.NodeMetadata[n.Index].IsFuzzyBoundary = true;

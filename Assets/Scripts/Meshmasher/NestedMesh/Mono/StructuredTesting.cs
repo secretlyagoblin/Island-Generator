@@ -33,7 +33,7 @@ public class StructuredTesting : MonoBehaviour {
         var layer2 = new CleverMesh(layer1, layer1.Mesh.Cells[cellIndex].GetNeighbourhood());
 
         var border = layer2.Mesh.GetBorderNodes();
-        var state = layer2.Mesh.GenerateSemiConnectedMesh(5, border);
+        //var state = layer2.Mesh.GenerateSemiConnectedMesh(5, border);
         
         //for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
         //{
