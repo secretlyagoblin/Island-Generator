@@ -427,9 +427,19 @@ namespace MeshMasher {
             var visitedNodesList = new List<SmartNode>();
             var visitedNodes = (int[])newState.Nodes.Clone();
 
+            var linesToVisit = new List<int>();
+
+            for (int i = 0; i < state.Lines.Length; i++)
+            {
+                if (state.Lines[i])
+                {
+                    linesToVisit.Add(i);
+                }                
+            }
+
             SmartNode firstNode = null;
 
-            for (int i = 0; i < Nodes.Count; i++)
+            for (int i = 0; i < linesToVisit.Count; i++)
             {
                 if (Nodes[i].Lines.Count == 0)
                 {
