@@ -17,11 +17,22 @@ namespace LevelGenerator {
 
         public override void Generate()
         {
+            var size = 60;
+            Root.transform.localScale = new Vector3(size, size*0.1f, size);
             var layer2 = CreateWalkableTerrain();
             //CreateObject(layer2);
             //return;
             var layer3 = CreateLayer3(layer2);
-            CreateObject(layer3);
+            //CreateObjectXY(layer3);
+
+            _finalStep = PrivateSetWithOthers;
+            //CreateSimpleJobAsync(layer3,CreateLayer4);
+            var sets = GetSets(layer3);
+
+            CreateSetAsync(layer3, sets,4,CreateLayer4);
+            PrivateSetWithOthersDeleteThis(layer3);
+            //CreateObjectXZ(layer3);
+
             
         }
 
@@ -46,7 +57,7 @@ namespace LevelGenerator {
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
             {
                 var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
-                layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5));
+                layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5)) { Height = RNG.NextFloat(-3, 3) };
             }
 
             /// 3: Generate some basic connectivity
@@ -72,9 +83,6 @@ namespace LevelGenerator {
                     level1Border1State.Lines[RNG.GetRandomItem(cell.Lines).Index] = 0;
                 }
             }
-
-
-
 
             var layer1RegionConnections = new List<SimpleVector2Int>();
 
@@ -104,6 +112,8 @@ namespace LevelGenerator {
             /// 4: Give each walkable node a connectivity map
             /// 5: TODO: Create mini-valleys using voronoi falloff where connectivity should be broken.
             /// 6: TODO: Define higher level biomes based on parent colour
+
+            //layer1WiderNeighbourhood.Select((x,i) => layer1.NodeMetadata[x].Id = i);
 
             var layer2 = new CleverMesh(layer1, layer1WiderNeighbourhood.ToArray(), MeshMasher.NestedMeshAccessType.Vertex);
 
@@ -180,11 +190,12 @@ namespace LevelGenerator {
                 {
                     layer2IsBorder.Lines[RNG.GetRandomItem(cell.Lines).Index] = true;
                 }                
-            }
+            };
 
             for (int i = 0; i < layer2.Mesh.Nodes.Count; i++)
             {
                 var node = layer2.Mesh.Nodes[i];
+                layer2.NodeMetadata[i].Id = i+1;
 
                 if (node.Lines.Where(x => layer2IsBorder.Lines[x.Index] == false).Count() == 1)
                 {
@@ -201,6 +212,17 @@ namespace LevelGenerator {
                 {
                     layer2.Mesh.Lines[i].DebugDraw(Color.white, 10f);
                 }
+            }
+
+            var baseNum = layer2.Mesh.Nodes.Count + 999;
+
+            for (int i = 0; i < layer2.RingMesh.Nodes.Count; i++)
+            {
+                //if (!layer2IsBorder.Nodes[i])
+                //{
+                    layer2.RingNodeMetadata[i].Id = baseNum;
+                    baseNum++;
+                //}
             }
 
 
@@ -293,6 +315,7 @@ namespace LevelGenerator {
                 var colour = layer.NodeMetadata[n.Index].MeshDual;
                 colour = layer.NodeMetadata[n.Index].IsTrueBoundary ? 1: colour;
                 var dist = layer.NodeMetadata[n.Index].IsTrueBoundary;
+                
 
                 if (layer.NodeMetadata[n.Index].IsTrueBoundary == true)
                 {
@@ -358,6 +381,16 @@ namespace LevelGenerator {
 
             }
 
+            for (int i = 0; i < layer.NodeMetadata.Length; i++)
+            {
+                if (layer.NodeMetadata[i].CliffDistance <= 0.2)
+                    continue;
+
+                layer.NodeMetadata[i].Height += (layer.NodeMetadata[i].CliffDistance-0.1f+RNG.NextFloat(0.1f))*6;
+            }
+
+
+
             //for (int i = 0; i < layer.Mesh.Nodes.Count; i++)
             //{
             //    var n = layer.Mesh.Nodes[i];
@@ -369,6 +402,123 @@ namespace LevelGenerator {
 
             //CreateObject(layer3);
             return layer;
+        }
+
+        private CleverMesh CreateLayer4(CleverMesh parent, int[] indices)
+        {
+            try
+            {
+                var mesh = new CleverMesh(parent, indices, NestedMeshAccessType.Triangles);
+
+                //var edge = mesh.Mesh.GetBorderNodes();
+
+                for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+                {
+                    //if (edge.Nodes[i])
+                    //    continue;
+
+                    var multiplier = 5f;
+
+                    var perlin = Mathf.PerlinNoise(mesh.Mesh.Nodes[i].Vert.x* multiplier, mesh.Mesh.Nodes[i].Vert.y* multiplier);
+
+                    mesh.NodeMetadata[i].Height += perlin*0.25f;
+
+                    multiplier = 10f;
+
+                    perlin = Mathf.PerlinNoise(mesh.Mesh.Nodes[i].Vert.x * multiplier, mesh.Mesh.Nodes[i].Vert.y * multiplier);
+
+                    mesh.NodeMetadata[i].Height += perlin * 0.15f;
+
+
+                }
+
+                return mesh;
+            }
+            catch(System.Exception e)
+            {
+                //indices.ToList().ForEach(x => Debug.Log(x));
+                throw e;
+            }
+        }
+
+        private Queue<int[]> GetSets(CleverMesh mesh)
+        {
+            var sets = new Queue<int[]>();
+            var tempSets = new Dictionary<int, List<int>>();
+
+            for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+            {
+                var data = mesh.NodeMetadata[i];
+                if (tempSets.ContainsKey(data.Id))
+                {
+                    tempSets[data.Id].Add(i);
+                }
+                else
+                {
+                    tempSets.Add(data.Id, new List<int>() { i });
+                }
+            }
+
+            foreach (var tempset in tempSets)
+            {
+                sets.Enqueue(tempset.Value.Distinct().ToArray());
+            }
+            return sets;            
+        }
+
+        private GameObject PrivateSetWithOthers(CleverMesh mesh)
+        {
+            var gobject = CreateObjectXZ(mesh);
+
+            for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+            {
+                if (mesh.NodeMetadata[i].CliffDistance<0.08f)
+                    continue;
+
+                if (RNG.SmallerThan(0.7))
+                    continue;
+
+                var newObj = GameObject.Instantiate(_settings.CliffObject);
+
+                //var localScale = RNG.NextFloat(2f, 4f);
+                var localScale = (mesh.NodeMetadata[i].CliffDistance * 4)+2;
+
+                newObj.transform.localScale = new Vector3(localScale, localScale*RNG.NextFloat(1.4f,2f),localScale);
+                newObj.transform.Rotate(Vector3.up, RNG.NextFloat(3000));
+                newObj.transform.parent = gobject.transform;
+                newObj.transform.localPosition = new Vector3(mesh.Mesh.Nodes[i].Vert.x, mesh.NodeMetadata[i].Height-0.8f, mesh.Mesh.Nodes[i].Vert.y);
+
+            }
+
+
+            return gobject;
+        }
+
+        private GameObject PrivateSetWithOthersDeleteThis(CleverMesh mesh)
+        {
+            var gobject = CreateObjectXZ(mesh);
+
+            for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+            {
+                if (mesh.NodeMetadata[i].CliffDistance < 0.5f)
+                    continue;
+
+                //if (RNG.SmallerThan(0.7))
+                //    continue;
+
+                var newObj = GameObject.Instantiate(_settings.CliffObject);
+
+                var localScale = RNG.NextFloat(5f, 8f);
+
+                newObj.transform.localScale = new Vector3(localScale, localScale * RNG.NextFloat(1.4f, 2f), localScale);
+                newObj.transform.Rotate(Vector3.up, RNG.NextFloat(3000));
+                newObj.transform.parent = gobject.transform;
+                newObj.transform.localPosition = new Vector3(mesh.Mesh.Nodes[i].Vert.x, mesh.NodeMetadata[i].Height - 1.2f, mesh.Mesh.Nodes[i].Vert.y);
+
+            }
+
+
+            return gobject;
         }
 
     }

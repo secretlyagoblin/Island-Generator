@@ -7,6 +7,7 @@ namespace MeshMasher {
 
     public struct NodeMetadata : IBlerpable<NodeMetadata> {
 
+        public int Id;
         public int Code { get { return _roomCode; } set { _roomCode = value; _zoneBoundary.RoomCode = value; } }
         public Color SmoothColor { get { return _roomColor; } set { _roomColor = value; } }
         public float Height { get { return _height; } set { _height = value; } }
@@ -26,6 +27,7 @@ namespace MeshMasher {
 
         public NodeMetadata(int roomCode, Color roomColor, int[] links, float height = 0f)
         {
+            Id = 0;
             _roomCode = roomCode;
             _roomColor = roomColor;
             _height = height;
@@ -42,7 +44,9 @@ namespace MeshMasher {
                 _roomColor = _roomColor.Blerp(a._roomColor, b._roomColor, c._roomColor, weight),
                 _height = _height.Blerp(a._height, b._height, c._height, weight),
                 _zoneBoundary = _zoneBoundary.Blerp(a._zoneBoundary, b._zoneBoundary, c._zoneBoundary, weight),
-                _meshDual = _meshDual.Blerp(a._meshDual, b._meshDual, c._meshDual, weight)
+                _meshDual = _meshDual.Blerp(a._meshDual, b._meshDual, c._meshDual, weight),
+                _cliffData = _cliffData.Blerp(a._cliffData, b._cliffData, c._cliffData, weight),
+                Id = Id.Blerp(a.Id, b.Id, c.Id, weight)
             };
         }
     }

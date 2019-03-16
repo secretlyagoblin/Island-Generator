@@ -12,5 +12,6 @@ namespace LevelGenerator {
         public Material MeshColourMaterial;
         public GameObject TemplateObject;
         public TextAsset MeshTileData;
+        public GameObject CliffObject;
     }
 }

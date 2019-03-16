@@ -13,8 +13,8 @@ namespace LevelGenerator {
         protected MeshTile _meshTile;
 
         private readonly Material _mat;
-        
 
+        protected System.Func<CleverMesh,GameObject> _finalStep; 
 
         Queue<CleverMesh> _workQueue = new Queue<CleverMesh>();
 
@@ -26,6 +26,7 @@ namespace LevelGenerator {
             _meshTile = new MeshTile(settings.MeshTileData.text);
             _mat = new Material(Shader.Find("Standard"));
             Root = new GameObject();
+            _finalStep = CreateObjectXY;
         }
 
         public bool DequeueAsyncMesh()
@@ -38,7 +39,7 @@ namespace LevelGenerator {
             if (_workQueue.Count == 0)
                 return false;
 
-            CreateObject(_workQueue.Dequeue());
+            _finalStep(_workQueue.Dequeue());
             return true;
         }
 
@@ -46,7 +47,7 @@ namespace LevelGenerator {
 
         List<Color> _createObjectColors = new List<Color>(100);
 
-        protected GameObject CreateObject(CleverMesh mesh)
+        protected GameObject CreateObjectXY(CleverMesh mesh)
         {
             var gameObject = GameObject.Instantiate(_settings.TemplateObject, Root.transform);
             var f = gameObject.GetComponent<MeshFilter>();
@@ -54,6 +55,36 @@ namespace LevelGenerator {
             r.sharedMaterial = _settings.MeshColourMaterial;
             //f.mesh = mesh.Mesh.ToXZMesh(mesh.NodeMetadata.Select(x => -Mathf.InverseLerp(0f,0.05f,Mathf.Min(x.SmoothColor.grayscale,0.05f))*0.2f).ToArray());
             f.mesh = mesh.Mesh.ToXYMesh();
+            _createObjectColors.Clear();
+
+            try
+            {
+                for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+                {
+                    _createObjectColors.Add(mesh.NodeMetadata[i].SmoothColor);
+                }
+
+                if (mesh.NodeMetadata.Length == f.mesh.vertices.Length)
+                {
+                    f.mesh.SetColors(_createObjectColors);
+                }
+            }
+            catch
+            {
+                //Debug.LogError("No colours to add");
+            }
+
+            return gameObject;
+        }
+
+        protected GameObject CreateObjectXZ(CleverMesh mesh)
+        {
+            var gameObject = GameObject.Instantiate(_settings.TemplateObject, Root.transform);
+            var f = gameObject.GetComponent<MeshFilter>();
+            var r = gameObject.GetComponent<MeshRenderer>();
+            r.sharedMaterial = _settings.MeshColourMaterial;
+            f.mesh = mesh.Mesh.ToXZMesh(mesh.NodeMetadata.Select(x => x.Height).ToArray());
+            //f.mesh = mesh.Mesh.ToXYMesh();
             _createObjectColors.Clear();
 
             try
@@ -138,7 +169,7 @@ namespace LevelGenerator {
                 {
                     var layer4 = new CleverMesh(parent, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
 
-                    var go = CreateObject(layer4);
+                    var go = CreateObjectXY(layer4);
                     go.name = "Region " + roomCode.Key;
 
                 }
@@ -165,50 +196,39 @@ namespace LevelGenerator {
             }
         }
 
-        protected void CreateSetAsync(CleverMesh parent, Dictionary<int, List<int>> sets, int divisions)
+        protected void CreateSetAsync(CleverMesh parent, Queue<int[]> sets, int threadCount, System.Func<CleverMesh, int[], CleverMesh> layerAction)
         {
-            var queues = new Queue<KeyValuePair<int, List<int>>>[divisions];
-
-            for (int i = 0; i < divisions; i++)
-            {
-                queues[i] = new Queue<KeyValuePair<int, List<int>>>();
-            }
 
             var iterator = 0;
 
-            foreach (var roomCode in sets)
+            for (int i = 0; i < threadCount; i++)
             {
-                queues[iterator].Enqueue(roomCode);
-                iterator++;
-                if (iterator == divisions)
-                    iterator = 0;
-            }
-
-            for (int i = 0; i < divisions; i++)
-            {
-                var q = queues[i];
 
                 Task.Run(() =>
                 {
-                    while (q.Count > 0)
+                    while (sets.Count > 0)
                     {
-                        var roomCode = q.Dequeue();
+                        var set = sets.Dequeue();
 
-                        if (roomCode.Key == 0)
-                            continue;
-
-                        var cleverMesh = new CleverMesh(parent, roomCode.Value.Distinct().ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
-
-                        lock (_workQueue)
+                        try
                         {
-                            _workQueue.Enqueue(cleverMesh);
+                            var cleverMesh = layerAction(parent, set);
+
+                            lock (_workQueue)
+                            {
+                                _workQueue.Enqueue(cleverMesh);
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            throw e;
                         }
                     }
                 }).ContinueInMainThreadWith((x) => { Debug.Log("Hell yeah we completed that one"); });
             }
         }
 
-        protected void CreateSimpleJobAsync(CleverMesh parent, MeshMasher.NestedMeshAccessType type)
+        protected void CreateSimpleJobAsync(CleverMesh parent, System.Func<CleverMesh,int[],CleverMesh> layerAction)
         {
             var count = parent.Mesh.Nodes.Count;
 
@@ -216,22 +236,23 @@ namespace LevelGenerator {
             {
                 for (int i = 0; i < count; i++)
                 {
-                    var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
+                    //var cleverMesh = new CleverMesh(parent, new int[] { parent.Mesh.Nodes[i].Index }, type);
                     try
                     {
+                        var result = layerAction(parent,new int[] { i });
 
 
-                        var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
+                        //var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
 
                         lock (_workQueue)
                         {
-                            _workQueue.Enqueue(layer2cleverMesh);
+                            _workQueue.Enqueue(result);
                         }
                     }
                     catch (System.Exception e)
                     {
-                        var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
-                        Debug.Log(i + " " + data[0] + " " + data[1] + " " + data[2] + " ");
+                        //var data = parent.GetDataAboutVertex(parent.Mesh.Nodes[i].Index);
+                        //Debug.Log(i + " " + data[0] + " " + data[1] + " " + data[2] + " ");
                         Debug.LogError(e);
                         //lock (_workQueue)
                         //{
@@ -271,12 +292,12 @@ namespace LevelGenerator {
                 {
                     var layer2cleverMesh = new CleverMesh(cleverMesh, cleverMesh.Mesh.Nodes.ConvertAll(x => x.Index).ToArray(), MeshMasher.NestedMeshAccessType.Triangles);
                     //CreateObject(cleverMesh).name = "Cell " + i;
-                    CreateObject(layer2cleverMesh).name = "Cell " + i + " - 2";
+                    CreateObjectXY(layer2cleverMesh).name = "Cell " + i + " - 2";
 
                 }
                 catch (System.Exception e)
                 {
-                    var cleverMeshMesh = CreateObject(cleverMesh);
+                    var cleverMeshMesh = CreateObjectXY(cleverMesh);
                     cleverMeshMesh.name = "Cell " + i;
 
                     var cleverMeshRing = CreateRing(cleverMesh);
@@ -290,6 +311,11 @@ namespace LevelGenerator {
 
                 yield return waitForSeconds;
             }
+        }
+
+        protected CleverMesh CreateSimpleMeshTile(CleverMesh parent, int[] indices)
+        {
+                return new CleverMesh(parent, indices, MeshMasher.NestedMeshAccessType.Triangles);
         }
 
     }

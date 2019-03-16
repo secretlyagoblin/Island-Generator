@@ -22,7 +22,7 @@ public class StructureV2 : MonoBehaviour {
     {
         var count = 0;
 
-        while (count < 3)
+        while (count < 7)
         {
             count++;
 

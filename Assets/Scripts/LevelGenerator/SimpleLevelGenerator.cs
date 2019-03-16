@@ -61,7 +61,7 @@ namespace LevelGenerator {
 
             //return;
 
-            var layer2obj = CreateObject(layer2);
+            var layer2obj = CreateObjectXY(layer2);
             var layer2ring = CreateRing(layer2);
             layer2ring.transform.parent = layer2obj.transform;
             layer2ring.name = "Layer2ring";
@@ -83,11 +83,13 @@ namespace LevelGenerator {
             Debug.Log("Layer 4: ");
             //GameObject.StartCoroutine(CreateSimple(layer2, MeshMasher.NestedMeshAccessType.Vertex));
 
-            CreateSimpleJobAsync(layer2, MeshMasher.NestedMeshAccessType.Vertex);
+            CreateSimpleJobAsync(layer2, CreateSimpleMeshTile);
 
 
 
         }
+
+
 
     }
 }

@@ -15,3 +15,5 @@ MonoBehaviour:
   TemplateObject: {fileID: 1580762146238424, guid: 4c0f1ab06c6869f46be5f47d8b7a497d,
     type: 2}
   MeshTileData: {fileID: 4900000, guid: ae479c7c3e14fe34abb0d533c943b1c2, type: 3}
+  CliffObject: {fileID: 1241879682306482, guid: 80126bfda2baa6241957fc70d7acc3ce,
+    type: 2}
