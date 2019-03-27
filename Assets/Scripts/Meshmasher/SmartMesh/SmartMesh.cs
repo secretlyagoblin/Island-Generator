@@ -1004,7 +1004,6 @@ namespace MeshMasher {
             return newState;
         }
 
-        public MeshState<int> MinimumSpanningTreeRedux()
 
 
         //public MeshState
