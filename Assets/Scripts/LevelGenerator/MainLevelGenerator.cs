@@ -502,4 +502,17 @@ namespace LevelGenerator {
             PrivateSetWithOthers(mesh);
         }
     }
+
+    class Neighbourhood {
+        public int[] Nodes;
+        public int[] Lines;
+        public MeshState<int> State;
+
+        public List<int> ConnectingLines = new List<int>();
+
+        public void ApplyState(SmartMesh mesh, System.Func<SmartMesh, MeshState<int>> func)
+        {
+            State = func(mesh);
+        }
+    }
 }
