@@ -14,8 +14,6 @@ namespace LevelGenerator {
 
         private readonly Material _mat;
 
-        protected System.Func<CleverMesh,GameObject> _finalStep; 
-
         Queue<CleverMesh> _workQueue = new Queue<CleverMesh>();
 
         // Use this for initialization
@@ -26,7 +24,6 @@ namespace LevelGenerator {
             _meshTile = new MeshTile(settings.MeshTileData.text);
             _mat = new Material(Shader.Find("Standard"));
             Root = new GameObject();
-            _finalStep = CreateObjectXY;
         }
 
         public bool DequeueAsyncMesh()
@@ -39,7 +36,7 @@ namespace LevelGenerator {
             if (_workQueue.Count == 0)
                 return false;
 
-            _finalStep(_workQueue.Dequeue());
+            FinaliseMesh(_workQueue.Dequeue());
             return true;
         }
 
@@ -195,6 +192,8 @@ namespace LevelGenerator {
                 }
             }
         }
+
+        protected abstract void FinaliseMesh(CleverMesh mesh);
 
         protected void CreateSetAsync(CleverMesh parent, Queue<int[]> sets, int threadCount, System.Func<CleverMesh, int[], CleverMesh> layerAction)
         {

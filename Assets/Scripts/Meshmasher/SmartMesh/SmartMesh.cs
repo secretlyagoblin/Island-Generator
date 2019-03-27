@@ -1004,6 +1004,9 @@ namespace MeshMasher {
             return newState;
         }
 
+        public MeshState<int> MinimumSpanningTreeRedux()
+
+
         //public MeshState
 
         public int[] ShortestWalkNode(int startIndex, int endIndex)

@@ -89,7 +89,9 @@ namespace LevelGenerator {
 
         }
 
-
-
+        protected override void FinaliseMesh(CleverMesh mesh)
+        {
+            CreateObjectXY(mesh);
+        }
     }
 }

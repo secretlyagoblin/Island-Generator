@@ -17,20 +17,19 @@ namespace LevelGenerator {
 
         public override void Generate()
         {
-            var size = 60;
-            Root.transform.localScale = new Vector3(size, size*0.1f, size);
+            var size = 1;
+            Root.transform.localScale = new Vector3(size, size, size);
             var layer2 = CreateWalkableTerrain();
             //CreateObject(layer2);
             //return;
             var layer3 = CreateLayer3(layer2);
             //CreateObjectXY(layer3);
 
-            _finalStep = PrivateSetWithOthers;
             //CreateSimpleJobAsync(layer3,CreateLayer4);
             var sets = GetSets(layer3);
 
             CreateSetAsync(layer3, sets,4,CreateLayer4);
-            PrivateSetWithOthersDeleteThis(layer3);
+            //PrivateSetWithOthersDeleteThis(layer3);
             //CreateObjectXZ(layer3);
 
             
@@ -127,7 +126,9 @@ namespace LevelGenerator {
                     layer2.NodeMetadata[i].Code = 0;
                     layer2.NodeMetadata[i].SmoothColor = Color.white;
                 }
-            }            
+            }
+
+            //layer2.Mesh.GenerateSemiConnectedMesh(3);
 
             for (int i = 0; i < layer2.RingNodeMetadata.Length; i++)
             {
@@ -468,7 +469,9 @@ namespace LevelGenerator {
 
         private GameObject PrivateSetWithOthers(CleverMesh mesh)
         {
-            var gobject = CreateObjectXZ(mesh);
+            var gobject = CreateObjectXY(mesh);
+
+            return gobject;
 
             for (int i = 0; i < mesh.NodeMetadata.Length; i++)
             {
@@ -494,32 +497,9 @@ namespace LevelGenerator {
             return gobject;
         }
 
-        private GameObject PrivateSetWithOthersDeleteThis(CleverMesh mesh)
+        protected override void FinaliseMesh(CleverMesh mesh)
         {
-            var gobject = CreateObjectXZ(mesh);
-
-            for (int i = 0; i < mesh.NodeMetadata.Length; i++)
-            {
-                if (mesh.NodeMetadata[i].CliffDistance < 0.5f)
-                    continue;
-
-                //if (RNG.SmallerThan(0.7))
-                //    continue;
-
-                var newObj = GameObject.Instantiate(_settings.CliffObject);
-
-                var localScale = RNG.NextFloat(5f, 8f);
-
-                newObj.transform.localScale = new Vector3(localScale, localScale * RNG.NextFloat(1.4f, 2f), localScale);
-                newObj.transform.Rotate(Vector3.up, RNG.NextFloat(3000));
-                newObj.transform.parent = gobject.transform;
-                newObj.transform.localPosition = new Vector3(mesh.Mesh.Nodes[i].Vert.x, mesh.NodeMetadata[i].Height - 1.2f, mesh.Mesh.Nodes[i].Vert.y);
-
-            }
-
-
-            return gobject;
+            PrivateSetWithOthers(mesh);
         }
-
     }
 }
