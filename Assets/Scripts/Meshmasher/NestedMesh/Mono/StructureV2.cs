@@ -14,7 +14,10 @@ public class StructureV2 : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        _levelGenerator = new LevelGenerator.MainLevelGenerator(CellIndex, LevelGeneratorSettings);
+        _levelGenerator = 
+            new LevelGenerator.ZoneTestingLevelGenerator(CellIndex, LevelGeneratorSettings);
+        //  new LevelGenerator.SimpleLevelGenerator(CellIndex, LevelGeneratorSettings);
+        //  new LevelGenerator.MainLevelGenerator(CellIndex, LevelGeneratorSettings);
         _levelGenerator.Generate();
     }
 

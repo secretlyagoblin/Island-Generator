@@ -473,28 +473,28 @@ namespace LevelGenerator {
 
             return gobject;
 
-            for (int i = 0; i < mesh.NodeMetadata.Length; i++)
-            {
-                if (mesh.NodeMetadata[i].CliffDistance<0.08f)
-                    continue;
-
-                if (RNG.SmallerThan(0.7))
-                    continue;
-
-                var newObj = GameObject.Instantiate(_settings.CliffObject);
-
-                //var localScale = RNG.NextFloat(2f, 4f);
-                var localScale = (mesh.NodeMetadata[i].CliffDistance * 4)+2;
-
-                newObj.transform.localScale = new Vector3(localScale, localScale*RNG.NextFloat(1.4f,2f),localScale);
-                newObj.transform.Rotate(Vector3.up, RNG.NextFloat(3000));
-                newObj.transform.parent = gobject.transform;
-                newObj.transform.localPosition = new Vector3(mesh.Mesh.Nodes[i].Vert.x, mesh.NodeMetadata[i].Height-0.8f, mesh.Mesh.Nodes[i].Vert.y);
-
-            }
-
-
-            return gobject;
+            //for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+            //{
+            //    if (mesh.NodeMetadata[i].CliffDistance<0.08f)
+            //        continue;
+            //
+            //    if (RNG.SmallerThan(0.7))
+            //        continue;
+            //
+            //    var newObj = GameObject.Instantiate(_settings.CliffObject);
+            //
+            //    //var localScale = RNG.NextFloat(2f, 4f);
+            //    var localScale = (mesh.NodeMetadata[i].CliffDistance * 4)+2;
+            //
+            //    newObj.transform.localScale = new Vector3(localScale, localScale*RNG.NextFloat(1.4f,2f),localScale);
+            //    newObj.transform.Rotate(Vector3.up, RNG.NextFloat(3000));
+            //    newObj.transform.parent = gobject.transform;
+            //    newObj.transform.localPosition = new Vector3(mesh.Mesh.Nodes[i].Vert.x, mesh.NodeMetadata[i].Height-0.8f, mesh.Mesh.Nodes[i].Vert.y);
+            //
+            //}
+            //
+            //
+            //return gobject;
         }
 
         protected override void FinaliseMesh(CleverMesh mesh)
@@ -503,16 +503,5 @@ namespace LevelGenerator {
         }
     }
 
-    class Neighbourhood {
-        public int[] Nodes;
-        public int[] Lines;
-        public MeshState<int> State;
 
-        public List<int> ConnectingLines = new List<int>();
-
-        public void ApplyState(SmartMesh mesh, System.Func<SmartMesh, MeshState<int>> func)
-        {
-            State = func(mesh);
-        }
-    }
 }

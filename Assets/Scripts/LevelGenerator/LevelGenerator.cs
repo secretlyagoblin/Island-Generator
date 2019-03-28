@@ -198,7 +198,7 @@ namespace LevelGenerator {
         protected void CreateSetAsync(CleverMesh parent, Queue<int[]> sets, int threadCount, System.Func<CleverMesh, int[], CleverMesh> layerAction)
         {
 
-            var iterator = 0;
+            //var iterator = 0;
 
             for (int i = 0; i < threadCount; i++)
             {

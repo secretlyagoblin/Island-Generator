@@ -21,6 +21,8 @@ public class CleverMesh {
 
     //Create from scratch
 
+        
+
     public CleverMesh(List<Vector2Int> seedTiles, MeshTile meshTile)
     {
         Init(seedTiles, meshTile);
@@ -49,6 +51,8 @@ public class CleverMesh {
         _sMesh = new SmartMesh(_nMesh.Verts,_nMesh.Tris);
         
     }
+
+    public CleverMesh(CleverMesh parent) : this(parent, parent.Mesh.Nodes.ConvertAll(x => x.Index).ToArray()) { }
 
     private void Init(List<Vector2Int> seedTiles, MeshTile meshTileJSON)
     {
