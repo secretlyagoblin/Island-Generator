@@ -49,12 +49,15 @@ namespace LevelGenerator {
             //var layer = new CleverMesh(parentLayer);
             var neigh = SubMesh.FromMesh(parentLayer);
             neigh.ToList().ForEach(x => {
-
+                if (RNG.CoinToss())
                     x.ApplyState(DikstraWithRandomisation);
-                    x.DebugDraw(RNG.NextColor(), 2f);
-
-                
+                else
+                    x.ApplyState(SummedDikstra);
+                x.DebugDraw(RNG.NextColor(), 2f);                
             });
+
+            //TODO: Add tools for managing connectivity between submeshes
+
             return parentLayer;
         }
 

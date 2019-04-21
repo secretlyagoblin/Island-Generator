@@ -44,6 +44,11 @@ public static class RNG {
         _initialised = true;
     }
 
+    public static bool CoinToss()
+    {
+        return _pseudoRandom.NextDouble() < 0.5;
+    }
+
     public static bool SmallerThan(float value)
     {
         return _pseudoRandom.NextDouble() < value;
