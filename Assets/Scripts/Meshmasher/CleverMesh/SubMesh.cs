@@ -8,6 +8,7 @@ class SubMesh {
     int[] Nodes;
     int[] Lines;
     MeshState<int> State;
+    public int Code { get; private set; }
 
     CleverMesh _mesh;
 
@@ -15,11 +16,19 @@ class SubMesh {
 
     public void ApplyState(System.Func<SmartMesh,int[],int[], MeshState<int>> func)
     {
-        State = func(_mesh.Mesh,Nodes,Lines);
+        try
+        {
+            State = func(_mesh.Mesh, Nodes, Lines);
+        }
+        catch(Exception ex)
+        {
+            throw new Exception("Error in Room Code " + Code, ex);
+        }
     }
 
-    public SubMesh(int[] nodes, int[] lines, CleverMesh mesh)
+    public SubMesh(int code, int[] nodes, int[] lines, CleverMesh mesh)
     {
+        Code = code;
         _mesh = mesh;
         Nodes = nodes;
         Lines = lines;
@@ -29,6 +38,11 @@ class SubMesh {
     {
         for (int i = 0; i < Lines.Length; i++)
         {
+            if (State != null)
+            {
+                if (State.Lines[i] == 0)
+                    continue;
+            }
             _mesh.Mesh.Lines[Lines[i]].DebugDraw(color, duration);
         }
     }
@@ -37,11 +51,15 @@ class SubMesh {
     {
         var subNodes = new Dictionary<int, List<int>>();
 
-        var codes = mesh.NodeMetadata.Select(x => x.Code).Distinct().ToArray();
+        //var codes = mesh.NodeMetadata.Select(x => x.Code).Where(x => x!= 0).Distinct().ToArray();     
 
         for (int i = 0; i < mesh.NodeMetadata.Length; i++)
         {
             var nodeData = mesh.NodeMetadata[i].Code;
+
+            if (nodeData == 0)
+                continue;
+
             if (subNodes.ContainsKey(nodeData))
             {
                 subNodes[nodeData].Add(i);
@@ -74,7 +92,7 @@ class SubMesh {
                     .Select(x => x.Index));
             }
 
-            finalSubmeshes[i] = new SubMesh(nodes.ToArray(), lines.Distinct().ToArray(), mesh);
+            finalSubmeshes[i] = new SubMesh(key, nodes.ToArray(), lines.Distinct().ToArray(), mesh);
         }
         return finalSubmeshes;
     }

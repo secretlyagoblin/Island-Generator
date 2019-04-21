@@ -49,15 +49,126 @@ namespace LevelGenerator {
             //var layer = new CleverMesh(parentLayer);
             var neigh = SubMesh.FromMesh(parentLayer);
             neigh.ToList().ForEach(x => {
-                x.ApplyState(Dikstra);
-                x.DebugDraw(RNG.NextColor(), 100f);               
+
+                    x.ApplyState(DikstraWithRandomisation);
+                    x.DebugDraw(RNG.NextColor(), 2f);
+
+                
             });
             return parentLayer;
         }
 
-        private MeshState<int> Dikstra(SmartMesh mesh, int[] Nodes, int[] Lines)
+        private MeshState<int> DikstraWithRandomisation(SmartMesh mesh, int[] nodes, int[] lines)
         {
-            return null;
+            var nodeMap = new Dictionary<int, int>();
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                nodeMap.Add(nodes[i],i);
+            }
+
+            var lineMap = new Dictionary<int, int>();
+            var lineLengthRandomiser = new float[lines.Length];
+            for (int i = 0; i < lines.Length; i++)
+            {
+                lineMap.Add(lines[i], i);
+                lineLengthRandomiser[i] = RNG.NextFloat(0.8f, 1.2f);
+            }
+
+            var isPartOfCurrentSortingEvent = new bool[nodes.Length];
+            var visitedNodesList = new List<SmartNode>();
+            var firstNode = mesh.Nodes[nodes[0]];
+            var visitedNodes = new int[nodes.Length];
+            var visitedLines = new int[lines.Length];
+            var visitedLinesIteration = new int[lines.Length];
+            visitedNodesList.Add(firstNode);
+            visitedNodes[nodeMap[firstNode.Index]] = 1;
+            var outputLines = new List<SmartLine>();
+            var iteration = 0;
+
+            while (visitedNodesList.Count < nodes.Length)
+            {
+                outputLines.Clear();
+                iteration++;
+
+                for (int i = 0; i < visitedNodesList.Count; i++)
+                {
+                    var n = visitedNodesList[i];
+
+                    for (int u = 0; u < n.Lines.Count; u++)
+                    {
+                        if (!lineMap.ContainsKey(n.Lines[u].Index))
+                            continue;
+
+                        var lineIndex = lineMap[n.Lines[u].Index];
+
+                        if (visitedLines[lineIndex] == 0 &&
+                            visitedLinesIteration[lineIndex] != iteration)
+                        {
+                            outputLines.Add(n.Lines[u]);
+                            visitedLinesIteration[lineIndex] = iteration;
+                        }
+                    }
+                }
+
+                var length = float.MaxValue;
+                SmartLine bestLine = null;
+
+                for (int l = 0; l < outputLines.Count; l++)
+                {
+                    var line = outputLines[l];
+                    var randomMultiplier = lineLengthRandomiser[lineMap[line.Index]];
+
+                    if (line.Length* randomMultiplier > length)
+                        continue;
+
+                    if (isPartOfCurrentSortingEvent[nodeMap[line.Nodes[0].Index]] &&
+                        isPartOfCurrentSortingEvent[nodeMap[line.Nodes[1].Index]])
+                        continue;
+
+                    length = line.Length* randomMultiplier;
+                    bestLine = line;
+                }
+                try
+                {
+                    isPartOfCurrentSortingEvent[nodeMap[bestLine.Nodes[0].Index]] = true;
+                }
+                catch
+                {
+                    Debug.Log("Whey");
+                }
+
+                isPartOfCurrentSortingEvent[nodeMap[bestLine.Nodes[1].Index]] = true;
+                visitedLines[lineMap[bestLine.Index]] = 1;
+
+                for (int i = 0; i < bestLine.Nodes.Count; i++)
+                {
+                    var n = bestLine.Nodes[i];
+                    if (visitedNodes[nodeMap[n.Index]] == 0)
+                    {
+                        visitedNodesList.Add(n);
+                        visitedNodes[nodeMap[n.Index]] = 1;
+                    }
+                }
+            }
+
+            var meshState = new MeshState<int>();
+            meshState.Nodes = new int[nodes.Length];
+            meshState.Lines = visitedLines;
+
+            return meshState;
+        }
+
+        private MeshState<int> SummedDikstra(SmartMesh mesh, int[] Nodes, int[] Lines)
+        {
+            var one = DikstraWithRandomisation(mesh, Nodes, Lines);
+            var two = DikstraWithRandomisation(mesh, Nodes, Lines);
+
+            for (int i = 0; i < Lines.Length; i++)
+            {
+                one.Lines[i] = two.Lines[i] == 1 ? 1 : one.Lines[i];
+            }
+
+            return one;
         }
     }
 }
