@@ -34,11 +34,21 @@ namespace LevelGenerator {
             var layer1WiderNeighbourhood = layer1Neighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
             layer1Neighbourhood.Add(layer1NodeIndex);
 
+            var subMesh = new SubMesh(1, layer1WiderNeighbourhood.ToArray(), layer1);
+            subMesh.ApplyState(SummedDikstra);
+            subMesh.DebugDraw(Color.red, 4f);
+
             /// 2: Initialise wider neighbourhood with different colours
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
             {
                 var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
                 layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5)) { Height = RNG.NextFloat(-3, 3) };
+            }
+
+            for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
+            {
+                var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
+                layer1.NodeMetadata[n].Connections = subMesh.ConnectionsFromState(n);
             }
 
             return new CleverMesh(layer1, layer1WiderNeighbourhood.ToArray());
@@ -48,15 +58,17 @@ namespace LevelGenerator {
         {
             //var layer = new CleverMesh(parentLayer);
             var neigh = SubMesh.FromMesh(parentLayer);
+
+            neigh[0].GetFreeLines(neigh);
+
             neigh.ToList().ForEach(x => {
                 if (RNG.CoinToss())
                     x.ApplyState(DikstraWithRandomisation);
                 else
                     x.ApplyState(SummedDikstra);
-                x.DebugDraw(RNG.NextColor(), 2f);                
+                x.DebugDraw(RNG.NextColor(), 10f);         
+                //x.DebugDraw(Color.white, 10f);
             });
-
-            //TODO: Add tools for managing connectivity between submeshes
 
             return parentLayer;
         }

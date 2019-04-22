@@ -11,6 +11,7 @@ class SubMesh {
     public int Code { get; private set; }
 
     CleverMesh _mesh;
+    //List<KeyValuePair<int, int>> _connections = new List<KeyValuePair<int, int>>();
 
     //public List<int> ConnectingLines = new List<int>();
 
@@ -32,6 +33,19 @@ class SubMesh {
         _mesh = mesh;
         Nodes = nodes;
         Lines = lines;
+    }
+
+    public SubMesh(int code, int[] nodes, CleverMesh mesh)
+    {
+        Code = code;
+        _mesh = mesh;
+        Nodes = nodes;
+        Lines = nodes
+            .SelectMany(x => mesh.Mesh.Nodes[x].Lines
+                .Where(y => nodes.Contains(y.Nodes[0].Index) && nodes.Contains(y.Nodes[1].Index))
+                .Select(y => y.Index))
+            .Distinct()
+            .ToArray();
     }
 
     public void DebugDraw(UnityEngine.Color color, float duration)
@@ -96,4 +110,117 @@ class SubMesh {
         }
         return finalSubmeshes;
     }
+
+    public void GetFreeLines(SubMesh[] meshes)
+    {
+        var lines = Enumerable.Range(0, _mesh.Mesh.Lines.Count);
+
+        for (int i = 0; i < meshes.Length; i++)
+        {
+            lines = lines.Except(meshes[i].Lines);
+        }
+
+        var finalLines = lines.Select(x => _mesh.Mesh.Lines[x]);
+
+        var connections = new List<KeyValuePair<int, int>>();
+
+        for (int i = 0; i < meshes.Length; i++)
+        {
+            var m = meshes[i];
+            
+            var subConnections = _mesh.NodeMetadata[m.Nodes[0]].Connections;
+
+            for (int u = 0; u < subConnections.Length; u++)
+            {
+                var a = m.Code < subConnections[u] ?m.Code: subConnections[u];
+                var b = m.Code < subConnections[u] ?subConnections[u] : m.Code;
+
+                connections.Add(new KeyValuePair<int, int>(a, b));
+            }                  
+        }
+
+        connections = connections.Distinct().ToList();
+
+        var determinedLines = new List<SmartLine>();
+
+        finalLines = finalLines.Where(x =>
+        {
+            if (determinedLines.SkipWhile(y => !y.IsConnectedTo(x)).Count() > 0)
+                return false;
+
+
+
+            var a = x.Nodes[0].Index;
+            var b = x.Nodes[1].Index;
+
+            var codeA = _mesh.NodeMetadata[a].Code < _mesh.NodeMetadata[b].Code ? _mesh.NodeMetadata[a].Code : _mesh.NodeMetadata[b].Code;
+            var codeB = _mesh.NodeMetadata[a].Code < _mesh.NodeMetadata[b].Code ? _mesh.NodeMetadata[b].Code : _mesh.NodeMetadata[a].Code;
+
+            var pair = new KeyValuePair<int, int>(codeA, codeB);
+
+            if (!connections.Contains(pair))
+                return false;
+
+            //connections.Remove(pair);
+            determinedLines.Add(x);
+
+            return true;
+        });
+
+
+        foreach (var item in finalLines)
+        {
+            item.DebugDraw(UnityEngine.Color.magenta, 300f);
+        }
+
+
+
+    }
+
+    public int[] ConnectionsFromState(int nodeIndex)
+    {
+        for (int i = 0; i < Nodes.Length; i++)
+        {
+            if (nodeIndex == Nodes[i])
+                goto FoundNode;
+        }
+
+        return new int[] { };
+
+        FoundNode:
+
+        var node = _mesh.Mesh.Nodes[nodeIndex];
+
+        var lineMap = new Dictionary<int, int>();
+        for (int i = 0; i < Lines.Length; i++)
+        {
+            lineMap.Add(Lines[i], i);
+        }
+
+        var connections = new List<int>(node.Lines.Count);
+
+        for (int i = 0; i < node.Lines.Count; i++)
+        {
+            if(!lineMap.ContainsKey(node.Lines[i].Index))
+                continue;
+
+            if(State.Lines[lineMap[node.Lines[i].Index]] != 0)
+            {
+                connections.Add(_mesh.NodeMetadata[node.Lines[i].GetOtherNode(node).Index].Code);
+            }
+        }
+
+        return connections.ToArray();
+    }
+
+}
+
+class TopologyData {
+
+}
+
+class GameSpace {
+    public SubMesh[] Neighbourhood;
+    public TopologyData Topology;
+    public CleverMesh Mesh;
 }
