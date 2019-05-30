@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using MeshMasher;
 
-class SubMesh {
+public class SubMesh {
     public int[] Nodes;
     int[] Lines;
     MeshState<int> State;
@@ -61,16 +61,39 @@ class SubMesh {
         }
     }    
 
-    public void GetFreeLines(SubMesh[] meshes)
+    public int[] GetSharedLines(SubMesh mesh, int[] candidates)
     {
-        var lines = Enumerable.Range(0, _mesh.Mesh.Lines.Count);
+        var codeA = this.Code;
+        var codeB = mesh.Code;
+        var metadata = this._mesh.NodeMetadata;
+        var smesh = this._mesh.Mesh;
+
+        return candidates.Where(x =>
+        {
+            var line = smesh.Lines[x];
+            var a = metadata[line.Nodes[0].Index].Code;
+            var b = metadata[line.Nodes[1].Index].Code;
+
+            if (a == codeA && b == codeB)
+                return true;
+
+            if (b == codeA && a == codeB)
+                return true;
+
+            return false;
+        }).ToArray();
+    }
+
+    public static (List<KeyValuePair<int, int>> connections, List<int> lines) GetConnectonData(CleverMesh mesh, SubMesh[] meshes)
+    {
+        var lines = Enumerable.Range(0, mesh.Mesh.Lines.Count);
 
         for (int i = 0; i < meshes.Length; i++)
         {
             lines = lines.Except(meshes[i].Lines);
         }
 
-        var finalLines = lines.Select(x => _mesh.Mesh.Lines[x]);
+        var finalLines = lines.Select(x => mesh.Mesh.Lines[x]);
 
         var connections = new List<KeyValuePair<int, int>>();
 
@@ -78,7 +101,7 @@ class SubMesh {
         {
             var m = meshes[i];
             
-            var subConnections = _mesh.NodeMetadata[m.Nodes[0]].Connections;
+            var subConnections = mesh.NodeMetadata[m.Nodes[0]].Connections;
 
             for (int u = 0; u < subConnections.Length; u++)
             {
@@ -98,13 +121,11 @@ class SubMesh {
             if (determinedLines.SkipWhile(y => !y.IsConnectedTo(x)).Count() > 0)
                 return false;
 
-
-
             var a = x.Nodes[0].Index;
             var b = x.Nodes[1].Index;
 
-            var codeA = _mesh.NodeMetadata[a].Code < _mesh.NodeMetadata[b].Code ? _mesh.NodeMetadata[a].Code : _mesh.NodeMetadata[b].Code;
-            var codeB = _mesh.NodeMetadata[a].Code < _mesh.NodeMetadata[b].Code ? _mesh.NodeMetadata[b].Code : _mesh.NodeMetadata[a].Code;
+            var codeA = mesh.NodeMetadata[a].Code < mesh.NodeMetadata[b].Code ? mesh.NodeMetadata[a].Code : mesh.NodeMetadata[b].Code;
+            var codeB = mesh.NodeMetadata[a].Code < mesh.NodeMetadata[b].Code ? mesh.NodeMetadata[b].Code : mesh.NodeMetadata[a].Code;
 
             var pair = new KeyValuePair<int, int>(codeA, codeB);
 
@@ -117,14 +138,7 @@ class SubMesh {
             return true;
         });
 
-
-        foreach (var item in finalLines)
-        {
-            item.DebugDraw(UnityEngine.Color.magenta, 300f);
-        }
-
-
-
+        return (connections, finalLines.Select(x => x.Index).ToList());
     }
 
     public int[] ConnectionsFromState(int nodeIndex)

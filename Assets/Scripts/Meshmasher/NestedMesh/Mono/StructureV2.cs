@@ -33,6 +33,4 @@ public class StructureV2 : MonoBehaviour {
                 break;  
         }
     }
-
-
 }

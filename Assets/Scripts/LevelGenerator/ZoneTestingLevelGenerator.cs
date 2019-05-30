@@ -36,7 +36,7 @@ namespace LevelGenerator {
 
             var subMesh = new SubMesh(1, layer1WiderNeighbourhood.ToArray(), layer1);
             subMesh.ApplyState(SummedDikstra);
-            subMesh.DebugDraw(Color.red, 4f);
+            //subMesh.DebugDraw(Color.red, 4f);
 
             /// 2: Initialise wider neighbourhood with different colours
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
@@ -61,18 +61,43 @@ namespace LevelGenerator {
         private CleverMesh Layer2(CleverMesh parentLayer)
         {
             //var layer = new CleverMesh(parentLayer);
-            var neigh = SubMesh.FromMesh(parentLayer);
 
-            neigh[0].GetFreeLines(neigh);
+            var meshCollection = new MeshCollection(parentLayer);
 
-            neigh.ToList().ForEach(x => {
+            for (int i = 0; i < meshCollection.Meshes.Length; i++)
+            {
+                var m = meshCollection.Meshes[i];
+
                 if (RNG.CoinToss())
-                    x.ApplyState(DikstraWithRandomisation);
+                    m.ApplyState(DikstraWithRandomisation);
                 else
-                    x.ApplyState(SummedDikstra);
-                x.DebugDraw(RNG.NextColor(), 10f);         
-                //x.DebugDraw(Color.white, 10f);
-            });
+                    m.ApplyState(SummedDikstra);
+                m.DebugDraw(RNG.NextColor(), 10f);
+            }
+
+            for (int i = 0; i < meshCollection.Bridges.Length; i++)
+            {
+                var b = meshCollection.Bridges[i];
+                var l = RNG.CoinToss(1, 2);
+
+                for (int u = 0; u < b.LineCode.Length; u++)
+                {
+                    b.LineCode[u] = u < l ? 1 : 0;
+                }
+            }            
+
+            meshCollection.DebugDisplayEnabledBridges(Color.green, 50);
+
+            //int[][] nodeValues = meshCollection.GetConnectionData(); //< - need to impliment this function, going through edges and determining node connections
+            //
+            //for (int i = 0; i < parentLayer.NodeMetadata.Length; i++)
+            //{
+            //    var nodeValue = nodeValues[i];
+            //
+            //    parentLayer.NodeMetadata[i].Connections = nodeValue;
+            //}
+
+
 
             return parentLayer;
         }
