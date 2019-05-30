@@ -42,14 +42,18 @@ namespace LevelGenerator {
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
             {
                 var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
-                layer1.NodeMetadata[n] = new NodeMetadata(i + 1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5)) { Height = RNG.NextFloat(-3, 3) };
+                layer1.NodeMetadata[n] = new NodeMetadata(i+1, RNG.NextColor(), new int[] { }, RNG.NextFloat(5)) { Height = RNG.NextFloat(-3, 3) };
             }
+
+            //var gameState = new GameSpace(layer1);
+            //gameState.ApplyState(new System.Func<SmartMesh, int[], int[], MeshState<int>>[] { SummedDikstra });
 
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
             {
                 var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
                 layer1.NodeMetadata[n].Connections = subMesh.ConnectionsFromState(n);
-            }
+                //layer1.NodeMetadata[n].Code = i + 1;
+            }    
 
             return new CleverMesh(layer1, layer1WiderNeighbourhood.ToArray());
         }
