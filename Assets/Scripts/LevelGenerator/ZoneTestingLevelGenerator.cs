@@ -88,16 +88,14 @@ namespace LevelGenerator {
 
             meshCollection.DebugDisplayEnabledBridges(Color.green, 50);
 
-            //int[][] nodeValues = meshCollection.GetConnectionData(); //< - need to impliment this function, going through edges and determining node connections
-            //
-            //for (int i = 0; i < parentLayer.NodeMetadata.Length; i++)
-            //{
-            //    var nodeValue = nodeValues[i];
-            //
-            //    parentLayer.NodeMetadata[i].Connections = nodeValue;
-            //}
-
-
+            int[][] nodeValues = meshCollection.GetConnectionData(); //< - need to impliment this function, going through edges and determining node connections
+            
+            for (int i = 0; i < parentLayer.NodeMetadata.Length; i++)
+            {
+                var nodeValue = nodeValues[i];
+            
+                parentLayer.NodeMetadata[i].Connections = nodeValue;
+            }
 
             return parentLayer;
         }
