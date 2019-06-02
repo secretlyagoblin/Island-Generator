@@ -118,23 +118,15 @@ public class SubMesh {
 
         for (int i = 0; i < lines.Length; i++)
         {
-            var line = smesh.Lines[i];
+            var lineId = lines[i];
+            var line = smesh.Lines[lineId];
             var a = metadata[line.Nodes[0].Index].RoomCode;
             var b = metadata[line.Nodes[1].Index].RoomCode;
 
             if(a == codeA)
             {
                 nodesA[i] = this.NodeMap[line.Nodes[0].Index];
-                try
-                {
-                nodesB[i] = mesh.NodeMap[line.Nodes[1].Index];
-               
-                }
-                catch
-                {
-                    Debug.Log("What in the living fuck is going on");
-                }
-               
+                nodesB[i] = mesh.NodeMap[line.Nodes[1].Index];               
             }
             else
             {
