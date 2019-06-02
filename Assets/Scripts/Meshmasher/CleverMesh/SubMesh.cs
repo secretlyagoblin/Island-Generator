@@ -3,23 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MeshMasher;
+using UnityEngine;
 
 public class SubMesh {
     public int[] Nodes;
-    int[] Lines;
-    MeshState<int> State;
+    public int[] Lines;
+    public List<int> ConnectionNodes = new List<int>();
+
+    public readonly Dictionary<int, int> NodeMap;
+    public readonly Dictionary<int, int> LineMap;
+    public MeshState<int> State { get; private set; }
     public int Code { get; private set; }
 
-    CleverMesh _mesh;
+    public CleverMesh ParentMesh;
     //List<KeyValuePair<int, int>> _connections = new List<KeyValuePair<int, int>>();
 
     //public List<int> ConnectingLines = new List<int>();
 
-    public void ApplyState(System.Func<SmartMesh,int[],int[], MeshState<int>> func)
+    public void ApplyState(System.Func<SubMesh, MeshState<int>> func)
     {
         try
         {
-            State = func(_mesh.Mesh, Nodes, Lines);
+            State = func(this);
         }
         catch(Exception ex)
         {
@@ -30,15 +35,28 @@ public class SubMesh {
     public SubMesh(int code, int[] nodes, int[] lines, CleverMesh mesh)
     {
         Code = code;
-        _mesh = mesh;
+        ParentMesh = mesh;
         Nodes = nodes;
         Lines = lines;
+
+        NodeMap = new Dictionary<int, int>();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            NodeMap.Add(nodes[i], i);
+        }
+
+        LineMap = new Dictionary<int, int>();
+        for (int i = 0; i < lines.Length; i++)
+        {
+            LineMap.Add(lines[i], i);
+        }
+
     }
 
     public SubMesh(int code, int[] nodes, CleverMesh mesh)
     {
         Code = code;
-        _mesh = mesh;
+        ParentMesh = mesh;
         Nodes = nodes;
         Lines = nodes
             .SelectMany(x => mesh.Mesh.Nodes[x].Lines
@@ -46,6 +64,18 @@ public class SubMesh {
                 .Select(y => y.Index))
             .Distinct()
             .ToArray();
+
+        NodeMap = new Dictionary<int, int>();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            NodeMap.Add(nodes[i], i);
+        }
+
+        LineMap = new Dictionary<int, int>();
+        for (int i = 0; i < Lines.Length; i++)
+        {
+            LineMap.Add(Lines[i], i);
+        }
     }
 
     public void DebugDraw(UnityEngine.Color color, float duration)
@@ -57,22 +87,22 @@ public class SubMesh {
                 if (State.Lines[i] == 0)
                     continue;
             }
-            _mesh.Mesh.Lines[Lines[i]].DebugDraw(color, duration);
+            ParentMesh.Mesh.Lines[Lines[i]].DebugDraw(color, duration);
         }
-    }    
+    }
 
-    public int[] GetSharedLines(SubMesh mesh, int[] candidates)
+    public (int[] lines, int[] nodesA, int[] nodesB) GetSharedLines(SubMesh mesh, int[] candidates)
     {
         var codeA = this.Code;
         var codeB = mesh.Code;
-        var metadata = this._mesh.NodeMetadata;
-        var smesh = this._mesh.Mesh;
+        var metadata = this.ParentMesh.NodeMetadata;
+        var smesh = this.ParentMesh.Mesh;
 
-        return candidates.Where(x =>
+        var lines = candidates.Where(x =>
         {
             var line = smesh.Lines[x];
-            var a = metadata[line.Nodes[0].Index].Code;
-            var b = metadata[line.Nodes[1].Index].Code;
+            var a = metadata[line.Nodes[0].Index].RoomCode;
+            var b = metadata[line.Nodes[1].Index].RoomCode;
 
             if (a == codeA && b == codeB)
                 return true;
@@ -82,6 +112,39 @@ public class SubMesh {
 
             return false;
         }).ToArray();
+
+        var nodesA = new int[lines.Length];
+        var nodesB = new int[lines.Length];
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var line = smesh.Lines[i];
+            var a = metadata[line.Nodes[0].Index].RoomCode;
+            var b = metadata[line.Nodes[1].Index].RoomCode;
+
+            if(a == codeA)
+            {
+                nodesA[i] = this.NodeMap[line.Nodes[0].Index];
+                try
+                {
+                nodesB[i] = mesh.NodeMap[line.Nodes[1].Index];
+               
+                }
+                catch
+                {
+                    Debug.Log("What in the living fuck is going on");
+                }
+               
+            }
+            else
+            {
+                nodesA[i] = this.NodeMap[line.Nodes[1].Index];
+                nodesB[i] = mesh.NodeMap[line.Nodes[0].Index];
+            }
+        }
+
+        return (lines, nodesA, nodesB);
+
     }
 
     public static (List<KeyValuePair<int, int>> connections, List<int> lines) GetConnectonData(CleverMesh mesh, SubMesh[] meshes)
@@ -101,7 +164,7 @@ public class SubMesh {
         {
             var m = meshes[i];
             
-            var subConnections = mesh.NodeMetadata[m.Nodes[0]].Connections;
+            var subConnections = mesh.NodeMetadata[m.Nodes[0]].RoomConnections;
 
             for (int u = 0; u < subConnections.Length; u++)
             {
@@ -124,8 +187,8 @@ public class SubMesh {
             var a = x.Nodes[0].Index;
             var b = x.Nodes[1].Index;
 
-            var codeA = mesh.NodeMetadata[a].Code < mesh.NodeMetadata[b].Code ? mesh.NodeMetadata[a].Code : mesh.NodeMetadata[b].Code;
-            var codeB = mesh.NodeMetadata[a].Code < mesh.NodeMetadata[b].Code ? mesh.NodeMetadata[b].Code : mesh.NodeMetadata[a].Code;
+            var codeA = mesh.NodeMetadata[a].RoomCode < mesh.NodeMetadata[b].RoomCode ? mesh.NodeMetadata[a].RoomCode : mesh.NodeMetadata[b].RoomCode;
+            var codeB = mesh.NodeMetadata[a].RoomCode < mesh.NodeMetadata[b].RoomCode ? mesh.NodeMetadata[b].RoomCode : mesh.NodeMetadata[a].RoomCode;
 
             var pair = new KeyValuePair<int, int>(codeA, codeB);
 
@@ -153,7 +216,7 @@ public class SubMesh {
 
         FoundNode:
 
-        var node = _mesh.Mesh.Nodes[nodeIndex];
+        var node = ParentMesh.Mesh.Nodes[nodeIndex];
 
         var lineMap = new Dictionary<int, int>();
         for (int i = 0; i < Lines.Length; i++)
@@ -170,7 +233,7 @@ public class SubMesh {
 
             if(State.Lines[lineMap[node.Lines[i].Index]] != 0)
             {
-                connections.Add(_mesh.NodeMetadata[node.Lines[i].GetOtherNode(node).Index].Code);
+                connections.Add(ParentMesh.NodeMetadata[node.Lines[i].GetOtherNode(node).Index].RoomCode);
             }
         }
 
@@ -185,7 +248,7 @@ public class SubMesh {
 
         for (int i = 0; i < mesh.NodeMetadata.Length; i++)
         {
-            var nodeData = mesh.NodeMetadata[i].Code;
+            var nodeData = mesh.NodeMetadata[i].RoomCode;
 
             if (nodeData == 0)
                 continue;
@@ -218,7 +281,7 @@ public class SubMesh {
                     .Mesh
                     .Nodes[node]
                     .Lines
-                    .Where(x => mesh.NodeMetadata[x.Nodes[0].Index].Code == key && mesh.NodeMetadata[x.Nodes[1].Index].Code == key)
+                    .Where(x => mesh.NodeMetadata[x.Nodes[0].Index].RoomCode == key && mesh.NodeMetadata[x.Nodes[1].Index].RoomCode == key)
                     .Select(x => x.Index));
             }
 

@@ -94,8 +94,8 @@ namespace LevelGenerator {
                 {
                     level1Border1State.Lines[x.Index] = 1;
 
-                    var codeA = layer1.NodeMetadata[nodeA].Code;
-                    var codeB = layer1.NodeMetadata[nodeB].Code;
+                    var codeA = layer1.NodeMetadata[nodeA].RoomCode;
+                    var codeB = layer1.NodeMetadata[nodeB].RoomCode;
 
                     layer1RegionConnections.Add(codeA < codeB ? new SimpleVector2Int(codeA, codeB) : new SimpleVector2Int(codeB, codeA));
                     x.DebugDraw(Color.magenta, 100f);
@@ -123,7 +123,7 @@ namespace LevelGenerator {
             {
                 if (layer2IsExteriorBorder.Nodes[i] == true)
                 {
-                    layer2.NodeMetadata[i].Code = 0;
+                    layer2.NodeMetadata[i].RoomCode = 0;
                     layer2.NodeMetadata[i].SmoothColor = Color.white;
                 }
             }
@@ -132,7 +132,7 @@ namespace LevelGenerator {
 
             for (int i = 0; i < layer2.RingNodeMetadata.Length; i++)
             {
-                layer2.RingNodeMetadata[i].Code = 0;
+                layer2.RingNodeMetadata[i].RoomCode = 0;
                 layer2.RingNodeMetadata[i].SmoothColor = Color.white;
             }
 
@@ -152,9 +152,9 @@ namespace LevelGenerator {
                 }
                    
 
-                var codeA = layer2.NodeMetadata[line.Nodes[0].Index].Code;
+                var codeA = layer2.NodeMetadata[line.Nodes[0].Index].RoomCode;
 
-                var codeB = layer2.NodeMetadata[line.Nodes[1].Index].Code;
+                var codeB = layer2.NodeMetadata[line.Nodes[1].Index].RoomCode;
                 var testCode = codeA < codeB ? new SimpleVector2Int(codeA, codeB) : new SimpleVector2Int(codeB, codeA);
                 if (codeA == codeB )
                 {
@@ -202,7 +202,7 @@ namespace LevelGenerator {
                 {
                     node.Lines.ForEach(x => layer2IsBorder.Lines[x.Index] = true);
                     layer2IsBorder.Nodes[node.Index] = true;
-                    layer2.NodeMetadata[node.Index].Code = 0;
+                    layer2.NodeMetadata[node.Index].RoomCode = 0;
                 }
 
             }
@@ -242,9 +242,9 @@ namespace LevelGenerator {
             
             for (int i = 0; i < layer2.NodeMetadata.Length; i++)
             {
-                if (layer2.NodeMetadata[i].Code != 0)
+                if (layer2.NodeMetadata[i].RoomCode != 0)
                 {
-                    layer2.NodeMetadata[i].Code = roomNumber;
+                    layer2.NodeMetadata[i].RoomCode = roomNumber;
                     roomNumber++;
                     //layer2.CellMetadata[i].SmoothColor = Color.white;
                 }
@@ -265,7 +265,7 @@ namespace LevelGenerator {
             {
                 var n = layer2.Mesh.Nodes[i];
 
-                if (layer2.NodeMetadata[i].Code == 0)
+                if (layer2.NodeMetadata[i].RoomCode == 0)
                 {
                     layer2.NodeMetadata[n.Index].SmoothColor = Color.blue;
                     continue;
@@ -278,13 +278,13 @@ namespace LevelGenerator {
 
 
                 layer2.NodeMetadata[n.Index].Height += RNG.NextFloat(-0.5f, 0.5f);
-                layer2.NodeMetadata[n.Index].Connections = n
+                layer2.NodeMetadata[n.Index].RoomConnections = n
                     .Lines
                     .Where(x => !layer2IsBorder.Lines[x.Index])
                     .Select(x => x.GetOtherNode(n).Index + 1)
                     .Union(new List<int>() { i + 1 })
                     .ToArray();
-                layer2.NodeMetadata[n.Index].Code = i + 1;
+                layer2.NodeMetadata[n.Index].RoomCode = i + 1;
             }
 
             //CreateObject(layer2);
@@ -303,7 +303,7 @@ namespace LevelGenerator {
             {
                 var n = layer.Mesh.Nodes[i];
 
-                if (layer.NodeMetadata[n.Index].Code == 0)
+                if (layer.NodeMetadata[n.Index].RoomCode == 0)
                 {
                     valuesToIterateOver.Add(i);
                     //layer3.NodeMetadata[n.Index].SmoothColor = Color.grey;

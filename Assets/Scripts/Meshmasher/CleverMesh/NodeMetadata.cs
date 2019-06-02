@@ -8,11 +8,11 @@ namespace MeshMasher {
     public struct NodeMetadata : IBlerpable<NodeMetadata> {
 
         public int Id;
-        public int Code { get { return _roomCode; } set { _roomCode = value; _zoneBoundary.RoomCode = value; } }
+        public int RoomCode { get { return _roomCode; } set { _roomCode = value; _zoneBoundary.RoomCode = value; } }
         public Color SmoothColor { get { return _roomColor; } set { _roomColor = value; } }
         public float Height { get { return _height; } set { _height = value; } }
         public bool IsTrueBoundary { get { return _zoneBoundary.IsEdgeNode; } }
-        public int[] Connections { get { return _zoneBoundary.Links; } set { _zoneBoundary.Links = value; } }
+        public int[] RoomConnections { get { return _zoneBoundary.Links; } set { _zoneBoundary.Links = value; } }
         public float MeshDual { get { return _meshDual.Value; } set { _meshDual.Value = value; } }
         public bool IsFuzzyBoundary { get { return _cliffData.FuzzyBoundary; } set { _cliffData.FuzzyBoundary = value; } }
         public float CliffDistance { get { return _cliffData.Distance; } set { _cliffData.Distance = value; } }

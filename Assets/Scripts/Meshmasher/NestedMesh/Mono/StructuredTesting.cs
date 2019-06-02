@@ -157,7 +157,7 @@ public class StructuredTesting : MonoBehaviour {
             obj.transform.position = pts[i].Vert+ Vector3.forward* layer4.NodeMetadata[i].Height;
             //obj.transform.position = new Vector3(obj.transform.position.x, -obj.transform.position.z, obj.transform.position.y);
             obj.transform.localScale = Vector3.one * 0.06f;
-            obj.name = "Room " + layer4.NodeMetadata[i].Code;
+            obj.name = "Room " + layer4.NodeMetadata[i].RoomCode;
         }    
 
     }

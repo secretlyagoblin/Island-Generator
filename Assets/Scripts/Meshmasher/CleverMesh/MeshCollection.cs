@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class MeshCollection
 {
@@ -28,12 +30,16 @@ public class MeshCollection
         {
             var a = meshDict[targetLines.connections[i].Key];
             var b = meshDict[targetLines.connections[i].Value];
+            var sharedData = a.GetSharedLines(b, targetLines.lines.ToArray());
 
             Bridges[i] = new Bridge(            
                 targetLines.connections[i].Key,
                 targetLines.connections[i].Value,
-                a.GetSharedLines(b, targetLines.lines.ToArray())
+                sharedData.lines
             );
+
+            a.ConnectionNodes.AddRange(sharedData.nodesA);
+            b.ConnectionNodes.AddRange(sharedData.nodesB);
         }
     }
 
@@ -45,7 +51,7 @@ public class MeshCollection
 
             for (int u = 0; u < b.Lines.Length; u++)
             {
-                if (b.LineCode[u] == 0)
+                if (b.LineCodes[u] == 0)
                     continue;
 
                 _cleverMesh.Mesh.Lines[b.Lines[u]].DebugDraw(color, duration);
@@ -53,7 +59,44 @@ public class MeshCollection
         }
     }
 
+    internal int[][] GetConnectionData()
+    {
+        var lineMap = new bool[_cleverMesh.Mesh.Lines.Count];
 
+        //for (int i = 0; i < Bridges.Length; i++)
+        //{
+        //    var bridge = Bridges[i];
+        //
+        //    for (int u = 0; u < bridge.Lines.Length; u++)
+        //    {
+        //        var lineId = bridge.Lines[u];
+        //        if(bridge.LineCodes[u]!=0)
+        //            lineMap[lineId] = true;
+        //    }            
+        //}
+
+        for (int i = 0; i < Meshes.Length; i++)
+        {
+            var subMesh = Meshes[i];
+            var state = subMesh.State;
+
+            for (int u = 0; u < subMesh.Lines.Length; u++)
+            {
+                var lineId = subMesh.Lines[u];
+
+                    if (state.Lines[u] != 0)
+                        lineMap[lineId] = true;
+            }
+        }
+
+        //for (int i = 0; i < lineMap.Length; i++)
+        //{
+        //    if (lineMap[i])
+        //        _cleverMesh.Mesh.Lines[i].DebugDraw(Color.green, 100f);
+        //}
+
+        return _cleverMesh.Mesh.Nodes.Select(x => x.Lines.Where(y => lineMap[y.Index]).Select(y => y.GetOtherNode(x).Index).ToArray()).ToArray();
+    }
 }
 
 public class Bridge
@@ -63,11 +106,11 @@ public class Bridge
         A = a;
         B = b;
         Lines = lines;
-        LineCode = new int[Lines.Length];
+        LineCodes = new int[Lines.Length];
     }
 
     public int A;
     public int B;
     public int[] Lines;
-    public int[] LineCode;
+    public int[] LineCodes;
 }
