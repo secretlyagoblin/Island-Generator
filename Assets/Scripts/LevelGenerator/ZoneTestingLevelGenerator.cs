@@ -307,54 +307,63 @@ namespace LevelGenerator {
                 lineMap.Add(lines[i], i);
             }
 
+            var iterations = 3;
+
             var newKeyStateLines = (int[])keyMeshState.Lines.Clone();
 
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                if (subMesh.ConnectionNodes.Contains(i))
-                    continue;
+            for (int v = 0; v < iterations; v++)
+            {               
 
-                var node = mesh.Nodes[nodes[i]];
-
-
-
-                var connectionsCount = 0;
-                var lastTrueLine = -1;
-                var lastIndex = -1;
-
-                for (int u = 0; u < node.Lines.Count; u++)
+                for (int i = 0; i < nodes.Length; i++)
                 {
-                    if (!lineMap.ContainsKey(node.Lines[u].Index))
+                    if (subMesh.ConnectionNodes.Contains(i))
                         continue;
 
-                    var testIndex = lineMap[node.Lines[u].Index];
+                    var node = mesh.Nodes[nodes[i]];
 
-                    if (keyMeshState.Lines[testIndex] == 1)
+
+
+                    var connectionsCount = 0;
+                    var lastTrueLine = -1;
+                    var lastIndex = -1;
+
+                    for (int u = 0; u < node.Lines.Count; u++)
                     {
-                        lastTrueLine = node.Lines[u].Index;
-                        lastIndex = testIndex;
-                        connectionsCount++;
-                        //mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 3);
+                        if (!lineMap.ContainsKey(node.Lines[u].Index))
+                            continue;
+
+                        var testIndex = lineMap[node.Lines[u].Index];
+
+                        if (keyMeshState.Lines[testIndex] == 1)
+                        {
+                            lastTrueLine = node.Lines[u].Index;
+                            lastIndex = testIndex;
+                            connectionsCount++;
+                            //mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 3);
+                        }
+                    }
+
+                    if (connectionsCount == 1)
+                    {
+                        //keyMeshState.Nodes[i] = 0;
+                        //
+                        //try
+                        //{
+                        newKeyStateLines[lastIndex] = 0;
+                        mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 5);
+                        //}
+                        //catch
+                        //{
+                        //    Debug.Log("Whaaaa");
+                        //}
                     }
                 }
 
-                if(connectionsCount == 1)
-                {
-                    //keyMeshState.Nodes[i] = 0;
-                    //
-                    //try
-                    //{
-                        newKeyStateLines[lastIndex] = 0;
-                        mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 5);
-                    //}
-                    //catch
-                    //{
-                    //    Debug.Log("Whaaaa");
-                    //}
-                }
-            }
+                keyMeshState.Lines = newKeyStateLines;
 
-            keyMeshState.Lines = newKeyStateLines;
+                newKeyStateLines = (int[])keyMeshState.Lines.Clone();
+
+            }
 
             return keyMeshState;
         }
