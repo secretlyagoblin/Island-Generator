@@ -8,7 +8,7 @@ using UnityEngine;
 public class SubMesh {
     public int[] Nodes;
     public int[] Lines;
-    public List<int> ConnectionNodes = new List<int>();
+    public List<Bridge> Connections = new List<Bridge>();
 
     public readonly Dictionary<int, int> NodeMap;
     public readonly Dictionary<int, int> LineMap;

@@ -75,6 +75,18 @@ namespace LevelGenerator {
 
             var meshCollection = new MeshCollection(parentLayer);
 
+            for (int i = 0; i < meshCollection.Bridges.Length; i++)
+            {
+                var b = meshCollection.Bridges[i];
+                var l = RNG.CoinToss(1, 1);
+
+                for (int u = 0; u < b.LineCodes.Length; u++)
+                {
+                    b.LineCodes[u] = u < l ? 1 : 0;
+                    //b.LineCodes[u] = 1;
+                }
+            }
+
             for (int i = 0; i < meshCollection.Meshes.Length; i++)
             {
                 var m = meshCollection.Meshes[i];
@@ -90,10 +102,10 @@ namespace LevelGenerator {
 
                 var len = parentLayer.NodeMetadata[m.Nodes[0]].RoomConnections.Length;
 
-                if(len > 3)
+                if(len > 2)
                 {
-                    
-                    m.ApplyState(OpenPlains);
+                    m.ApplyState(SummedDikstraTrimmed);
+                    //m.ApplyState(OpenPlains);
                     m.DebugDraw(Color.green, 20f);
 
                 }
@@ -105,29 +117,20 @@ namespace LevelGenerator {
                 }
                 else
                 {
-                    m.ApplyState(SummedDikstraTrimmed);
+                    m.ApplyState(SummedDikstra);
                     m.DebugDraw(Color.yellow, 20f);
-
-                    //m.DebugDraw(RNG.NextColor(), 10f);
-                }
-
                 
+                    //m.DebugDraw(RNG.NextColor(), 10f);
+                }                
             }
 
-            for (int i = 0; i < meshCollection.Bridges.Length; i++)
-            {
-                var b = meshCollection.Bridges[i];
-                var l = RNG.CoinToss(1, 2);
 
-                for (int u = 0; u < b.LineCodes.Length; u++)
-                {
-                    b.LineCodes[u] = u < l ? 1 : 0;
-                }
-            }            
+
+
 
             meshCollection.DebugDisplayEnabledBridges(Color.blue, 50);
 
-            int[][] nodeValues = meshCollection.GetConnectionData(); //< - need to impliment this function, going through edges and determining node connections
+            int[][] nodeValues = meshCollection.GetConnectionData();
             
             for (int i = 0; i < parentLayer.NodeMetadata.Length; i++)
             {
@@ -286,7 +289,7 @@ namespace LevelGenerator {
             var mesh = subMesh.ParentMesh.Mesh;
 
             var keyMeshState = DikstraWithRandomisation(subMesh);
-            //var anotherMeshState = DikstraWithRandomisation(mesh, nodes, lines);
+            //var anotherMeshState = DikstraWithRandomisation(subMesh);
             //
             //for (int i = 0; i < lines.Length; i++)
             //{
@@ -307,17 +310,27 @@ namespace LevelGenerator {
                 lineMap.Add(lines[i], i);
             }
 
-            var iterations = 3;
+            var iterations = 7;
 
             var newKeyStateLines = (int[])keyMeshState.Lines.Clone();
 
             for (int v = 0; v < iterations; v++)
-            {               
-
+            {            
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    if (subMesh.ConnectionNodes.Contains(i))
-                        continue;
+                    for (int u = 0; u < subMesh.Connections.Count; u++)
+                    {
+                        var bridge = subMesh.Connections[u];
+                        var sub = bridge.A == subMesh.Code ? bridge.NodesA : bridge.NodesB;
+
+                        for (int o = 0; o < bridge.LineCodes.Length; o++)
+                        {
+                            if (bridge.LineCodes[o] == 0)
+                                continue;
+                            if (sub[o] == i)
+                                goto end;
+                        }                                               
+                    }
 
                     var node = mesh.Nodes[nodes[i]];
 
@@ -357,6 +370,9 @@ namespace LevelGenerator {
                         //    Debug.Log("Whaaaa");
                         //}
                     }
+
+                end:
+                    continue;
                 }
 
                 keyMeshState.Lines = newKeyStateLines;
