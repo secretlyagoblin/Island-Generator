@@ -16,8 +16,19 @@ namespace LevelGenerator {
 
         public override void Generate()
         {
+            var time = Time.realtimeSinceStartup;
+
             var layer1 = Layer1();
+
+            var time2 = Time.realtimeSinceStartup;
+
+            Debug.Log(time2-time + " seconds to generate layer1.");            
+
             var layer2 = Layer2(layer1);
+
+            var time3 = Time.realtimeSinceStartup;
+
+            Debug.Log(time3 - time2 + " seconds to generate layer2.");
 
             for (int i = 0; i < layer2.NodeMetadata.Length; i++)
             {
@@ -29,6 +40,10 @@ namespace LevelGenerator {
             }
 
             this.CreateObjectXY(layer2);
+
+            var time4 = Time.realtimeSinceStartup;
+
+            Debug.Log(time4 - time3 + " seconds to generate final mesh.");
         }
 
         protected override void FinaliseMesh(CleverMesh mesh)
@@ -38,12 +53,27 @@ namespace LevelGenerator {
 
         private CleverMesh Layer1()
         {
+            var ints = new Vector2Int[4];
+            var count = 0;
+
+            for (int x = 0; x < 2; x++)
+            {
+                for (int y = 0; y < 2; y++)
+                {
+                    ints[count] = new Vector2Int(x, y);
+                    count++;
+                }
+            }
+
+
             /// 1: Create a series of regions
-            var layer1 = new CleverMesh(new List<Vector2Int>() { Vector2Int.zero }, _meshTile);
+            var layer1 = new CleverMesh(ints.ToList(), _meshTile);
             var layer1NodeIndex = _cellIndex;
             var layer1Neighbourhood = layer1.Mesh.Nodes[layer1NodeIndex].Nodes.ConvertAll(x => x.Index);
             var layer1WiderNeighbourhood = layer1Neighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
             layer1Neighbourhood.Add(layer1NodeIndex);
+
+            var layer1IncludingBorder = layer1WiderNeighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
 
             var subMesh = new SubMesh(1, layer1WiderNeighbourhood.ToArray(), layer1);
             subMesh.ApplyState(States.SummedDikstra);
@@ -66,7 +96,7 @@ namespace LevelGenerator {
                 //layer1.NodeMetadata[n].Code = i + 1;
             }    
 
-            return new CleverMesh(layer1, layer1WiderNeighbourhood.ToArray());
+            return new CleverMesh(layer1, layer1IncludingBorder.ToArray());
         }
 
         private CleverMesh Layer2(CleverMesh parentLayer)
