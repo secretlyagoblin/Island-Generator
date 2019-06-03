@@ -46,7 +46,7 @@ namespace LevelGenerator {
             layer1Neighbourhood.Add(layer1NodeIndex);
 
             var subMesh = new SubMesh(1, layer1WiderNeighbourhood.ToArray(), layer1);
-            subMesh.ApplyState(SummedDikstra);
+            subMesh.ApplyState(States.SummedDikstra);
             //subMesh.DebugDraw(Color.red, 4f);
 
             /// 2: Initialise wider neighbourhood with different colours
@@ -102,9 +102,9 @@ namespace LevelGenerator {
 
                 var len = parentLayer.NodeMetadata[m.Nodes[0]].RoomConnections.Length;
 
-                if(len > 2)
+                if(len > 1)
                 {
-                    m.ApplyState(SummedDikstraTrimmed);
+                    m.ApplyState(States.MinimalCorridor);
                     //m.ApplyState(OpenPlains);
                     m.DebugDraw(Color.green, 20f);
 
@@ -112,12 +112,12 @@ namespace LevelGenerator {
                 else
                 if (len < 2)
                 {
-                    m.ApplyState(DikstraWithRandomisation);
+                    m.ApplyState(States.DikstraWithRandomisation);
                     m.DebugDraw(Color.red, 20f);
                 }
                 else
                 {
-                    m.ApplyState(SummedDikstra);
+                    m.ApplyState(States.SummedDikstra);
                     m.DebugDraw(Color.yellow, 20f);
                 
                     //m.DebugDraw(RNG.NextColor(), 10f);
@@ -141,247 +141,6 @@ namespace LevelGenerator {
             }
 
             return new CleverMesh(parentLayer);
-        }
-
-        private static MeshState<int> DikstraWithRandomisation(SubMesh subMesh)
-        {
-            var nodes = subMesh.Nodes;
-            var lines = subMesh.Lines;
-            var mesh = subMesh.ParentMesh.Mesh;
-
-            var nodeMap = new Dictionary<int, int>();
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                nodeMap.Add(nodes[i],i);
-            }
-
-            var lineMap = new Dictionary<int, int>();
-            var lineLengthRandomiser = new float[lines.Length];
-            for (int i = 0; i < lines.Length; i++)
-            {
-                lineMap.Add(lines[i], i);
-                lineLengthRandomiser[i] = RNG.NextFloat(0.8f, 1.2f);
-            }
-
-            var isPartOfCurrentSortingEvent = new bool[nodes.Length];
-            var visitedNodesList = new List<SmartNode>();
-            var firstNode = mesh.Nodes[nodes[0]];
-            var visitedNodes = new int[nodes.Length];
-            var visitedLines = new int[lines.Length];
-            var visitedLinesIteration = new int[lines.Length];
-            visitedNodesList.Add(firstNode);
-            visitedNodes[nodeMap[firstNode.Index]] = 1;
-            var outputLines = new List<SmartLine>();
-            var iteration = 0;
-
-            while (visitedNodesList.Count < nodes.Length)
-            {
-                outputLines.Clear();
-                iteration++;
-
-                for (int i = 0; i < visitedNodesList.Count; i++)
-                {
-                    var n = visitedNodesList[i];
-
-                    for (int u = 0; u < n.Lines.Count; u++)
-                    {
-                        if (!lineMap.ContainsKey(n.Lines[u].Index))
-                            continue;
-
-                        var lineIndex = lineMap[n.Lines[u].Index];
-
-                        if (visitedLines[lineIndex] == 0 &&
-                            visitedLinesIteration[lineIndex] != iteration)
-                        {
-                            outputLines.Add(n.Lines[u]);
-                            visitedLinesIteration[lineIndex] = iteration;
-                        }
-                    }
-                }
-
-                var length = float.MaxValue;
-                SmartLine bestLine = null;
-
-                for (int l = 0; l < outputLines.Count; l++)
-                {
-                    var line = outputLines[l];
-                    var randomMultiplier = lineLengthRandomiser[lineMap[line.Index]];
-
-                    if (line.Length* randomMultiplier > length)
-                        continue;
-
-                    if (isPartOfCurrentSortingEvent[nodeMap[line.Nodes[0].Index]] &&
-                        isPartOfCurrentSortingEvent[nodeMap[line.Nodes[1].Index]])
-                        continue;
-
-                    length = line.Length* randomMultiplier;
-                    bestLine = line;
-                }
-                try
-                {
-                    isPartOfCurrentSortingEvent[nodeMap[bestLine.Nodes[0].Index]] = true;
-                }
-                catch
-                {
-                    Debug.Log("Whey");
-                }
-
-                isPartOfCurrentSortingEvent[nodeMap[bestLine.Nodes[1].Index]] = true;
-                visitedLines[lineMap[bestLine.Index]] = 1;
-
-                for (int i = 0; i < bestLine.Nodes.Count; i++)
-                {
-                    var n = bestLine.Nodes[i];
-                    if (visitedNodes[nodeMap[n.Index]] == 0)
-                    {
-                        visitedNodesList.Add(n);
-                        visitedNodes[nodeMap[n.Index]] = 1;
-                    }
-                }
-            }
-
-            var meshState = new MeshState<int>();
-            meshState.Nodes = new int[nodes.Length];
-            meshState.Lines = visitedLines;
-
-            return meshState;
-        }
-
-        private static MeshState<int> OpenPlains(SubMesh subMesh)
-        {
-            var nodes = subMesh.Nodes;
-            var lines = subMesh.Lines;
-            var mesh = subMesh.ParentMesh.Mesh;
-
-            var state = new MeshState<int>();
-            state.Nodes = new int[nodes.Length];
-            state.Lines = new int[lines.Length];
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                state.Nodes[i] = 1;
-            }
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                state.Lines[i] = 1;
-            }
-
-            return state;
-        }
-
-        private static MeshState<int> SummedDikstra(SubMesh subMesh)
-        {
-            var one = DikstraWithRandomisation(subMesh);
-            var two = DikstraWithRandomisation(subMesh);
-
-            for (int i = 0; i < subMesh.Lines.Length; i++)
-            {
-                one.Lines[i] = two.Lines[i] == 1 ? 1 : one.Lines[i];
-            }
-
-            return one;
-        }
-
-        private static MeshState<int> SummedDikstraTrimmed(SubMesh subMesh)
-        {
-            var nodes = subMesh.Nodes;
-            var lines = subMesh.Lines;
-            var mesh = subMesh.ParentMesh.Mesh;
-
-            var keyMeshState = DikstraWithRandomisation(subMesh);
-            //var anotherMeshState = DikstraWithRandomisation(subMesh);
-            //
-            //for (int i = 0; i < lines.Length; i++)
-            //{
-            //    keyMeshState.Lines[i] = anotherMeshState.Lines[i] == 1 ? 1 : keyMeshState.Lines[i];
-            //}
-
-            //Getting nodeMaps
-            
-            var nodeMap = new Dictionary<int, int>();
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                nodeMap.Add(nodes[i], i);
-            }
-
-            var lineMap = new Dictionary<int, int>();
-            for (int i = 0; i < lines.Length; i++)
-            {
-                lineMap.Add(lines[i], i);
-            }
-
-            var iterations = 7;
-
-            var newKeyStateLines = (int[])keyMeshState.Lines.Clone();
-
-            for (int v = 0; v < iterations; v++)
-            {            
-                for (int i = 0; i < nodes.Length; i++)
-                {
-                    for (int u = 0; u < subMesh.Connections.Count; u++)
-                    {
-                        var bridge = subMesh.Connections[u];
-                        var sub = bridge.A == subMesh.Code ? bridge.NodesA : bridge.NodesB;
-
-                        for (int o = 0; o < bridge.LineCodes.Length; o++)
-                        {
-                            if (bridge.LineCodes[o] == 0)
-                                continue;
-                            if (sub[o] == i)
-                                goto end;
-                        }                                               
-                    }
-
-                    var node = mesh.Nodes[nodes[i]];
-
-
-
-                    var connectionsCount = 0;
-                    var lastTrueLine = -1;
-                    var lastIndex = -1;
-
-                    for (int u = 0; u < node.Lines.Count; u++)
-                    {
-                        if (!lineMap.ContainsKey(node.Lines[u].Index))
-                            continue;
-
-                        var testIndex = lineMap[node.Lines[u].Index];
-
-                        if (keyMeshState.Lines[testIndex] == 1)
-                        {
-                            lastTrueLine = node.Lines[u].Index;
-                            lastIndex = testIndex;
-                            connectionsCount++;
-                            //mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 3);
-                        }
-                    }
-
-                    if (connectionsCount == 1)
-                    {
-                        //keyMeshState.Nodes[i] = 0;
-                        //
-                        //try
-                        //{
-                        newKeyStateLines[lastIndex] = 0;
-                        mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 5);
-                        //}
-                        //catch
-                        //{
-                        //    Debug.Log("Whaaaa");
-                        //}
-                    }
-
-                end:
-                    continue;
-                }
-
-                keyMeshState.Lines = newKeyStateLines;
-
-                newKeyStateLines = (int[])keyMeshState.Lines.Clone();
-
-            }
-
-            return keyMeshState;
         }
     }
 }

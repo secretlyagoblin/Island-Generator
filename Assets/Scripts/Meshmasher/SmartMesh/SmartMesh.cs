@@ -1291,9 +1291,9 @@ namespace MeshMasher {
         {
             return new MeshState<T>()
             {
-                Nodes = (T[])Nodes.Clone(),
-                Cells = (T[])Cells.Clone(),
-                Lines = (T[])Lines.Clone(),
+                Nodes = Nodes == null ? null : (T[])Nodes.Clone(),
+                Cells = Cells == null ? null : (T[])Cells.Clone(),
+                Lines = Lines == null ? null : (T[])Lines.Clone(),
             };
         }
 
