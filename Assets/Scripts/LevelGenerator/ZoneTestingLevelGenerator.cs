@@ -102,11 +102,18 @@ namespace LevelGenerator {
 
                 var len = parentLayer.NodeMetadata[m.Nodes[0]].RoomConnections.Length;
 
-                if(len > 1)
+                if(len >1)
                 {
-                    m.ApplyState(States.MinimalCorridor);
-                    //m.ApplyState(OpenPlains);
-                    m.DebugDraw(Color.green, 20f);
+                    if (RNG.SmallerThan(0.7))
+                    {
+                        m.ApplyState(States.TubbyCorridors);
+                        m.DebugDraw(Color.green, 20f);
+                    }
+                    else
+                    {
+                        m.ApplyState(States.SummedDikstraRemoveDeadEnds);
+                        m.DebugDraw(Color.yellow, 20f);
+                    }
 
                 }
                 else
@@ -117,7 +124,7 @@ namespace LevelGenerator {
                 }
                 else
                 {
-                    m.ApplyState(States.SummedDikstra);
+                    m.ApplyState(States.SummedDikstraRemoveDeadEnds);
                     m.DebugDraw(Color.yellow, 20f);
                 
                     //m.DebugDraw(RNG.NextColor(), 10f);
@@ -130,12 +137,21 @@ namespace LevelGenerator {
 
             meshCollection.DebugDisplayEnabledBridges(Color.blue, 50);
 
-            int[][] nodeValues = meshCollection.GetConnectionData();
-            
+            int[][] nodeValues = meshCollection.GetConnectionMetadata();
+
             for (int i = 0; i < parentLayer.NodeMetadata.Length; i++)
             {
                 var nodeValue = nodeValues[i];
-                parentLayer.NodeMetadata[i].RoomCode = i;
+
+                if (nodeValue.Length == 0)
+                {
+                    parentLayer.NodeMetadata[i].RoomCode = 0;
+                    parentLayer.NodeMetadata[i].SmoothColor = Color.black;
+                }
+                else
+                {
+                    parentLayer.NodeMetadata[i].RoomCode = i;
+                }                
             
                 parentLayer.NodeMetadata[i].RoomConnections = nodeValue;
             }

@@ -139,7 +139,7 @@ public class SubMesh {
 
     }
 
-    public static (List<KeyValuePair<int, int>> connections, List<int> lines) GetConnectonData(CleverMesh mesh, SubMesh[] meshes)
+    public static (List<KeyValuePair<int, int>> connections, List<int> lines) GetBridgePairs(CleverMesh mesh, SubMesh[] meshes)
     {
         var lines = Enumerable.Range(0, mesh.Mesh.Lines.Count);
 

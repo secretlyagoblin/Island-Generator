@@ -47,6 +47,22 @@ public static class States
         return one;
     }
 
+    public static MeshState<int> SummedDikstraRemoveDeadEnds(SubMesh subMesh)
+    {
+        var one = DikstraWithRandomisation(subMesh);
+        var two = DikstraWithRandomisation(subMesh);
+
+        for (int i = 0; i < subMesh.Lines.Length; i++)
+        {
+            one.Lines[i] = two.Lines[i] == 1 ? 1 : one.Lines[i];
+        }
+
+        var cleaned = RecursivelyRemoveDeadEnds(subMesh, one);
+        //var finalided = RemoveShortCliffs(subMesh, cleaned);
+
+        return cleaned;
+    }
+
     public static MeshState<int> MinimalCorridor(SubMesh subMesh)
     {
         var keyMeshState = DikstraWithRandomisation(subMesh);
@@ -65,6 +81,26 @@ public static class States
         return keyMeshState;
     }
 
+    public static MeshState<int> TubbyCorridors(SubMesh subMesh)
+    {
+        var keyMeshState = DikstraWithRandomisation(subMesh);
+        //var anotherMeshState = DikstraWithRandomisation(subMesh);
+        //
+        //for (int i = 0; i < lines.Length; i++)
+        //{
+        //    keyMeshState.Lines[i] = anotherMeshState.Lines[i] == 1 ? 1 : keyMeshState.Lines[i];
+        //}
+
+        //Getting nodeMaps
+
+        keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
+
+
+
+
+        return Entubben(subMesh,keyMeshState, 3);
+    }
+
     //Private Functions
 
     private static MeshState<int> Dikstra(SubMesh subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
@@ -76,7 +112,7 @@ public static class States
         var lineLengthRandomiser = new float[lines.Length];
         for (int i = 0; i < lines.Length; i++)
         {
-            lineLengthRandomiser[i] = RNG.NextFloat(lineLengthMultiplierMin, lineLengthMultiplierMin);
+            lineLengthRandomiser[i] = RNG.NextFloat(lineLengthMultiplierMin, lineLengthMultiplierMax);
         }
 
         var isPartOfCurrentSortingEvent = new bool[nodes.Length];
@@ -159,7 +195,6 @@ public static class States
         var meshState = new MeshState<int>();
 
         meshState.Nodes = new int[nodes.Length];
-
         for (int i = 0; i < meshState.Nodes.Length; i++)
         {
             meshState.Nodes[i] = 1;
@@ -174,9 +209,8 @@ public static class States
     {
         var nodes = subMesh.Nodes;
         var mesh = subMesh.ParentMesh.Mesh;
-        var keyMeshState = state.Clone();
-
-        var newKeyStateLines = (int[])state.Lines.Clone();
+        var startState = state.Clone();
+        var endState = state.Clone();
 
         for (int v = 0; v < iterations; v++)
         {
@@ -200,7 +234,7 @@ public static class States
 
                     var testIndex = subMesh.LineMap[node.Lines[u].Index];
 
-                    if (keyMeshState.Lines[testIndex] == 1)
+                    if (startState.Lines[testIndex] == 1)
                     {
                         lastTrueLine = node.Lines[u].Index;
                         lastIndex = testIndex;
@@ -211,9 +245,10 @@ public static class States
 
                 if (connectionsCount == 1)
                 {
-     
-                    newKeyStateLines[lastIndex] = 0;
-                    mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 5);
+
+                    endState.Nodes[i] = 0;
+                    endState.Lines[lastIndex] = 0;
+                    //mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 5);
                     deadEndCount++;
 
                 }
@@ -229,26 +264,27 @@ public static class States
             }
 
 
-            keyMeshState.Lines = newKeyStateLines;
-
-            newKeyStateLines = (int[])keyMeshState.Lines.Clone();
+            startState = endState;
+            endState = startState.Clone();
 
         }
 
         finalise:
 
-        return keyMeshState;
+        return startState;
 
 
     }
 
-    private static MeshState<int> Entubben(SubMesh subMesh, MeshState<int> state)
+    private static MeshState<int> Entubben(SubMesh subMesh, MeshState<int> state, int nodeConnectionsThreshold)
     {
         var nodes = subMesh.Nodes;
         var mesh = subMesh.ParentMesh.Mesh;
 
         var startState = state.Clone();
         var endState = state.Clone();
+
+        var tempLineStorage = new List<int>(10);
 
         for (int i = 0; i < startState.Nodes.Length; i++)
         {
@@ -257,21 +293,87 @@ public static class States
             if (startState.Nodes[i] != 0)
                 continue;
 
+            var embigginCount = 0;
+            tempLineStorage.Clear();
+
             for (int u = 0; u < node.Lines.Count; u++)
             {
                 if (!subMesh.LineMap.ContainsKey(node.Lines[u].Index))
                     continue;
 
-                var testIndex = subMesh.LineMap[node.Lines[u].Index];
+                var other = node.Lines[u].GetOtherNode(node);
 
+                if (!subMesh.NodeMap.ContainsKey(other.Index))
+                    continue;                
 
+                var testIndex = subMesh.NodeMap[other.Index];
 
+                if (startState.Nodes[testIndex] != 1)
+                    continue;
 
+                tempLineStorage.Add(subMesh.LineMap[node.Lines[u].Index]);
+
+                embigginCount++;
             }
+
+            if (embigginCount >= nodeConnectionsThreshold)
+            {
+                endState.Nodes[i] = 1;
+                tempLineStorage.ForEach(x => endState.Lines[x] = 1);
+            }
+
         }
 
+        return endState;
 
     }
+
+
+    
+    
+
+    //  Not Working as intended...
+    //
+    //private static MeshState<int> RemoveShortCliffs(SubMesh subMesh, MeshState<int> state)
+    //{
+    //    var lines = subMesh.Lines;
+    //    var mesh = subMesh.ParentMesh.Mesh;
+    //
+    //    var startState = state.Clone();
+    //    var endState = state.Clone();
+    //
+    //    for (int i = 0; i < startState.Lines.Length; i++)
+    //    {
+    //        if (startState.Lines[i] != 0)
+    //            continue;
+    //
+    //        var line = mesh.Lines[lines[i]];
+    //
+    //        var connections = line.CollectConnectedLines();
+    //
+    //        for (int u = 0; u < connections.Count; u++)
+    //        {
+    //            if (!subMesh.LineMap.ContainsKey(connections[u].Index))
+    //                continue;
+    //
+    //            var testIndex = subMesh.LineMap[connections[u].Index];
+    //
+    //            if(startState.Lines[testIndex] == 0)
+    //            {
+    //                goto InConnectedSet;
+    //            }
+    //        }
+    //
+    //        endState.Lines[i] = 1;
+    //
+    //        line.DebugDraw(Color.red, 70f);
+    //
+    //    InConnectedSet:
+    //        continue;
+    //    }
+    //
+    //    return endState;
+    //}
 
     private static bool NodeAtIndexConnectsToOtherSubMesh(SubMesh subMesh,int index)
     {

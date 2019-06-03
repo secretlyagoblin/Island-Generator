@@ -22,7 +22,7 @@ public class MeshCollection
             meshDict.Add(Meshes[i].Code, Meshes[i]);
         }
 
-        var targetLines = SubMesh.GetConnectonData(parentLayer, Meshes);
+        var targetLines = SubMesh.GetBridgePairs(parentLayer, Meshes);
 
         Bridges = new Bridge[targetLines.connections.Count];
 
@@ -61,7 +61,7 @@ public class MeshCollection
         }
     }
 
-    internal int[][] GetConnectionData()
+    public int[][] GetConnectionMetadata()
     {
         var lineMap = new bool[_cleverMesh.Mesh.Lines.Count];
 
