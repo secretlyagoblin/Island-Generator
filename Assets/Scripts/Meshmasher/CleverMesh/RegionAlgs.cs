@@ -66,17 +66,7 @@ public static class States
     public static MeshState<int> MinimalCorridor(SubMesh subMesh)
     {
         var keyMeshState = DikstraWithRandomisation(subMesh);
-        //var anotherMeshState = DikstraWithRandomisation(subMesh);
-        //
-        //for (int i = 0; i < lines.Length; i++)
-        //{
-        //    keyMeshState.Lines[i] = anotherMeshState.Lines[i] == 1 ? 1 : keyMeshState.Lines[i];
-        //}
-
-        //Getting nodeMaps
-
-        keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);              
-
+        keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);    
 
         return keyMeshState;
     }
@@ -84,19 +74,7 @@ public static class States
     public static MeshState<int> TubbyCorridors(SubMesh subMesh)
     {
         var keyMeshState = DikstraWithRandomisation(subMesh);
-        //var anotherMeshState = DikstraWithRandomisation(subMesh);
-        //
-        //for (int i = 0; i < lines.Length; i++)
-        //{
-        //    keyMeshState.Lines[i] = anotherMeshState.Lines[i] == 1 ? 1 : keyMeshState.Lines[i];
-        //}
-
-        //Getting nodeMaps
-
         keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
-
-
-
 
         return Entubben(subMesh,keyMeshState, 3);
     }
