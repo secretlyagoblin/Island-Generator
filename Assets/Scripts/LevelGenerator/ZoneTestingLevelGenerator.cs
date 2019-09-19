@@ -16,34 +16,29 @@ namespace LevelGenerator {
 
         public override void Generate()
         {
-            var time = Time.realtimeSinceStartup;
-
             var layer1 = Layer1();
-
-            var time2 = Time.realtimeSinceStartup;
-
-            Debug.Log(time2-time + " seconds to generate layer1.");            
-
             var layer2 = Layer2(layer1);
 
-            var time3 = Time.realtimeSinceStartup;
-
-            Debug.Log(time3 - time2 + " seconds to generate layer2.");
-
-            for (int i = 0; i < layer2.NodeMetadata.Length; i++)
+            for (int i = 0; i < layer2.Length; i++)
             {
-                var n = layer2.NodeMetadata[i];
-            
-                var c = n.IsTrueBoundary ? Color.black : layer2.NodeMetadata[i].SmoothColor;
-            
-                layer2.NodeMetadata[i].SmoothColor = c;
+                var layer = layer2[i];
+
+                for (int u = 0; u < layer.NodeMetadata.Length; u++)
+                {
+                    var n = layer.NodeMetadata[u];
+
+                    var c = n.IsTrueBoundary ? Color.black : layer.NodeMetadata[u].SmoothColor;
+
+                    layer.NodeMetadata[u].SmoothColor = c;
+                }
+
+                var layer3 = new CleverMesh(layer);
+
+                this.CreateObjectXY(layer3);
+                //this.crea
             }
 
-            this.CreateObjectXY(layer2);
 
-            var time4 = Time.realtimeSinceStartup;
-
-            Debug.Log(time4 - time3 + " seconds to generate final mesh.");
         }
 
         protected override void FinaliseMesh(CleverMesh mesh)
@@ -99,7 +94,7 @@ namespace LevelGenerator {
             return new CleverMesh(layer1, layer1IncludingBorder.ToArray());
         }
 
-        private CleverMesh Layer2(CleverMesh parentLayer)
+        private CleverMesh[] Layer2(CleverMesh parentLayer)
         {
             //var layer = new CleverMesh(parentLayer);
 
@@ -129,46 +124,38 @@ namespace LevelGenerator {
                 //else
                 //    m.ApplyState(SummedDikstra);
 
+                var firstNode = parentLayer.NodeMetadata[m.Nodes[0]];
+                var roomConnections = firstNode.RoomConnections.Length;
 
-                var len = parentLayer.NodeMetadata[m.Nodes[0]].RoomConnections.Length;
-
-                if(len >1)
+                if(roomConnections >1)
                 {
                     if (RNG.SmallerThan(0.7))
                     {
                         m.ApplyState(States.TubbyCorridors);
-                        m.DebugDraw(Color.green, 20f);
+                        //m.DebugDraw(Color.green, 20f);
                     }
                     else
                     {
                         m.ApplyState(States.SummedDikstraRemoveDeadEnds);
-                        m.DebugDraw(Color.yellow, 20f);
+                        //m.DebugDraw(Color.yellow, 20f);
                     }
-
-                }
-                else
-                if (len < 2)
-                {
-                    m.ApplyState(States.DikstraWithRandomisation);
-                    m.DebugDraw(Color.red, 20f);
                 }
                 else
                 {
-                    m.ApplyState(States.SummedDikstraRemoveDeadEnds);
-                    m.DebugDraw(Color.yellow, 20f);
-                
-                    //m.DebugDraw(RNG.NextColor(), 10f);
-                }                
+                    m.ApplyState(States.DikstraWithRooms);
+                    //m.DebugDraw(Color.red, 20f);
+                }            
             }
 
 
 
 
 
-            meshCollection.DebugDisplayEnabledBridges(Color.blue, 50);
+            //meshCollection.DebugDisplayEnabledBridges(Color.blue, 50);
 
             int[][] nodeValues = meshCollection.GetConnectionMetadata();
 
+            //populate connection data
             for (int i = 0; i < parentLayer.NodeMetadata.Length; i++)
             {
                 var nodeValue = nodeValues[i];
@@ -186,7 +173,32 @@ namespace LevelGenerator {
                 parentLayer.NodeMetadata[i].RoomConnections = nodeValue;
             }
 
-            return new CleverMesh(parentLayer);
+            var cleverMeshes = new CleverMesh[meshCollection.Meshes.Length];
+
+            for (int i = 0; i < cleverMeshes.Length; i++)
+            //for (int i = 0; i < 1; i++)
+            {
+                cleverMeshes[i] = new CleverMesh(parentLayer, meshCollection.Meshes[i].Nodes);
+            }
+
+            return cleverMeshes;
+        }
+
+        private CleverMesh[] Layer3(CleverMesh parentLayer)
+        {
+            var meshCollection = new MeshCollection(parentLayer);
+
+            var cleverMeshes = new CleverMesh[1];//meshCollection.Meshes.Length];
+
+            //for (int i = 0; i < cleverMeshes.Length; i++)
+            for (int i = 0; i < 1; i++)
+            {
+                cleverMeshes[i] = new CleverMesh(parentLayer, meshCollection.Meshes[i].Nodes);
+            }
+
+            return cleverMeshes;
+
+
         }
     }
 }

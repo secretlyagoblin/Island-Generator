@@ -79,6 +79,14 @@ public static class States
         return Entubben(subMesh,keyMeshState, 3);
     }
 
+    public static MeshState<int> DikstraWithRooms(SubMesh subMesh)
+    {
+        var dik = Dikstra(subMesh, 0.8f, 1.2f);
+        var next = RecursivelyRemoveDeadEnds(subMesh, dik, 2);
+        return Entubben(subMesh,next, 3);
+    }
+
+
     //Private Functions
 
     private static MeshState<int> Dikstra(SubMesh subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
