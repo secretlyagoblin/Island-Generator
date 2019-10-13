@@ -342,11 +342,11 @@ public struct Neighbourhood
         new Vector2Int(0,0),
         new Vector2Int(+1,+0),
         new Vector2Int(-1,+0),
-        //new Vector2Int(+2,+0),
-        //new Vector2Int(-2,+0),
-        //new Vector2Int(+3,+0),
-        //new Vector2Int(-3,+0),
-        //new Vector2Int(+4,+0),
+        new Vector2Int(+2,+0),
+        new Vector2Int(-2,+0),
+        new Vector2Int(+3,+0),
+        new Vector2Int(-3,+0),
+        new Vector2Int(+4,+0),
         //new Vector2Int(-3,+0),
         //new Vector2Int(+0,+0),
         //new Vector2Int(+0,-1),
@@ -396,7 +396,7 @@ public struct Neighbourhood
 
         //var offsetY = evenX ? 0 : 1;
 
-        var offsetY = evenX ? 0 : this.Center.Index.x > 0 ? 1:-1 ;
+        var offsetY = this.Center.Index.x;
         //offsetX += evenY ? 1 : 0;
 
         var x = offsetX + offset.x;// + modificationX;
