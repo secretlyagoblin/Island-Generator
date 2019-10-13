@@ -390,6 +390,8 @@ public struct Neighbourhood
         var xGridOffset = new Vector2(2.5f, 1);
         var yGridOffset = new Vector2(0.5f, 3);
 
+        var everyOtherY = new Vector2(-2, 2);
+
         var inUseIndex = this.Center.Index;
 
         //if (inUseIndex.y < 0)
@@ -397,7 +399,15 @@ public struct Neighbourhood
         //    inUseIndex.x++;// -= inUseIndex.y;
         //}
 
-        var shiftedIndex = (inUseIndex.x * xGridOffset) + (inUseIndex.y* yGridOffset);
+        var halfCount = inUseIndex.y * 0.5f;
+        var yGridEvenCount = Mathf.Floor(halfCount);
+        var yGridOddCount = Mathf.Ceil(halfCount);
+
+
+        var shiftedIndex = (inUseIndex.x * xGridOffset) + 
+            (yGridEvenCount * yGridOffset) +
+            (yGridOddCount * everyOtherY)
+            ;
 
 
         var evenX = this.Center.Index.x % 2 == 0;
