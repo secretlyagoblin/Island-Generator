@@ -339,24 +339,33 @@ public struct Neighbourhood
     private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
 {
         //Center
+        //new Vector2Int(0,0),
+        //
+        //new Vector2Int(+1,+0),
+        //new Vector2Int(+0,-1),
+        //new Vector2Int(-1,-1),
+        //new Vector2Int(-1,+0),
+        //new Vector2Int(-1,+1),
+        //new Vector2Int(+0,+1),
+        //
+        //    new Vector2Int(+0,+2),
+        //        new Vector2Int(+0,-2),
+        //
+        //        new Vector2Int(+0,+3),
+        //        new Vector2Int(-1,+3),
+        //                        new Vector2Int(+0,+4),
+        //                                        new Vector2Int(+0,-3),
+        //        new Vector2Int(-1,-3),
+        //                                        new Vector2Int(+0,-4),
         new Vector2Int(0,0),
+        new Vector2Int(0,1),
+        new Vector2Int(0,2),
+        new Vector2Int(0,3),
+        new Vector2Int(0,4),
+        new Vector2Int(0,5),
+        new Vector2Int(0,6),
 
-        new Vector2Int(+1,+0),
-        new Vector2Int(+0,-1),
-        new Vector2Int(-1,-1),
-        new Vector2Int(-1,+0),
-        new Vector2Int(-1,+1),
-        new Vector2Int(+0,+1),
 
-            new Vector2Int(+0,+2),
-                new Vector2Int(+0,-2),
-
-                new Vector2Int(+0,+3),
-                new Vector2Int(-1,+3),
-                                new Vector2Int(+0,+4),
-                                                new Vector2Int(+0,-3),
-                new Vector2Int(-1,-3),
-                                                new Vector2Int(+0,-4),
 
 };
 
@@ -404,10 +413,11 @@ public struct Neighbourhood
         var yGridOddCount = Mathf.Ceil(halfCount);
 
 
-        var shiftedIndex = (inUseIndex.x * xGridOffset) + 
-            (yGridEvenCount * yGridOffset) +
-            (yGridOddCount * everyOtherY)
-            ;
+        var shiftedIndex = (inUseIndex.x * xGridOffset) +
+            (inUseIndex.y * yGridOffset);
+            //(yGridEvenCount * yGridOffset) +
+            //(yGridOddCount * everyOtherY)
+            //;
 
 
         var evenX = this.Center.Index.x % 2 == 0;
