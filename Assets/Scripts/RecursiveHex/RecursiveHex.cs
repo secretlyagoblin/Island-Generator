@@ -21,7 +21,7 @@ public class RecursiveHex : MonoBehaviour
         //    .ForEachHexGroup(x => x.ToMesh());
 
         var layer1 = new HexGroup();
-        var layer2 = layer1.DebugSubdivideRowOnly().Subdivide();
+        var layer2 = layer1.DebugSubdivideRowOnly().Subdivide();//.Subdivide();//.Subdivide().Subdivide();
 
         var mesh = layer2.ToMesh();
 
@@ -215,7 +215,7 @@ public class HexGroup
         var tris = new int[dict.Count * 6 * 3];
 
         var material = new Material(Shader.Find("Standard"));
-
+        
         material.color = RNG.NextColor();
 
 
@@ -228,15 +228,15 @@ public class HexGroup
 
             
 
-            var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-
-            if (item.Key.x % 2 != 0)
-            {
-                obj.GetComponent<MeshRenderer>().sharedMaterial = material;
-            }
-            
-            obj.name = item.Key.ToString();
-            obj.transform.position = center;
+           var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+           
+           if (item.Key.x % 2 != 0)
+           {
+               obj.GetComponent<MeshRenderer>().sharedMaterial = material;
+           }
+           
+           obj.name = item.Key.ToString();
+           obj.transform.position = center;
 
             for (int i = 0; i < 6; i++)
             {
@@ -336,21 +336,28 @@ public struct Neighbourhood
         new Vector2Int(+0,+1)
     };
 
-    private static readonly Vector2Int[] _2x1ChildrenOffsets = new Vector2Int[]
+    private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
 {
         //Center
         new Vector2Int(0,0),
+
         new Vector2Int(+1,+0),
+        new Vector2Int(+0,-1),
+        new Vector2Int(-1,-1),
         new Vector2Int(-1,+0),
-        new Vector2Int(+2,+0),
-        new Vector2Int(-2,+0),
-        new Vector2Int(+3,+0),
-        new Vector2Int(-3,+0),
-        new Vector2Int(+4,+0),
-        //new Vector2Int(-3,+0),
-        //new Vector2Int(+0,+0),
-        //new Vector2Int(+0,-1),
-        //new Vector2Int(+0,+1)
+        new Vector2Int(-1,+1),
+        new Vector2Int(+0,+1),
+
+            new Vector2Int(+0,+2),
+                new Vector2Int(+0,-2),
+
+                new Vector2Int(+0,+3),
+                new Vector2Int(-1,+3),
+                                new Vector2Int(+0,+4),
+                                                new Vector2Int(+0,-3),
+                new Vector2Int(-1,-3),
+                                                new Vector2Int(+0,-4),
+
 };
 
     public Hex[] Subdivide()
@@ -368,11 +375,11 @@ public struct Neighbourhood
     public Hex[] DebugSubdivideRowOnly()
     {
 
-            var children = new Hex[_2x1ChildrenOffsets.Length];
+            var children = new Hex[_DebugOffsets.Length];
 
-            for (int i = 0; i < _2x1ChildrenOffsets.Length; i++)
+            for (int i = 0; i < _DebugOffsets.Length; i++)
             {
-                children[i] = Interpolate(_2x1ChildrenOffsets[i]);
+                children[i] = Interpolate(_DebugOffsets[i]);
             }
 
             return children;        
@@ -380,26 +387,75 @@ public struct Neighbourhood
 
     private Hex Interpolate(Vector2Int offset) {
 
-        var majorOffset = 5f;
-        var halfOffset = majorOffset * 0.5f;
+        var xGridOffset = new Vector2(2.5f, 1);
+        var yGridOffset = new Vector2(0.5f, 3);
+
+        var inUseIndex = this.Center.Index;
+
+        //if (inUseIndex.y < 0)
+        //{
+        //    inUseIndex.x++;// -= inUseIndex.y;
+        //}
+
+        var shiftedIndex = (inUseIndex.x * xGridOffset) + (inUseIndex.y* yGridOffset);
+
 
         var evenX = this.Center.Index.x % 2 == 0;
         var evenY = this.Center.Index.y % 2 == 0;
+        //
+        //var offsetX = Mathf.FloorToInt(this.Center.Index.x * 3);
+        //var offsetY = this.Center.Index.y * 3;
 
-        var offsetX = Mathf.FloorToInt(this.Center.Index.x * halfOffset);
-        //var offsetY = Mathf.CeilToInt(this.Center.Index.y * halfOffset);
+        var offsetX = Mathf.FloorToInt(shiftedIndex.x);
+        var offsetY = Mathf.FloorToInt(shiftedIndex.y);
 
-        if (!evenX && offset.y % 2 != 0)
+        if(evenX && evenY)
         {
-            offsetX++;
+
+        }
+        else if(evenX && !evenY)
+        {
+            if (offset.y % 2 != 0)
+            {
+                offsetX++;
+            }
+        } else if (!evenX && evenY)
+        {
+            if(offset.y % 2 != 0)
+            {
+                offsetX++;
+            }
+        }
+        else if (!evenX && !evenY)
+        { 
+
         }
 
-        //var offsetY = evenX ? 0 : 1;
+            //if (evenY && offset.y % 2 != 0)
+            //{
+            //    offsetX--;
+            //}
 
-        var offsetY = this.Center.Index.x;
-        //offsetX += evenY ? 1 : 0;
 
-        var x = offsetX + offset.x;// + modificationX;
+
+
+            //if(offsetY+offset.y % 2 != 0)
+            //{
+            //    offsetX+= 1;
+            //}
+
+            //var offsetY = evenX ? 0 : 1;
+
+            //if ((offsetY + offset.y) % 2 == 0)
+            //{
+            //    offsetX++;
+            //}
+
+
+
+            //offsetX += evenY ? 1 : 0;
+
+            var x = offsetX + offset.x;// + modificationX;
         var y = offsetY + offset.y;// + modificationY;
 
         return new Hex(x, y);
