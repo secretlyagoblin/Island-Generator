@@ -30,9 +30,9 @@ public class RecursiveHexTest : MonoBehaviour
             .ForEach(x => { x.Height = RNG.NextFloat(10); x.Code = code; code++; })
             .Subdivide().Subdivide();//.Subdivide().Subdivide().Subdivide();
 
-        layer2.ToGameObjects(Prefab);
+        //layer2.ToGameObjects(Prefab);
 
-        //this.gameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
+        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
 
         //var gob = new GameObject();
         //gob.AddComponent<MeshFilter>().sharedMesh = layer1.ToMesh();

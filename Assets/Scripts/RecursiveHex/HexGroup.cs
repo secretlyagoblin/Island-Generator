@@ -212,6 +212,8 @@ namespace RecursiveHex
                     verts[index + 1] = item.Value.GetCornerXZ(i);
                     verts[index + 2] = item.Value.GetCornerXZ(i + 1);
 
+                    
+
                     if (isOdd)
                     {
                         verts[index].x += 0.5f;

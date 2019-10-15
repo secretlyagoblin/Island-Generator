@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public static class RNG {
 
     static System.Random _pseudoRandom;
     static bool _initialised = false;
+
+    private static uint _derivedXYSeed;
 
     public static void DateTimeInit(){
         if (_initialised)
@@ -23,6 +26,7 @@ public static class RNG {
         else
         {
             _pseudoRandom = new System.Random(seed.GetHashCode());
+            _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
             _initialised = true;
         }
     }
@@ -34,6 +38,7 @@ public static class RNG {
         else
         {
             _pseudoRandom = new System.Random();
+            _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
             _initialised = true;
         }
     }
@@ -41,6 +46,7 @@ public static class RNG {
     public static void ForceInit(string seed)
     {
         _pseudoRandom = new System.Random(seed.GetHashCode());
+        _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
         _initialised = true;
     }
 
@@ -180,5 +186,39 @@ public static class RNG {
         }
         return new List<T>(intList);
     }
+
+    //https://softwareengineering.stackexchange.com/questions/161336/how-to-generate-random-numbers-without-making-new-random-objects
+
+    private static uint BitRotate(uint x)
+    {
+        const int bits = 16;
+        return (x << bits) | (x >> (32 - bits));
+    }
+
+    public static uint GetXYNoiseInt(int x, int y, int offset = 0)
+    {
+        UInt32 num = _derivedXYSeed + (uint)offset;
+        for (uint i = 0; i < 16; i++)
+        {
+            num = num * 541 + (uint)x;
+            num = BitRotate(num);
+            num = num * 809 + (uint)y;
+            num = BitRotate(num);
+            num = num * 673 + (uint)i;
+            num = BitRotate(num);
+        }
+
+        return num % 4;
+    }
+
+    private static uint _divisor = (uint.MaxValue / 100000);
+
+    //public static float GetXYNoise(int x, int y, int offset = 0)
+    //{
+    //    double wha = GetXYNoiseInt(x, y, offset) / _divisor;
+    //    return (float)(wha / _divisor);
+    //}
+
+
 
 }

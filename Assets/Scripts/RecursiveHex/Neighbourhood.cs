@@ -93,14 +93,7 @@ namespace RecursiveHex
         /// <returns></returns>
         public Hex[] Subdivide()
         {
-            var children = new Hex[_2x2ChildrenOffsets.Length];
-
-            for (int i = 0; i < _2x2ChildrenOffsets.Length; i++)
-            {
-                children[i] = CalculateNewOffset(_2x2ChildrenOffsets[i]);
-            }
-
-            return children;
+            return Subdivide(_2x2ChildrenOffsets);
         }
 
         /// <summary>
@@ -109,16 +102,27 @@ namespace RecursiveHex
         /// <returns></returns>
         public Hex[] DebugSubdivideRowOnly()
         {
+            return Subdivide(_DebugOffsets);
+        }
 
-            var children = new Hex[_DebugOffsets.Length];
+        /// <summary>
+        /// Secondary grid rotation when we go down one layer
+        /// </summary>
+        private static float _innerHexRotation = Mathf.Tan(1f / 2.5f);
 
-            for (int i = 0; i < _DebugOffsets.Length; i++)
+        private Hex[] Subdivide(Vector2Int[] offsets)
+        {
+            var children = new Hex[offsets.Length];
+
+            for (int i = 0; i < offsets.Length; i++)
             {
-                children[i] = CalculateNewOffset(_DebugOffsets[i]);
+                children[i] = CalculateNewOffset(offsets[i]);
             }
 
             return children;
         }
+
+
 
         /// <summary>
         /// Mapping a XY grid of hexes by a level requires a rhombus - this is the X translation of the bottom of this rhombus
@@ -203,7 +207,6 @@ namespace RecursiveHex
 
              return new Vector3(a1, a2, a3);            
         }
-
     }
 
 
