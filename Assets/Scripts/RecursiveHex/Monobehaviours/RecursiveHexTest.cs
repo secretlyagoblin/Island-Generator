@@ -23,8 +23,12 @@ public class RecursiveHexTest : MonoBehaviour
         //    .ForEachHexGroup(x => x.Subdivide())
         //    .ForEachHexGroup(x => x.ToMesh());
 
+        var code = 0;
+
         var layer1 = new HexGroup();
-        var layer2 = layer1.Subdivide().Subdivide().Subdivide().Subdivide().Subdivide().Subdivide();
+        var layer2 = layer1.Subdivide()
+            .ForEach(x => { x.Height = RNG.NextFloat(10); x.Code = code; code++; })
+            .Subdivide().Subdivide();//.Subdivide().Subdivide().Subdivide();
 
         layer2.ToGameObjects(Prefab);
 

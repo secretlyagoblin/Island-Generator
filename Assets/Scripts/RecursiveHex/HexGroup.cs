@@ -245,7 +245,7 @@ namespace RecursiveHex
                 var obj = GameObject.Instantiate(prefab);
 
                 obj.name = item.Key.ToString();
-                obj.transform.position = center;
+                obj.transform.position = center + Vector3.up*item.Value.Height;
 
                 for (int i = 0; i < 6; i++)
                 {

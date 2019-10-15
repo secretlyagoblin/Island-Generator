@@ -97,7 +97,7 @@ namespace RecursiveHex
 
             for (int i = 0; i < _2x2ChildrenOffsets.Length; i++)
             {
-                children[i] = Interpolate(_2x2ChildrenOffsets[i]);
+                children[i] = CalculateNewOffset(_2x2ChildrenOffsets[i]);
             }
 
             return children;
@@ -114,7 +114,7 @@ namespace RecursiveHex
 
             for (int i = 0; i < _DebugOffsets.Length; i++)
             {
-                children[i] = Interpolate(_DebugOffsets[i]);
+                children[i] = CalculateNewOffset(_DebugOffsets[i]);
             }
 
             return children;
@@ -137,11 +137,11 @@ namespace RecursiveHex
         private const float MAGIC_GRID_SKEW_RATIO = 0.59f;
 
         /// <summary>
-        /// The major interpolation function. Set up for a 2x2 grid only, with some magic numbers for keeping the grid sqaure.
+        /// The major offsetting function. Set up for a 2x2 grid only, with some magic numbers for keeping the grid sqaure.
         /// </summary>
         /// <param name="localOffset"></param>
         /// <returns></returns>
-        private Hex Interpolate(Vector2Int localOffset)
+        private Hex CalculateNewOffset(Vector2Int localOffset)
         {
             var inUseIndex = this.Center.Index; //we'll be modifying this, so we make a local copy
 
@@ -187,6 +187,21 @@ namespace RecursiveHex
             var y = offsetY + localOffset.y;
 
             return new Hex(x, y);
+        }
+
+        private static Vector3 CalculateBarycentricWeight(Vector2 vertA, Vector2 vertB, Vector2 vertC, Vector2 test)
+        {
+             // calculate vectors from point f to vertices p1, p2 and p3:
+             var f1 = vertA - test;
+             var f2 = vertB - test;
+             var f3 = vertC - test;
+             // calculate the areas and factors (order of parameters doesn't matter):
+             var a = Vector3.Cross(vertA - vertB, vertA - vertC).magnitude; // main triangle area a
+             var a1 = Vector3.Cross(f2, f3).magnitude / a; // p1's triangle area / a
+             var a2 = Vector3.Cross(f3, f1).magnitude / a; // p2's triangle area / a 
+             var a3 = Vector3.Cross(f1, f2).magnitude / a; // p3's triangle area / a
+
+             return new Vector3(a1, a2, a3);            
         }
 
     }
