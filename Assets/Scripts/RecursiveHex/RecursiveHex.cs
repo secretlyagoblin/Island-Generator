@@ -5,6 +5,8 @@ using System;
 
 public class RecursiveHex : MonoBehaviour
 {
+    public GameObject Prefab;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,11 +23,11 @@ public class RecursiveHex : MonoBehaviour
         //    .ForEachHexGroup(x => x.ToMesh());
 
         var layer1 = new HexGroup();
-        var layer2 = layer1.DebugSubdivideRowOnly().Subdivide();//.Subdivide();//.Subdivide().Subdivide();
+        var layer2 = layer1.Subdivide().Subdivide().Subdivide().Subdivide().Subdivide().Subdivide();
 
-        var mesh = layer2.ToMesh();
+        layer2.ToGameObjects(Prefab);
 
-        this.gameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
+        //this.gameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
 
         //var gob = new GameObject();
         //gob.AddComponent<MeshFilter>().sharedMesh = layer1.ToMesh();
@@ -214,29 +216,12 @@ public class HexGroup
         var verts = new Vector3[dict.Count * 3 * 6];
         var tris = new int[dict.Count * 6 * 3];
 
-        var material = new Material(Shader.Find("Standard"));
-        
-        material.color = RNG.NextColor();
-
-
         var count = 0;
 
         foreach (var item in dict)
         {
-            var center = new Vector3(item.Key.x,0, item.Key.y* Hex.ScaleY);
+            var center = new Vector3(item.Key.x, 0, item.Key.y * Hex.ScaleY);
             var isOdd = item.Key.y % 2 != 0;
-
-            
-
-           var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-           
-           if (item.Key.x % 2 != 0)
-           {
-               obj.GetComponent<MeshRenderer>().sharedMaterial = material;
-           }
-           
-           obj.name = item.Key.ToString();
-           obj.transform.position = center;
 
             for (int i = 0; i < 6; i++)
             {
@@ -250,7 +235,6 @@ public class HexGroup
                     verts[index].x += 0.5f;
                     verts[index + 1].x += 0.5f;
                     verts[index + 2].x += 0.5f;
-                    obj.transform.position = center + new Vector3(0.5f,0,0);
                 }
 
                 tris[index] = index;
@@ -267,9 +251,41 @@ public class HexGroup
         };
     }
 
+        private static void ToGameObjects(Dictionary<Vector2Int, Hex> dict, GameObject prefab)
+        {
+            var count = 0;
+
+            foreach (var item in dict)
+            {
+                var center = new Vector3(item.Key.x, 0, item.Key.y * Hex.ScaleY);
+                var isOdd = item.Key.y % 2 != 0;
+
+            var obj = GameObject.Instantiate(prefab);
+
+                obj.name = item.Key.ToString();
+                obj.transform.position = center;
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var index = (count * 3 * 6) + (i * 3);
+
+                    if (isOdd)
+                    {
+                        obj.transform.position = center + new Vector3(0.5f, 0, 0);
+                    }
+                }
+                count++;
+            }
+        }
+
     public Mesh ToMesh()
     {
         return HexGroup.ToMesh(_inside);
+    }
+
+    public void ToGameObjects(GameObject prefab)
+    {
+        HexGroup.ToGameObjects(_inside, prefab);
     }
 
     public Mesh ToMeshBorder()
@@ -339,14 +355,14 @@ public struct Neighbourhood
     private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
 {
         //Center
-        //new Vector2Int(0,0),
-        //
-        //new Vector2Int(+1,+0),
-        //new Vector2Int(+0,-1),
-        //new Vector2Int(-1,-1),
-        //new Vector2Int(-1,+0),
-        //new Vector2Int(-1,+1),
-        //new Vector2Int(+0,+1),
+        new Vector2Int(0,0),
+        
+        new Vector2Int(+1,+0),
+        new Vector2Int(+0,-1),
+        new Vector2Int(-1,-1),
+        new Vector2Int(-1,+0),
+        new Vector2Int(-1,+1),
+        new Vector2Int(+0,+1),
         //
         //    new Vector2Int(+0,+2),
         //        new Vector2Int(+0,-2),
@@ -357,13 +373,34 @@ public struct Neighbourhood
         //                                        new Vector2Int(+0,-3),
         //        new Vector2Int(-1,-3),
         //                                        new Vector2Int(+0,-4),
-        new Vector2Int(0,0),
-        new Vector2Int(0,1),
-        new Vector2Int(0,2),
-        new Vector2Int(0,3),
-        new Vector2Int(0,4),
-        new Vector2Int(0,5),
-        new Vector2Int(0,6),
+        //new Vector2Int(0,0),
+        //new Vector2Int(0,1),
+        //new Vector2Int(0,2),
+        //new Vector2Int(0,3),
+        //new Vector2Int(0,4),
+        //new Vector2Int(0,5),
+        //new Vector2Int(0,6),
+        //new Vector2Int(1,0),
+        //new Vector2Int(1,1),
+        //new Vector2Int(1,2),
+        //new Vector2Int(1,3),
+        //new Vector2Int(1,4),
+        //new Vector2Int(1,5),
+        //new Vector2Int(1,6),
+        //new Vector2Int(2,0),
+        //new Vector2Int(2,1),
+        //new Vector2Int(2,2),
+        //new Vector2Int(2,3),
+        //new Vector2Int(2,4),
+        //new Vector2Int(2,5),
+        //new Vector2Int(2,6),
+        //new Vector2Int(3,0),
+        //new Vector2Int(3,1),
+        //new Vector2Int(3,2),
+        //new Vector2Int(3,3),
+        //new Vector2Int(3,4),
+        //new Vector2Int(3,5),
+        //new Vector2Int(3,6),
 
 
 
@@ -398,19 +435,20 @@ public struct Neighbourhood
 
         var xGridOffset = new Vector2(2.5f, 1);
         var yGridOffset = new Vector2(0.5f, 3);
-
-        var everyOtherY = new Vector2(-2, 2);
-
         var inUseIndex = this.Center.Index;
+
+        var xOffset = inUseIndex.y * 0.59f;
+
+        inUseIndex.x -= Mathf.FloorToInt(xOffset);
+
+        //Debug.Log($"Index {this.Center.Index.ToString()} shifted by {xOffset}");
 
         //if (inUseIndex.y < 0)
         //{
         //    inUseIndex.x++;// -= inUseIndex.y;
         //}
 
-        var halfCount = inUseIndex.y * 0.5f;
-        var yGridEvenCount = Mathf.Floor(halfCount);
-        var yGridOddCount = Mathf.Ceil(halfCount);
+
 
 
         var shiftedIndex = (inUseIndex.x * xGridOffset) +
@@ -420,8 +458,8 @@ public struct Neighbourhood
             //;
 
 
-        var evenX = this.Center.Index.x % 2 == 0;
-        var evenY = this.Center.Index.y % 2 == 0;
+        var evenX = inUseIndex.x % 2 == 0;
+        var evenY = inUseIndex.y % 2 == 0;
         //
         //var offsetX = Mathf.FloorToInt(this.Center.Index.x * 3);
         //var offsetY = this.Center.Index.y * 3;
