@@ -100,7 +100,7 @@ namespace RecursiveHex
         /// Subdivides the grid by one level using the debug grid array. Should only really be used at the top of a stack.
         /// </summary>
         /// <returns></returns>
-        public Hex[] DebugSubdivideRowOnly()
+        public Hex[] DebugSubdivide()
         {
             return Subdivide(_DebugOffsets);
         }

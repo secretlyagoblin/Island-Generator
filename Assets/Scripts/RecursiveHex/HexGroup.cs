@@ -21,7 +21,48 @@ namespace RecursiveHex
             new Vector2Int(+0,+1)
             };
 
+        private RandomSeedProperties _seed = RandomSeedProperties.Default(); 
 
+        /// <summary>
+        /// Creates a single hex cell at 0,0 with 6 border cells
+        /// </summary>
+        public HexGroup()
+        {
+            _inside = new Dictionary<Vector2Int, Hex>(1);
+            _border = new Dictionary<Vector2Int, Hex>(6);
+
+            AddHex(new Hex(0, 0));
+
+            for (int i = 0; i < _offsets.Length; i++)
+            {
+                AddBorderHex(new Hex(_offsets[i].x, _offsets[i].y));
+            }
+        }
+
+        /// <summary>
+        /// Creates a new hexgroup given a parent.
+        /// </summary>
+        /// <param name="parent"></param>
+        private HexGroup(HexGroup parent, bool debug = false)
+        {
+            var hoods = parent.GetNeighbourhoods();
+            _inside = new Dictionary<Vector2Int, Hex>(parent._inside.Count * 19);
+            _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10);
+
+            for (int i = 0; i < hoods.Length; i++)
+            {
+                var hood = hoods[i];
+                var cells = debug ? hood.DebugSubdivide() : hood.Subdivide();
+
+                for (int u = 0; u < cells.Length; u++)
+                {
+                    if (hood.IsBorder)
+                        this.AddBorderHex(cells[u]);
+                    else
+                        this.AddHex(cells[u]);
+                }
+            }
+        }
 
         public HexGroup ForEach(Func<Hex, Hex> action)
         {
@@ -99,22 +140,6 @@ namespace RecursiveHex
         }
 
         /// <summary>
-        /// Creates a single hex cell at 0,0 with 6 border cells
-        /// </summary>
-        public HexGroup()
-        {
-            _inside = new Dictionary<Vector2Int, Hex>(1);
-            _border = new Dictionary<Vector2Int, Hex>(6);
-
-            AddHex(new Hex(0, 0));
-
-            for (int i = 0; i < _offsets.Length; i++)
-            {
-                AddBorderHex(new Hex(_offsets[i].x, _offsets[i].y));
-            }
-        }
-
-        /// <summary>
         /// Subdivide this hexgroup.
         /// </summary>
         /// <returns></returns>
@@ -127,7 +152,7 @@ namespace RecursiveHex
         /// Subdivide this hexgroup returning results for debugging purposes.
         /// </summary>
         /// <returns></returns>
-        public HexGroup DebugSubdivideRowOnly()
+        public HexGroup DebugSubdivide()
         {
             return new HexGroup(this, true);
         }
@@ -140,57 +165,6 @@ namespace RecursiveHex
         public HexGroup[] Subdivide(Func<Hex, object> func)
         {
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Creates a new hexgroup given a parent.
-        /// </summary>
-        /// <param name="parent"></param>
-        private HexGroup(HexGroup parent)
-        {
-            var hoods = parent.GetNeighbourhoods();
-            _inside = new Dictionary<Vector2Int, Hex>(parent._inside.Count * 19);
-            _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10);
-
-            for (int i = 0; i < hoods.Length; i++)
-            {
-                var hood = hoods[i];
-                var cells = hood.Subdivide();
-
-                for (int u = 0; u < cells.Length; u++)
-                {
-                    if (hood.IsBorder)
-                        this.AddBorderHex(cells[u]);
-                    else
-                        this.AddHex(cells[u]);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Bad implimentation of a debugger.
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="debug"></param>
-        private HexGroup(HexGroup parent, bool debug)
-        {
-            var hoods = parent.GetNeighbourhoods();
-            _inside = new Dictionary<Vector2Int, Hex>(parent._inside.Count * 19);
-            _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10);
-
-            for (int i = 0; i < hoods.Length; i++)
-            {
-                var hood = hoods[i];
-                var cells = hood.DebugSubdivideRowOnly();
-
-                for (int u = 0; u < cells.Length; u++)
-                {
-                    if (hood.IsBorder)
-                        this.AddBorderHex(cells[u]);
-                    else
-                        this.AddHex(cells[u]);
-                }
-            }
         }
 
         private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict)
