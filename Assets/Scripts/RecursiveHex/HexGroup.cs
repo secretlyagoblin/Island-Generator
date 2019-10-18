@@ -184,9 +184,7 @@ namespace RecursiveHex
                     var index = (count * 3 * 6) + (i * 3);
                     verts[index] = center;
                     verts[index + 1] = item.Value.GetCornerXZ(i);
-                    verts[index + 2] = item.Value.GetCornerXZ(i + 1);
-
-                    
+                    verts[index + 2] = item.Value.GetCornerXZ(i + 1);                    
 
                     if (isOdd)
                     {

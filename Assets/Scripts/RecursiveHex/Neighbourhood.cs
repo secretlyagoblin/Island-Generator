@@ -114,9 +114,13 @@ namespace RecursiveHex
         {
             var children = new Hex[offsets.Length];
 
+            var weights = BuildHexagon()
+
             for (int i = 0; i < offsets.Length; i++)
             {
-                children[i] = CalculateNewOffset(offsets[i]);
+                var offset = CalculateNewOffset(offsets[i]);
+
+                children[i] = Finalise.;..
             }
 
             return children;
@@ -145,7 +149,7 @@ namespace RecursiveHex
         /// </summary>
         /// <param name="localOffset"></param>
         /// <returns></returns>
-        private Hex CalculateNewOffset(Vector2Int localOffset)
+        private Vector2Int CalculateNewOffset(Vector2Int localOffset)
         {
             var inUseIndex = this.Center.Index; //we'll be modifying this, so we make a local copy
 
@@ -190,7 +194,70 @@ namespace RecursiveHex
             var x = offsetX + localOffset.x;
             var y = offsetY + localOffset.y;
 
-            return new Hex(x, y);
+            return new Vector2Int(x,y);
+        }
+
+        //private void BuildHexagon
+
+        private static HexagonWeight BuildHexagon()
+        {
+            var zero = Vector2.zero;
+
+            var o = new Vector2[] {
+
+                Hex.GetStaticCornerXY(0),
+                Hex.GetStaticCornerXY(1),
+                Hex.GetStaticCornerXY(2),
+                Hex.GetStaticCornerXY(3),
+                Hex.GetStaticCornerXY(4),
+                Hex.GetStaticCornerXY(5)
+            };
+
+            var t = new int[]
+            {
+                0,1,
+                1,2,
+                2,3,
+                3,4,
+                4,5,
+                5,0
+            };
+
+            var innerHexagon = new Vector2[] {
+
+                Vector2.zero, //center
+                Hex.GetStaticInnerCornerXY(0),
+                Hex.GetStaticInnerCornerXY(1),
+                Hex.GetStaticInnerCornerXY(2),
+                Hex.GetStaticInnerCornerXY(3),
+                Hex.GetStaticInnerCornerXY(4),
+                Hex.GetStaticInnerCornerXY(5)
+            };
+
+            var weights = new (int triIndex, Vector3 barycenter)[innerHexagon.Length];
+
+            for (int i = 0; i < innerHexagon.Length; i++)
+            {
+                Vector3 weight = Vector3.zero;
+                int index = 0;
+                for (int u = 0; u < t.Length; u+=2)
+                {
+                    weight = CalculateBarycentricWeight(zero, o[t[u]], o[t[u + 1]], innerHexagon[i]);
+
+                    if(weight.x>=0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
+                    {
+                        break;
+                    }
+
+                    index++;
+                }
+
+                weights[i] = (index,weight);
+            }
+
+            return weights;
+
+
         }
 
         private static Vector3 CalculateBarycentricWeight(Vector2 vertA, Vector2 vertB, Vector2 vertC, Vector2 test)
