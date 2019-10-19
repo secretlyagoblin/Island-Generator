@@ -112,15 +112,56 @@ namespace RecursiveHex
 
         private Hex[] Subdivide(Vector2Int[] offsets)
         {
+            var center = this.Center.GetNoiseOffset();
+
+            var largeHexPoints = new Vector2[]
+            {
+                
+                Hex.StaticFlatHexPoints[0] +  this.N0.GetNoiseOffset(),
+                Hex.StaticFlatHexPoints[1] +  this.N1.GetNoiseOffset(),
+                Hex.StaticFlatHexPoints[2] +  this.N2.GetNoiseOffset(),
+                Hex.StaticFlatHexPoints[3] +  this.N3.GetNoiseOffset(),
+                Hex.StaticFlatHexPoints[4] +  this.N4.GetNoiseOffset(),
+                Hex.StaticFlatHexPoints[5] +  this.N5.GetNoiseOffset()
+            };
+
+            var t = new int[]
+{
+                0,1,
+                1,2,
+                2,3,
+                3,4,
+                4,5,
+                5,0
+};
+
             var children = new Hex[offsets.Length];
 
-            var weights = BuildHexagon()
 
             for (int i = 0; i < offsets.Length; i++)
             {
-                var offset = CalculateNewOffset(offsets[i]);
+                var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
 
-                children[i] = Finalise.;..
+
+                Vector3 weight = Vector3.zero;
+                int index = 0;
+                for (int u = 0; u < t.Length; u += 2)
+                {
+                    weight = CalculateBarycentricWeight(center, largeHexPoints[t[u]], largeHexPoints[t[u + 1]], innerCoord);
+
+                    if (weight.x >= 0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
+                    {
+                        break;
+                    }
+
+                    index++;
+                }
+
+                children[i] = new Hex(
+                    this.Center.GetNestedHexIndexFromOffset(offsets[i]),
+                    this.InterpolateHexPayload(weight, index)
+                    );
+                
             }
 
             return children;
@@ -199,18 +240,23 @@ namespace RecursiveHex
 
         //private void BuildHexagon
 
+            private HexPayload InterpolateHexPayload(Vector3 weights, int triangleIndex)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private static HexagonWeight BuildHexagon()
         {
             var zero = Vector2.zero;
 
             var o = new Vector2[] {
 
-                Hex.GetStaticCornerXY(0),
-                Hex.GetStaticCornerXY(1),
-                Hex.GetStaticCornerXY(2),
-                Hex.GetStaticCornerXY(3),
-                Hex.GetStaticCornerXY(4),
-                Hex.GetStaticCornerXY(5)
+                Hex.GetStaticPointyCornerXY(0),
+                Hex.GetStaticPointyCornerXY(1),
+                Hex.GetStaticPointyCornerXY(2),
+                Hex.GetStaticPointyCornerXY(3),
+                Hex.GetStaticPointyCornerXY(4),
+                Hex.GetStaticPointyCornerXY(5)
             };
 
             var t = new int[]

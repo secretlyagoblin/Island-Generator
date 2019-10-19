@@ -28,5 +28,35 @@ namespace RecursiveHex
 
             return output;
         }
+
+        public static Vector2Int GetNestedHexIndexFromOffset(this Hex hex, Vector2Int offset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector2Int offset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static Vector2 GetNoiseOffset(this Hex hex)
+        {
+            return hex.GetNoiseOffset(Vector2Int.zero);
+        }
+
+        public static Vector2 GetNoiseOffset(this Hex hex, Vector2Int offset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static Vector2 GetLocalCoordiateFromOffset(this Hex hex, Vector2Int offset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static Vector2 GetPointWithNoiseFromOffset(this Hex hex, Vector2Int offset)
+        {
+            return hex.GetLocalCoordiateFromOffset(offset) + hex.GetNoiseOffset(offset);
+        }
     }
 }
