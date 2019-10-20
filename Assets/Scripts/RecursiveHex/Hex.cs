@@ -13,7 +13,7 @@ namespace RecursiveHex
 
         public HexPayload Payload;
 
-        public static readonly float ScaleY = Mathf.Sqrt(3f) * 2f;
+        public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
         public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
 
         public static readonly Vector2[] StaticFlatHexPoints = new Vector2[]
