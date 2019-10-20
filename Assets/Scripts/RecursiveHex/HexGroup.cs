@@ -62,23 +62,32 @@ namespace RecursiveHex
             }
         }
 
-        public HexGroup ForEach(Func<Hex, Hex> action)
+        public HexGroup ForEach(Func<Hex, HexPayload> func)
         {
             foreach (var item in _inside)
             {
-                _inside[item.Key] = action(item.Value);
+                item.Value.UpdatePayload(func);
             }
             return this;
         }
 
-        public HexGroup ForEach(Action<Hex> action)
-        {
-            foreach (var item in _inside)
-            {
-                action(item.Value);
-            }
-            return this;
-        }
+        //public HexGroup ForEach(Action<Hex> action)
+        //{
+        //    foreach (var item in _inside)
+        //    {
+        //        item.Value.UpdatePayload(action);
+        //    }
+        //    return this;
+        //}
+
+        //public HexGroup ForEach(Action<HexPayload> action)
+        //{
+        //    foreach (var item in _inside)
+        //    {
+        //        item.Value.Payload = action();
+        //    }
+        //    return this;
+        //}
 
         private Neighbourhood[] GetNeighbourhoods()
         {
@@ -89,8 +98,6 @@ namespace RecursiveHex
             foreach (var item in _inside)
             {
                 var hexes = new Hex[6];
-
-
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -105,7 +112,7 @@ namespace RecursiveHex
                     }
                     else
                     {
-                        //Debug.LogError("Hey, Remove Null Neighbours Being Possible");
+                        Debug.LogError("Hey, Remove Null Neighbours Being Possible");
                         hexes[i] = new Hex();
                     }
                 }
@@ -165,7 +172,7 @@ namespace RecursiveHex
             throw new NotImplementedException();
         }
 
-        private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict)
+        private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict, Func<Hex,float> heightCalculator)
         {
             var verts = new Vector3[dict.Count * 3 * 6];
             var tris = new int[dict.Count * 6 * 3];
@@ -177,12 +184,14 @@ namespace RecursiveHex
                 var center = new Vector3(item.Key.x, 0, item.Key.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 
+                var yHeight = Vector3.up * heightCalculator(item.Value);
+
                 for (int i = 0; i < 6; i++)
                 {
                     var index = (count * 3 * 6) + (i * 3);
-                    verts[index] = center;
-                    verts[index + 1] = item.Value.GetPointyCornerXZ(i);
-                    verts[index + 2] = item.Value.GetPointyCornerXZ(i + 1);                    
+                    verts[index] = center + yHeight;
+                    verts[index + 1] = item.Value.GetPointyCornerXZ(i)+ yHeight;
+                    verts[index + 2] = item.Value.GetPointyCornerXZ(i + 1)+ yHeight;
 
                     if (isOdd)
                     {
@@ -205,6 +214,11 @@ namespace RecursiveHex
             };
         }
 
+        private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict)
+        {
+            return ToMesh(dict, x => 0);
+        }
+
         private static void ToGameObjects(Dictionary<Vector2Int, Hex> dict, GameObject prefab)
         {
             var count = 0;
@@ -217,7 +231,8 @@ namespace RecursiveHex
                 var obj = GameObject.Instantiate(prefab);
 
                 obj.name = item.Key.ToString();
-                obj.transform.position = center + Vector3.up*item.Value.Height;
+                obj.transform.position = center + Vector3.up*item.Value.Payload.Height;
+                item.Value.Payload.PopulatePayloadObject(obj.AddComponent<PayloadData>());
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -235,6 +250,11 @@ namespace RecursiveHex
         public Mesh ToMesh()
         {
             return HexGroup.ToMesh(_inside);
+        }
+
+        public Mesh ToMesh(Func<Hex, float> heightCalculator)
+        {
+            return HexGroup.ToMesh(_inside,heightCalculator);
         }
 
         public void ToGameObjects(GameObject prefab)

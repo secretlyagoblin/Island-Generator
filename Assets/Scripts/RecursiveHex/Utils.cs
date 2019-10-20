@@ -160,5 +160,10 @@ namespace RecursiveHex
         {
             return hex.GetLocalCoordiateFromOffset(offset) + hex.GetNoiseOffset(offset);
         }
+
+        public static float Blerp(float a, float b, float c, Vector3 weight)
+        {
+            return a * weight.x + b * weight.y + c * weight.z;
+        }
     }
 }

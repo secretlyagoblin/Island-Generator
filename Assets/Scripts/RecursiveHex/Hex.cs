@@ -1,17 +1,25 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using MeshMasher;
 using UnityEngine;
 
 namespace RecursiveHex
 {
     public struct Hex
     {
-        public float Height;
-        public Vector2Int Index;
-        public int Code;
-
+        public readonly Vector2Int Index;
         public HexPayload Payload;
+
+        public void UpdatePayload(Func<Hex,HexPayload> func)
+        {
+            Payload = func(this);
+        }
+
+        public void UpdatePayload(Action<Hex> action)
+        {
+            action(this);
+        }
 
         public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
         public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
@@ -34,8 +42,7 @@ namespace RecursiveHex
         public Hex(Vector2Int index, HexPayload payload)
         {
             Index = index;
-            Height = 0;
-            Code = 0;
+            Payload = payload;
         }
 
         /// <summary>
@@ -101,16 +108,30 @@ namespace RecursiveHex
         {
             var angle_deg = 60f * i - 30f;
             var angle_rad = Mathf.PI / 180f * angle_deg;
-            return new Vector3(Index.x + Hex.HalfHex * Mathf.Cos(-angle_rad), Height,
+            return new Vector3(Index.x + Hex.HalfHex * Mathf.Cos(-angle_rad),0,
                          (Index.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
         }
     }
 
     public struct HexPayload
     {
+        public float Height {get; set;}
+
         public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
         {
-            return new HexPayload();
+            return new HexPayload()
+            {
+                Height = RecursiveHex.Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights)
+            };
+        }
+
+        public void PopulatePayloadObject(PayloadData data)
+        {
+            data.KeyValuePairs =
+                new Dictionary<string, object>()
+                {
+                    {"Height",Height }
+                };
         }
     }
 }
