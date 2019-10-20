@@ -110,6 +110,16 @@ namespace RecursiveHex
         /// </summary>
         private static float _innerHexRotation = Mathf.Tan(1f / 2.5f);
 
+        private static readonly int[] _triangleIndexPairs = new int[]
+{
+                0,1,
+                1,2,
+                2,3,
+                3,4,
+                4,5,
+                5,0
+};
+
         private Hex[] Subdivide(Vector2Int[] offsets)
         {
             var center = this.Center.GetNoiseOffset();
@@ -125,16 +135,6 @@ namespace RecursiveHex
                 Hex.StaticFlatHexPoints[5] +  this.N5.GetNoiseOffset()
             };
 
-            var t = new int[]
-{
-                0,1,
-                1,2,
-                2,3,
-                3,4,
-                4,5,
-                5,0
-};
-
             var children = new Hex[offsets.Length];
 
 
@@ -142,12 +142,11 @@ namespace RecursiveHex
             {
                 var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
 
-
                 Vector3 weight = Vector3.zero;
                 int index = 0;
-                for (int u = 0; u < t.Length; u += 2)
+                for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
-                    weight = CalculateBarycentricWeight(center, largeHexPoints[t[u]], largeHexPoints[t[u + 1]], innerCoord);
+                    weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], innerCoord);
 
                     if (weight.x >= 0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
                     {
@@ -167,143 +166,11 @@ namespace RecursiveHex
             return children;
         }
 
-
-
-        /// <summary>
-        /// Mapping a XY grid of hexes by a level requires a rhombus - this is the X translation of the bottom of this rhombus
-        /// </summary>
-        private static Vector2 _rhombusX = new Vector2(2.5f, 1);
-
-        /// <summary>
-        /// Mapping a XY grid of hexes by a level requires a rhombus - this is the Y translation of the bottom of this rhombus
-        /// </summary>
-        private static Vector2 _rhombusY = new Vector2(0.5f, 3);
-
-        /// <summary>
-        /// Rhombus offsetting obvious results in a rhombus. 
-        /// We have to skew in the other direction to get a nice result - this is the magic number I chose for that.
-        /// </summary>
-        private const float MAGIC_GRID_SKEW_RATIO = 0.59f;
-
-        /// <summary>
-        /// The major offsetting function. Set up for a 2x2 grid only, with some magic numbers for keeping the grid sqaure.
-        /// </summary>
-        /// <param name="localOffset"></param>
-        /// <returns></returns>
-        private Vector2Int CalculateNewOffset(Vector2Int localOffset)
-        {
-            var inUseIndex = this.Center.Index; //we'll be modifying this, so we make a local copy
-
-            var xOffset = inUseIndex.y * MAGIC_GRID_SKEW_RATIO;
-
-            inUseIndex.x -= Mathf.FloorToInt(xOffset);
-
-            var shiftedIndex = (inUseIndex.x * _rhombusX) +
-                (inUseIndex.y * _rhombusY);
-
-            var evenX = inUseIndex.x % 2 == 0;
-            var evenY = inUseIndex.y % 2 == 0;
-
-            var offsetX = Mathf.FloorToInt(shiftedIndex.x);
-            var offsetY = Mathf.FloorToInt(shiftedIndex.y);
-
-            //Different grids require different edge cases - here's them.
-            if (evenX && evenY)
-            {
-
-            }
-            else if (evenX && !evenY)
-            {
-                if (localOffset.y % 2 != 0)
-                {
-                    offsetX++;
-                }
-            }
-            else if (!evenX && evenY)
-            {
-                if (localOffset.y % 2 != 0)
-                {
-                    offsetX++;
-                }
-            }
-            else if (!evenX && !evenY)
-            {
-
-            }
-
-            //final offset
-            var x = offsetX + localOffset.x;
-            var y = offsetY + localOffset.y;
-
-            return new Vector2Int(x,y);
-        }
-
         //private void BuildHexagon
 
             private HexPayload InterpolateHexPayload(Vector3 weights, int triangleIndex)
         {
             throw new System.NotImplementedException();
-        }
-
-        private static HexagonWeight BuildHexagon()
-        {
-            var zero = Vector2.zero;
-
-            var o = new Vector2[] {
-
-                Hex.GetStaticPointyCornerXY(0),
-                Hex.GetStaticPointyCornerXY(1),
-                Hex.GetStaticPointyCornerXY(2),
-                Hex.GetStaticPointyCornerXY(3),
-                Hex.GetStaticPointyCornerXY(4),
-                Hex.GetStaticPointyCornerXY(5)
-            };
-
-            var t = new int[]
-            {
-                0,1,
-                1,2,
-                2,3,
-                3,4,
-                4,5,
-                5,0
-            };
-
-            var innerHexagon = new Vector2[] {
-
-                Vector2.zero, //center
-                Hex.GetStaticInnerCornerXY(0),
-                Hex.GetStaticInnerCornerXY(1),
-                Hex.GetStaticInnerCornerXY(2),
-                Hex.GetStaticInnerCornerXY(3),
-                Hex.GetStaticInnerCornerXY(4),
-                Hex.GetStaticInnerCornerXY(5)
-            };
-
-            var weights = new (int triIndex, Vector3 barycenter)[innerHexagon.Length];
-
-            for (int i = 0; i < innerHexagon.Length; i++)
-            {
-                Vector3 weight = Vector3.zero;
-                int index = 0;
-                for (int u = 0; u < t.Length; u+=2)
-                {
-                    weight = CalculateBarycentricWeight(zero, o[t[u]], o[t[u + 1]], innerHexagon[i]);
-
-                    if(weight.x>=0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
-                    {
-                        break;
-                    }
-
-                    index++;
-                }
-
-                weights[i] = (index,weight);
-            }
-
-            return weights;
-
-
         }
 
         private static Vector3 CalculateBarycentricWeight(Vector2 vertA, Vector2 vertB, Vector2 vertC, Vector2 test)

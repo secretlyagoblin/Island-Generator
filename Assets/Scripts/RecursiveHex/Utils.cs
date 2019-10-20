@@ -29,24 +29,123 @@ namespace RecursiveHex
             return output;
         }
 
-        public static Vector2Int GetNestedHexIndexFromOffset(this Hex hex, Vector2Int offset)
+        /// <summary>
+        /// Mapping a XY grid of hexes by a level requires a rhombus - this is the X translation of the bottom of this rhombus
+        /// </summary>
+        private static Vector2 _rhombusX = new Vector2(2.5f, 1);
+
+        /// <summary>
+        /// Mapping a XY grid of hexes by a level requires a rhombus - this is the Y translation of the bottom of this rhombus
+        /// </summary>
+        private static Vector2 _rhombusY = new Vector2(0.5f, 3);
+
+        /// <summary>
+        /// Rhombus offsetting obvious results in a rhombus. 
+        /// We have to skew in the other direction to get a nice result - this is the magic number I chose for that.
+        /// </summary>
+        private const float MAGIC_GRID_SKEW_RATIO = 0.59f;
+
+
+        /// <summary>
+        /// The major offsetting function. Set up for a 2x2 grid only, with some magic numbers for keeping the grid sqaure.
+        /// </summary>
+        /// <param name="localOffset"></param>
+        /// <returns></returns>
+        public static Vector2Int GetNestedHexIndexFromOffset(this Hex hex, Vector2Int localOffset)
         {
-            throw new NotImplementedException();
+            var inUseIndex = hex.Index; //we'll be modifying this, so we make a local copy
+
+            var xOffset = inUseIndex.y * MAGIC_GRID_SKEW_RATIO;
+
+            inUseIndex.x -= Mathf.FloorToInt(xOffset);
+
+            var shiftedIndex = (inUseIndex.x * _rhombusX) +
+                (inUseIndex.y * _rhombusY);
+
+            var evenX = inUseIndex.x % 2 == 0;
+            var evenY = inUseIndex.y % 2 == 0;
+
+            var offsetX = Mathf.FloorToInt(shiftedIndex.x);
+            var offsetY = Mathf.FloorToInt(shiftedIndex.y);
+
+            //Different grids require different edge cases - here's them.
+            if (evenX && evenY)
+            {
+
+            }
+            else if (evenX && !evenY)
+            {
+                if (localOffset.y % 2 != 0)
+                {
+                    offsetX++;
+                }
+            }
+            else if (!evenX && evenY)
+            {
+                if (localOffset.y % 2 != 0)
+                {
+                    offsetX++;
+                }
+            }
+            else if (!evenX && !evenY)
+            {
+
+            }
+
+            //final offset
+            var x = offsetX + localOffset.x;
+            var y = offsetY + localOffset.y;
+
+            return new Vector2Int(x, y);
         }
+
+        //private const float MAGIC_INNER_ROTATION = 19.106605350869f;
+        private const float MAGIC_INNER_ROTATION = 0f;
+
+
+        private static float _scale = 1f / (Mathf.Sqrt(7));
 
         public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector2Int offset)
         {
-            throw new NotImplementedException();
+            var index = hex.Index + offset;
+            var isOdd =  index.y % 2 != 0;
+            var xOffset = isOdd ? 0.5f : 0f;
+
+            //https://stackoverflow.com/questions/13695317/rotate-a-point-around-another-point
+
+            float cosTheta = Mathf.Cos(MAGIC_INNER_ROTATION);
+            float sinTheta = Mathf.Sin(MAGIC_INNER_ROTATION);
+            return new Vector2(           
+
+                    (cosTheta * (index.x) - sinTheta * (index.y * Hex.ScaleY) + xOffset) * _scale,
+                    (sinTheta * (index.x) + cosTheta * (index.y * Hex.ScaleY))* _scale
+            );
         }
 
+        /// <summary>
+        /// Gets a consistent vector within 0.5 when given a hex or a hex with an offset
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static Vector2 GetNoiseOffset(this Hex hex)
         {
             return hex.GetNoiseOffset(Vector2Int.zero);
         }
 
+        /// <summary>
+        /// Gets a consistent vector within 0.5 when given a hex or a hex with an offset
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static Vector2 GetNoiseOffset(this Hex hex, Vector2Int offset)
         {
-            throw new NotImplementedException();
+            var result = RandomSeedProperties.GetOffset(hex.Index.x + offset.x, hex.Index.y + offset.y);
+
+            return new Vector2(
+                Mathf.Sin(result.Angle) * result.Distance * 0.5f,
+                Mathf.Cos(result.Angle) * result.Distance * 0.5f);
         }
 
         public static Vector2 GetLocalCoordiateFromOffset(this Hex hex, Vector2Int offset)

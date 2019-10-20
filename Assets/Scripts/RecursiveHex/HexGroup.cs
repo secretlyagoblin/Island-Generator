@@ -21,8 +21,6 @@ namespace RecursiveHex
             new Vector2Int(+0,+1)
             };
 
-        private RandomSeedProperties _seed = RandomSeedProperties.Default(); 
-
         /// <summary>
         /// Creates a single hex cell at 0,0 with 6 border cells
         /// </summary>
@@ -31,12 +29,12 @@ namespace RecursiveHex
             _inside = new Dictionary<Vector2Int, Hex>(1);
             _border = new Dictionary<Vector2Int, Hex>(6);
 
-            AddHex(new Hex(0, 0));
-
-            for (int i = 0; i < _offsets.Length; i++)
-            {
-                AddBorderHex(new Hex(_offsets[i].x, _offsets[i].y));
-            }
+            //AddHex(new Hex(0, 0,null));
+            //
+            //for (int i = 0; i < _offsets.Length; i++)
+            //{
+            //    AddBorderHex(new Hex(_offsets[i].x, _offsets[i].y));
+            //}
         }
 
         /// <summary>

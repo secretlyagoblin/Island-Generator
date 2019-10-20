@@ -4,13 +4,13 @@ using UnityEngine;
 
 namespace RecursiveHex
 {
-    public struct RandomSeedProperties
+    public static class RandomSeedProperties
     {
-        public float X;
-        public float Y;
-        public float Scale;
+        public static float X = 234.43546f;
+        public static float Y = 124.3465f;
+        public static float Scale = 8.43645f;
 
-        public RandomOffset GetOffset(int x, int y)
+        public static RandomOffset GetOffset(int x, int y)
         {
             var perlin = Mathf.PerlinNoise((x + X) * Scale, (y + Y) * Scale);
             var radian = perlin * Mathf.PI * 4;
@@ -20,16 +20,6 @@ namespace RecursiveHex
             {
                 Angle = radian,
                 Distance = perlinLength
-            };
-        }
-
-        public static RandomSeedProperties Default()
-        {
-            return new RandomSeedProperties()
-            {
-                X = 234.43546f,
-                Y = 124.3465f,
-                Scale = 8.43645f
             };
         }
     }
