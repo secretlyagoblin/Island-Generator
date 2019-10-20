@@ -165,5 +165,14 @@ namespace RecursiveHex
         {
             return a * weight.x + b * weight.y + c * weight.z;
         }
+
+        public static Color Blerp(Color a, Color b, Color c, Vector3 weight)
+        {
+                var r = a.r * weight.x + b.r * weight.y + c.r * weight.z;
+                var g = a.g * weight.x + b.g * weight.y + c.g * weight.z;
+                var bee = a.b * weight.x + b.b * weight.y + c.b * weight.z;
+
+                return new Color(r, g, bee);
+        }
     }
 }

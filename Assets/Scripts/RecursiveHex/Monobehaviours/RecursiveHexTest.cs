@@ -27,16 +27,16 @@ public class RecursiveHexTest : MonoBehaviour
 
         var layer1 = new HexGroup();
         var layer2 = layer1.Subdivide()
-            .ForEach(x =>new HexPayload()
-                {
-                    Height = RNG.NextFloat(0, 30)
-                }
-            )
-            
-            //.Subdivide()//.Subdivide();//.Subdivide().Subdivide().Subdivide();
+            .ForEach(x => new HexPayload()
+            {
+                Height = RNG.NextFloat(0, 5),
+                Color = RNG.NextColor()
+            }
+            )            
+            .Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
-        layer2.ToGameObjects(Prefab);
+        //layer2.ToGameObjects(Prefab);
 
         this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh(x => x.Payload.Height);
 

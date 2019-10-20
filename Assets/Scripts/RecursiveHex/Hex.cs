@@ -11,16 +11,6 @@ namespace RecursiveHex
         public readonly Vector2Int Index;
         public HexPayload Payload;
 
-        public void UpdatePayload(Func<Hex,HexPayload> func)
-        {
-            Payload = func(this);
-        }
-
-        public void UpdatePayload(Action<Hex> action)
-        {
-            action(this);
-        }
-
         public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
         public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
 
@@ -115,13 +105,15 @@ namespace RecursiveHex
 
     public struct HexPayload
     {
-        public float Height {get; set;}
+        public float Height;
+        public Color Color;
 
         public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
         {
             return new HexPayload()
             {
-                Height = RecursiveHex.Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights)
+                Height = Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
+                Color = Utils.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
             };
         }
 
@@ -130,7 +122,8 @@ namespace RecursiveHex
             data.KeyValuePairs =
                 new Dictionary<string, object>()
                 {
-                    {"Height",Height }
+                    {"Height",Height },
+                     {"Color",Color }
                 };
         }
     }

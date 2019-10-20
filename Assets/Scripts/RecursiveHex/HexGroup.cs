@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace RecursiveHex
 {
@@ -64,10 +65,13 @@ namespace RecursiveHex
 
         public HexGroup ForEach(Func<Hex, HexPayload> func)
         {
-            foreach (var item in _inside)
+            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
             {
-                item.Value.UpdatePayload(func);
+                var hex = pair.Value;
+                hex.Payload = func(hex);
+                _inside[pair.Key] = hex;
             }
+
             return this;
         }
 
@@ -176,6 +180,7 @@ namespace RecursiveHex
         {
             var verts = new Vector3[dict.Count * 3 * 6];
             var tris = new int[dict.Count * 6 * 3];
+            var colors = new Color[dict.Count * 3 * 6];
 
             var count = 0;
 
@@ -203,6 +208,10 @@ namespace RecursiveHex
                     tris[index] = index;
                     tris[index + 1] = index + 1;
                     tris[index + 2] = index + 2;
+
+                    colors[index]         = item.Value.Payload.Color;
+                        colors[index+1]   = item.Value.Payload.Color;
+                    colors[index + 2] = item.Value.Payload.Color;
                 }
                 count++;
             }
@@ -210,7 +219,8 @@ namespace RecursiveHex
             return new Mesh()
             {
                 vertices = verts,
-                triangles = tris
+                triangles = tris,
+                colors = colors
             };
         }
 
@@ -225,13 +235,16 @@ namespace RecursiveHex
 
             foreach (var item in dict)
             {
-                var center = new Vector3(item.Key.x, 0, item.Key.y * Hex.ScaleY);
+                var center = new Vector3(
+                    item.Key.x,
+                    item.Value.Payload.Height, 
+                    item.Key.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 
                 var obj = GameObject.Instantiate(prefab);
 
                 obj.name = item.Key.ToString();
-                obj.transform.position = center + Vector3.up*item.Value.Payload.Height;
+                obj.transform.position = center;
                 item.Value.Payload.PopulatePayloadObject(obj.AddComponent<PayloadData>());
 
                 for (int i = 0; i < 6; i++)
