@@ -10,6 +10,15 @@ namespace RecursiveHex
         public static float Y = 124.3465f;
         public static float Scale = 8.43645f;
 
+        public static void Disable()
+        {
+            X = 0;
+            Y = 0;
+            Scale = 0;
+
+            Debug.LogError("Random Seed is disabled, no voronoi grid");
+        }
+
         public static RandomOffset GetOffset(int x, int y)
         {
             var perlin = Mathf.PerlinNoise((x + X) * Scale, (y + Y) * Scale);

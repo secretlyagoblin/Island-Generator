@@ -237,7 +237,8 @@ namespace RecursiveHex
             {
                 var center = new Vector3(
                     item.Key.x,
-                    item.Value.Payload.Height, 
+                    0,
+                    //item.Value.Payload.Height, 
                     item.Key.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 

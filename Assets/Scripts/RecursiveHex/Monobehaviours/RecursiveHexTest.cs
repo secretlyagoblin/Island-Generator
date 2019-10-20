@@ -12,6 +12,8 @@ public class RecursiveHexTest : MonoBehaviour
     void Start()
     {
         RNG.Init();
+        RandomSeedProperties.Disable();
+
 
         //var code = 0;
 
@@ -30,23 +32,17 @@ public class RecursiveHexTest : MonoBehaviour
             .ForEach(x => new HexPayload()
             {
                 Height = RNG.NextFloat(0, 5),
-                Color = RNG.NextColor()
+                Color = x.Index == Vector2Int.zero? Color.blue: Color.green
             }
-            )            
-            .Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
+            ); ;
+        
+        var layer3 = layer2.Subdivide();
+            //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
-        //layer2.ToGameObjects(Prefab);
+        layer3.ToGameObjects(Prefab);
 
-        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh(x => x.Payload.Height);
-
-        //var gob = new GameObject();
-        //gob.AddComponent<MeshFilter>().sharedMesh = layer1.ToMesh();
-        //gob.AddComponent<MeshRenderer>();
-
-
-
-
+        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh();//(x => x.Payload.Height);
 
     }
 
