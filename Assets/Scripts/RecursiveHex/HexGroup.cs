@@ -29,12 +29,12 @@ namespace RecursiveHex
             _inside = new Dictionary<Vector2Int, Hex>(1);
             _border = new Dictionary<Vector2Int, Hex>(6);
 
-            //AddHex(new Hex(0, 0,null));
+            AddHex(new Hex(Vector2Int.zero,new HexPayload()));
             //
-            //for (int i = 0; i < _offsets.Length; i++)
-            //{
-            //    AddBorderHex(new Hex(_offsets[i].x, _offsets[i].y));
-            //}
+            for (int i = 0; i < _offsets.Length; i++)
+            {
+                AddBorderHex(new Hex(_offsets[i],new HexPayload()));
+            }
         }
 
         /// <summary>

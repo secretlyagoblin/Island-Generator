@@ -62,11 +62,11 @@ namespace RecursiveHex
         new Vector2Int(0,0),
 
         new Vector2Int(+1,+0),
-        new Vector2Int(+0,-1),
-        new Vector2Int(-1,-1),
-        new Vector2Int(-1,+0),
+        new Vector2Int(+0,+1),
         new Vector2Int(-1,+1),
-        new Vector2Int(+0,+1)
+        new Vector2Int(-1,+0),
+        new Vector2Int(-1,-1),
+        new Vector2Int(+0,-1),
         };
 
         /// <summary>
@@ -78,11 +78,11 @@ namespace RecursiveHex
         new Vector2Int(0,0),
 
         new Vector2Int(+1,+0),
-        new Vector2Int(+0,-1),
-        new Vector2Int(-1,-1),
-        new Vector2Int(-1,+0),
+        new Vector2Int(+0,+1),
         new Vector2Int(-1,+1),
-        new Vector2Int(+0,+1)
+        new Vector2Int(-1,+0),
+        new Vector2Int(-1,-1),
+        new Vector2Int(+0,-1),
     };
 
 
@@ -170,7 +170,16 @@ namespace RecursiveHex
 
             private HexPayload InterpolateHexPayload(Vector3 weights, int triangleIndex)
         {
-            throw new System.NotImplementedException();
+            switch (triangleIndex)
+            {
+                default:
+                case 0: return HexPayload.Blerp(Center, N0, N1, weights);
+                case 1: return HexPayload.Blerp(Center, N1, N2, weights);
+                case 2: return HexPayload.Blerp(Center, N2, N3, weights);
+                case 3: return HexPayload.Blerp(Center, N3, N4, weights);
+                case 4: return HexPayload.Blerp(Center, N4, N5, weights);
+                case 5: return HexPayload.Blerp(Center, N5, N0, weights);
+            }
         }
 
         private static Vector3 CalculateBarycentricWeight(Vector2 vertA, Vector2 vertB, Vector2 vertC, Vector2 test)

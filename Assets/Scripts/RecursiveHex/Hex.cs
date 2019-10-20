@@ -108,6 +108,9 @@ namespace RecursiveHex
 
     public struct HexPayload
     {
-
+        public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
+        {
+            return new HexPayload();
+        }
     }
 }
