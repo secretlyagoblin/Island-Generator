@@ -36,7 +36,7 @@ public class RecursiveHexTest : MonoBehaviour
             }
             ); ;
         
-        var layer3 = layer2.Subdivide();
+        var layer3 = layer2.Subdivide().Subdivide()
             //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
