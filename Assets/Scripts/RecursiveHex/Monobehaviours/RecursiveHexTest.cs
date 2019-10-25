@@ -35,15 +35,115 @@ public class RecursiveHexTest : MonoBehaviour
             Color.green,
             Color.yellow,
             Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
             Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
             Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
             Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
             Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+                        Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.blue,
+            Color.magenta,
+            Color.cyan,
+            Color.black,
+            Color.blue,
+
         };
 
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
-        var layer2 = layer1.Subdivide()
+        var layer2 = layer1.DebugSubdivide()
             .ForEach((x,i) => new HexPayload()
             {
                 Height = x.Payload.Height,
@@ -51,14 +151,14 @@ public class RecursiveHexTest : MonoBehaviour
             });
             ;
 
-        var layer3 = layer2.Subdivide().Subdivide().Subdivide();
+        var layer3 = layer2.Subdivide().Subdivide()//.Subdivide();
             //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
         //layer3.ToGameObjects(Prefab);
         //layer1.ToGameObjectsBorder(BorderPrefab);
 
-        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh(x => x.Payload.Height);
+        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh();//(x => x.Payload.Height);
 
     }
 
