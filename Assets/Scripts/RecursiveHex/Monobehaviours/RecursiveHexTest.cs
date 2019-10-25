@@ -31,9 +31,9 @@ public class RecursiveHexTest : MonoBehaviour
         var colours = new List<Color>()
         {
             Color.white,
-            Color.blue,
-            Color.blue,
-            Color.blue,
+            Color.red,
+            Color.green,
+            Color.yellow,
             Color.blue,
             Color.blue,
             Color.blue,
@@ -42,7 +42,7 @@ public class RecursiveHexTest : MonoBehaviour
         };
 
 
-        var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 1, Color = Color.white });
+        var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
         var layer2 = layer1.Subdivide()
             .ForEach((x,i) => new HexPayload()
             {
@@ -55,10 +55,10 @@ public class RecursiveHexTest : MonoBehaviour
             //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
-        //layer1.ToGameObjects(Prefab);
+        //layer3.ToGameObjects(Prefab);
         //layer1.ToGameObjectsBorder(BorderPrefab);
 
-        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh(x => x.Payload.Height > 0.75? 5:-5);
+        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh(x => x.Payload.Height);
 
     }
 

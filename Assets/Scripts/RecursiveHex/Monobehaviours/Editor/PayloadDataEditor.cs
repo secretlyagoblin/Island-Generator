@@ -18,5 +18,7 @@ public class LevelScriptEditor : Editor
         {
             EditorGUILayout.LabelField(item.Key, item.Value.ToString());
         }
+
+        EditorGUILayout.TextArea(myTarget.NeighbourhoodData);
     }
 }

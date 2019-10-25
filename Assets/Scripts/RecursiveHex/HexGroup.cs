@@ -12,16 +12,6 @@ namespace RecursiveHex
         private Dictionary<Vector2Int, Hex> _inside;
         private Dictionary<Vector2Int, Hex> _border;
 
-        private static readonly Vector2Int[] _offsets = new Vector2Int[]
-            {
-            new Vector2Int(+1,+0),
-            new Vector2Int(+0,-1),
-            new Vector2Int(-1,-1),
-            new Vector2Int(-1,+0),
-            new Vector2Int(-1,+1),
-            new Vector2Int(+0,+1)
-            };
-
         /// <summary>
         /// Creates a single hex cell at 0,0 with 6 border cells
         /// </summary>
@@ -32,9 +22,9 @@ namespace RecursiveHex
 
             AddHex(new Hex(Vector2Int.zero,new HexPayload()));
             //
-            for (int i = 0; i < _offsets.Length; i++)
+            for (int i = 0; i < Neighbourhood.Neighbours.Length; i++)
             {
-                AddBorderHex(new Hex(_offsets[i],new HexPayload()));
+                AddBorderHex(new Hex(Neighbourhood.Neighbours[i],new HexPayload()));
             }
         }
 
@@ -120,7 +110,7 @@ namespace RecursiveHex
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var key = item.Key + _offsets[i];
+                    var key = item.Key + Neighbourhood.Neighbours[i];
                     if (_border.ContainsKey(key))
                     {
                         hexes[i] = _border[key];
@@ -262,7 +252,10 @@ namespace RecursiveHex
 
                 obj.name = item.Key.ToString();
                 obj.transform.position = center;
-                item.Value.Payload.PopulatePayloadObject(obj.AddComponent<PayloadData>());
+                var payload = obj.AddComponent<PayloadData>();
+                item.Value.Payload.PopulatePayloadObject(payload);
+                payload.NeighbourhoodData= item.Value.DebugData;
+
 
                 for (int i = 0; i < 6; i++)
                 {

@@ -46,7 +46,7 @@ public class LocalHexGeneration : MonoBehaviour
 
             GameObject.Instantiate(Prefab, new Vector3(pont.x, 0, pont.y),Quaternion.identity).name = $"Outer Hex {i}";
             var gob = GameObject.Instantiate(Prefab, new Vector3(spont.x, 0, spont.y), Quaternion.identity);
-            gob.name = $"Moved Point Hex {i}";
+            gob.name = $"Moved Point Hex {i} [{_outerOffsets[i]}]";
             gob.transform.localScale = Vector3.one*0.02f;
 
         }
@@ -61,7 +61,7 @@ public class LocalHexGeneration : MonoBehaviour
             var pont = hex.GetNestedHexLocalCoordinateFromOffset(_2x2ChildrenOffsets[i]);
 
             var gob = GameObject.Instantiate(Prefab, new Vector3(pont.x, 0, pont.y), Quaternion.identity);
-            gob.name = $"Inner Hex {i}";
+            gob.name = $"Inner Hex {i} [{pont.ToString()}]";
             gob.transform.localScale = _innerScale;
         }
 

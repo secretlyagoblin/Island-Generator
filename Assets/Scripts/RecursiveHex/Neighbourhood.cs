@@ -56,17 +56,28 @@ namespace RecursiveHex
         /// <summary>
         /// The neighbourhood around a 2x2 grid - currently hardcoded, and shouldn't be changed
         /// </summary>
+        /// 
+
+        public static readonly Vector2Int[] Neighbours = new Vector2Int[]
+        {
+            new Vector2Int(+1,+0),
+            new Vector2Int(+0,+1),
+            new Vector2Int(-1,+1),
+            new Vector2Int(-1,+0),
+            new Vector2Int(-1,-1),
+            new Vector2Int(+0,-1),
+        };
+
         private static readonly Vector2Int[] _2x2ChildrenOffsets = new Vector2Int[]
         {
-        //Center
-        new Vector2Int(0,0),
-
-        new Vector2Int(+1,+0),
-        new Vector2Int(+0,+1),
-        new Vector2Int(-1,+1),
-        new Vector2Int(-1,+0),
-        new Vector2Int(-1,-1),
-        new Vector2Int(+0,-1),
+            //Center
+            new Vector2Int(0,0),
+            Neighbours[0],
+            Neighbours[1],
+            Neighbours[2],
+            Neighbours[3],
+            Neighbours[4],
+            Neighbours[5],
         };
 
         /// <summary>
@@ -84,8 +95,6 @@ namespace RecursiveHex
         new Vector2Int(-1,-1),
         new Vector2Int(+0,-1),
     };
-
-
 
         /// <summary>
         /// Subdivides the grid by one level
@@ -189,7 +198,8 @@ namespace RecursiveHex
 
                 children[i] = new Hex(
                     this.Center.GetNestedHexIndexFromOffset(offsets[i]),
-                    this.InterpolateHexPayload(weight, index)
+                    this.InterpolateHexPayload(weight, index),
+                    $"N0:{N0.Index}, N1:{N1.Index} \n N2:{N2.Index},C:{Center.Index}, N3:{N3.Index},\n N4:{N4.Index}, N5:{N5.Index}"
                     );
                 
             }

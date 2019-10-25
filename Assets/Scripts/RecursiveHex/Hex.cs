@@ -10,6 +10,7 @@ namespace RecursiveHex
     {
         public readonly Vector2Int Index;
         public HexPayload Payload;
+        public string DebugData;
 
         public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
         public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
@@ -29,10 +30,11 @@ namespace RecursiveHex
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        public Hex(Vector2Int index, HexPayload payload)
+        public Hex(Vector2Int index, HexPayload payload, string debugData = "")
         {
             Index = index;
             Payload = payload;
+            DebugData = debugData;
         }
 
         /// <summary>
