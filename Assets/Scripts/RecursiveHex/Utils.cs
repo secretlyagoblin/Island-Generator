@@ -109,7 +109,7 @@ namespace RecursiveHex
 
         public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector2Int offset)
         {
-            var index = hex.Index + offset;
+            var index = offset;
             var isOdd =  index.y % 2 != 0;
             var xOffset = isOdd ? 0.5f : 0f;
             var finalX = index.x + xOffset;

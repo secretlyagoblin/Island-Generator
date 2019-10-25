@@ -135,18 +135,47 @@ namespace RecursiveHex
                 Hex.StaticFlatHexPoints[5] +  this.N5.GetNoiseOffset()
             };
 
-            var children = new Hex[offsets.Length];
+            //for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
+            //{
+            //    var dist = Vector2.Lerp(largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]],0.5f);
+            //
+            //   Debug.DrawLine(center, largeHexPoints[_triangleIndexPairs[u]], Color.red, 100f);
+            //
+            //    Debug.DrawLine(largeHexPoints[_triangleIndexPairs[u]], dist, Color.green,100f);
+            //
+            //}
+            //
+            //var col = RNG.NextColor();
+            //var zOffset = Vector3.forward * RNG.NextFloat(0, 0.5f);
+            //
+            //for (int i = 0; i < offsets.Length - 1; i++)
+            //{
+            //    Vector3 sinnerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
+            //    Vector3 sinnerCoord2 = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i + 1]);
+            //
+            //    Debug.DrawLine(sinnerCoord+ zOffset, sinnerCoord2+ zOffset, col, 100f);
+            //
+            //
+            //    //
+            //}
 
+            var children = new Hex[offsets.Length];
 
             for (int i = 0; i < offsets.Length; i++)
             {
+                //Debug.Log($"Generating Offset {offsets[i]}");
                 var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
 
-                Vector3 weight = Vector3.zero;
-                int index = 0;
+                var weight = Vector3.zero;
+                var index = 0;
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
+                    
+
+
                     weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], innerCoord);
+
+                    //Debug.Log($"Testing Baycenter {i} produced weight at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
 
                     if (weight.x >= 0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
                     {
@@ -155,6 +184,8 @@ namespace RecursiveHex
 
                     index++;
                 }
+
+                //Debug.Log($"Baycenter {i} located at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
 
                 children[i] = new Hex(
                     this.Center.GetNestedHexIndexFromOffset(offsets[i]),
@@ -184,17 +215,18 @@ namespace RecursiveHex
 
         private static Vector3 CalculateBarycentricWeight(Vector2 vertA, Vector2 vertB, Vector2 vertC, Vector2 test)
         {
-             // calculate vectors from point f to vertices p1, p2 and p3:
-             var f1 = vertA - test;
-             var f2 = vertB - test;
-             var f3 = vertC - test;
-             // calculate the areas and factors (order of parameters doesn't matter):
-             var a = Vector3.Cross(vertA - vertB, vertA - vertC).magnitude; // main triangle area a
-             var a1 = Vector3.Cross(f2, f3).magnitude / a; // p1's triangle area / a
-             var a2 = Vector3.Cross(f3, f1).magnitude / a; // p2's triangle area / a 
-             var a3 = Vector3.Cross(f1, f2).magnitude / a; // p3's triangle area / a
+            Vector2 v0 = vertB - vertA, v1 = vertC - vertA, v2 = test - vertA;
+            float d00 = Vector2.Dot(v0, v0);
+            float d01 = Vector2.Dot(v0, v1);
+            float d11 = Vector2.Dot(v1, v1);
+            float d20 = Vector2.Dot(v2, v0);
+            float d21 = Vector2.Dot(v2, v1);
+            float denom = d00 * d11 - d01 * d01;
+            var v = (d11 * d20 - d01 * d21) / denom;
+            var w = (d00 * d21 - d01 * d20) / denom;
+            var u = 1.0f - v - w;
 
-             return new Vector3(a1, a2, a3);            
+            return new Vector3(u, v, w);
         }
     }
 

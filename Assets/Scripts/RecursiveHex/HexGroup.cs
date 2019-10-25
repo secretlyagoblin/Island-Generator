@@ -45,8 +45,8 @@ namespace RecursiveHex
         private HexGroup(HexGroup parent, bool debug = false)
         {
             var hoods = parent.GetNeighbourhoods();
-            _inside = new Dictionary<Vector2Int, Hex>(parent._inside.Count * 19);
-            _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10);
+            _inside = new Dictionary<Vector2Int, Hex>(parent._inside.Count * 19); //magic numbers
+            _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10); //magic numbers
 
             for (int i = 0; i < hoods.Length; i++)
             {
@@ -70,6 +70,21 @@ namespace RecursiveHex
                 var hex = pair.Value;
                 hex.Payload = func(hex);
                 _inside[pair.Key] = hex;
+            }
+
+            return this;
+        }
+
+        public HexGroup ForEach(Func<Hex,int, HexPayload> func)
+        {
+            var i = 0;
+
+            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
+            {
+                var hex = pair.Value;
+                hex.Payload = func(hex,i);
+                _inside[pair.Key] = hex;
+                i++;
             }
 
             return this;
@@ -154,6 +169,7 @@ namespace RecursiveHex
         /// <returns></returns>
         public HexGroup Subdivide()
         {
+            Debug.Log("Starting subdivide");
             return new HexGroup(this);
         }
 
@@ -274,6 +290,11 @@ namespace RecursiveHex
         public void ToGameObjects(GameObject prefab)
         {
             HexGroup.ToGameObjects(_inside, prefab);
+        }
+
+        public void ToGameObjectsBorder(GameObject prefab)
+        {
+            HexGroup.ToGameObjects(_border, prefab);
         }
 
         public Mesh ToMeshBorder()
