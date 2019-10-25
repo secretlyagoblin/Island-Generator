@@ -37,8 +37,6 @@ public class RecursiveHexTest : MonoBehaviour
             Color.blue,
             Color.magenta,
             Color.cyan,
-            Color.black,
-            Color.blue,
             Color.white,
             Color.red,
             Color.green,
@@ -144,11 +142,11 @@ public class RecursiveHexTest : MonoBehaviour
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
         var layer2 = layer1.DebugSubdivide()
-            .ForEach((x,i) => new HexPayload()
-            {
-                Height = x.Payload.Height,
-                Color = colours[i]
-            });
+            //.ForEach((x,i) => new HexPayload()
+            //{
+            //    Height = x.Payload.Height,
+            //    Color = colours[i]
+            //});
             ;
 
         var layer3 = layer2.Subdivide().Subdivide()//.Subdivide();

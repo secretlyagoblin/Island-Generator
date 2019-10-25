@@ -24,15 +24,17 @@ public class LocalHexGeneration : MonoBehaviour
         //Center
         new Vector2Int(0,0),
 
-        new Vector2Int(+1,+0),
-        new Vector2Int(+0,+1),
-        new Vector2Int(-1,+1),
-        new Vector2Int(-1,+0),
-        new Vector2Int(-1,-1),
-        new Vector2Int(+0,-1),               
+            new Vector2Int(+1,+0),
+            new Vector2Int(+0,+1),
+            new Vector2Int(-1,+1),
+            new Vector2Int(-1,+0),
+            new Vector2Int(-1,-1),
+            new Vector2Int(+0,-1),
+            new Vector2Int(-2,+1),
+            new Vector2Int(-2,-1),
 };
 
-    private static readonly Vector3 _innerScale = Vector3.one * (1 / Mathf.Sqrt(7));
+    private static readonly Vector3 _innerScale = Vector3.one * (1f /3f);
 
     // Start is called before the first frame update
     void Start()

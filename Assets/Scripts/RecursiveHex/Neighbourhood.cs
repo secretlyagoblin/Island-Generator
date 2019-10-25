@@ -78,6 +78,8 @@ namespace RecursiveHex
             Neighbours[3],
             Neighbours[4],
             Neighbours[5],
+                        new Vector2Int(-2,+1),
+            new Vector2Int(-2,-1),
         };
 
         /// <summary>
@@ -85,10 +87,13 @@ namespace RecursiveHex
         /// </summary>
         private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
     {
-        //Center
-new Vector2Int(0,-30),new Vector2Int(0,-29),new Vector2Int(0,-28),new Vector2Int(0,-27),new Vector2Int(0,-26),new Vector2Int(0,-25),new Vector2Int(0,-24),new Vector2Int(0,-23),new Vector2Int(0,-22),new Vector2Int(0,-21),new Vector2Int(0,-20),new Vector2Int(0,-19),new Vector2Int(0,-18),new Vector2Int(0,-17),new Vector2Int(0,-16),new Vector2Int(0,-15),new Vector2Int(0,-14),new Vector2Int(0,-13),new Vector2Int(0,-12),new Vector2Int(0,-11),new Vector2Int(0,-10),new Vector2Int(0,-9),new Vector2Int(0,-8),new Vector2Int(0,-7),new Vector2Int(0,-6),new Vector2Int(0,-5),new Vector2Int(0,-4),new Vector2Int(0,-3),new Vector2Int(0,-2),new Vector2Int(0,-1),new Vector2Int(0,0),new Vector2Int(0,1),new Vector2Int(0,2),new Vector2Int(0,3),new Vector2Int(0,4),new Vector2Int(0,5),new Vector2Int(0,6),new Vector2Int(0,7),new Vector2Int(0,8),new Vector2Int(0,9),new Vector2Int(0,10),new Vector2Int(0,11),new Vector2Int(0,12),new Vector2Int(0,13),new Vector2Int(0,14),new Vector2Int(0,15),new Vector2Int(0,16),new Vector2Int(0,17),new Vector2Int(0,18),new Vector2Int(0,19),new Vector2Int(0,20),new Vector2Int(0,21),new Vector2Int(0,22),new Vector2Int(0,23),new Vector2Int(0,24),new Vector2Int(0,25),new Vector2Int(0,26),new Vector2Int(0,27),new Vector2Int(0,28),new Vector2Int(0,29),new Vector2Int(0,30),
-
-
+            new Vector2Int(0,0),
+            Neighbours[0],
+            Neighbours[1],
+            Neighbours[2],
+            Neighbours[3],
+            Neighbours[4],
+            Neighbours[5],
     };
 
         /// <summary>

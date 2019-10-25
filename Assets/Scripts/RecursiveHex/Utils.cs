@@ -53,6 +53,7 @@ namespace RecursiveHex
         /// <returns></returns>
         public static Vector2Int GetNestedHexIndexFromOffset(this Hex hex, Vector2Int localOffset)
         {
+            /*
             var inUseIndex = hex.Index; //we'll be modifying this, so we make a local copy
 
             var xOffset = inUseIndex.y * MAGIC_GRID_SKEW_RATIO;
@@ -97,15 +98,40 @@ namespace RecursiveHex
             var y = offsetY + localOffset.y;
 
             return new Vector2Int(x, y);
+            */
+
+            var inUseIndex = hex.Index; //we'll be modifying this, so we make a local copy
+
+            //var evenX = inUseIndex.x % 2 == 0;
+            var evenY = inUseIndex.y % 2 == 0;
+
+            var offsetX = inUseIndex.x * 3;
+            var offsetY = inUseIndex.y * 3;
+
+            offsetX += evenY ? 0 : 1;
+
+            if (!evenY)
+            {
+                var offsetEvenY = localOffset.y % 2 == 0;
+
+                offsetX += offsetEvenY ? 0 : 1;
+            }
+
+
+            var x = offsetX + localOffset.x;
+            var y = offsetY + localOffset.y;
+
+            return new Vector2Int(x, y);
+
         }
 
-        private const float MAGIC_INNER_ROTATION = 0.33347317225183f;
+        private const float MAGIC_INNER_ROTATION = 0f;// 0.33347317225183f;
 
         //private const float MAGIC_INNER_ROTATION = 700f;
         //private const float MAGIC_INNER_ROTATION = 0f;
 
 
-        private static float _scale = 1f / (Mathf.Sqrt(7));
+        private static float _scale = (1f / 3f)+0.001f;//1f / (Mathf.Sqrt(7)); 
 
         public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector2Int offset)
         {
@@ -156,29 +182,29 @@ namespace RecursiveHex
             return a * weight.x + b * weight.y + c * weight.z;
         }
 
-        //public static Color Blerp(Color a, Color b, Color c, Vector3 weight)
-        //{
-        //        var r = a.r * weight.x + b.r * weight.y + c.r * weight.z;
-        //        var g = a.g * weight.x + b.g * weight.y + c.g * weight.z;
-        //        var bee = a.b * weight.x + b.b * weight.y + c.b * weight.z;
-        //
-        //        return new Color(r, g, bee);
-        //}
-
         public static Color Blerp(Color a, Color b, Color c, Vector3 weight)
         {
-            if (weight.x >= weight.y && weight.x >= weight.z)
-            {
-                return a;
-            }
-            else if (weight.y >= weight.z && weight.y >= weight.x)
-            {
-                return b;
-            }
-            else
-            {
-                return c;
-            }
+                var r = a.r * weight.x + b.r * weight.y + c.r * weight.z;
+                var g = a.g * weight.x + b.g * weight.y + c.g * weight.z;
+                var bee = a.b * weight.x + b.b * weight.y + c.b * weight.z;
+        
+                return new Color(r, g, bee);
         }
+
+        //public static Color Blerp(Color a, Color b, Color c, Vector3 weight)
+        //{
+        //    if (weight.x >= weight.y && weight.x >= weight.z)
+        //    {
+        //        return a;
+        //    }
+        //    else if (weight.y >= weight.z && weight.y >= weight.x)
+        //    {
+        //        return b;
+        //    }
+        //    else
+        //    {
+        //        return c;
+        //    }
+        //}
     }
 }
