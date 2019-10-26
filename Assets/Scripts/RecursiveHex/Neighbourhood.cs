@@ -224,8 +224,21 @@ namespace RecursiveHex
                     savedChildren[index] = weight;
 
                     //Debug.Log($"Testing Baycenter {i} produced weight at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
+                    var testX  = weight.x;
+                    var testY  = weight.y;
+                    var testZ = weight.z;
 
-                    if (weight.x >= 0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
+
+                    //testX = Mathf.Abs(weight.x) < 0.00001 ? 0f :testX;
+                    //testY = Mathf.Abs(weight.y) < 0.00001 ? 0f :testY;
+                    //testZ = Mathf.Abs(weight.z) < 0.00001 ? 0f : testZ;
+                    //
+                    //testX = Mathf.Abs(weight.x)-1 < 0.00001 ? 1f : testX;
+                    //testY = Mathf.Abs(weight.y)-1 < 0.00001 ? 1f : testY;
+                    //testZ = Mathf.Abs(weight.z)-1 < 0.00001 ? 1f : testZ;
+
+
+                    if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
                     {
                         foundChild = true;
                         break;

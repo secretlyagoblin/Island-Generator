@@ -41,6 +41,10 @@ public class LocalHexGeneration : MonoBehaviour
     {
         var hex = new Hex();
 
+        RNG.Init();
+
+        RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-100000, 100000), RNG.NextFloat(-100000, 100000));
+
         for (int i = 0; i < 6; i++)
         {
             var pont = Hex.GetStaticFlatCornerXY(i);

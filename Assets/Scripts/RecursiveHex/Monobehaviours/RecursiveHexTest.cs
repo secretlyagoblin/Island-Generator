@@ -12,9 +12,9 @@ public class RecursiveHexTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        RNG.DateTimeInit();
-        RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
-        //RandomSeedProperties.Disable();
+        RNG.Init("I'd kill");
+        //RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
+        RandomSeedProperties.Disable();
 
 
         //var code = 0;
