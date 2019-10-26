@@ -191,6 +191,22 @@ namespace RecursiveHex
                 return new Color(r, g, bee);
         }
 
+        public static int Blerp(int a, int b, int c, Vector3 weight)
+        {
+            if (weight.x >= weight.y && weight.x >= weight.z)
+            {
+                return a;
+            }
+            else if (weight.y >= weight.z && weight.y >= weight.x)
+            {
+                return b;
+            }
+            else
+            {
+                return c;
+            }
+        }
+
         //public static Color Blerp(Color a, Color b, Color c, Vector3 weight)
         //{
         //    if (weight.x >= weight.y && weight.x >= weight.z)

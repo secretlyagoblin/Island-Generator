@@ -109,6 +109,7 @@ namespace RecursiveHex
     {
         public float Height;
         public Color Color;
+        public int Code;
 
         public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
         {
@@ -116,6 +117,7 @@ namespace RecursiveHex
             {
                 Height = Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
                 Color = Utils.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
+                Code = Utils.Blerp(a.Payload.Code, b.Payload.Code, c.Payload.Code, weights),
             };
         }
 
@@ -125,7 +127,8 @@ namespace RecursiveHex
                 new Dictionary<string, object>()
                 {
                     {"Height",Height },
-                     {"Color",Color }
+                    {"Color",Color },
+                    {"Code",Code }
                 };
         }
     }

@@ -175,8 +175,17 @@ namespace RecursiveHex
                 //Debug.Log($"Generating Offset {offsets[i]}");
                 var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
 
+                var testPleaseDeleteLater = this.Center.GetNestedHexIndexFromOffset(offsets[i]);
+
+                
+
+
+                //Debug.Log($"Generating inner coordinate for {offsets[i]}: {innerCoord}");
                 var weight = Vector3.zero;
                 var index = 0;
+
+                var foundChild = false;
+
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
                     
@@ -188,18 +197,25 @@ namespace RecursiveHex
 
                     if (weight.x >= 0 && weight.x <= 1 && weight.y >= 0 && weight.y <= 1 && weight.z >= 0 && weight.z <= 1)
                     {
+                        foundChild = true;
                         break;
                     }
 
                     index++;
                 }
 
-                //Debug.Log($"Baycenter {i} located at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
+
+                if (!foundChild)
+                {
+                    Debug.Log($"Issue with hex {this.Center.Index}");
+                    Debug.Log($"Baycenter {i} located at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
+                    Debug.Log($"Hey, this is actually a default barycenter... something is up...");
+                }
 
                 children[i] = new Hex(
                     this.Center.GetNestedHexIndexFromOffset(offsets[i]),
                     this.InterpolateHexPayload(weight, index),
-                    $"N0:{N0.Index}, N1:{N1.Index} \n N2:{N2.Index},C:{Center.Index}, N3:{N3.Index},\n N4:{N4.Index}, N5:{N5.Index}"
+                    $"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
                     );
                 
             }

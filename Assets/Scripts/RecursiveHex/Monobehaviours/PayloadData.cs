@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using RecursiveHex;
 
 public class PayloadData : MonoBehaviour
 {
@@ -17,5 +19,43 @@ public class PayloadData : MonoBehaviour
     void Update()
     {
         
+    }
+
+    List<Vector3> _lines = null;
+
+    private void OnDrawGizmosSelected()
+    {
+        if(_lines == null)
+        {
+            _lines = NeighbourhoodData.Split('\n').Select(str =>
+            {
+                var nums = str.Trim(new char[] { '(', ')' }).Split(',');
+                var x = int.Parse(nums[0]);
+                var y = int.Parse(nums[1]);
+
+                var hex = new Hex(new Vector2Int(x, y), new HexPayload());
+                var point = hex.GetNestedHexIndexFromOffset(Vector2Int.zero);
+                
+
+
+                var isOdd = y % 2 != 0;
+
+                var center = new Vector3(point.x, 0, point.y * Hex.ScaleY);
+
+                if (isOdd)
+                {
+                    center.x += 0.5f;
+                }
+
+                return center;
+            }).ToList();
+        }
+
+
+
+        _lines.ForEach(x =>
+        {
+            Debug.DrawLine(this.transform.position, x, Color.green);
+        });        
     }
 }

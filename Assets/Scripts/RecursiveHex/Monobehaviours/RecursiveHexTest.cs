@@ -28,132 +28,39 @@ public class RecursiveHexTest : MonoBehaviour
 
         //var code = 0;
 
-        var colours = new List<Color>()
-        {
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-                        Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.blue,
-            Color.magenta,
-            Color.cyan,
-            Color.black,
-            Color.blue,
+        var colours = new List<Color>();
 
-        };
+        for (int i = 0; i < 100; i++)
+        {
+            colours.Add(RNG.NextColor());
+        }
+
 
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
-        var layer2 = layer1.DebugSubdivide()
-            //.ForEach((x,i) => new HexPayload()
-            //{
-            //    Height = x.Payload.Height,
-            //    Color = colours[i]
-            //});
+        var layer2 = layer1.DebugSubdivide()//.Subdivide()
+            .ForEach((x,i) => new HexPayload()
+            {
+                Height = 0f,
+                Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+                Code = i
+            });;
             ;
 
-        var layer3 = layer2.Subdivide().Subdivide()//.Subdivide();
+        var layer3 = layer2.Subdivide()//.Subdivide()
+            .ForEach(x => new HexPayload()
+            {
+                Height = 0f,
+                Color = colours[x.Payload.Code],
+                Code = x.Payload.Code
+            });
+            ;
+            
+            //.Subdivide();
             //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
-        //layer3.ToGameObjects(Prefab);
+        layer3.ToGameObjects(Prefab);
         //layer1.ToGameObjectsBorder(BorderPrefab);
 
         this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh();//(x => x.Payload.Height);
