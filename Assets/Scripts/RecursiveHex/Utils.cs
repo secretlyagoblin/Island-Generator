@@ -162,6 +162,8 @@ namespace RecursiveHex
             return hex.GetNoiseOffset(Vector2Int.zero);
         }
 
+        private const float NOISE_OFFSET_SCALE = 0.38f; //Any higher caused 1 or more barycenter errors
+
         /// <summary>
         /// Gets a consistent vector within 0.5 when given a hex or a hex with an offset
         /// </summary>
@@ -173,8 +175,8 @@ namespace RecursiveHex
             var result = RandomSeedProperties.GetOffset(hex.Index.x + offset.x, hex.Index.y + offset.y);
 
             return new Vector2(
-                Mathf.Sin(result.Angle) * result.Distance * 0.5f,
-                Mathf.Cos(result.Angle) * result.Distance * 0.5f);
+                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
         }
 
         public static float Blerp(float a, float b, float c, Vector3 weight)

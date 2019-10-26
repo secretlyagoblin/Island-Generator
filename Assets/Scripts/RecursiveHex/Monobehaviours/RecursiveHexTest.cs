@@ -14,7 +14,7 @@ public class RecursiveHexTest : MonoBehaviour
     {
         RNG.Init("I'd kill");
         //RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
-        RandomSeedProperties.Disable();
+        //RandomSeedProperties.Disable();
 
 
         //var code = 0;
@@ -39,7 +39,7 @@ public class RecursiveHexTest : MonoBehaviour
 
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
-        var layer2 = layer1.DebugSubdivide()//.Subdivide()
+        var layer2 = layer1.DebugSubdivide().Subdivide()
             .ForEach((x,i) => new HexPayload()
             {
                 Height = 0f,
@@ -49,13 +49,13 @@ public class RecursiveHexTest : MonoBehaviour
             });;
             ;
 
-        var layer3 = layer2.Subdivide().Subdivide().Subdivide()
-            //.ForEach(x => new HexPayload()
-            //{
-            //    Height = 0f,
-            //    Color = colours[x.Payload.Code],
-            //    Code = x.Payload.Code
-            //});
+        var layer3 = layer2.Subdivide().Subdivide()//.Subdivide()
+            .ForEach(x => new HexPayload()
+            {
+                Height = 0f,
+                Color = colours[x.Payload.Code],
+                Code = x.Payload.Code
+            });
             ;
             
             //.Subdivide();

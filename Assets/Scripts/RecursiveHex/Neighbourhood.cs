@@ -200,7 +200,7 @@ namespace RecursiveHex
                 //Debug.Log($"Generating Offset {offsets[i]}");
                 var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
 
-                var testPleaseDeleteLater = this.Center.GetNestedHexIndexFromOffset(offsets[i]);
+                //var testPleaseDeleteLater = this.Center.GetNestedHexIndexFromOffset(offsets[i]);
 
                 
 
@@ -211,7 +211,7 @@ namespace RecursiveHex
 
                 var foundChild = false;
 
-                var savedChildren = new Vector3[6];
+                //var savedChildren = new Vector3[6];
 
 
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
@@ -221,7 +221,7 @@ namespace RecursiveHex
 
                     weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], innerCoord);
 
-                    savedChildren[index] = weight;
+                    //savedChildren[index] = weight;
 
                     //Debug.Log($"Testing Baycenter {i} produced weight at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
                     var testX  = weight.x;
@@ -250,11 +250,11 @@ namespace RecursiveHex
 
                 if (!foundChild)
                 {
-                    Debug.Log($"Issue with hex {this.Center.Index}");
-                    foreach (var item in savedChildren)
-                    {
-                        Debug.Log($"Baycenter located at [{item.x.ToString("0.00000")}, {item.y.ToString("0.00000")}, {item.z.ToString("0.00000")}]");
-                    }
+                    //Debug.Log($"Issue with hex {this.Center.Index}");
+                    //foreach (var item in savedChildren)
+                    //{
+                    //    Debug.Log($"Baycenter located at [{item.x.ToString("0.00000")}, {item.y.ToString("0.00000")}, {item.z.ToString("0.00000")}]");
+                    //}
                     
                     Debug.Log($"Hey, this is actually a default barycenter... something is up...");
                 }
