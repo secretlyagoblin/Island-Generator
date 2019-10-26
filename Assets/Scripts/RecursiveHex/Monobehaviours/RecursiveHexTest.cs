@@ -12,8 +12,9 @@ public class RecursiveHexTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        RNG.Init();
-        RandomSeedProperties.Disable();
+        RNG.DateTimeInit();
+        RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
+        //RandomSeedProperties.Disable();
 
 
         //var code = 0;
@@ -42,25 +43,26 @@ public class RecursiveHexTest : MonoBehaviour
             .ForEach((x,i) => new HexPayload()
             {
                 Height = 0f,
-                Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+                Color = RNG.NextColor(),
+                //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
                 Code = i
             });;
             ;
 
-        var layer3 = layer2.Subdivide()//.Subdivide()
-            .ForEach(x => new HexPayload()
-            {
-                Height = 0f,
-                Color = colours[x.Payload.Code],
-                Code = x.Payload.Code
-            });
+        var layer3 = layer2.Subdivide().Subdivide().Subdivide()
+            //.ForEach(x => new HexPayload()
+            //{
+            //    Height = 0f,
+            //    Color = colours[x.Payload.Code],
+            //    Code = x.Payload.Code
+            //});
             ;
             
             //.Subdivide();
             //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
-        layer3.ToGameObjects(Prefab);
+        //layer3.ToGameObjects(Prefab);
         //layer1.ToGameObjectsBorder(BorderPrefab);
 
         this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh();//(x => x.Payload.Height);

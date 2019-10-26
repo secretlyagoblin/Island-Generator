@@ -12,6 +12,12 @@ namespace RecursiveHex
 
         private static bool _isDisabled = false;
 
+        public static void SetRandomSeed(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
+
         public static void Disable()
         {
             _isDisabled = true;

@@ -21,10 +21,12 @@ namespace RecursiveHex
             _border = new Dictionary<Vector2Int, Hex>(6);
 
             AddHex(new Hex(Vector2Int.zero,new HexPayload()));
+
+            var neighbours = Neighbourhood.GetNeighbours(Vector2Int.zero);
             //
-            for (int i = 0; i < Neighbourhood.Neighbours.Length; i++)
+            for (int i = 0; i < neighbours.Length; i++)
             {
-                AddBorderHex(new Hex(Neighbourhood.Neighbours[i],new HexPayload()));
+                AddBorderHex(new Hex(neighbours[i],new HexPayload()));
             }
         }
 
@@ -108,9 +110,11 @@ namespace RecursiveHex
             {
                 var hexes = new Hex[6];
 
+                var neighbours = Neighbourhood.GetNeighbours(item.Key);
+
                 for (int i = 0; i < 6; i++)
                 {
-                    var key = item.Key + Neighbourhood.Neighbours[i];
+                    var key = item.Key + neighbours[i];
                     if (_border.ContainsKey(key))
                     {
                         hexes[i] = _border[key];

@@ -58,7 +58,22 @@ namespace RecursiveHex
         /// </summary>
         /// 
 
-        public static readonly Vector2Int[] Neighbours = new Vector2Int[]
+            public static Vector2Int[] GetNeighbours(Vector2Int test)
+        {
+            var even = test.y % 2 == 0;
+
+            if (even)
+            {
+                return NeighboursEven;
+            }
+            else
+            {
+                return NeighboursOdd;
+            }
+
+        }
+
+        private static readonly Vector2Int[] NeighboursEven = new Vector2Int[]
         {
             new Vector2Int(+1,+0),
             new Vector2Int(+0,+1),
@@ -68,16 +83,26 @@ namespace RecursiveHex
             new Vector2Int(+0,-1),
         };
 
+        private static readonly Vector2Int[] NeighboursOdd = new Vector2Int[]
+{
+            new Vector2Int(+1,+0),
+            new Vector2Int(+1,+1),
+            new Vector2Int(-0,+1),
+            new Vector2Int(-1,+0),
+            new Vector2Int(-0,-1),
+            new Vector2Int(+1,-1),
+};
+
         private static readonly Vector2Int[] _2x2ChildrenOffsets = new Vector2Int[]
         {
             //Center
             new Vector2Int(0,0),
-            Neighbours[0],
-            Neighbours[1],
-            Neighbours[2],
-            Neighbours[3],
-            Neighbours[4],
-            Neighbours[5],
+            NeighboursEven[0],
+            NeighboursEven[1],
+            NeighboursEven[2],
+            NeighboursEven[3],
+            NeighboursEven[4],
+            NeighboursEven[5],
                         new Vector2Int(-2,+1),
             new Vector2Int(-2,-1),
         };
@@ -88,12 +113,12 @@ namespace RecursiveHex
         private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
     {
             new Vector2Int(0,0),
-            Neighbours[0],
-            Neighbours[1],
-            Neighbours[2],
-            Neighbours[3],
-            Neighbours[4],
-            Neighbours[5],
+            NeighboursEven[0],
+            NeighboursEven[1],
+            NeighboursEven[2],
+            NeighboursEven[3],
+            NeighboursEven[4],
+            NeighboursEven[5],
     };
 
         /// <summary>
@@ -186,12 +211,17 @@ namespace RecursiveHex
 
                 var foundChild = false;
 
+                var savedChildren = new Vector3[6];
+
+
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
                     
 
 
                     weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], innerCoord);
+
+                    savedChildren[index] = weight;
 
                     //Debug.Log($"Testing Baycenter {i} produced weight at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
 
@@ -208,7 +238,11 @@ namespace RecursiveHex
                 if (!foundChild)
                 {
                     Debug.Log($"Issue with hex {this.Center.Index}");
-                    Debug.Log($"Baycenter {i} located at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
+                    foreach (var item in savedChildren)
+                    {
+                        Debug.Log($"Baycenter located at [{item.x.ToString("0.00000")}, {item.y.ToString("0.00000")}, {item.z.ToString("0.00000")}]");
+                    }
+                    
                     Debug.Log($"Hey, this is actually a default barycenter... something is up...");
                 }
 
