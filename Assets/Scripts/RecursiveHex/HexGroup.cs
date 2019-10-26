@@ -55,51 +55,20 @@ namespace RecursiveHex
             }
         }
 
-        public HexGroup ForEach(Func<Hex, HexPayload> func)
+        private void AddBorderHex(Hex hex)
         {
-            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
-            {
-                var hex = pair.Value;
-                hex.Payload = func(hex);
-                _inside[pair.Key] = hex;
-            }
-
-            return this;
+            _border.Add(hex.Index, hex);
         }
 
-        public HexGroup ForEach(Func<Hex,int, HexPayload> func)
+        private void AddHex(Hex hex)
         {
-            var i = 0;
-
-            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
-            {
-                var hex = pair.Value;
-                hex.Payload = func(hex,i);
-                _inside[pair.Key] = hex;
-                i++;
-            }
-
-            return this;
+            _inside.Add(hex.Index, hex);
         }
 
-        //public HexGroup ForEach(Action<Hex> action)
-        //{
-        //    foreach (var item in _inside)
-        //    {
-        //        item.Value.UpdatePayload(action);
-        //    }
-        //    return this;
-        //}
-
-        //public HexGroup ForEach(Action<HexPayload> action)
-        //{
-        //    foreach (var item in _inside)
-        //    {
-        //        item.Value.Payload = action();
-        //    }
-        //    return this;
-        //}
-
+        /// <summary>
+        /// Get an array of neighbourhoods that allow all cells to be subdivided
+        /// </summary>
+        /// <returns></returns>
         private Neighbourhood[] GetNeighbourhoods()
         {
             var hood = new Neighbourhood[_inside.Count];
@@ -147,15 +116,7 @@ namespace RecursiveHex
             return hood;
         }
 
-        private void AddBorderHex(Hex hex)
-        {
-            _border.Add(hex.Index, hex);
-        }
-
-        private void AddHex(Hex hex)
-        {
-            _inside.Add(hex.Index, hex);
-        }
+        #region Subdivision
 
         /// <summary>
         /// Subdivide this hexgroup.
@@ -176,6 +137,7 @@ namespace RecursiveHex
             return new HexGroup(this, true);
         }
 
+
         /// <summary>
         /// Hypothetical function that subdivides and returns a specific subset, based on a function, like Where() in linq.
         /// </summary>
@@ -185,6 +147,43 @@ namespace RecursiveHex
         {
             throw new NotImplementedException();
         }
+
+
+
+        #endregion
+
+        #region ForEach
+
+        public HexGroup ForEach(Func<Hex, HexPayload> func)
+        {
+            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
+            {
+                var hex = pair.Value;
+                hex.Payload = func(hex);
+                _inside[pair.Key] = hex;
+            }
+
+            return this;
+        }
+
+        public HexGroup ForEach(Func<Hex, int, HexPayload> func)
+        {
+            var i = 0;
+
+            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
+            {
+                var hex = pair.Value;
+                hex.Payload = func(hex, i);
+                _inside[pair.Key] = hex;
+                i++;
+            }
+
+            return this;
+        }
+
+        #endregion
+
+        #region ToMesh + ToGameObjects
 
         private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict, Func<Hex,float> heightCalculator)
         {
@@ -298,5 +297,7 @@ namespace RecursiveHex
         {
             return HexGroup.ToMesh(_border);
         }
+
+        #endregion
     }
 }

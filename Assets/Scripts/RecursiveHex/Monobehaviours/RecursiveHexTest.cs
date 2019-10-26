@@ -12,8 +12,9 @@ public class RecursiveHexTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        RNG.Init("I'd kill");
-        //RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
+        //RNG.Init("I'd kill");
+        RNG.Init();
+        RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
         //RandomSeedProperties.Disable();
 
 
@@ -35,8 +36,6 @@ public class RecursiveHexTest : MonoBehaviour
         {
             colours.Add(RNG.NextColor());
         }
-
-
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
         var layer2 = layer1.DebugSubdivide().Subdivide()
