@@ -17,62 +17,11 @@ namespace RecursiveHex
 
         public bool IsBorder;
 
-        /// <summary>
-        /// The neighbourhood around a 3x3 grid - currently not in use
-        /// </summary>
-        private static readonly Vector2Int[] _3x3ChildrenOffsets = new Vector2Int[]
-        {
-        //Center
-        new Vector2Int(0,0),
-
-        //One
-        new Vector2Int(+0,+1),
-        new Vector2Int(+1,+1),
-        new Vector2Int(+0,-1),
-        new Vector2Int(+1,-1),
-        new Vector2Int(-1,+0),
-        new Vector2Int(+1,+0),
-        //Two
-        new Vector2Int(-1,-2),
-        new Vector2Int(+0,-2),
-        new Vector2Int(+1,-2),
-
-        new Vector2Int(-1,+2),
-        new Vector2Int(+0,+2),
-        new Vector2Int(+1,+2),
-
-        new Vector2Int(+2,+1),
-        new Vector2Int(+2,+0),
-        new Vector2Int(+2,-1),
-
-        new Vector2Int(-1,+1),
-        new Vector2Int(-2,+0),
-        new Vector2Int(-1,-1),
-            //new Vector2Int(+1,-2),
-            //new Vector2Int(+2,0)
-
-        };
+        #region Static Vertex Lists
 
         /// <summary>
-        /// The neighbourhood around a 2x2 grid - currently hardcoded, and shouldn't be changed
+        /// The neighbourhood around a hex when Y index is even - currently hardcoded, and shouldn't be changed
         /// </summary>
-        /// 
-
-            public static Vector2Int[] GetNeighbours(Vector2Int test)
-        {
-            var even = test.y % 2 == 0;
-
-            if (even)
-            {
-                return NeighboursEven;
-            }
-            else
-            {
-                return NeighboursOdd;
-            }
-
-        }
-
         private static readonly Vector2Int[] NeighboursEven = new Vector2Int[]
         {
             new Vector2Int(+1,+0),
@@ -83,17 +32,23 @@ namespace RecursiveHex
             new Vector2Int(+0,-1),
         };
 
+        /// <summary>
+        /// The neighbourhood around a hex when Y index is odd - currently hardcoded, and shouldn't be changed
+        /// </summary>
         private static readonly Vector2Int[] NeighboursOdd = new Vector2Int[]
-{
+        {
             new Vector2Int(+1,+0),
             new Vector2Int(+1,+1),
             new Vector2Int(-0,+1),
             new Vector2Int(-1,+0),
             new Vector2Int(-0,-1),
             new Vector2Int(+1,-1),
-};
+        };
 
-        private static readonly Vector2Int[] _2x2ChildrenOffsets = new Vector2Int[]
+        /// <summary>
+        /// The children of a hexagon in a rough 3x3 grid - currently hardcoded, and shouldn't be changed
+        /// </summary>
+        private static readonly Vector2Int[] _3x3ChildrenOffsets = new Vector2Int[]
         {
             //Center
             new Vector2Int(0,0),
@@ -103,15 +58,15 @@ namespace RecursiveHex
             NeighboursEven[3],
             NeighboursEven[4],
             NeighboursEven[5],
-                        new Vector2Int(-2,+1),
+            new Vector2Int(-2,+1),
             new Vector2Int(-2,-1),
         };
 
         /// <summary>
-        /// The offsets called when manually setting up a grid.
+        /// The offsets called when manually setting up a grid. Used for testing.
         /// </summary>
         private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
-    {
+        {
             new Vector2Int(0,0),
             NeighboursEven[0],
             NeighboursEven[1],
@@ -119,7 +74,19 @@ namespace RecursiveHex
             NeighboursEven[3],
             NeighboursEven[4],
             NeighboursEven[5],
-    };
+        };
+
+        #endregion
+
+        /// <summary>
+        /// Get the correct neighbourhood for a given hexagon index
+        /// </summary>
+        /// <param name="index">XY index to test</param>
+        /// <returns></returns>
+        public static Vector2Int[] GetNeighbours(Vector2Int index)
+        {
+            return index.y % 2 == 0 ? NeighboursEven : NeighboursOdd;
+        }
 
         /// <summary>
         /// Subdivides the grid by one level
@@ -127,7 +94,7 @@ namespace RecursiveHex
         /// <returns></returns>
         public Hex[] Subdivide()
         {
-            return Subdivide(_2x2ChildrenOffsets);
+            return Subdivide(_3x3ChildrenOffsets);
         }
 
         /// <summary>
@@ -139,20 +106,15 @@ namespace RecursiveHex
             return Subdivide(_DebugOffsets);
         }
 
-        /// <summary>
-        /// Secondary grid rotation when we go down one layer
-        /// </summary>
-        private static float _innerHexRotation = Mathf.Tan(1f / 2.5f);
-
         private static readonly int[] _triangleIndexPairs = new int[]
-{
-                0,1,
-                1,2,
-                2,3,
-                3,4,
-                4,5,
-                5,0
-};
+        {
+            0,1,
+            1,2,
+            2,3,
+            3,4,
+            4,5,
+            5,0
+        };
 
         private Hex[] Subdivide(Vector2Int[] offsets)
         {
@@ -160,7 +122,7 @@ namespace RecursiveHex
 
             var largeHexPoints = new Vector2[]
             {
-                
+
                 Hex.StaticFlatHexPoints[0] +  this.N0.GetNoiseOffset(),
                 Hex.StaticFlatHexPoints[1] +  this.N1.GetNoiseOffset(),
                 Hex.StaticFlatHexPoints[2] +  this.N2.GetNoiseOffset(),
@@ -169,94 +131,33 @@ namespace RecursiveHex
                 Hex.StaticFlatHexPoints[5] +  this.N5.GetNoiseOffset()
             };
 
-            //for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
-            //{
-            //    var dist = Vector2.Lerp(largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]],0.5f);
-            //
-            //   Debug.DrawLine(center, largeHexPoints[_triangleIndexPairs[u]], Color.red, 100f);
-            //
-            //    Debug.DrawLine(largeHexPoints[_triangleIndexPairs[u]], dist, Color.green,100f);
-            //
-            //}
-            //
-            //var col = RNG.NextColor();
-            //var zOffset = Vector3.forward * RNG.NextFloat(0, 0.5f);
-            //
-            //for (int i = 0; i < offsets.Length - 1; i++)
-            //{
-            //    Vector3 sinnerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
-            //    Vector3 sinnerCoord2 = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i + 1]);
-            //
-            //    Debug.DrawLine(sinnerCoord+ zOffset, sinnerCoord2+ zOffset, col, 100f);
-            //
-            //
-            //    //
-            //}
-
             var children = new Hex[offsets.Length];
 
             for (int i = 0; i < offsets.Length; i++)
             {
-                //Debug.Log($"Generating Offset {offsets[i]}");
                 var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
-
-                //var testPleaseDeleteLater = this.Center.GetNestedHexIndexFromOffset(offsets[i]);
-
-                
-
-
-                //Debug.Log($"Generating inner coordinate for {offsets[i]}: {innerCoord}");
                 var weight = Vector3.zero;
                 var index = 0;
-
                 var foundChild = false;
-
-                //var savedChildren = new Vector3[6];
-
 
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
-                    
-
-
                     weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], innerCoord);
-
-                    //savedChildren[index] = weight;
-
-                    //Debug.Log($"Testing Baycenter {i} produced weight at [{weight.x.ToString("0.0000")}, {weight.y.ToString("0.0000")}, {weight.z.ToString("0.0000")}] in Triangle {index}");
-                    var testX  = weight.x;
-                    var testY  = weight.y;
+                    var testX = weight.x;
+                    var testY = weight.y;
                     var testZ = weight.z;
-
-
-                    //testX = Mathf.Abs(weight.x) < 0.00001 ? 0f :testX;
-                    //testY = Mathf.Abs(weight.y) < 0.00001 ? 0f :testY;
-                    //testZ = Mathf.Abs(weight.z) < 0.00001 ? 0f : testZ;
-                    //
-                    //testX = Mathf.Abs(weight.x)-1 < 0.00001 ? 1f : testX;
-                    //testY = Mathf.Abs(weight.y)-1 < 0.00001 ? 1f : testY;
-                    //testZ = Mathf.Abs(weight.z)-1 < 0.00001 ? 1f : testZ;
-
 
                     if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
                     {
                         foundChild = true;
                         break;
                     }
-
                     index++;
                 }
 
-
                 if (!foundChild)
                 {
-                    //Debug.Log($"Issue with hex {this.Center.Index}");
-                    //foreach (var item in savedChildren)
-                    //{
-                    //    Debug.Log($"Baycenter located at [{item.x.ToString("0.00000")}, {item.y.ToString("0.00000")}, {item.z.ToString("0.00000")}]");
-                    //}
-                    
-                    Debug.Log($"Hey, this is actually a default barycenter... something is up...");
+                    Debug.Log($"No containing barycenter detected - inner hex not contained by outer hex");
                 }
 
                 children[i] = new Hex(
@@ -264,15 +165,18 @@ namespace RecursiveHex
                     this.InterpolateHexPayload(weight, index),
                     $"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
                     );
-                
             }
 
             return children;
         }
 
-        //private void BuildHexagon
-
-            private HexPayload InterpolateHexPayload(Vector3 weights, int triangleIndex)
+        /// <summary>
+        /// Goes through the neighbours in a hardcoded way and lerps the correct data
+        /// </summary>
+        /// <param name="weights"></param>
+        /// <param name="triangleIndex"></param>
+        /// <returns></returns>
+        private HexPayload InterpolateHexPayload(Vector3 weights, int triangleIndex)
         {
             switch (triangleIndex)
             {
@@ -286,6 +190,14 @@ namespace RecursiveHex
             }
         }
 
+        /// <summary>
+        /// Calculates the barycentric weight of the inner triangles.
+        /// </summary>
+        /// <param name="vertA"></param>
+        /// <param name="vertB"></param>
+        /// <param name="vertC"></param>
+        /// <param name="test"></param>
+        /// <returns></returns>
         private static Vector3 CalculateBarycentricWeight(Vector2 vertA, Vector2 vertB, Vector2 vertC, Vector2 test)
         {
             Vector2 v0 = vertB - vertA, v1 = vertC - vertA, v2 = test - vertA;
