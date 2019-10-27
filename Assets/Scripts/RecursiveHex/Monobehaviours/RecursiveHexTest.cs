@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using RecursiveHex;
-using Unity.Jobs;
-using Unity.Collections;
 
 public class RecursiveHexTest : MonoBehaviour
 {
@@ -60,12 +58,10 @@ public class RecursiveHexTest : MonoBehaviour
             });
             ;
 
-        //this.StartCoroutine(FinaliseHexgroup(
-        //    layer3.GetSubGroups(x => x.Payload.Code),
-        //    x => TryFinaliseHexGroup(x.Subdivide().Subdivide()))
-        //    );
-
-        this.StartCoroutine(TryFinaliseHexGroup(layer3));
+        this.StartCoroutine(FinaliseHexgroup(
+            layer3.GetSubGroups(x => x.Payload.Code),
+            x => Finalise(x.Subdivide().Subdivide()))
+            );
 
         //layer3.GetSubGroups(x => x.Payload.Code).ForEach(x=> Finalise(x.Subdivide().Subdivide()));
             
@@ -80,43 +76,22 @@ public class RecursiveHexTest : MonoBehaviour
 
     }
 
-    IEnumerator FinaliseHexgroup(List<HexGroup> hexGroups, Action<HexGroup> func)
+    IEnumerator FinaliseHexgroup(List<HexGroup> hexGroup, Action<HexGroup> func)
     {
-        for (int i = 0; i < hexGroups.Count; i++)
+        for (int i = 0; i < hexGroup.Count; i++)
         {
-            Debug.Log("Whoo");
-            func(hexGroups[i]);
+            func(hexGroup[i]);
             yield return null;
         }
     }
 
-    IEnumerator TryFinaliseHexGroup(HexGroup hexGroup)
-    {
-        var result = hexGroup.ToMeshParallel();
-
-        foreach (var iteration in result)
-        {
-            Debug.Log("Whaa");
-            if (iteration == null)
-            {
-                yield return null;
-            }
-            else
-            {
-                Debug.Log("Scunt");
-                Finalise(iteration);
-            }
-        }
-
-    }
-
-    private void Finalise(Mesh mesh)
+    private void Finalise(HexGroup group)
     {
         var gobject = new GameObject();
         gobject.name = "Subregion";
         var renderer = gobject.AddComponent<MeshRenderer>();
         renderer.sharedMaterial = this.GetComponent<MeshRenderer>().sharedMaterial;
-        gobject.AddComponent<MeshFilter>().sharedMesh = mesh;
+        gobject.AddComponent<MeshFilter>().sharedMesh = group.ToMesh();
         gobject.transform.parent = this.transform;
     }
 
@@ -126,5 +101,3 @@ public class RecursiveHexTest : MonoBehaviour
         
     }
 }
-
-
