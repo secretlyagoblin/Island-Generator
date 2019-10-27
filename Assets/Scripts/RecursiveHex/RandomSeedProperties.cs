@@ -26,6 +26,11 @@ namespace RecursiveHex
 
         public static RandomOffset GetOffset(int x, int y)
         {
+            return GetOffset((float)x, (float)y);
+        }
+
+            public static RandomOffset GetOffset(float x, float y)
+        {
             if (_isDisabled)
             {
                 return new RandomOffset()

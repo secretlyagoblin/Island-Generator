@@ -137,6 +137,22 @@ namespace RecursiveHex
             }
         }
 
+        public static Vector3 GetNoiseOffset(this Vector3 vector3)
+        {
+            var result = RandomSeedProperties.GetOffset(vector3.x, vector3.z);
+
+            return new Vector3(
+                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                0,
+                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
+        }
+
+        public static Vector3 AddNoiseOffset(this Vector3 vector3)
+        {
+            return vector3 + vector3.GetNoiseOffset();
+
+        }
+
         //public static Color Blerp(Color a, Color b, Color c, Vector3 weight)
         //{
         //    if (weight.x >= weight.y && weight.x >= weight.z)

@@ -32,7 +32,7 @@ public class RecursiveHexTest : MonoBehaviour
 
         var colours = new List<Color>();
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 1000; i++)
         {
             colours.Add(RNG.NextColor());
         }
@@ -48,19 +48,19 @@ public class RecursiveHexTest : MonoBehaviour
             });;
             ;
 
-        var layer3 = layer2.Subdivide()//.Subdivide().Subdivide()//.Subdivide()
+        var layer3 = layer2.Subdivide().Subdivide()//.Subdivide()//.Subdivide()
             .ForEach(x => new HexPayload()
             {
                 Height = 0f,
-                Color = x.Payload.Color,
-                //Color = x.IsBorder?Color.black:colours[x.Payload.Code],
+                //Color = x.Payload.Color,
+                Color = x.IsBorder?Color.black:colours[x.Payload.Code],
                 Code = x.Payload.Code
             });
             ;
 
         this.StartCoroutine(FinaliseHexgroup(
             layer3.GetSubGroups(x => x.Payload.Code),
-            x => Finalise(x.Subdivide().Subdivide()))
+            x => Finalise(x))//.Subdivide().Subdivide()))
             );
 
         //layer3.GetSubGroups(x => x.Payload.Code).ForEach(x=> Finalise(x.Subdivide().Subdivide()));
