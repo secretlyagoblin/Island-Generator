@@ -71,19 +71,19 @@ namespace RecursiveHex
         /// <returns></returns>
         private Neighbourhood[] GetNeighbourhoods()
         {
-            var hood = new Neighbourhood[_inside.Count];
+            var hood = new Neighbourhood[_inside.Count + _border.Count];
 
             var count = 0;
 
-            foreach (var item in _inside)
+            foreach (var hexDictEntry in _inside)
             {
                 var hexes = new Hex[6];
 
-                var neighbours = Neighbourhood.GetNeighbours(item.Key);
+                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var key = item.Key + neighbours[i];
+                    var key = hexDictEntry.Key + neighbours[i];
                     if (_border.ContainsKey(key))
                     {
                         hexes[i] = _border[key];
@@ -94,22 +94,59 @@ namespace RecursiveHex
                     }
                     else
                     {
-                        Debug.LogError("Hey, Remove Null Neighbours Being Possible");
+                        Debug.LogError("A null neighbour detected on an inner hex.");
                         hexes[i] = new Hex();
                     }
                 }
 
                 hood[count] = new Neighbourhood
                 {
-                    Center = item.Value,
+                    Center = hexDictEntry.Value,
                     N0 = hexes[0],
                     N1 = hexes[1],
                     N2 = hexes[2],
                     N3 = hexes[3],
                     N4 = hexes[4],
-                    N5 = hexes[5]
+                    N5 = hexes[5],
+                    IsBorder = false
                 };
+                count++;
+            }
 
+            foreach (var hexDictEntry in _border)
+            {
+                var hexes = new Hex[6];
+                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var key = hexDictEntry.Key + neighbours[i];
+                    if (_border.ContainsKey(key))
+                    {
+                        hexes[i] = _border[key];
+                    }
+                    else if (_inside.ContainsKey(key))
+                    {
+                        hexes[i] = _inside[key];
+                    }
+                    else
+                    {
+                        Debug.Log("This border has some nulls! That is fine");
+                        hexes[i] = Hex.InvalidHex;
+                    }
+                }
+
+                hood[count] = new Neighbourhood
+                {
+                    Center = hexDictEntry.Value,
+                    N0 = hexes[0],
+                    N1 = hexes[1],
+                    N2 = hexes[2],
+                    N3 = hexes[3],
+                    N4 = hexes[4],
+                    N5 = hexes[5],
+                    IsBorder = true
+                };
                 count++;
             }
 
@@ -259,6 +296,10 @@ namespace RecursiveHex
                 item.Value.Payload.PopulatePayloadObject(payload);
                 payload.NeighbourhoodData= item.Value.DebugData;
 
+                if (Hex.IsNull(item.Value))
+                {
+                    payload.name += $"_NULL";
+                }       
 
                 for (int i = 0; i < 6; i++)
                 {

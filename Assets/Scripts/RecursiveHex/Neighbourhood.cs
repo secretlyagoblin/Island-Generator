@@ -157,7 +157,7 @@ namespace RecursiveHex
 
                 if (!foundChild)
                 {
-                    Debug.Log($"No containing barycenter detected - inner hex not contained by outer hex");
+                    Debug.LogError($"No containing barycenter detected at {this.Center.Index} - inner hex not contained by outer hex. Using weight {weight}.");
                 }
 
                 children[i] = new Hex(
@@ -167,7 +167,9 @@ namespace RecursiveHex
                     );
             }
 
-            return children;
+            var childSubset = ResolveEdgeCases(children);
+
+            return childSubset;
         }
 
         /// <summary>
@@ -212,6 +214,70 @@ namespace RecursiveHex
             var u = 1.0f - v - w;
 
             return new Vector3(u, v, w);
+        }
+
+        private Hex[] ResolveEdgeCases(Hex[] ch)
+        {
+            if (Hex.IsNull(this.Center))
+            {
+                return new Hex[0];
+            }
+
+            var a = !Hex.IsNull(this.N0);
+            var b = !Hex.IsNull(this.N1);
+            var c = !Hex.IsNull(this.N2);
+            var d = !Hex.IsNull(this.N3);
+            var e = !Hex.IsNull(this.N4);
+            var f = !Hex.IsNull(this.N5);
+
+            
+
+            if(a && b && c && d && e && f)// 1-1-1-1-1-1
+            {
+                return ch;
+            }
+            else if (a && b && c && d && e && !f) // 1-1-1-1-1-0
+            {
+                return ch;
+            }
+            else if (a && b && c && d && !e && !f) // 1-1-1-1-0-0
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[4],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && c && !d && !e && !f) // 1-1-1-0-0-0
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[6],ch[7]
+                };
+            }
+            else if (a && b && !c && !d && !e && !f) // 1-1-0-0-0-0
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[6]
+                };
+            }
+            else if (a && !b && !c && !d && !e && !f) // 1-0-0-0-0-0
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[6]
+                };
+            }
+            else if (a && !b && !c && !d && !e && !f) // 0-0-0-0-0-0
+            {
+                return new Hex[0];
+            }
+
+            Debug.LogError($"Unhandled case {(a?1:0)}-{(b ? 1 : 0)}-{(c ? 1 : 0)}-{(d ? 1 : 0)}-{(e ? 1 : 0)}-{(f ? 1 : 0)}");
+
+            return ch;
+
+            
         }
     }
 

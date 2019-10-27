@@ -30,81 +30,15 @@ namespace RecursiveHex
         }
 
         /// <summary>
-        /// Mapping a XY grid of hexes by a level requires a rhombus - this is the X translation of the bottom of this rhombus
-        /// </summary>
-        private static Vector2 _rhombusX = new Vector2(2.5f, 1);
-
-        /// <summary>
-        /// Mapping a XY grid of hexes by a level requires a rhombus - this is the Y translation of the bottom of this rhombus
-        /// </summary>
-        private static Vector2 _rhombusY = new Vector2(0.5f, 3);
-
-        /// <summary>
-        /// Rhombus offsetting obvious results in a rhombus. 
-        /// We have to skew in the other direction to get a nice result - this is the magic number I chose for that.
-        /// </summary>
-        private const float MAGIC_GRID_SKEW_RATIO = 0.59f;
-
-
-        /// <summary>
-        /// The major offsetting function. Set up for a 2x2 grid only, with some magic numbers for keeping the grid sqaure.
+        /// The major offsetting function.
         /// </summary>
         /// <param name="localOffset"></param>
         /// <returns></returns>
         public static Vector2Int GetNestedHexIndexFromOffset(this Hex hex, Vector2Int localOffset)
         {
-            /*
-            var inUseIndex = hex.Index; //we'll be modifying this, so we make a local copy
-
-            var xOffset = inUseIndex.y * MAGIC_GRID_SKEW_RATIO;
-
-            inUseIndex.x -= Mathf.FloorToInt(xOffset);
-
-            var shiftedIndex = (inUseIndex.x * _rhombusX) +
-                (inUseIndex.y * _rhombusY);
-
-            var evenX = inUseIndex.x % 2 == 0;
-            var evenY = inUseIndex.y % 2 == 0;
-
-            var offsetX = Mathf.FloorToInt(shiftedIndex.x);
-            var offsetY = Mathf.FloorToInt(shiftedIndex.y);
-
-            //Different grids require different edge cases - here's them.
-            if (evenX && evenY)
-            {
-
-            }
-            else if (evenX && !evenY)
-            {
-                if (localOffset.y % 2 != 0)
-                {
-                    offsetX++;
-                }
-            }
-            else if (!evenX && evenY)
-            {
-                if (localOffset.y % 2 != 0)
-                {
-                    offsetX++;
-                }
-            }
-            else if (!evenX && !evenY)
-            {
-
-            }
-
-            //final offset
-            var x = offsetX + localOffset.x;
-            var y = offsetY + localOffset.y;
-
-            return new Vector2Int(x, y);
-            */
 
             var inUseIndex = hex.Index; //we'll be modifying this, so we make a local copy
-
-            //var evenX = inUseIndex.x % 2 == 0;
             var evenY = inUseIndex.y % 2 == 0;
-
             var offsetX = inUseIndex.x * 3;
             var offsetY = inUseIndex.y * 3;
 
@@ -117,21 +51,15 @@ namespace RecursiveHex
                 offsetX += offsetEvenY ? 0 : 1;
             }
 
-
             var x = offsetX + localOffset.x;
             var y = offsetY + localOffset.y;
 
             return new Vector2Int(x, y);
-
         }
 
         private const float MAGIC_INNER_ROTATION = 0f;// 0.33347317225183f;
 
-        //private const float MAGIC_INNER_ROTATION = 700f;
-        //private const float MAGIC_INNER_ROTATION = 0f;
-
-
-        private static float _scale = (1f / 3f)+0.001f;//1f / (Mathf.Sqrt(7)); 
+        private static readonly float _scale = (1f / 3f);//1f / (Mathf.Sqrt(7)); 
 
         public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector2Int offset)
         {
@@ -162,7 +90,7 @@ namespace RecursiveHex
             return hex.GetNoiseOffset(Vector2Int.zero);
         }
 
-        private const float NOISE_OFFSET_SCALE = 0.38f; //Any higher caused 1 or more barycenter errors
+        private const float NOISE_OFFSET_SCALE = 0.37f; //Any higher caused 1 or more barycenter errors
 
         /// <summary>
         /// Gets a consistent vector within 0.5 when given a hex or a hex with an offset

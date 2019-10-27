@@ -12,6 +12,8 @@ namespace RecursiveHex
         public HexPayload Payload;
         public string DebugData;
 
+        private bool _isNull;
+
         public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
         public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
 
@@ -35,6 +37,23 @@ namespace RecursiveHex
             Index = index;
             Payload = payload;
             DebugData = debugData;
+
+            _isNull = false;
+        }
+
+        public static Hex InvalidHex
+        {
+            get {
+                return new Hex()
+                {
+                    _isNull = true
+                };
+            }
+        }
+
+        public static bool IsNull(Hex hex)
+        {
+            return hex._isNull;
         }
 
         /// <summary>
@@ -104,6 +123,7 @@ namespace RecursiveHex
                          (Index.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
         }
     }
+
 
     public struct HexPayload
     {
