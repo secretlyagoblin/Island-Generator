@@ -136,6 +136,19 @@ namespace RecursiveHex
             return new Vector3(Index.x + Hex.HalfHex * Mathf.Cos(-angle_rad),0,
                          (Index.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
         }
+
+        /// <summary>
+        /// Get the nth corner of the hexagon  on the XZ plane
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static Vector3 StaticGetPointyCornerXZ(Vector2Int index, int i)
+        {
+            var angle_deg = 60f * i - 30f;
+            var angle_rad = Mathf.PI / 180f * angle_deg;
+            return new Vector3(index.x + Hex.HalfHex * Mathf.Cos(-angle_rad), 0,
+                         (index.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
+        }
     }
 
 

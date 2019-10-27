@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Unity.Jobs;
+using Unity.Collections;
 
 namespace RecursiveHex
 {
@@ -331,6 +333,118 @@ namespace RecursiveHex
             };
         }
 
+        private static IEnumerable<Mesh> ToMeshParallel(Dictionary<Vector2Int, Hex> dict)
+        {
+            var verts = new Vector3[dict.Count * 3 * 6];
+            var tris = new int[dict.Count * 6 * 3];
+            var colors = new Color[dict.Count * 3 * 6];
+            var indexes = dict.Keys.ToArray();
+            var inColors = dict.Values.Select(x => x.Payload.Color).ToArray();
+
+
+            var m_verts = new NativeArray<Vector3>(dict.Count * 3 * 6,Allocator.Persistent);
+            var m_tris = new NativeArray<int>(dict.Count * 6 * 3, Allocator.Persistent);
+            var m_colors = new NativeArray<Color>(dict.Count * 3 * 6, Allocator.Persistent);
+            var m_indexes = new NativeArray<Vector2Int>(indexes,Allocator.Persistent);
+            var m_inColors = new NativeArray<Color>(inColors, Allocator.Persistent);
+
+            var job = new MeshJob()
+            {
+                verts = m_verts,
+                tris = m_tris,
+                colors = m_colors,
+                indexes = m_indexes,
+                inColors = m_inColors
+            };
+
+            Debug.Log("Job was scheduled :/");
+
+            var handle = job.Schedule(verts.Length, 64);
+
+            while (!handle.IsCompleted)
+            {
+                yield return null;
+            }
+
+            handle.Complete();
+
+            m_verts.CopyTo(verts);
+            m_tris.CopyTo(tris);
+            m_colors.CopyTo(colors);
+
+            m_verts.Dispose();
+            m_tris.Dispose();
+            m_colors.Dispose();
+            m_indexes.Dispose();
+            m_inColors.Dispose();
+
+            yield return new Mesh()
+            {
+                vertices = verts,
+                triangles = tris,
+                colors = colors
+            };
+        }
+
+        private struct MeshJob : IJobParallelFor
+        {
+            public NativeArray<Vector3> vertsA;
+            public NativeArray<int> trisA;
+            public NativeArray<Color> colorsA;
+
+            public NativeArray<Vector3> vertsB;
+            public NativeArray<int> trisB;
+            public NativeArray<Color> colorsB;
+
+            public NativeArray<Vector3> vertsC;
+            public NativeArray<int> trisC;
+            public NativeArray<Color> colorsC;
+
+
+            public NativeArray<Vector2Int> indexes;
+            public NativeArray<Color> inColors;
+
+            public void Execute(int iteration)
+            {
+                var color = inColors[iteration];
+                var vector2 = indexes[iteration];
+                var center = new Vector3(vector2.x, 0, vector2.y * Hex.ScaleY);
+                var isOdd = vector2.y % 2 != 0;
+
+                var yHeight = Vector3.zero;//Vector3.up * heightCalculator(vector2);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var index = (iteration * 3 * 6) + (i * 3);
+
+
+
+                    var p0 = center + yHeight;
+                    var p1 = Hex.StaticGetPointyCornerXZ(vector2,i) + yHeight;
+                    var p2 = Hex.StaticGetPointyCornerXZ(vector2,i + 1) + yHeight;
+
+                    if (isOdd)
+                    {
+                        p0.x+= 0.5f;
+                        p1.x += 0.5f;
+                        p2.x += 0.5f;
+                    }
+
+                    verts[index] = p0;
+                    verts[index + 1] = p1;
+                    verts[index + 2] = p2;
+
+                    tris[index] = index;
+                    tris[index + 1] = index + 1;
+                    tris[index + 2] = index + 2;
+
+                    colors[index] = color;
+                    colors[index + 1] = color;
+                    colors[index + 2] = color;
+                }
+            }
+        }
+
         private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict)
         {
             return ToMesh(dict, x => 0);
@@ -378,6 +492,25 @@ namespace RecursiveHex
         public Mesh ToMesh()
         {
             return HexGroup.ToMesh(_inside);
+        }
+
+        public IEnumerable<Mesh> ToMeshParallel()
+        {
+            var enumerable = ToMeshParallel(_inside);
+
+            foreach (var mesh in enumerable)
+            {
+                if(mesh == null)
+                {
+                    Debug.Log("Waiting for job to finalise...");
+                    yield return null;
+                }
+                else
+                {
+                    yield return mesh;
+                    yield break;
+                }
+            }  
         }
 
         public Mesh ToMesh(Func<Hex, float> heightCalculator)
