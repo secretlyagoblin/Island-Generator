@@ -118,6 +118,15 @@ namespace RecursiveHex
 
         private Hex[] Subdivide(Vector2Int[] offsets)
         {
+            if (this.IsBorder)
+            {
+                if (Hex.IsInvalid(this.Center))
+                {                    
+                    return new Hex[0];
+                }
+            }
+
+
             var center = this.Center.GetNoiseOffset();
 
             var largeHexPoints = new Vector2[]
@@ -160,16 +169,41 @@ namespace RecursiveHex
                     Debug.LogError($"No containing barycenter detected at {this.Center.Index} - inner hex not contained by outer hex. Using weight {weight}.");
                 }
 
+                var isBorder = this.InterpolateIsBorder(weight, index);
+
+                var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
+
                 children[i] = new Hex(
                     this.Center.GetNestedHexIndexFromOffset(offsets[i]),
-                    this.InterpolateHexPayload(weight, index),
-                    $"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
+                    payload,
+                    isBorder,
+                    ""//$"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
                     );
             }
 
-            var childSubset = ResolveEdgeCases(children);
+            var childSubset = children;//ResolveEdgeCases(children);
 
             return childSubset;
+        }
+
+        /// <summary>
+        /// Goes through the neighbours in a hardcoded way and lerps the correct data
+        /// </summary>
+        /// <param name="weights"></param>
+        /// <param name="triangleIndex"></param>
+        /// <returns></returns>
+        private bool InterpolateIsBorder(Vector3 weights, int triangleIndex)
+        {
+            switch (triangleIndex)
+            {
+                default:
+                case 0: return Utils.Blerp<bool>(Center.IsBorder, N0.IsBorder, N1.IsBorder, weights);
+                case 1: return Utils.Blerp<bool>(Center.IsBorder, N1.IsBorder, N2.IsBorder, weights);
+                case 2: return Utils.Blerp<bool>(Center.IsBorder, N2.IsBorder, N3.IsBorder, weights);
+                case 3: return Utils.Blerp<bool>(Center.IsBorder, N3.IsBorder, N4.IsBorder, weights);
+                case 4: return Utils.Blerp<bool>(Center.IsBorder, N4.IsBorder, N5.IsBorder, weights);
+                case 5: return Utils.Blerp<bool>(Center.IsBorder, N5.IsBorder, N0.IsBorder, weights);
+            }
         }
 
         /// <summary>
@@ -216,19 +250,20 @@ namespace RecursiveHex
             return new Vector3(u, v, w);
         }
 
+        //I didn't need to do this :(
         private Hex[] ResolveEdgeCases(Hex[] ch)
         {
-            if (Hex.IsNull(this.Center))
+            if (Hex.IsInvalid(this.Center))
             {
                 return new Hex[0];
             }
 
-            var a = !Hex.IsNull(this.N0);
-            var b = !Hex.IsNull(this.N1);
-            var c = !Hex.IsNull(this.N2);
-            var d = !Hex.IsNull(this.N3);
-            var e = !Hex.IsNull(this.N4);
-            var f = !Hex.IsNull(this.N5);
+            var a = !Hex.IsInvalid(this.N0);
+            var b = !Hex.IsInvalid(this.N1);
+            var c = !Hex.IsInvalid(this.N2);
+            var d = !Hex.IsInvalid(this.N3);
+            var e = !Hex.IsInvalid(this.N4);
+            var f = !Hex.IsInvalid(this.N5);
 
             
 
@@ -271,7 +306,7 @@ namespace RecursiveHex
                     ch[1],ch[2],ch[6]
                 };
             }
-            else if (a && !b && !c && !d && !e && !f) // 0-0-0-0-0-0
+            else if (!a && !b && !c && !d && !e && !f) // 0-0-0-0-0-0
             {
                 return new Hex[0];
             }

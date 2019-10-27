@@ -20,14 +20,20 @@ namespace RecursiveHex
             _inside = new Dictionary<Vector2Int, Hex>(1);
             _border = new Dictionary<Vector2Int, Hex>(6);
 
-            AddHex(new Hex(Vector2Int.zero,new HexPayload()));
+            AddHex(new Hex(Vector2Int.zero,new HexPayload(),false));
 
             var neighbours = Neighbourhood.GetNeighbours(Vector2Int.zero);
             //
             for (int i = 0; i < neighbours.Length; i++)
             {
-                AddBorderHex(new Hex(neighbours[i],new HexPayload()));
+                AddBorderHex(new Hex(neighbours[i],new HexPayload(),true));
             }
+        }
+
+        private HexGroup(Dictionary<Vector2Int, Hex> inside, Dictionary<Vector2Int, Hex> border)
+        {
+            _inside = inside;
+            _border = border;
         }
 
         /// <summary>
@@ -41,13 +47,14 @@ namespace RecursiveHex
             _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10); //magic numbers
 
             for (int i = 0; i < hoods.Length; i++)
-            {
+            {         
                 var hood = hoods[i];
+
                 var cells = debug ? hood.DebugSubdivide() : hood.Subdivide();
 
                 for (int u = 0; u < cells.Length; u++)
                 {
-                    if (hood.IsBorder)
+                    if (cells[u].IsBorder)
                         this.AddBorderHex(cells[u]);
                     else
                         this.AddHex(cells[u]);
@@ -95,7 +102,7 @@ namespace RecursiveHex
                     else
                     {
                         Debug.LogError("A null neighbour detected on an inner hex.");
-                        hexes[i] = new Hex();
+                        hexes[i] = Hex.InvalidHex;
                     }
                 }
 
@@ -118,11 +125,14 @@ namespace RecursiveHex
                 var hexes = new Hex[6];
                 var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
 
+                var borderOrNullCount = 0;
+
                 for (int i = 0; i < 6; i++)
                 {
                     var key = hexDictEntry.Key + neighbours[i];
                     if (_border.ContainsKey(key))
                     {
+                        borderOrNullCount++;
                         hexes[i] = _border[key];
                     }
                     else if (_inside.ContainsKey(key))
@@ -131,14 +141,17 @@ namespace RecursiveHex
                     }
                     else
                     {
-                        Debug.Log("This border has some nulls! That is fine");
+                        borderOrNullCount++;
+                        //Debug.Log("This border has some nulls! That is fine");
                         hexes[i] = Hex.InvalidHex;
                     }
                 }
 
+                var finalCenter = borderOrNullCount < 6 ? hexDictEntry.Value : Hex.InvalidHex;
+
                 hood[count] = new Neighbourhood
                 {
-                    Center = hexDictEntry.Value,
+                    Center = finalCenter,
                     N0 = hexes[0],
                     N1 = hexes[1],
                     N2 = hexes[2],
@@ -161,7 +174,7 @@ namespace RecursiveHex
         /// <returns></returns>
         public HexGroup Subdivide()
         {
-            Debug.Log("Starting subdivide");
+            //Debug.Log("Starting subdivide");
             return new HexGroup(this);
         }
 
@@ -174,18 +187,66 @@ namespace RecursiveHex
             return new HexGroup(this, true);
         }
 
-
         /// <summary>
         /// Hypothetical function that subdivides and returns a specific subset, based on a function, like Where() in linq.
         /// </summary>
         /// <param name="func"></param>
         /// <returns></returns>
-        public HexGroup[] Subdivide(Func<Hex, object> func)
+        public HexGroup GetSubGroup(Func<Hex, bool> func)
         {
-            throw new NotImplementedException();
+            var inside = _inside.Where(x => func(x.Value)).ToDictionary(x => x.Key, x => x.Value);
+
+
+            return new HexGroup(inside, GetBorderOfSubgroup(inside));
         }
 
+        public List<HexGroup> GetSubGroups(Func<Hex, int> func)
+        {
+            return _inside.GroupBy(x => func(x.Value))
+                .Select(x =>
+                {
+                    var inside = x.ToDictionary(y => y.Key, y => y.Value);
+                    return new HexGroup(inside, GetBorderOfSubgroup(inside));
+                }).ToList();
+        }
 
+        private Dictionary<Vector2Int, Hex> GetBorderOfSubgroup(Dictionary<Vector2Int,Hex> subgroup)
+        {
+            var border = new Dictionary<Vector2Int, Hex>();
+
+            foreach (var hexDictEntry in subgroup)
+            {
+                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var key = hexDictEntry.Key + neighbours[i];
+
+                    if (border.ContainsKey(key))
+                    {
+                        continue;
+                    }
+                    if (subgroup.ContainsKey(key))
+                    {
+                        continue;
+                    }
+                    if (_inside.ContainsKey(key))
+                    {
+                        border.Add(key, new Hex(_inside[key], true));
+                    }
+                    else if (_border.ContainsKey(key))
+                    {
+                        border.Add(key, new Hex(_border[key], true));
+                    }
+                    else
+                    {
+                        Debug.LogError("The subregion being generated has invalid neighbours.");
+                    }
+                }
+            }
+
+            return border;
+        }
 
         #endregion
 
@@ -296,7 +357,7 @@ namespace RecursiveHex
                 item.Value.Payload.PopulatePayloadObject(payload);
                 payload.NeighbourhoodData= item.Value.DebugData;
 
-                if (Hex.IsNull(item.Value))
+                if (Hex.IsInvalid(item.Value))
                 {
                     payload.name += $"_NULL";
                 }       

@@ -35,7 +35,7 @@ public class PayloadData : MonoBehaviour
                 var x = int.Parse(nums[0]);
                 var y = int.Parse(nums[1]);
 
-                var hex = new Hex(new Vector2Int(x, y), new HexPayload());
+                var hex = new Hex(new Vector2Int(x, y), new HexPayload(),false);
                 var point = hex.GetNestedHexIndexFromOffset(Vector2Int.zero);
 
 

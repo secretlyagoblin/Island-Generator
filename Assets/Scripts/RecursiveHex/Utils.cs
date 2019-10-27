@@ -121,7 +121,7 @@ namespace RecursiveHex
                 return new Color(r, g, bee);
         }
 
-        public static int Blerp(int a, int b, int c, Vector3 weight)
+        public static T Blerp<T>(T a, T b, T c, Vector3 weight)
         {
             if (weight.x >= weight.y && weight.x >= weight.z)
             {

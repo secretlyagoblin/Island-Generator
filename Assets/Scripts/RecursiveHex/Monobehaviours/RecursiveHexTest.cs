@@ -38,34 +38,61 @@ public class RecursiveHexTest : MonoBehaviour
         }
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
-        var layer2 = layer1.Subdivide().Subdivide().Subdivide();
-            //.ForEach((x,i) => new HexPayload()
-            //{
-            //    Height = 0f,
-            //    Color = RNG.NextColor(),
-            //    //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //    Code = i
-            //});;
+        var layer2 = layer1.Subdivide().Subdivide()//.Subdivide();
+            .ForEach((x,i) => new HexPayload()
+            {
+                Height = 0f,
+                Color = RNG.NextColor(),
+                //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+                Code = i
+            });;
             ;
 
-        var layer3 = layer2;//.Subdivide().Subdivide()//.Subdivide()
-            //.ForEach(x => new HexPayload()
-            //{
-            //    Height = 0f,
-            //    Color = colours[x.Payload.Code],
-            //    Code = x.Payload.Code
-            //});
+        var layer3 = layer2.Subdivide()//.Subdivide().Subdivide()//.Subdivide()
+            .ForEach(x => new HexPayload()
+            {
+                Height = 0f,
+                Color = x.Payload.Color,
+                //Color = x.IsBorder?Color.black:colours[x.Payload.Code],
+                Code = x.Payload.Code
+            });
             ;
+
+        this.StartCoroutine(FinaliseHexgroup(
+            layer3.GetSubGroups(x => x.Payload.Code),
+            x => Finalise(x.Subdivide().Subdivide()))
+            );
+
+        //layer3.GetSubGroups(x => x.Payload.Code).ForEach(x=> Finalise(x.Subdivide().Subdivide()));
             
             //.Subdivide();
             //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
         ;
 
-        layer3.ToGameObjects(Prefab);
-        layer3.ToGameObjectsBorder(BorderPrefab);
+        //layer3.ToGameObjects(Prefab);
+        //layer3.ToGameObjectsBorder(BorderPrefab);
+        //
+        //this.gameObject.GetComponent<MeshFilter>().sharedMesh = subgroup.ToMesh();//(x => x.Payload.Height);
 
-        this.gameObject.GetComponent<MeshFilter>().sharedMesh = layer3.ToMesh();//(x => x.Payload.Height);
+    }
 
+    IEnumerator FinaliseHexgroup(List<HexGroup> hexGroup, Action<HexGroup> func)
+    {
+        for (int i = 0; i < hexGroup.Count; i++)
+        {
+            func(hexGroup[i]);
+            yield return null;
+        }
+    }
+
+    private void Finalise(HexGroup group)
+    {
+        var gobject = new GameObject();
+        gobject.name = "Subregion";
+        var renderer = gobject.AddComponent<MeshRenderer>();
+        renderer.sharedMaterial = this.GetComponent<MeshRenderer>().sharedMaterial;
+        gobject.AddComponent<MeshFilter>().sharedMesh = group.ToMesh();
+        gobject.transform.parent = this.transform;
     }
 
     // Update is called once per frame

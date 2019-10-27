@@ -12,6 +12,8 @@ namespace RecursiveHex
         public HexPayload Payload;
         public string DebugData;
 
+        public bool IsBorder;
+
         private bool _isNull;
 
         public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
@@ -32,11 +34,22 @@ namespace RecursiveHex
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        public Hex(Vector2Int index, HexPayload payload, string debugData = "")
+        public Hex(Vector2Int index, HexPayload payload, bool isBorder, string debugData = "")
         {
             Index = index;
             Payload = payload;
             DebugData = debugData;
+            IsBorder = isBorder;
+
+            _isNull = false;
+        }
+
+        public Hex(Hex hex, bool isBorder)
+        {
+            Index = hex.Index;
+            Payload = hex.Payload;
+            DebugData = hex.DebugData;
+            IsBorder = isBorder;
 
             _isNull = false;
         }
@@ -46,12 +59,13 @@ namespace RecursiveHex
             get {
                 return new Hex()
                 {
+                    IsBorder = true,
                     _isNull = true
                 };
             }
         }
 
-        public static bool IsNull(Hex hex)
+        public static bool IsInvalid(Hex hex)
         {
             return hex._isNull;
         }
