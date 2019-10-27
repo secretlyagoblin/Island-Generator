@@ -60,7 +60,7 @@ public class RecursiveHexTest : MonoBehaviour
 
         this.StartCoroutine(FinaliseHexgroup(
             layer3.GetSubGroups(x => x.Payload.Code),
-            x => Finalise(x))//.Subdivide().Subdivide()))
+            x => Finalise(x.Subdivide()))
             );
 
         //layer3.GetSubGroups(x => x.Payload.Code).ForEach(x=> Finalise(x.Subdivide().Subdivide()));
