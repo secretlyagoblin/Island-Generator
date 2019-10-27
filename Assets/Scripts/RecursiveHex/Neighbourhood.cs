@@ -237,8 +237,11 @@ namespace RecursiveHex
                 return ch;
             }
             else if (a && b && c && d && e && !f) // 1-1-1-1-1-0
-            {
-                return ch;
+            {   
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
             }
             else if (a && b && c && d && !e && !f) // 1-1-1-1-0-0
             {
@@ -272,6 +275,141 @@ namespace RecursiveHex
             {
                 return new Hex[0];
             }
+            //Rest are sorted by order of occurence
+            else if (a && !b && !c && d && e && f) // 1-0-0-1-1-1
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && c && !d && e && f) // 1-1-1-0-1-1
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (!a && !b && c && d && e && !f) // 0-0-1-1-1-0
+            {
+                return new Hex[]
+                {
+                    ch[3],ch[4],ch[5],ch[7],ch[8]
+                };
+            }
+            else if (!a && b && c && d && e && f) // 0-1-1-1-1-1
+            {
+                return new Hex[]
+                {
+                    ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && c && d && !e && f) // 1-1-1-1-0-1
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && !c && d && e && f) // 1-1-0-1-1-1
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (!a && !b && !c && d && e && f) // 0-0-0-1-1-1
+            {
+                return new Hex[]
+                {
+                    ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && !b && c && d && e && f) // 1-0-1-1-1-1
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && !b && !c && !d && !e && f) // 1-0-0-0-0-1
+            {
+                return new Hex[]
+                {
+                    ch[1],ch[2],ch[5],ch[6]
+                };
+            }
+            else if (!a && b && c && d && !e && !f) // 0-1-1-1-0-0
+            {
+                return new Hex[]
+                {
+                   ch[2],ch[3],ch[4],ch[7],ch[8]
+                };
+            }
+            else if (!a && !b && c && d && e && f) // 0-0-1-1-1-1
+            {
+                return new Hex[]
+                {
+                   ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && !b && !c && !d && e && f) // 1-0-0-0-1-1
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[5],ch[6],ch[8]
+                };
+            }
+            else if (!a && b && c && d && e && !f) // 0-1-1-1-1-0
+            {
+                return new Hex[]
+                {
+                   ch[2],ch[3],ch[4],ch[5],ch[7],ch[8]
+                };
+            }
+            else if (a && !b && c && d && e && !f) // 1-0-1-1-1-0
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && !c && d && e && !f) // 1-1-0-1-1-0
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && !b && c && d && !e && f) // 1-0-1-1-0-1
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && !c && !d && !e && f) // 1-1-0-0-0-1
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[3],ch[5],ch[6]
+                };
+            }
+            else if (a && !b && !c && d && !e && f) // 1-0-0-1-0-1
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[4],ch[5],ch[6],ch[7],ch[8]
+                };
+            }
+            else if (a && b && !c && d && !e && !f) // 1-1-0-1-0-0
+            {
+                return new Hex[]
+                {
+                   ch[1],ch[2],ch[3],ch[4],ch[6],ch[7],ch[8]
+                };
+            }
+
 
             Debug.LogError($"Unhandled case {(a?1:0)}-{(b ? 1 : 0)}-{(c ? 1 : 0)}-{(d ? 1 : 0)}-{(e ? 1 : 0)}-{(f ? 1 : 0)}");
 
