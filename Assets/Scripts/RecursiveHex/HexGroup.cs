@@ -366,15 +366,11 @@ namespace RecursiveHex
                     payload.name += $"_NULL";
                 }       
 
-                for (int i = 0; i < 6; i++)
+                if (isOdd)
                 {
-                    var index = (count * 3 * 6) + (i * 3);
-
-                    if (isOdd)
-                    {
-                        obj.transform.position = center + new Vector3(0.5f, 0, 0);
-                    }
+                    obj.transform.position = center + new Vector3(0.5f, 0, 0);
                 }
+
                 count++;
             }
         }
@@ -402,6 +398,106 @@ namespace RecursiveHex
         public Mesh ToMeshBorder()
         {
             return HexGroup.ToMesh(_border);
+        }
+
+        private (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> func)
+        {
+            var count = 0;
+            var indexes = _inside.Keys;
+            var verts = indexes.ToDictionary(x => x, x => { var i = count; count++; return i; });
+            HashSet<Vector3Int> triangles = new HashSet<Vector3Int>();
+
+            foreach (var index in indexes)
+            {
+                var neighbourhood = Neighbourhood.GetNeighbours(index);
+
+                for (int i = 0; i < neighbourhood.Length; i++)
+                {
+                    var n1 = index + neighbourhood[i];
+                    var n2 = index + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1]: neighbourhood[0]);
+
+                    if(!(verts.ContainsKey(n1) && verts.ContainsKey(n2)))
+                        continue;
+
+                    //Determine triangle shape
+
+                    var threePoints = new Vector2Int[3];
+                    var indexIsOdd = index.y % 2 != 0;
+                    var n1IsOdd = n1.y % 2 != 0;
+                    var n2IsOdd = n2.y % 2 != 0;
+
+                    var testIndex = indexIsOdd? index.x+0.5f:index.x;
+                    var testn1 = n1IsOdd ? n1.x + 0.5f : n1.x;
+                    var testn2 = n2IsOdd ? n2.x + 0.5f : n2.x;
+
+                    if (testIndex<testn1 && testIndex< testn2)
+                    {
+                        threePoints[0] = index;
+                        threePoints[1] = n1;
+                        threePoints[2] = n2;
+                    }
+                    else if (testn1< testIndex && testn1< testn2)
+                    {
+                        threePoints[0] = n1;
+                        threePoints[1] = index;
+                        threePoints[2] = n2;
+                    }
+                    else if (testn2< testIndex && testn2< testn1)
+                    {
+                        threePoints[0] = n2;
+                        threePoints[1] = n1;
+                        threePoints[2] = index;
+                    }
+                    else
+                    {
+                        Debug.Log("Whelp");
+                    }
+
+                    if (threePoints[1].y < threePoints[2].y)
+                    {
+                        var temp = threePoints[1];
+                        threePoints[1] = threePoints[2];
+                        threePoints[2] = temp;
+                    }
+
+                    var tri = new Vector3Int(verts[threePoints[0]], verts[threePoints[1]], verts[threePoints[2]]);
+
+                    if (triangles.Contains(tri))
+                        continue;
+                    triangles.Add(tri);
+                }
+            }
+
+            var vertices = indexes.Select(x => new Vector3((x.y % 2 == 0 ? x.x : x.x + 0.5f), func(_inside[x].Payload), x.y * Hex.ScaleY)).ToArray();
+            var finalTriangles = triangles.SelectMany(x => new[] { x.x, x.y, x.z }).ToArray();
+
+            return (vertices, finalTriangles);
+            //,indexes.Select(x => new Vector3(x.x, 0, x.y)).ToArray()
+            //triangles.SelectMany(x => new[]{ x.x, x.y, x.z }).ToArray(),
+            // _inside.Values.Select(x => x.Payload).ToArray());
+        }
+
+        public Mesh ToConnectedMesh(Func<HexPayload, float> heightFunc, Func<HexPayload, Color> colorFunc)
+        {
+            (var vertices, var triangles) = this.ToNetwork(heightFunc);
+
+            var mesh = new Mesh()
+            {
+                vertices = vertices,
+                triangles = triangles,
+                colors = _inside.Select(x => colorFunc(x.Value.Payload)).ToArray()
+            };
+
+            mesh.RecalculateNormals();
+
+            return mesh;
+        }
+
+        public Graph<HexPayload> ToGraph()
+        {
+            (var vertices, var triangles) = this.ToNetwork(x => 0);
+
+            return new Graph<HexPayload>(vertices, triangles, this._inside.Select(x => x.Value.Payload).ToArray());
         }
 
         #endregion

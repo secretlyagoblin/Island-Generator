@@ -211,7 +211,7 @@ public static class RNG {
         return num % 4;
     }
 
-    private static uint _divisor = (uint.MaxValue / 100000);
+    //private static uint _divisor = (uint.MaxValue / 100000);
 
     //public static float GetXYNoise(int x, int y, int offset = 0)
     //{
