@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using RecursiveHex;
+using System;
 
 public class Graph<T>
 {
@@ -17,12 +19,17 @@ public class Graph<T>
 
         }
 
-
-
-    public void DebugDraw(Transform transform)
+    public Graph<T> DebugDraw(Transform transform)
     {
         _smartMesh.DrawMesh(transform, Color.green, Color.blue);
+
+        return this;
     }
 
+    internal Graph<T> ApplyBlueprint(Action<MeshCollection<T>> blueprint)
+    {
+        blueprint(_collection);
 
+        return this;
+    }
 }

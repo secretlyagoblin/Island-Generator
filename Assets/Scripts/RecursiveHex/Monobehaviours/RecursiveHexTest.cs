@@ -38,28 +38,37 @@ public class RecursiveHexTest : MonoBehaviour
         }
 
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
-        var layer2 = layer1.Subdivide()//.Subdivide()//.Subdivide();
-            .ForEach((x, i) => new HexPayload()
-            {
-                Height = RNG.NextFloat(0, 5),
-                Color = RNG.NextColor(),
-                //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-                Code = i
-            }).Subdivide()
-                        .ForEach((x, i) => new HexPayload()
-                        {
-                            Height = x.Payload.Height + RNG.NextFloat(-1, 1),
-                            Color = x.Payload.Color,
-                            //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-                            Code = i
-                        }).Subdivide()
-                                               .ForEach((x, i) => new HexPayload()
-                                               {
-                                                   Height = x.Payload.Height + RNG.NextFloat(-0.25f, 0.25f),
-                                                   Color = x.Payload.Color,
-                                                   //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-                                                   Code = i
-                                               }).Subdivide();
+
+        var graph = layer1
+            .Subdivide()
+            .Subdivide().ToGraph(x => x.Code, x => new int[0])
+            .ApplyBlueprint(HighLevelAreas.CreateSingleRegion)
+            .DebugDraw(transform);
+
+
+
+        //var layer2 = layer1.Subdivide()//.Subdivide()//.Subdivide();
+        //    .ForEach((x, i) => new HexPayload()
+        //    {
+        //        Height = RNG.NextFloat(0, 5),
+        //        Color = RNG.NextColor(),
+        //        //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+        //        Code = i
+        //    }).Subdivide()
+        //                .ForEach((x, i) => new HexPayload()
+        //                {
+        //                    Height = x.Payload.Height + RNG.NextFloat(-1, 1),
+        //                    Color = x.Payload.Color,
+        //                    //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+        //                    Code = i
+        //                }).Subdivide()
+        //                                       .ForEach((x, i) => new HexPayload()
+        //                                       {
+        //                                           Height = x.Payload.Height + RNG.NextFloat(-0.25f, 0.25f),
+        //                                           Color = x.Payload.Color,
+        //                                           //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+        //                                           Code = i
+        //                                       }).Subdivide();
             ;
 
 
@@ -86,7 +95,7 @@ public class RecursiveHexTest : MonoBehaviour
         ;
 
         //layer2.ToGameObjects(Prefab);
-        Finalise(layer2);
+        //Finalise(layer2);
         //layer3.ToGameObjectsBorder(BorderPrefab);
         //
         //this.gameObject.GetComponent<MeshFilter>().sharedMesh = subgroup.ToMesh();//(x => x.Payload.Height);
@@ -116,5 +125,25 @@ public class RecursiveHexTest : MonoBehaviour
     void Update()
     {
         this.transform.Rotate(Vector3.up, 5f * Time.deltaTime);
+    }
+}
+
+public static class HighLevelAreas
+{
+    public static void CreateSingleRegion<T>(MeshCollection<T> meshCollection)
+    {
+        for (int i = 0; i < meshCollection.Meshes.Length; i++)
+        {
+            var mesh = meshCollection.Meshes[i];
+
+            if(mesh.Id < 0)
+            {
+                continue;
+            }
+
+            mesh.ApplyState(LevelGen.States.SummedDikstraRemoveDeadEnds);
+
+
+        }
     }
 }

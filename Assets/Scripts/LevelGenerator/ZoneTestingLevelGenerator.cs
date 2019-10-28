@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MeshMasher;
 using System.Linq;
+using LevelGen;
 
 namespace LevelGenerator {
     public class ZoneTestingLevelGenerator : LevelGenerator {
