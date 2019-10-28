@@ -70,7 +70,7 @@ namespace LevelGenerator {
 
             var layer1IncludingBorder = layer1WiderNeighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
 
-            var subMesh = new SubMesh(1, layer1WiderNeighbourhood.ToArray(), layer1);
+            var subMesh = new SubMesh<NodeMetadata>(1, layer1WiderNeighbourhood.ToArray(), layer1.Mesh);
             subMesh.ApplyState(States.SummedDikstra);
             //subMesh.DebugDraw(Color.red, 4f);
 
@@ -87,7 +87,7 @@ namespace LevelGenerator {
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
             {
                 var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
-                layer1.NodeMetadata[n].RoomConnections = subMesh.ConnectionsFromState(n);
+                layer1.NodeMetadata[n].RoomConnections = subMesh.ConnectionsFromState(n,x => x.RoomCode);
                 //layer1.NodeMetadata[n].Code = i + 1;
             }    
 
@@ -98,7 +98,7 @@ namespace LevelGenerator {
         {
             //var layer = new CleverMesh(parentLayer);
 
-            var meshCollection = new MeshCollection(parentLayer);
+            var meshCollection = new MeshCollection<NodeMetadata>(parentLayer.Mesh,parentLayer.NodeMetadata,x => x.RoomCode,x => x.RoomConnections);
 
             for (int i = 0; i < meshCollection.Bridges.Length; i++)
             {
@@ -186,7 +186,7 @@ namespace LevelGenerator {
 
         private CleverMesh[] Layer3(CleverMesh parentLayer)
         {
-            var meshCollection = new MeshCollection(parentLayer);
+            var meshCollection = new MeshCollection<NodeMetadata>(parentLayer.Mesh,parentLayer.NodeMetadata,x=> x.RoomCode,x=>x.RoomConnections);
 
             var cleverMeshes = new CleverMesh[1];//meshCollection.Meshes.Length];
 

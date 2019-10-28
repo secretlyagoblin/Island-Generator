@@ -5,7 +5,7 @@ using System.Text;
 using MeshMasher;
 using UnityEngine;
 
-public class SubMesh {
+public class SubMesh<T> {
     public int[] Nodes;
     public int[] Lines;
     public List<Bridge> Connections = new List<Bridge>();
@@ -13,14 +13,15 @@ public class SubMesh {
     public readonly Dictionary<int, int> NodeMap;
     public readonly Dictionary<int, int> LineMap;
     public MeshState<int> State { get; private set; }
-    public int Code { get; private set; }
+    public int Id { get; private set; }
 
-    public CleverMesh ParentMesh;
+    public readonly SmartMesh SourceMesh;
+    private readonly T[] _payloads;
     //List<KeyValuePair<int, int>> _connections = new List<KeyValuePair<int, int>>();
 
     //public List<int> ConnectingLines = new List<int>();
 
-    public void ApplyState(System.Func<SubMesh, MeshState<int>> func)
+    public void ApplyState(System.Func<SubMesh<T>, MeshState<int>> func)
     {
         try
         {
@@ -28,14 +29,15 @@ public class SubMesh {
         }
         catch(Exception ex)
         {
-            throw new Exception("Error in Room Code " + Code, ex);
+            throw new Exception("Error in Room Code " + Id, ex);
         }
     }
 
-    public SubMesh(int code, int[] nodes, int[] lines, CleverMesh mesh)
+    public SubMesh(int code, int[] nodes, int[] lines, T[] payloads, SmartMesh mesh)
     {
-        Code = code;
-        ParentMesh = mesh;
+        Id = code;
+        SourceMesh = mesh;
+        _payloads = payloads;
         Nodes = nodes;
         Lines = lines;
 
@@ -53,13 +55,13 @@ public class SubMesh {
 
     }
 
-    public SubMesh(int code, int[] nodes, CleverMesh mesh)
+    public SubMesh(int code, int[] nodes, SmartMesh mesh)
     {
-        Code = code;
-        ParentMesh = mesh;
+        Id = code;
+        SourceMesh = mesh;
         Nodes = nodes;
         Lines = nodes
-            .SelectMany(x => mesh.Mesh.Nodes[x].Lines
+            .SelectMany(x => mesh.Nodes[x].Lines
                 .Where(y => nodes.Contains(y.Nodes[0].Index) && nodes.Contains(y.Nodes[1].Index))
                 .Select(y => y.Index))
             .Distinct()
@@ -87,22 +89,22 @@ public class SubMesh {
                 if (State.Lines[i] == 0)
                     continue;
             }
-            ParentMesh.Mesh.Lines[Lines[i]].DebugDraw(color, duration);
+            SourceMesh.Lines[Lines[i]].DebugDraw(color, duration);
         }
     }
 
-    public (int[] lines, int[] nodesA, int[] nodesB) GetSharedLines(SubMesh mesh, int[] candidates)
+    public (int[] lines, int[] nodesA, int[] nodesB) GetSharedLines(SubMesh<T> mesh, int[] candidates, Func<T,int> identifier)
     {
-        var codeA = this.Code;
-        var codeB = mesh.Code;
-        var metadata = this.ParentMesh.NodeMetadata;
-        var smesh = this.ParentMesh.Mesh;
+        var codeA = this.Id;
+        var codeB = mesh.Id;
+        var metadata = this._payloads;
+        var smesh = this.SourceMesh;
 
         var lines = candidates.Where(x =>
         {
             var line = smesh.Lines[x];
-            var a = metadata[line.Nodes[0].Index].RoomCode;
-            var b = metadata[line.Nodes[1].Index].RoomCode;
+            var a = identifier(metadata[line.Nodes[0].Index]);
+            var b = identifier(metadata[line.Nodes[1].Index]);
 
             if (a == codeA && b == codeB)
                 return true;
@@ -120,10 +122,10 @@ public class SubMesh {
         {
             var lineId = lines[i];
             var line = smesh.Lines[lineId];
-            var a = metadata[line.Nodes[0].Index].RoomCode;
-            var b = metadata[line.Nodes[1].Index].RoomCode;
+            var a = identifier(metadata[line.Nodes[0].Index]);
+            var b = identifier(metadata[line.Nodes[1].Index]);
 
-            if(a == codeA)
+            if (a == codeA)
             {
                 nodesA[i] = this.NodeMap[line.Nodes[0].Index];
                 nodesB[i] = mesh.NodeMap[line.Nodes[1].Index];               
@@ -139,16 +141,16 @@ public class SubMesh {
 
     }
 
-    public static (List<KeyValuePair<int, int>> connections, List<int> lines) GetBridgePairs(CleverMesh mesh, SubMesh[] meshes)
+    public static (List<KeyValuePair<int, int>> connections, List<int> lines) GetBridgePairs(SmartMesh mesh,T[] nodeMetadata, Func<T, int> identifier, Func<T,int[]> connector, SubMesh<T>[] meshes)
     {
-        var lines = Enumerable.Range(0, mesh.Mesh.Lines.Count);
+        var lines = Enumerable.Range(0, mesh.Lines.Count);
 
         for (int i = 0; i < meshes.Length; i++)
         {
             lines = lines.Except(meshes[i].Lines);
         }
 
-        var finalLines = lines.Select(x => mesh.Mesh.Lines[x]);
+        var finalLines = lines.Select(x => mesh.Lines[x]);
 
         var connections = new List<KeyValuePair<int, int>>();
 
@@ -156,12 +158,12 @@ public class SubMesh {
         {
             var m = meshes[i];
             
-            var subConnections = mesh.NodeMetadata[m.Nodes[0]].RoomConnections;
+            var subConnections = connector(nodeMetadata[m.Nodes[0]]);
 
             for (int u = 0; u < subConnections.Length; u++)
             {
-                var a = m.Code < subConnections[u] ?m.Code: subConnections[u];
-                var b = m.Code < subConnections[u] ?subConnections[u] : m.Code;
+                var a = m.Id < subConnections[u] ?m.Id: subConnections[u];
+                var b = m.Id < subConnections[u] ?subConnections[u] : m.Id;
 
                 connections.Add(new KeyValuePair<int, int>(a, b));
             }                  
@@ -179,8 +181,8 @@ public class SubMesh {
             var a = x.Nodes[0].Index;
             var b = x.Nodes[1].Index;
 
-            var codeA = mesh.NodeMetadata[a].RoomCode < mesh.NodeMetadata[b].RoomCode ? mesh.NodeMetadata[a].RoomCode : mesh.NodeMetadata[b].RoomCode;
-            var codeB = mesh.NodeMetadata[a].RoomCode < mesh.NodeMetadata[b].RoomCode ? mesh.NodeMetadata[b].RoomCode : mesh.NodeMetadata[a].RoomCode;
+            var codeA = identifier(nodeMetadata[a]) < identifier(nodeMetadata[b]) ? identifier(nodeMetadata[a]) : identifier(nodeMetadata[b]);
+            var codeB = identifier(nodeMetadata[a]) < identifier(nodeMetadata[b]) ? identifier(nodeMetadata[b]) : identifier(nodeMetadata[a]);
 
             var pair = new KeyValuePair<int, int>(codeA, codeB);
 
@@ -196,7 +198,7 @@ public class SubMesh {
         return (connections, finalLines.Select(x => x.Index).ToList());
     }
 
-    public int[] ConnectionsFromState(int nodeIndex)
+    public int[] ConnectionsFromState(int nodeIndex, Func<T,int> identifier)
     {
         for (int i = 0; i < Nodes.Length; i++)
         {
@@ -208,7 +210,7 @@ public class SubMesh {
 
         FoundNode:
 
-        var node = ParentMesh.Mesh.Nodes[nodeIndex];
+        var node = SourceMesh.Nodes[nodeIndex];
 
         var lineMap = new Dictionary<int, int>();
         for (int i = 0; i < Lines.Length; i++)
@@ -225,22 +227,23 @@ public class SubMesh {
 
             if(State.Lines[lineMap[node.Lines[i].Index]] != 0)
             {
-                connections.Add(ParentMesh.NodeMetadata[node.Lines[i].GetOtherNode(node).Index].RoomCode);
+                connections.Add(identifier(this._payloads[node.Lines[i].GetOtherNode(node).Index]));
             }
         }
 
         return connections.ToArray();
     }
 
-    public static SubMesh[] FromMesh(CleverMesh mesh)
+    public static SubMesh<T>[] FromMesh(SmartMesh mesh, T[] payloads, Func<T, int> identifier)
     {
         var subNodes = new Dictionary<int, List<int>>();
+        
 
         //var codes = mesh.NodeMetadata.Select(x => x.Code).Where(x => x!= 0).Distinct().ToArray();     
 
-        for (int i = 0; i < mesh.NodeMetadata.Length; i++)
+        for (int i = 0; i < payloads.Length; i++)
         {
-            var nodeData = mesh.NodeMetadata[i].RoomCode;
+            var nodeData = identifier(payloads[i]);
 
             if (nodeData == 0)
                 continue;
@@ -257,7 +260,7 @@ public class SubMesh {
 
         var nodeArray = subNodes.ToArray();
         var subLines = new int[nodeArray.Length][];
-        var finalSubmeshes = new SubMesh[nodeArray.Length];
+        var finalSubmeshes = new SubMesh<T>[nodeArray.Length];
 
         for (int i = 0; i < nodeArray.Length; i++)
         {
@@ -270,14 +273,13 @@ public class SubMesh {
                 var node = nodes[u];
 
                 lines.AddRange(mesh
-                    .Mesh
                     .Nodes[node]
                     .Lines
-                    .Where(x => mesh.NodeMetadata[x.Nodes[0].Index].RoomCode == key && mesh.NodeMetadata[x.Nodes[1].Index].RoomCode == key)
+                    .Where(x => identifier(payloads[x.Nodes[0].Index]) == key && identifier(payloads[x.Nodes[1].Index]) == key)
                     .Select(x => x.Index));
             }
 
-            finalSubmeshes[i] = new SubMesh(key, nodes.ToArray(), lines.Distinct().ToArray(), mesh);
+            finalSubmeshes[i] = new SubMesh<T>(key, nodes.ToArray(), lines.Distinct().ToArray(),payloads, mesh);
         }
         return finalSubmeshes;
     }

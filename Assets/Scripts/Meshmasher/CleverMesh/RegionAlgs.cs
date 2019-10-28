@@ -5,18 +5,17 @@ using UnityEngine;
 
 public static class States
 {
-    public static MeshState<int> DikstraWithRandomisation(SubMesh subMesh)
+    public static MeshState<int> DikstraWithRandomisation(SubMesh<NodeMetadata> subMesh)
     {
         var dik = Dikstra(subMesh, 0.8f, 1.2f);
 
         return dik;
     }
 
-    public static MeshState<int> OpenPlains(SubMesh subMesh)
+    public static MeshState<int> OpenPlains(SubMesh<NodeMetadata> subMesh)
     {
         var nodes = subMesh.Nodes;
         var lines = subMesh.Lines;
-        var mesh = subMesh.ParentMesh.Mesh;
 
         var state = new MeshState<int>();
         state.Nodes = new int[nodes.Length];
@@ -34,7 +33,7 @@ public static class States
         return state;
     }
 
-    public static MeshState<int> SummedDikstra(SubMesh subMesh)
+    public static MeshState<int> SummedDikstra(SubMesh<NodeMetadata> subMesh)
     {
         var one = DikstraWithRandomisation(subMesh);
         var two = DikstraWithRandomisation(subMesh);
@@ -47,7 +46,7 @@ public static class States
         return one;
     }
 
-    public static MeshState<int> SummedDikstraRemoveDeadEnds(SubMesh subMesh)
+    public static MeshState<int> SummedDikstraRemoveDeadEnds(SubMesh<NodeMetadata> subMesh)
     {
         var one = DikstraWithRandomisation(subMesh);
         var two = DikstraWithRandomisation(subMesh);
@@ -63,7 +62,7 @@ public static class States
         return cleaned;
     }
 
-    public static MeshState<int> MinimalCorridor(SubMesh subMesh)
+    public static MeshState<int> MinimalCorridor(SubMesh<NodeMetadata> subMesh)
     {
         var keyMeshState = DikstraWithRandomisation(subMesh);
         keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);    
@@ -71,7 +70,7 @@ public static class States
         return keyMeshState;
     }
 
-    public static MeshState<int> TubbyCorridors(SubMesh subMesh)
+    public static MeshState<int> TubbyCorridors(SubMesh<NodeMetadata> subMesh)
     {
         var keyMeshState = DikstraWithRandomisation(subMesh);
         keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
@@ -79,7 +78,7 @@ public static class States
         return Entubben(subMesh,keyMeshState, 3);
     }
 
-    public static MeshState<int> DikstraWithRooms(SubMesh subMesh)
+    public static MeshState<int> DikstraWithRooms(SubMesh<NodeMetadata> subMesh)
     {
         var dik = Dikstra(subMesh, 0.8f, 1.2f);
         var next = RecursivelyRemoveDeadEnds(subMesh, dik, 2);
@@ -89,11 +88,11 @@ public static class States
 
     //Private Functions
 
-    private static MeshState<int> Dikstra(SubMesh subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
+    private static MeshState<int> Dikstra(SubMesh<NodeMetadata> subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
     {
         var nodes = subMesh.Nodes;
         var lines = subMesh.Lines;
-        var mesh = subMesh.ParentMesh.Mesh;
+        var mesh = subMesh.SourceMesh;
 
         var lineLengthRandomiser = new float[lines.Length];
         for (int i = 0; i < lines.Length; i++)
@@ -191,10 +190,10 @@ public static class States
         return meshState;
     }
 
-    private static MeshState<int> RecursivelyRemoveDeadEnds(SubMesh subMesh, MeshState<int> state, int iterations = 99)
+    private static MeshState<int> RecursivelyRemoveDeadEnds(SubMesh<NodeMetadata> subMesh, MeshState<int> state, int iterations = 99)
     {
         var nodes = subMesh.Nodes;
-        var mesh = subMesh.ParentMesh.Mesh;
+        var mesh = subMesh.SourceMesh;
         var startState = state.Clone();
         var endState = state.Clone();
 
@@ -262,10 +261,10 @@ public static class States
 
     }
 
-    private static MeshState<int> Entubben(SubMesh subMesh, MeshState<int> state, int nodeConnectionsThreshold)
+    private static MeshState<int> Entubben(SubMesh<NodeMetadata> subMesh, MeshState<int> state, int nodeConnectionsThreshold)
     {
         var nodes = subMesh.Nodes;
-        var mesh = subMesh.ParentMesh.Mesh;
+        var mesh = subMesh.SourceMesh;
 
         var startState = state.Clone();
         var endState = state.Clone();
@@ -316,7 +315,7 @@ public static class States
 
     //  Not Working as intended...
     //
-    //private static MeshState<int> RemoveShortCliffs(SubMesh subMesh, MeshState<int> state)
+    //private static MeshState<int> RemoveShortCliffs(SubMesh<NodeMetadata> subMesh, MeshState<int> state)
     //{
     //    var lines = subMesh.Lines;
     //    var mesh = subMesh.ParentMesh.Mesh;
@@ -357,12 +356,12 @@ public static class States
     //    return endState;
     //}
 
-    private static bool NodeAtIndexConnectsToOtherSubMesh(SubMesh subMesh,int index)
+    private static bool NodeAtIndexConnectsToOtherSubMesh(SubMesh<NodeMetadata> subMesh,int index)
     {
                         for (int u = 0; u<subMesh.Connections.Count; u++)
                 {
                     var bridge = subMesh.Connections[u];
-    var sub = bridge.A == subMesh.Code ? bridge.NodesA : bridge.NodesB;
+    var sub = bridge.A == subMesh.Id ? bridge.NodesA : bridge.NodesB;
 
                     for (int o = 0; o<bridge.LineCodes.Length; o++)
                     {

@@ -4,25 +4,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class MeshCollection
+public class MeshCollection<T>
 {
-    private CleverMesh _cleverMesh;
-    public SubMesh[] Meshes;
+    private MeshMasher.SmartMesh _smartMesh;
+    public SubMesh<T>[] Meshes;
     public Bridge[] Bridges;
 
-    public MeshCollection(CleverMesh parentLayer)
+    public MeshCollection(MeshMasher.SmartMesh parentLayer,T[] nodeMetadata, Func<T,int> defaultIdentifier, Func<T,int[]> defaultConnector)
     {
-        _cleverMesh = parentLayer;
-        Meshes = SubMesh.FromMesh(parentLayer);
+        _smartMesh = parentLayer;
+        Meshes = SubMesh<T>.FromMesh(parentLayer, nodeMetadata, defaultIdentifier);
 
-        var meshDict = new Dictionary<int, SubMesh>();
+        var meshDict = new Dictionary<int, SubMesh<T>>();
 
         for (int i = 0; i < Meshes.Length; i++)
         {
-            meshDict.Add(Meshes[i].Code, Meshes[i]);
+            meshDict.Add(Meshes[i].Id, Meshes[i]);
         }
 
-        var targetLines = SubMesh.GetBridgePairs(parentLayer, Meshes);
+        var targetLines = SubMesh<T>.GetBridgePairs(parentLayer,nodeMetadata,defaultIdentifier,defaultConnector, Meshes);
 
         Bridges = new Bridge[targetLines.connections.Count];
 
@@ -30,7 +30,7 @@ public class MeshCollection
         {
             var a = meshDict[targetLines.connections[i].Key];
             var b = meshDict[targetLines.connections[i].Value];
-            var (lines, nodesA, nodesB) = a.GetSharedLines(b, targetLines.lines.ToArray());
+            var (lines, nodesA, nodesB) = a.GetSharedLines(b, targetLines.lines.ToArray(),defaultIdentifier);
 
             Bridges[i] = new Bridge(            
                 targetLines.connections[i].Key,
@@ -56,14 +56,14 @@ public class MeshCollection
                 if (b.LineCodes[u] == 0)
                     continue;
 
-                _cleverMesh.Mesh.Lines[b.Lines[u]].DebugDraw(color, duration);
+                _smartMesh.Lines[b.Lines[u]].DebugDraw(color, duration);
             }
         }
     }
 
     public int[][] GetConnectionMetadata()
     {
-        var lineMap = new bool[_cleverMesh.Mesh.Lines.Count];
+        var lineMap = new bool[_smartMesh.Lines.Count];
 
         for (int i = 0; i < Bridges.Length; i++)
         {
@@ -97,7 +97,7 @@ public class MeshCollection
         //        _cleverMesh.Mesh.Lines[i].DebugDraw(Color.green, 100f);
         //}
 
-        return _cleverMesh.Mesh.Nodes.Select(x => x.Lines.Where(y => lineMap[y.Index]).Select(y => y.GetOtherNode(x).Index).ToArray()).ToArray();
+        return _smartMesh.Nodes.Select(x => x.Lines.Where(y => lineMap[y.Index]).Select(y => y.GetOtherNode(x).Index).ToArray()).ToArray();
     }
 }
 
