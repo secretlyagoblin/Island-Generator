@@ -41,7 +41,10 @@ public class RecursiveHexTest : MonoBehaviour
 
         var graph = layer1
             .Subdivide()
-            .Subdivide().ToGraph(x => x.Code, x => new int[0])
+            .Subdivide()
+            .ToGraph(
+                regionIndentifier: x => x.Code, 
+                regionConnector: x => new int[0])
             .ApplyBlueprint(HighLevelAreas.CreateSingleRegion)
             .DebugDraw(transform);
 
@@ -141,7 +144,7 @@ public static class HighLevelAreas
                 continue;
             }
 
-            mesh.ApplyState(LevelGen.States.SummedDikstraRemoveDeadEnds);
+            mesh.SetConnectivity(LevelGen.States.SummedDikstraRemoveDeadEnds);
 
 
         }

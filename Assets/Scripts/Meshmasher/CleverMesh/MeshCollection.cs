@@ -80,7 +80,7 @@ public class MeshCollection<T>
         for (int i = 0; i < Meshes.Length; i++)
         {
             var subMesh = Meshes[i];
-            var state = subMesh.State;
+            var state = subMesh.Connectivity;
 
             for (int u = 0; u < subMesh.Lines.Length; u++)
             {

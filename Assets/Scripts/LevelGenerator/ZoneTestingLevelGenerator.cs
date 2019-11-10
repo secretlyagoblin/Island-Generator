@@ -72,7 +72,7 @@ namespace LevelGenerator {
             var layer1IncludingBorder = layer1WiderNeighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
 
             var subMesh = new SubMesh<NodeMetadata>(1, layer1WiderNeighbourhood.ToArray(),layer1.NodeMetadata, layer1.Mesh);
-            subMesh.ApplyState(States.SummedDikstra);
+            subMesh.SetConnectivity(States.SummedDikstra);
             //subMesh.DebugDraw(Color.red, 4f);
 
             /// 2: Initialise wider neighbourhood with different colours
@@ -132,18 +132,18 @@ namespace LevelGenerator {
                 {
                     if (RNG.SmallerThan(0.7))
                     {
-                        m.ApplyState(States.TubbyCorridors);
+                        m.SetConnectivity(States.TubbyCorridors);
                         //m.DebugDraw(Color.green, 20f);
                     }
                     else
                     {
-                        m.ApplyState(States.SummedDikstraRemoveDeadEnds);
+                        m.SetConnectivity(States.SummedDikstraRemoveDeadEnds);
                         //m.DebugDraw(Color.yellow, 20f);
                     }
                 }
                 else
                 {
-                    m.ApplyState(States.DikstraWithRooms);
+                    m.SetConnectivity(States.DikstraWithRooms);
                     //m.DebugDraw(Color.red, 20f);
                 }            
             }

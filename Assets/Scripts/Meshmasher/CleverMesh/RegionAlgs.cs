@@ -7,56 +7,50 @@ namespace LevelGen
 {    
     public static class States
     {
-        public static MeshState<int> DikstraWithRandomisation<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> DikstraWithRandomisation<T>(SubMesh<T> subMesh)
         {
             var dik = Dikstra(subMesh, 0.8f, 1.2f);
 
             return dik;
         }
 
-        public static MeshState<int> OpenPlains<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> OpenPlains<T>(SubMesh<T> subMesh)
         {
             var nodes = subMesh.Nodes;
             var lines = subMesh.Lines;
 
-            var state = new MeshState<int>();
-            state.Nodes = new int[nodes.Length];
-            state.Lines = new int[lines.Length];
+            var state = new MeshState<Connection>();
+            state.Nodes = new Connection[nodes.Length];
+            state.Lines = new Connection[lines.Length];
             for (int i = 0; i < nodes.Length; i++)
             {
-                state.Nodes[i] = 1;
+                state.Nodes[i] = Connection.Present;
             }
 
             for (int i = 0; i < lines.Length; i++)
             {
-                state.Lines[i] = 1;
+                state.Lines[i] = Connection.Present;
             }
 
             return state;
         }
 
-        public static MeshState<int> SummedDikstra<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> SummedDikstra<T>(SubMesh<T> subMesh)
         {
             var one = DikstraWithRandomisation(subMesh);
             var two = DikstraWithRandomisation(subMesh);
 
             for (int i = 0; i < subMesh.Lines.Length; i++)
             {
-                one.Lines[i] = two.Lines[i] == 1 ? 1 : one.Lines[i];
+                one.Lines[i] = two.Lines[i] == Connection.Present ? Connection.Present : one.Lines[i];
             }
 
             return one;
         }
 
-        public static MeshState<int> SummedDikstraRemoveDeadEnds<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> SummedDikstraRemoveDeadEnds<T>(SubMesh<T> subMesh)
         {
-            var one = DikstraWithRandomisation(subMesh);
-            var two = DikstraWithRandomisation(subMesh);
-
-            for (int i = 0; i < subMesh.Lines.Length; i++)
-            {
-                one.Lines[i] = two.Lines[i] == 1 ? 1 : one.Lines[i];
-            }
+            var one = SummedDikstra(subMesh);
 
             var cleaned = RecursivelyRemoveDeadEnds(subMesh, one);
             //var finalided = RemoveShortCliffs(subMesh, cleaned);
@@ -64,7 +58,7 @@ namespace LevelGen
             return cleaned;
         }
 
-        public static MeshState<int> MinimalCorridor<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> MinimalCorridor<T>(SubMesh<T> subMesh)
         {
             var keyMeshState = DikstraWithRandomisation(subMesh);
             keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
@@ -72,7 +66,7 @@ namespace LevelGen
             return keyMeshState;
         }
 
-        public static MeshState<int> TubbyCorridors<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> TubbyCorridors<T>(SubMesh<T> subMesh)
         {
             var keyMeshState = DikstraWithRandomisation(subMesh);
             keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
@@ -80,7 +74,7 @@ namespace LevelGen
             return Entubben(subMesh, keyMeshState, 3);
         }
 
-        public static MeshState<int> DikstraWithRooms<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> DikstraWithRooms<T>(SubMesh<T> subMesh)
         {
             var dik = Dikstra(subMesh, 0.8f, 1.2f);
             var next = RecursivelyRemoveDeadEnds(subMesh, dik, 2);
@@ -90,7 +84,7 @@ namespace LevelGen
 
         //Private Functions
 
-        private static MeshState<int> Dikstra<T>(SubMesh<T> subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
+        private static MeshState<Connection> Dikstra<T>(SubMesh<T> subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
         {
             var nodes = subMesh.Nodes;
             var lines = subMesh.Lines;
@@ -105,11 +99,11 @@ namespace LevelGen
             var isPartOfCurrentSortingEvent = new bool[nodes.Length];
             var visitedNodesList = new List<SmartNode>();
             var firstNode = mesh.Nodes[nodes[0]];
-            var visitedNodes = new int[nodes.Length];
-            var visitedLines = new int[lines.Length];
+            var visitedNodes = new Connection[nodes.Length];
+            var visitedLines = new Connection[lines.Length];
             var visitedLinesIteration = new int[lines.Length];
             visitedNodesList.Add(firstNode);
-            visitedNodes[subMesh.NodeMap[firstNode.Index]] = 1;
+            visitedNodes[subMesh.NodeMap[firstNode.Index]] = Connection.Present;
             var outputLines = new List<SmartLine>();
             var iteration = 0;
 
@@ -129,7 +123,7 @@ namespace LevelGen
 
                         var lineIndex = subMesh.LineMap[n.Lines[u].Index];
 
-                        if (visitedLines[lineIndex] == 0 &&
+                        if (visitedLines[lineIndex] == Connection.NotPresent &&
                             visitedLinesIteration[lineIndex] != iteration)
                         {
                             outputLines.Add(n.Lines[u]);
@@ -166,25 +160,27 @@ namespace LevelGen
                 }
 
                 isPartOfCurrentSortingEvent[subMesh.NodeMap[bestLine.Nodes[1].Index]] = true;
-                visitedLines[subMesh.LineMap[bestLine.Index]] = 1;
+                visitedLines[subMesh.LineMap[bestLine.Index]] = Connection.Present;
 
                 for (int i = 0; i < bestLine.Nodes.Count; i++)
                 {
                     var n = bestLine.Nodes[i];
-                    if (visitedNodes[subMesh.NodeMap[n.Index]] == 0)
+                    if (visitedNodes[subMesh.NodeMap[n.Index]] == Connection.NotPresent)
                     {
                         visitedNodesList.Add(n);
-                        visitedNodes[subMesh.NodeMap[n.Index]] = 1;
+                        visitedNodes[subMesh.NodeMap[n.Index]] = Connection.Present;
                     }
                 }
             }
 
-            var meshState = new MeshState<int>();
+            var meshState = new MeshState<Connection>
+            {
+                Nodes = new Connection[nodes.Length]
+            };
 
-            meshState.Nodes = new int[nodes.Length];
             for (int i = 0; i < meshState.Nodes.Length; i++)
             {
-                meshState.Nodes[i] = 1;
+                meshState.Nodes[i] = Connection.Present;
             }
 
             meshState.Lines = visitedLines;
@@ -192,7 +188,7 @@ namespace LevelGen
             return meshState;
         }
 
-        private static MeshState<int> RecursivelyRemoveDeadEnds<T>(SubMesh<T> subMesh, MeshState<int> state, int iterations = 99)
+        private static MeshState<Connection> RecursivelyRemoveDeadEnds<T>(SubMesh<T> subMesh, MeshState<Connection> state, int iterations = 99)
         {
             var nodes = subMesh.Nodes;
             var mesh = subMesh.SourceMesh;
@@ -221,7 +217,7 @@ namespace LevelGen
 
                         var testIndex = subMesh.LineMap[node.Lines[u].Index];
 
-                        if (startState.Lines[testIndex] == 1)
+                        if (startState.Lines[testIndex] == Connection.Present)
                         {
                             lastTrueLine = node.Lines[u].Index;
                             lastIndex = testIndex;
@@ -233,8 +229,8 @@ namespace LevelGen
                     if (connectionsCount == 1)
                     {
 
-                        endState.Nodes[i] = 0;
-                        endState.Lines[lastIndex] = 0;
+                        endState.Nodes[i] = Connection.NotPresent;
+                        endState.Lines[lastIndex] = Connection.NotPresent;
                         //mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 5);
                         deadEndCount++;
 
@@ -263,7 +259,7 @@ namespace LevelGen
 
         }
 
-        private static MeshState<int> Entubben<T>(SubMesh<T> subMesh, MeshState<int> state, int nodeConnectionsThreshold)
+        private static MeshState<Connection> Entubben<T>(SubMesh<T> subMesh, MeshState<Connection> state, int nodeConnectionsThreshold)
         {
             var nodes = subMesh.Nodes;
             var mesh = subMesh.SourceMesh;
@@ -277,7 +273,7 @@ namespace LevelGen
             {
                 var node = mesh.Nodes[nodes[i]];
 
-                if (startState.Nodes[i] != 0)
+                if (startState.Nodes[i] == Connection.Present)
                     continue;
 
                 var embigginCount = 0;
@@ -295,7 +291,7 @@ namespace LevelGen
 
                     var testIndex = subMesh.NodeMap[other.Index];
 
-                    if (startState.Nodes[testIndex] != 1)
+                    if (startState.Nodes[testIndex] == Connection.NotPresent)
                         continue;
 
                     tempLineStorage.Add(subMesh.LineMap[node.Lines[u].Index]);
@@ -305,8 +301,8 @@ namespace LevelGen
 
                 if (embigginCount >= nodeConnectionsThreshold)
                 {
-                    endState.Nodes[i] = 1;
-                    tempLineStorage.ForEach(x => endState.Lines[x] = 1);
+                    endState.Nodes[i] = Connection.Present;
+                    tempLineStorage.ForEach(x => endState.Lines[x] = Connection.Present);
                 }
 
             }

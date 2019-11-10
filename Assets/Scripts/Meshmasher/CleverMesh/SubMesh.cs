@@ -12,20 +12,20 @@ public class SubMesh<T> {
 
     public readonly Dictionary<int, int> NodeMap;
     public readonly Dictionary<int, int> LineMap;
-    public MeshState<int> State { get; private set; }
+    public MeshState<Connection> Connectivity { get; private set; }
     public int Id { get; private set; }
 
     public readonly SmartMesh SourceMesh;
-    private readonly T[] _payloads;
+    private readonly T[] _nodeMetadata;
     //List<KeyValuePair<int, int>> _connections = new List<KeyValuePair<int, int>>();
 
     //public List<int> ConnectingLines = new List<int>();
 
-    public void ApplyState(System.Func<SubMesh<T>, MeshState<int>> func)
+    public void SetConnectivity(System.Func<SubMesh<T>, MeshState<Connection>> func)
     {
         try
         {
-            State = func(this);
+            Connectivity = func(this);
         }
         catch(Exception ex)
         {
@@ -33,11 +33,11 @@ public class SubMesh<T> {
         }
     }
 
-    public SubMesh(int code, int[] nodes, int[] lines, T[] payloads, SmartMesh mesh)
+    public SubMesh(int code, int[] nodes, int[] lines, T[] nodeMetadata, SmartMesh mesh)
     {
         Id = code;
         SourceMesh = mesh;
-        _payloads = payloads;
+        _nodeMetadata = nodeMetadata;
         Nodes = nodes;
         Lines = lines;
 
@@ -59,7 +59,7 @@ public class SubMesh<T> {
     {
         Id = code;
         SourceMesh = mesh;
-        _payloads = payloads;
+        _nodeMetadata = payloads;
         Nodes = nodes;
         Lines = nodes
             .SelectMany(x => mesh.Nodes[x].Lines
@@ -85,9 +85,9 @@ public class SubMesh<T> {
     {
         for (int i = 0; i < Lines.Length; i++)
         {
-            if (State != null)
+            if (Connectivity != null)
             {
-                if (State.Lines[i] == 0)
+                if (Connectivity.Lines[i] == 0)
                     continue;
             }
             SourceMesh.Lines[Lines[i]].DebugDraw(color, duration);
@@ -98,7 +98,7 @@ public class SubMesh<T> {
     {
         var codeA = this.Id;
         var codeB = mesh.Id;
-        var metadata = this._payloads;
+        var metadata = this._nodeMetadata;
         var smesh = this.SourceMesh;
 
         var lines = candidates.Where(x =>
@@ -226,11 +226,11 @@ public class SubMesh<T> {
             if(!lineMap.ContainsKey(node.Lines[i].Index))
                 continue;
 
-            if(State.Lines[lineMap[node.Lines[i].Index]] != 0)
+            if(Connectivity.Lines[lineMap[node.Lines[i].Index]] != 0)
             {
                 connections.Add(
                     identifier(
-                        this._payloads[node.Lines[i].GetOtherNode(node).Index])
+                        this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
                     );
             }
         }
@@ -288,6 +288,11 @@ public class SubMesh<T> {
         return finalSubmeshes;
     }
 
+}
+
+public enum Connection
+{
+   NotPresent = 0, Present = 1
 }
 
 //class TopologyData {
