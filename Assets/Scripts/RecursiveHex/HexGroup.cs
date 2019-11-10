@@ -493,17 +493,26 @@ namespace RecursiveHex
             return mesh;
         }
 
-        public Graph<HexPayload> ToGraph(Func<HexPayload,int> regionIndentifier, Func<HexPayload, int[]> regionConnector)
+        #endregion
+
+        #region graphs
+
+        public Graph<HexPayload> ToGraph(Func<HexPayload, int> regionIndentifier, Func<HexPayload, int[]> regionConnector)
         {
             (var vertices, var triangles) = this.ToNetwork(x => 0);
 
             return new Graph<HexPayload>(
-                vertices, 
-                triangles, 
+                vertices,
+                triangles,
                 this._inside.Select(x => x.Value.Payload).ToArray(),
                 regionIndentifier,
                 regionConnector
                 );
+        }
+
+        public HexGroup MassUpdateHexes(HexPayload[] data)
+        {
+            return this.ForEach((x, i) => data[i]);
         }
 
         #endregion

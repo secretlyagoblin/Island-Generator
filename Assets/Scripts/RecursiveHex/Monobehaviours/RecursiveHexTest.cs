@@ -37,16 +37,29 @@ public class RecursiveHexTest : MonoBehaviour
             colours.Add(RNG.NextColor());
         }
 
-        var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 4, Color = Color.white });
+        var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
 
-        var graph = layer1
+        var layer2 = layer1
             .Subdivide()
-            .Subdivide()
+            .Subdivide();
+
+        layer2.ToGameObjects(Prefab);
+        layer2.ToGameObjectsBorder(BorderPrefab);
+
+
+        var graph = layer2
             .ToGraph(
-                regionIndentifier: x => x.Code, 
+                regionIndentifier: x => x.Code,
                 regionConnector: x => new int[0])
-            .ApplyBlueprint(HighLevelAreas.CreateSingleRegion)
-            .DebugDraw(transform);
+            .ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion)
+            .DebugDrawSubmeshConnectivity(transform);
+
+        //layer2.MassUpdateHexes(graph.Finally(x => { 
+        //    var done = x;
+        //    done.Code = 3;
+        //    return done;
+        //}));
+            
 
 
 
@@ -131,7 +144,7 @@ public class RecursiveHexTest : MonoBehaviour
     }
 }
 
-public static class HighLevelAreas
+public static class HighLevelConnectivity
 {
     public static void CreateSingleRegion<T>(MeshCollection<T> meshCollection)
     {
@@ -144,7 +157,7 @@ public static class HighLevelAreas
                 continue;
             }
 
-            mesh.SetConnectivity(LevelGen.States.SummedDikstraRemoveDeadEnds);
+            mesh.SetConnectivity(LevelGen.States.DikstraWithRandomisation);
 
 
         }
