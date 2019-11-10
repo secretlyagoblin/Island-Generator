@@ -11,11 +11,14 @@ public class Graph<T> where T:struct
     private MeshCollection<T> _collection;
     private T[] _nodeMetadata;
 
-    public Graph(Vector3[] verts, int[] tris, T[] nodes, System.Func<T, int> identifier, System.Func<T,int[]> connector){
+    private Func<T, int> _identifier;
+
+    public Graph(Vector3[] verts, int[] tris, T[] nodes, Func<T, int> identifier, Func<T,int[]> connector){
         _smartMesh = new MeshMasher.SmartMesh(verts, tris);
         _nodeMetadata = nodes;
+        _identifier = identifier;
 
-        _collection = new MeshCollection<T>(_smartMesh,nodes, identifier,connector);
+        _collection = new MeshCollection<T>(_smartMesh,nodes, _identifier, connector);
 
         }
 
@@ -33,14 +36,37 @@ public class Graph<T> where T:struct
             var mesh = _collection.Meshes[i];
 
             mesh.DebugDraw(Color.green, 100f);
+
+            mesh.Connections.ForEach(x =>
+            {
+                for (int u = 0; u < x.Lines.Length; u++)
+                {
+                    this._smartMesh.Lines[x.Lines[u]].DebugDraw(Color.green,100f);
+                }
+            });
         }
+
 
         return this;
     }
 
-    internal Graph<T> ApplyBlueprint(Action<MeshCollection<T>> blueprint)
+    internal Graph<T> ApplyBlueprint(Action<Graph<T>> blueprint)
+    {
+        blueprint(this);
+
+        return this;
+    }
+
+    internal Graph<T> ApplyBlueprintToSubMesh(Action<MeshCollection<T>> blueprint)
     {
         blueprint(_collection);
+
+        return this;
+    }
+
+    internal Graph<T> ApplyBlueprintToNodeMetadata(Action<T[]> blueprint)
+    {
+        blueprint(_nodeMetadata);
 
         return this;
     }
@@ -49,22 +75,17 @@ public class Graph<T> where T:struct
     {
         var outT = new T[_nodeMetadata.Length];
 
-        //for (int i = 0; i < _collection.Meshes.Length; i++)
-        //{
-        //    var m = _collection.Meshes[i];
-        //
-        //    for (int u = 0; u < m.ConnectionsFromState; u++)
-        //    {
-        //
-        //    }
-        //}
-
-        throw new NotImplementedException();
-
-
-        for (int i = 0; i < outT.Length; i++)
+        for (int i = 0; i < _collection.Meshes.Length; i++)
         {
-            //outT[i] = finallyDo(_nodeMetadata[i]);
+            var m = _collection.Meshes[i];
+            var nodes = m.Nodes;
+        
+            for (int u = 0; u < nodes.Length; u++)
+            {
+                var index = nodes[u];
+                var result = m.ConnectionsFromState(index, _identifier);
+                outT[index] = finallyDo(_nodeMetadata[index], result);
+            }
         }
 
         return outT;

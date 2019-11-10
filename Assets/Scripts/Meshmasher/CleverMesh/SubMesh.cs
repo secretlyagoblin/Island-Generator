@@ -201,32 +201,16 @@ public class SubMesh<T> {
 
     public int[] ConnectionsFromState(int nodeIndex, Func<T,int> identifier)
     {
-        for (int i = 0; i < Nodes.Length; i++)
-        {
-            if (nodeIndex == Nodes[i])
-                goto FoundNode;
-        }
-
-        return new int[] { };
-
-        FoundNode:
-
         var node = SourceMesh.Nodes[nodeIndex];
-
-        var lineMap = new Dictionary<int, int>();
-        for (int i = 0; i < Lines.Length; i++)
-        {
-            lineMap.Add(Lines[i], i);
-        }
 
         var connections = new List<int>(node.Lines.Count);
 
         for (int i = 0; i < node.Lines.Count; i++)
         {
-            if(!lineMap.ContainsKey(node.Lines[i].Index))
+            if(!LineMap.ContainsKey(node.Lines[i].Index))
                 continue;
 
-            if(Connectivity.Lines[lineMap[node.Lines[i].Index]] != 0)
+            if(Connectivity.Lines[LineMap[node.Lines[i].Index]] != 0)
             {
                 connections.Add(
                     identifier(
