@@ -55,10 +55,11 @@ public class SubMesh<T> {
 
     }
 
-    public SubMesh(int code, int[] nodes, SmartMesh mesh)
+    public SubMesh(int code, int[] nodes, T[] payloads, SmartMesh mesh)
     {
         Id = code;
         SourceMesh = mesh;
+        _payloads = payloads;
         Nodes = nodes;
         Lines = nodes
             .SelectMany(x => mesh.Nodes[x].Lines
@@ -227,7 +228,10 @@ public class SubMesh<T> {
 
             if(State.Lines[lineMap[node.Lines[i].Index]] != 0)
             {
-                connections.Add(identifier(this._payloads[node.Lines[i].GetOtherNode(node).Index]));
+                connections.Add(
+                    identifier(
+                        this._payloads[node.Lines[i].GetOtherNode(node).Index])
+                    );
             }
         }
 

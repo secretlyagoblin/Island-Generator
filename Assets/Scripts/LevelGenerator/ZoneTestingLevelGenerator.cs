@@ -71,7 +71,7 @@ namespace LevelGenerator {
 
             var layer1IncludingBorder = layer1WiderNeighbourhood.SelectMany(x => layer1.Mesh.Nodes[x].Nodes).Distinct().ToList().ConvertAll(x => x.Index);
 
-            var subMesh = new SubMesh<NodeMetadata>(1, layer1WiderNeighbourhood.ToArray(), layer1.Mesh);
+            var subMesh = new SubMesh<NodeMetadata>(1, layer1WiderNeighbourhood.ToArray(),layer1.NodeMetadata, layer1.Mesh);
             subMesh.ApplyState(States.SummedDikstra);
             //subMesh.DebugDraw(Color.red, 4f);
 
