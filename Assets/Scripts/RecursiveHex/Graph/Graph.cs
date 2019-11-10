@@ -24,24 +24,27 @@ public class Graph<T> where T:struct
 
     public Graph<T> DebugDraw(Transform transform)
     {
-        _smartMesh.DrawMesh(transform, Color.green, Color.blue);
+        _smartMesh.DrawMesh(transform, Color.white*0.5f, Color.blue);
 
         return this;
     }
 
-    public Graph<T> DebugDrawSubmeshConnectivity(Transform transform)
+    public Graph<T> DebugDrawSubmeshConnectivity(Color color)
     {
+        //_collection.DebugDisplayEnabledBridges(Color.white, 100f);
+
         for (int i = 0; i < _collection.Meshes.Length; i++)
         {
             var mesh = _collection.Meshes[i];
 
-            mesh.DebugDraw(Color.green, 100f);
+            mesh.DebugDraw(color, 100f);
 
             mesh.Connections.ForEach(x =>
             {
+                
                 for (int u = 0; u < x.Lines.Length; u++)
                 {
-                    this._smartMesh.Lines[x.Lines[u]].DebugDraw(Color.green,100f);
+                    this._smartMesh.Lines[x.Lines[u]].DebugDraw(color, 100f);
                 }
             });
         }

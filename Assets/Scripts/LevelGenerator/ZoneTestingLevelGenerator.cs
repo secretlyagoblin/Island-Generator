@@ -33,9 +33,9 @@ namespace LevelGenerator {
                     layer.NodeMetadata[u].SmoothColor = c;
                 }
 
-                var layer3 = new CleverMesh(layer);
+                //var layer3 = new CleverMesh(layer);
 
-                this.CreateObjectXY(layer3);
+                this.CreateObjectXY(layer);
                 //this.crea
             }
 

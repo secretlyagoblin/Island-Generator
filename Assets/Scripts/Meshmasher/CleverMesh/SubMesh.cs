@@ -98,14 +98,14 @@ public class SubMesh<T> {
     {
         var codeA = this.Id;
         var codeB = mesh.Id;
-        var metadata = this._nodeMetadata;
+        var nodeMetadata = this._nodeMetadata;
         var smesh = this.SourceMesh;
 
         var lines = candidates.Where(x =>
         {
             var line = smesh.Lines[x];
-            var a = identifier(metadata[line.Nodes[0].Index]);
-            var b = identifier(metadata[line.Nodes[1].Index]);
+            var a = identifier(nodeMetadata[line.Nodes[0].Index]);
+            var b = identifier(nodeMetadata[line.Nodes[1].Index]);
 
             if (a == codeA && b == codeB)
                 return true;
@@ -123,8 +123,8 @@ public class SubMesh<T> {
         {
             var lineId = lines[i];
             var line = smesh.Lines[lineId];
-            var a = identifier(metadata[line.Nodes[0].Index]);
-            var b = identifier(metadata[line.Nodes[1].Index]);
+            var a = identifier(nodeMetadata[line.Nodes[0].Index]);
+            var b = identifier(nodeMetadata[line.Nodes[1].Index]);
 
             if (a == codeA)
             {
@@ -174,27 +174,27 @@ public class SubMesh<T> {
 
         var determinedLines = new List<SmartLine>();
 
-        finalLines = finalLines.Where(x =>
-        {
-            if (determinedLines.SkipWhile(y => !y.IsConnectedTo(x)).Count() > 0)
-                return false;
-
-            var a = x.Nodes[0].Index;
-            var b = x.Nodes[1].Index;
-
-            var codeA = identifier(nodeMetadata[a]) < identifier(nodeMetadata[b]) ? identifier(nodeMetadata[a]) : identifier(nodeMetadata[b]);
-            var codeB = identifier(nodeMetadata[a]) < identifier(nodeMetadata[b]) ? identifier(nodeMetadata[b]) : identifier(nodeMetadata[a]);
-
-            var pair = new KeyValuePair<int, int>(codeA, codeB);
-
-            if (!connections.Contains(pair))
-                return false;
-
-            //connections.Remove(pair);
-            determinedLines.Add(x);
-
-            return true;
-        });
+        //finalLines = finalLines.Where(x =>
+        //{
+        //    if (determinedLines.SkipWhile(y => !y.IsConnectedTo(x)).Count() > 0)
+        //        return false;
+        //
+        //    var a = x.Nodes[0].Index;
+        //    var b = x.Nodes[1].Index;
+        //
+        //    var codeA = identifier(nodeMetadata[a]) < identifier(nodeMetadata[b]) ? identifier(nodeMetadata[a]) : identifier(nodeMetadata[b]);
+        //    var codeB = identifier(nodeMetadata[a]) < identifier(nodeMetadata[b]) ? identifier(nodeMetadata[b]) : identifier(nodeMetadata[a]);
+        //
+        //    var pair = new KeyValuePair<int, int>(codeA, codeB);
+        //
+        //    if (!connections.Contains(pair))
+        //        return false;
+        //
+        //    //connections.Remove(pair);
+        //    determinedLines.Add(x);
+        //
+        //    return true;
+        //});
 
         return (connections, finalLines.Select(x => x.Index).ToList());
     }

@@ -45,21 +45,6 @@ public class MeshCollection<T>
         }
     }
 
-    public void DebugDisplayEnabledBridges(Color color, float duration)
-    {
-        for (int i = 0; i < Bridges.Length; i++)
-        {
-            var b = Bridges[i];
-
-            for (int u = 0; u < b.Lines.Length; u++)
-            {
-                if (b.LineCodes[u] == 0)
-                    continue;
-
-                _smartMesh.Lines[b.Lines[u]].DebugDraw(color, duration);
-            }
-        }
-    }
 
     public int[][] GetConnectionMetadata()
     {
@@ -99,6 +84,23 @@ public class MeshCollection<T>
 
         return _smartMesh.Nodes.Select(x => x.Lines.Where(y => lineMap[y.Index]).Select(y => y.GetOtherNode(x).Index).ToArray()).ToArray();
     }
+
+    public void DebugDisplayEnabledBridges(Color color, float duration)
+    {
+        for (int i = 0; i < Bridges.Length; i++)
+        {
+            var b = Bridges[i];
+
+            for (int u = 0; u < b.Lines.Length; u++)
+            {
+                if (b.LineCodes[u] == 0)
+                    continue;
+
+                _smartMesh.Lines[b.Lines[u]].DebugDraw(color, duration);
+            }
+        }
+    }
+
 }
 
 public class Bridge

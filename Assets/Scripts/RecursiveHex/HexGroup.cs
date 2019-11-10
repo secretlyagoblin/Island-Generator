@@ -400,7 +400,7 @@ namespace RecursiveHex
             return HexGroup.ToMesh(_border);
         }
 
-        private (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> func)
+        private (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> zOffset)
         {
             var count = 0;
             var indexes = _inside.Keys;
@@ -468,7 +468,7 @@ namespace RecursiveHex
                 }
             }
 
-            var vertices = indexes.Select(x => new Vector3((x.y % 2 == 0 ? x.x : x.x + 0.5f), func(_inside[x].Payload), x.y * Hex.ScaleY)).ToArray();
+            var vertices = indexes.Select(x => new Vector3((x.y % 2 == 0 ? x.x : x.x + 0.5f), zOffset(_inside[x].Payload), x.y * Hex.ScaleY)).ToArray();
             var finalTriangles = triangles.SelectMany(x => new[] { x.x, x.y, x.z }).ToArray();
 
             return (vertices, finalTriangles);

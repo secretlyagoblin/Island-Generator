@@ -40,19 +40,50 @@ public class RecursiveHexTest : MonoBehaviour
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
 
         var layer2 = layer1
-            .Subdivide()
-            .Subdivide();
-
-        //layer2.ToGameObjects(Prefab);
-        //layer2.ToGameObjectsBorder(BorderPrefab);
+            .Subdivide().ForEach((x, i) => new HexPayload() { Code = i+1, Height = 0, Color = Color.white }).Subdivide();
 
         var identifier = new Func<HexPayload, int>(x => x.Code);
         var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
 
+        for (int i = 1; i < 8; i++)
+        {
+            var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
+            var innerGraph = layer.ToGraph(identifier,connector).ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion);
+
+            //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
+
+            var bersults = innerGraph.Finally((x, connections) => {
+                var done = x;
+                done.Connections = new CodeConnections(connections);
+                return done;
+            });
+
+            layer.MassUpdateHexes(bersults);
+
+            var mesh = layer.Subdivide();
+
+            mesh.ToGraph(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
+
+            Finalise(mesh);
+
+
+
+
+
+        }
+
+        return;
+
+        //layer2.ToGameObjects(Prefab);
+        //layer2.ToGameObjectsBorder(BorderPrefab);
+
+        //var identifier = new Func<HexPayload, int>(x => x.Code);
+        //var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
+
         var graph = layer2
             .ToGraph(
                 identifier,
-                regionConnector: x => x.Connections.ToArray())
+                connector)
             .ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion);
             //.DebugDrawSubmeshConnectivity(transform);
 
@@ -64,10 +95,13 @@ public class RecursiveHexTest : MonoBehaviour
 
         layer2.MassUpdateHexes(results);
 
-        var layer3 = layer2.Subdivide();
+        var layer3 = layer2
+            .Subdivide();
+
 
         var graph2 = layer3.ToGraph(identifier, connector)
-            .DebugDrawSubmeshConnectivity(transform);
+            //.DebugDraw(this.transform)
+            .DebugDrawSubmeshConnectivity(colours[0]);
 
 
 
@@ -142,7 +176,7 @@ public class RecursiveHexTest : MonoBehaviour
         gobject.name = "Subregion";
         var renderer = gobject.AddComponent<MeshRenderer>();
         renderer.sharedMaterial = this.GetComponent<MeshRenderer>().sharedMaterial;
-        gobject.AddComponent<MeshFilter>().sharedMesh = group.ToConnectedMesh(x => x.Height*3, x=> x.Color);
+        gobject.AddComponent<MeshFilter>().sharedMesh = group.ToMesh();
         gobject.transform.parent = this.transform;
     }
 
@@ -168,7 +202,7 @@ public static class HighLevelConnectivity
                     continue;
                 }
 
-                mesh.SetConnectivity(LevelGen.States.DikstraWithRandomisation);
+                mesh.SetConnectivity(LevelGen.States.DikstraWithRooms);
             }
         });
 
