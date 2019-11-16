@@ -48,11 +48,11 @@ public class RecursiveHexTest : MonoBehaviour
         for (int i = 1; i < 8; i++)
         {
             var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
-            var innerGraph = layer.ToGraph(identifier,connector).ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion);
+            var innerGraph = layer.ToGraph<HighLevelConnectivity>(identifier, connector);
 
             //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
 
-            var bersults = innerGraph.Finally((x, connections) => {
+            var bersults = innerGraph.Finalise((x, connections) => {
                 var done = x;
                 done.Connections = new CodeConnections(connections);
                 return done;
@@ -62,14 +62,9 @@ public class RecursiveHexTest : MonoBehaviour
 
             var mesh = layer.Subdivide();
 
-            mesh.ToGraph(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
+            mesh.ToGraph<NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
 
             Finalise(mesh);
-
-
-
-
-
         }
 
         return;
@@ -80,28 +75,28 @@ public class RecursiveHexTest : MonoBehaviour
         //var identifier = new Func<HexPayload, int>(x => x.Code);
         //var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
 
-        var graph = layer2
-            .ToGraph(
-                identifier,
-                connector)
-            .ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion);
-            //.DebugDrawSubmeshConnectivity(transform);
-
-        var results = graph.Finally((x,connections) => {
-            var done = x;
-            done.Connections = new CodeConnections(connections);
-            return done;
-        });
-
-        layer2.MassUpdateHexes(results);
-
-        var layer3 = layer2
-            .Subdivide();
-
-
-        var graph2 = layer3.ToGraph(identifier, connector)
-            //.DebugDraw(this.transform)
-            .DebugDrawSubmeshConnectivity(colours[0]);
+        //var graph = layer2
+        //    .ToGraph(
+        //        identifier,
+        //        connector)
+        //    .ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion);
+        //    //.DebugDrawSubmeshConnectivity(transform);
+        //
+        //var results = graph.Finally((x,connections) => {
+        //    var done = x;
+        //    done.Connections = new CodeConnections(connections);
+        //    return done;
+        //});
+        //
+        //layer2.MassUpdateHexes(results);
+        //
+        //var layer3 = layer2
+        //    .Subdivide();
+        //
+        //
+        //var graph2 = layer3.ToGraph(identifier, connector)
+        //    //.DebugDraw(this.transform)
+        //    .DebugDrawSubmeshConnectivity(colours[0]);
 
 
 
@@ -187,15 +182,18 @@ public class RecursiveHexTest : MonoBehaviour
     }
 }
 
-public static class HighLevelConnectivity
+public class HighLevelConnectivity : Graph<HexPayload>
 {
-    public static void CreateSingleRegion(Graph<HexPayload> graph)
+    public HighLevelConnectivity(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
     {
-        graph.ApplyBlueprintToSubMesh(meshCollection =>
-        {
-            for (int i = 0; i < meshCollection.Meshes.Length; i++)
+    }
+
+    protected override void Generate()
+    {    
+
+            for (int i = 0; i < _collection.Meshes.Length; i++)
             {
-                var mesh = meshCollection.Meshes[i];
+                var mesh = _collection.Meshes[i];
 
                 if (mesh.Id < 0)
                 {
@@ -204,13 +202,22 @@ public static class HighLevelConnectivity
 
                 mesh.SetConnectivity(LevelGen.States.DikstraWithRooms);
             }
-        });
 
-        graph.ApplyBlueprintToNodeMetadata(x => {
-            for (int i = 0; i < x.Length; i++)
+            for (int i = 0; i < _nodeMetadata.Length; i++)
             {
-                x[i].Code = i + 1;
+                _nodeMetadata[i].Code = i + 1;
             }
-        });
+    }
+}
+
+public class NoBehaviour : Graph<HexPayload>
+{
+    public NoBehaviour(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+    {
+    }
+
+    protected override void Generate()
+    {
+        throw new NotImplementedException();
     }
 }

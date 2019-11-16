@@ -497,17 +497,18 @@ namespace RecursiveHex
 
         #region graphs
 
-        public Graph<HexPayload> ToGraph(Func<HexPayload, int> regionIndentifier, Func<HexPayload, int[]> regionConnector)
+        public T ToGraph<T>(Func<HexPayload, int> regionIndentifier, Func<HexPayload, int[]> regionConnector) where T: Graph<HexPayload>
         {
             (var vertices, var triangles) = this.ToNetwork(x => 0);
 
-            return new Graph<HexPayload>(
+            var type = Activator.CreateInstance(typeof(T),
                 vertices,
                 triangles,
                 this._inside.Select(x => x.Value.Payload).ToArray(),
                 regionIndentifier,
-                regionConnector
-                );
+                regionConnector) as T;
+
+            return type;
         }
 
         public HexGroup MassUpdateHexes(HexPayload[] data)

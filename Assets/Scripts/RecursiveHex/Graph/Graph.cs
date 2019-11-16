@@ -5,11 +5,11 @@ using System.Linq;
 using RecursiveHex;
 using System;
 
-public class Graph<T> where T:struct
+public abstract class Graph<T> where T:struct
 {
-    private MeshMasher.SmartMesh _smartMesh;
-    private MeshCollection<T> _collection;
-    private T[] _nodeMetadata;
+    protected MeshMasher.SmartMesh _smartMesh;
+    protected MeshCollection<T> _collection;
+    protected T[] _nodeMetadata;
 
     private Func<T, int> _identifier;
 
@@ -53,29 +53,12 @@ public class Graph<T> where T:struct
         return this;
     }
 
-    internal Graph<T> ApplyBlueprint(Action<Graph<T>> blueprint)
+    protected abstract void Generate();
+
+    internal T[] Finalise(Func<T, int[],T> finallyDo)
     {
-        blueprint(this);
+        Generate();
 
-        return this;
-    }
-
-    internal Graph<T> ApplyBlueprintToSubMesh(Action<MeshCollection<T>> blueprint)
-    {
-        blueprint(_collection);
-
-        return this;
-    }
-
-    internal Graph<T> ApplyBlueprintToNodeMetadata(Action<T[]> blueprint)
-    {
-        blueprint(_nodeMetadata);
-
-        return this;
-    }
-
-    internal T[] Finally(Func<T, int[],T> finallyDo)
-    {
         var outT = new T[_nodeMetadata.Length];
 
         for (int i = 0; i < _collection.Meshes.Length; i++)
