@@ -28,6 +28,11 @@ public class MeshCollection<T>
 
         for (int i = 0; i < targetLines.connections.Count; i++)
         {
+            if(!(meshDict.ContainsKey(targetLines.connections[i].Key) && meshDict.ContainsKey(targetLines.connections[i].Value)))
+            {
+                continue;
+            }
+
             var a = meshDict[targetLines.connections[i].Key];
             var b = meshDict[targetLines.connections[i].Value];
             var (lines, nodesA, nodesB) = a.GetSharedLines(b, targetLines.lines.ToArray(),defaultIdentifier);

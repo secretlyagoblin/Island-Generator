@@ -81,6 +81,15 @@ namespace LevelGen
             return Entubben(subMesh, next, 3);
         }
 
+        public static MeshState<Connection> ConnectEverything<T>(SubMesh<T> subMesh)
+        {
+            return new MeshState<Connection>()
+            {
+                Nodes = Populate(subMesh.Nodes.Length, Connection.Present),
+                Lines = Populate(subMesh.Lines.Length, Connection.Present)  
+            };
+        }
+
 
         //Private Functions
 
@@ -370,6 +379,18 @@ namespace LevelGen
                 }
             }
             return false;
+        }
+
+        private static T[] Populate<T>(int length, T value)
+        {
+            var array = new T[length];
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = value;
+            }
+
+            return array;
         }
 
 

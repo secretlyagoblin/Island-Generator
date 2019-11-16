@@ -37,14 +37,15 @@ public abstract class Graph<T> where T:struct
         {
             var mesh = _collection.Meshes[i];
 
-            mesh.DebugDraw(color, 100f);
+            //mesh.DebugDraw(color, 100f);
 
             mesh.Connections.ForEach(x =>
             {
+                var innerColor = RNG.NextColor();
                 
                 for (int u = 0; u < x.Lines.Length; u++)
                 {
-                    this._smartMesh.Lines[x.Lines[u]].DebugDraw(color, 100f);
+                    this._smartMesh.Lines[x.Lines[u]].DebugDraw(innerColor, 100f);
                 }
             });
         }

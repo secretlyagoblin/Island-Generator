@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using RecursiveHex;
+using System.Linq;
 
 public class RecursiveHexTest : MonoBehaviour
 {
@@ -15,22 +16,31 @@ public class RecursiveHexTest : MonoBehaviour
         //RNG.Init("I'd kill");
         RNG.Init();
         RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
-        //RandomSeedProperties.Disable();
+
+        var identifier = new Func<HexPayload, int>(x => x.Code);
+        var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
+        var remapper = new Func<HexPayload, int[], HexPayload>((x, connections) => { 
+                var done = x;
+                done.Connections = new CodeConnections(connections);
+                return done;
+            });
+
+            //RandomSeedProperties.Disable();
 
 
-        //var code = 0;
+            //var code = 0;
 
-        //var finalMeshes = new HexGroup()
-        //    .Subdivide()
-        //    .ForEach(x => { x.Height = RNG.NextFloat(10); x.Code = code; code++; })
-        //    .Subdivide()
-        //    .Subdivide(x => x.Code)
-        //    .ForEachHexGroup(x => x.Subdivide())
-        //    .ForEachHexGroup(x => x.ToMesh());
+            //var finalMeshes = new HexGroup()
+            //    .Subdivide()
+            //    .ForEach(x => { x.Height = RNG.NextFloat(10); x.Code = code; code++; })
+            //    .Subdivide()
+            //    .Subdivide(x => x.Code)
+            //    .ForEachHexGroup(x => x.Subdivide())
+            //    .ForEachHexGroup(x => x.ToMesh());
 
-        //var code = 0;
+            //var code = 0;
 
-        var colours = new List<Color>();
+            var colours = new List<Color>();
 
         for (int i = 0; i < 1000; i++)
         {
@@ -40,15 +50,31 @@ public class RecursiveHexTest : MonoBehaviour
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
 
         var layer2 = layer1
-            .Subdivide().ForEach((x, i) => new HexPayload() { Code = i+1, Height = 0, Color = Color.white }).Subdivide();
+            .Subdivide()
+            //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
+            //.Subdivide();
+            ;
 
-        var identifier = new Func<HexPayload, int>(x => x.Code);
-        var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
+        layer2.MassUpdateHexes(
+            layer2.ToGraph<Levels.SingleConnectionGraph>(identifier, connector)
+            .Finalise(remapper));
+
+        var groups = Enumerable.Range(1, 7);
+
+        var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide();
+
+      
+
+
+
+        layer3.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[0]);
+
+        return;
 
         for (int i = 1; i < 8; i++)
         {
             var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
-            var innerGraph = layer.ToGraph<HighLevelConnectivity>(identifier, connector);
+            var innerGraph = layer.ToGraph<Levels.HighLevelConnectivity>(identifier, connector);
 
             //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
 
@@ -62,7 +88,7 @@ public class RecursiveHexTest : MonoBehaviour
 
             var mesh = layer.Subdivide();
 
-            mesh.ToGraph<NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
+            mesh.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
 
             Finalise(mesh);
         }
@@ -181,12 +207,52 @@ public class RecursiveHexTest : MonoBehaviour
         this.transform.Rotate(Vector3.up, 5f * Time.deltaTime);
     }
 }
+namespace Levels{
 
-public class HighLevelConnectivity : Graph<HexPayload>
-{
-    public HighLevelConnectivity(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+    public abstract class HexGraph : Graph<HexPayload>
     {
+        public HexGraph(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        {
+        }
+
+
     }
+
+    public class SingleConnectionGraph : HexGraph
+    {
+        public SingleConnectionGraph(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        {
+        }
+
+        protected override void Generate()
+        {
+            for (int i = 0; i < _collection.Meshes.Length; i++)
+            {
+                var mesh = _collection.Meshes[i];
+
+                if (mesh.Id < 0)
+                {
+                    continue;
+                }
+
+                mesh.SetConnectivity(LevelGen.States.ConnectEverything);
+            }
+
+            for (int i = 0; i < _nodeMetadata.Length; i++)
+            {
+                _nodeMetadata[i].Code = i + 1;
+            }
+        }
+    }
+
+    public class HighLevelConnectivity : HexGraph
+    {
+    public HighLevelConnectivity(
+        Vector3[] verts,
+        int[] tris,
+        HexPayload[] nodes,
+        Func<HexPayload, int> identifier,
+        Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector) { }
 
     protected override void Generate()
     {    
@@ -210,14 +276,17 @@ public class HighLevelConnectivity : Graph<HexPayload>
     }
 }
 
-public class NoBehaviour : Graph<HexPayload>
-{
-    public NoBehaviour(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+public class NoBehaviour : HexGraph
     {
-    }
+    public NoBehaviour(Vector3[] verts,
+        int[] tris,
+        HexPayload[] nodes,
+        Func<HexPayload, int> identifier,
+        Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector) { }
 
     protected override void Generate()
     {
-        throw new NotImplementedException();
+
     }
+}
 }
