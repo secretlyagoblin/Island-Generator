@@ -8,7 +8,7 @@ public class MeshCollection<T>
 {
     private MeshMasher.SmartMesh _smartMesh;
     public SubMesh<T>[] Meshes;
-    public Bridge[] Bridges;
+    public BridgeCollection Bridges;
 
     public MeshCollection(MeshMasher.SmartMesh parentLayer,T[] nodeMetadata, Func<T,int> defaultIdentifier, Func<T,int[]> defaultConnector)
     {
@@ -24,12 +24,24 @@ public class MeshCollection<T>
 
         var targetLines = SubMesh<T>.GetBridgePairs(parentLayer,nodeMetadata,defaultIdentifier,defaultConnector, Meshes);
 
-        Bridges = new Bridge[targetLines.connections.Count];
+        Bridges = new BridgeCollection(targetLines.connections.Count);
+
+        for (int i = 0; i < Meshes.Length; i++)
+        {
+            Meshes[i].SetSharedBridgeCollection(Bridges);
+        }
 
         for (int i = 0; i < targetLines.connections.Count; i++)
         {
             if(!(meshDict.ContainsKey(targetLines.connections[i].Key) && meshDict.ContainsKey(targetLines.connections[i].Value)))
             {
+                Bridges[i] = new Bridge(
+                      targetLines.connections[i].Key,
+                      targetLines.connections[i].Value,
+                      new int[0],
+                      new int[0],
+                      new int[0]
+                  );
                 continue;
             }
 
@@ -45,11 +57,10 @@ public class MeshCollection<T>
                 lines
             );
 
-            a.Connections.Add(Bridges[i]);
-            b.Connections.Add(Bridges[i]);
+            a.BridgeConnectionIndices.Add(i);
+            b.BridgeConnectionIndices.Add(i);
         }
     }
-
 
     public int[][] GetConnectionMetadata()
     {
@@ -106,6 +117,44 @@ public class MeshCollection<T>
         }
     }
 
+}
+
+public class BridgeCollection
+{
+    Bridge[] _list;// = new List<Bridge>();
+
+    public int Length { get { return _list.Length; } }
+
+    public BridgeCollection(int length)
+    {
+        _list = new Bridge[length];
+    }
+
+    public Bridge this[int index]
+    {
+        get { return _list[index]; }
+        set { _list[index] = value; }
+    }
+
+    public void LeaveSingleRandomConnection()
+    {
+        for (int i = 0; i < _list.Length; i++)
+        {
+            var a = _list[i];
+            var empty = a.NodesA.Length == 0;
+
+            var random = RNG.Next(a.Lines.Length);
+
+            var b = new Bridge(
+                a.A,
+                a.B,
+                empty ? new int[0]: new int[] { a.NodesA[random] },
+                empty ? new int[0]: new int[] { a.NodesB[random] },
+                empty ? new int[0]: new int[] { a.Lines[random] }
+                );
+            _list[i] = b;
+        }
+    }
 }
 
 public class Bridge

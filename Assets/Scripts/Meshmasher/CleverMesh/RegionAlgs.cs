@@ -365,9 +365,10 @@ namespace LevelGen
 
         private static bool NodeAtIndexConnectsToOtherSubMesh<T>(SubMesh<T> subMesh, int index)
         {
-            for (int u = 0; u < subMesh.Connections.Count; u++)
+            for (int u = 0; u < subMesh.BridgeConnectionIndices.Count; u++)
             {
-                var bridge = subMesh.Connections[u];
+
+                var bridge = subMesh.SourceBridges[subMesh.BridgeConnectionIndices[u]];
                 var sub = bridge.A == subMesh.Id ? bridge.NodesA : bridge.NodesB;
 
                 for (int o = 0; o < bridge.LineCodes.Length; o++)

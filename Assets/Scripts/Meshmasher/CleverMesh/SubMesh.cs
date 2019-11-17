@@ -8,7 +8,8 @@ using UnityEngine;
 public class SubMesh<T> {
     public int[] Nodes;
     public int[] Lines;
-    public List<Bridge> Connections = new List<Bridge>();
+
+    public List<int> BridgeConnectionIndices = new List<int>();
 
     public readonly Dictionary<int, int> NodeMap;
     public readonly Dictionary<int, int> LineMap;
@@ -16,22 +17,13 @@ public class SubMesh<T> {
     public int Id { get; private set; }
 
     public readonly SmartMesh SourceMesh;
+    public BridgeCollection SourceBridges { get; private set; }
     private readonly T[] _nodeMetadata;
     //List<KeyValuePair<int, int>> _connections = new List<KeyValuePair<int, int>>();
 
     //public List<int> ConnectingLines = new List<int>();
 
-    public void SetConnectivity(System.Func<SubMesh<T>, MeshState<Connection>> func)
-    {
-        try
-        {
-            Connectivity = func(this);
-        }
-        catch(Exception ex)
-        {
-            throw new Exception("Error in Room Code " + Id, ex);
-        }
-    }
+
 
     public SubMesh(int code, int[] nodes, int[] lines, T[] nodeMetadata, SmartMesh mesh)
     {
@@ -52,7 +44,6 @@ public class SubMesh<T> {
         {
             LineMap.Add(lines[i], i);
         }
-
     }
 
     public SubMesh(int code, int[] nodes, T[] payloads, SmartMesh mesh)
@@ -78,6 +69,23 @@ public class SubMesh<T> {
         for (int i = 0; i < Lines.Length; i++)
         {
             LineMap.Add(Lines[i], i);
+        }
+    }
+
+    public void SetSharedBridgeCollection(BridgeCollection collection)
+    {
+        SourceBridges = collection;
+    }
+
+    public void SetConnectivity(System.Func<SubMesh<T>, MeshState<Connection>> func)
+    {
+        try
+        {
+            Connectivity = func(this);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error in Room Code " + Id, ex);
         }
     }
 
@@ -199,23 +207,45 @@ public class SubMesh<T> {
         return (connections, finalLines.Select(x => x.Index).ToList());
     }
 
-    public int[] ConnectionsFromState(int nodeIndex, Func<T,int> identifier)
+    /// <summary>
+    /// Iterate through each node and record its connections to other nodes
+    /// </summary>
+    /// <param name="nodeIndex"></param>
+    /// <param name="identifier"></param>
+    /// <returns></returns>
+    public int[] ConnectionsFromState(int nodeIndex, Func<T, int> identifier)
     {
         var node = SourceMesh.Nodes[nodeIndex];
 
         var connections = new List<int>(node.Lines.Count);
 
+        var bridgeSubset = this.BridgeConnectionIndices.SelectMany(x => this.SourceBridges[x].Lines).Distinct().ToHashSet();
+
         for (int i = 0; i < node.Lines.Count; i++)
         {
-            if(!LineMap.ContainsKey(node.Lines[i].Index))
-                continue;
+            var isInLineMap = LineMap.ContainsKey(node.Lines[i].Index);
+            var isInBridges = bridgeSubset.Contains(node.Lines[i].Index);
 
-            if(Connectivity.Lines[LineMap[node.Lines[i].Index]] != 0)
+            if (isInLineMap)
+            {
+                if (Connectivity.Lines[LineMap[node.Lines[i].Index]] == Connection.Present)
+                {
+                    connections.Add(
+                        identifier(
+                            this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
+                        );
+                }
+            }
+            else if (isInBridges)
             {
                 connections.Add(
                     identifier(
                         this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
                     );
+            }
+            else
+            {
+                continue;
             }
         }
 
@@ -266,6 +296,8 @@ public class SubMesh<T> {
                     .Where(x => identifier(payloads[x.Nodes[0].Index]) == key && identifier(payloads[x.Nodes[1].Index]) == key)
                     .Select(x => x.Index));
             }
+
+            
 
             finalSubmeshes[i] = new SubMesh<T>(key, nodes.ToArray(), lines.Distinct().ToArray(),payloads, mesh);
         }

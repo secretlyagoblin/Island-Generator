@@ -2,6 +2,7 @@
 using UnityEditor;
 using System.Collections;
 using System.IO;
+using System.Collections.Generic;
 
 public static class Util {
 
@@ -112,4 +113,12 @@ public static class Util {
     {
         return (value - from) / (to - from);
     }
+
+    public static HashSet<T> ToHashSet<T>(
+        this IEnumerable<T> source,
+        IEqualityComparer<T> comparer = null)
+    {
+        return new HashSet<T>(source, comparer);
+    }
+    
 }

@@ -63,11 +63,14 @@ public class RecursiveHexTest : MonoBehaviour
 
         var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide();
 
-      
 
 
 
-        layer3.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[0]);
+
+        var finalGraph = layer3.ToGraph<Levels.SingleConnectionGraph>(identifier, connector);
+        layer3.MassUpdateHexes(finalGraph.Finalise(remapper));
+
+        var layer4 = layer3.Subdivide().ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(Color.white);
 
         return;
 
@@ -242,6 +245,8 @@ namespace Levels{
             {
                 _nodeMetadata[i].Code = i + 1;
             }
+
+            _collection.Bridges.LeaveSingleRandomConnection();
         }
     }
 
