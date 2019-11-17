@@ -19,28 +19,36 @@ public class RecursiveHexTest : MonoBehaviour
 
         var identifier = new Func<HexPayload, int>(x => x.Code);
         var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
-        var remapper = new Func<HexPayload, int[], HexPayload>((x, connections) => { 
+
+        var setRegionRemapper = new Func<HexPayload, int[], HexPayload>((x, connections) => { 
                 var done = x;
                 done.Connections = new CodeConnections(connections);
+            done.Region = done.Code;
                 return done;
             });
 
-            //RandomSeedProperties.Disable();
+        var standardRemapper = new Func<HexPayload, int[], HexPayload>((x, connections) => {
+            var done = x;
+            done.Connections = new CodeConnections(connections);
+            return done;
+        });
+
+        //RandomSeedProperties.Disable();
 
 
-            //var code = 0;
+        //var code = 0;
 
-            //var finalMeshes = new HexGroup()
-            //    .Subdivide()
-            //    .ForEach(x => { x.Height = RNG.NextFloat(10); x.Code = code; code++; })
-            //    .Subdivide()
-            //    .Subdivide(x => x.Code)
-            //    .ForEachHexGroup(x => x.Subdivide())
-            //    .ForEachHexGroup(x => x.ToMesh());
+        //var finalMeshes = new HexGroup()
+        //    .Subdivide()
+        //    .ForEach(x => { x.Height = RNG.NextFloat(10); x.Code = code; code++; })
+        //    .Subdivide()
+        //    .Subdivide(x => x.Code)
+        //    .ForEachHexGroup(x => x.Subdivide())
+        //    .ForEachHexGroup(x => x.ToMesh());
 
-            //var code = 0;
+        //var code = 0;
 
-            var colours = new List<Color>();
+        var colours = new List<Color>();
 
         for (int i = 0; i < 1000; i++)
         {
@@ -57,7 +65,7 @@ public class RecursiveHexTest : MonoBehaviour
 
         layer2.MassUpdateHexes(
             layer2.ToGraph<Levels.SingleConnectionGraph>(identifier, connector)
-            .Finalise(remapper));
+            .Finalise(setRegionRemapper));
 
         var groups = Enumerable.Range(1, 7);
 
@@ -67,10 +75,25 @@ public class RecursiveHexTest : MonoBehaviour
 
 
 
-        var finalGraph = layer3.ToGraph<Levels.SingleConnectionGraph>(identifier, connector);
-        layer3.MassUpdateHexes(finalGraph.Finalise(remapper));
+        var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(identifier, connector);
+        layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
 
-        var layer4 = layer3.Subdivide().ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(Color.white);
+        var layer4 = layer3.Subdivide();
+
+        var subGraphs = layer4.GetSubGroups(x => x.Payload.Region);
+
+        var iterator = -1;
+        subGraphs.ForEach(x =>
+        {
+            iterator++;
+            x.ToGameObjects(Prefab);
+
+            var finalLayer = x.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[iterator]);
+
+
+        });
+
+        //var layer4 = layer3.Subdivide().ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(Color.white);
 
         return;
 

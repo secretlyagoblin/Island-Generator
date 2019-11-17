@@ -11,6 +11,9 @@ namespace RecursiveHex
     {
         public float Height;
         public Color Color;
+
+        public int Region;
+
         public int Code;
         public CodeConnections Connections;
 
@@ -23,7 +26,8 @@ namespace RecursiveHex
                 Height = Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
                 Color = Utils.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
                 Code = Utils.Blerp(a.Payload.Code, b.Payload.Code, c.Payload.Code, weights),
-                Connections = Utils.Blerp(a.Payload.Connections, b.Payload.Connections, c.Payload.Connections, weights)
+                Connections = Utils.Blerp(a.Payload.Connections, b.Payload.Connections, c.Payload.Connections, weights),
+                Region = Utils.Blerp(a.Payload.Region, b.Payload.Region, c.Payload.Region, weights)
             };
         }
 
@@ -34,7 +38,8 @@ namespace RecursiveHex
                 {
                     {"Height",Height },
                     {"Color",Color },
-                    {"Code",Code }
+                    {"Code",Code },
+                    {"Region",Region }
                 };
         }
     }
