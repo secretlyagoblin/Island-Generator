@@ -228,7 +228,7 @@ public class SubMesh<T> {
 
             if (isInLineMap)
             {
-                if (Connectivity.Lines[LineMap[node.Lines[i].Index]] == Connection.Present)
+                if (Connectivity.Lines[LineMap[node.Lines[i].Index]] != Connection.NotPresent)
                 {
                     connections.Add(
                         identifier(
@@ -308,7 +308,7 @@ public class SubMesh<T> {
 
 public enum Connection
 {
-   NotPresent = 0, Present = 1
+   NotPresent = 0, Present = 1, Critical = 2
 }
 
 //class TopologyData {
