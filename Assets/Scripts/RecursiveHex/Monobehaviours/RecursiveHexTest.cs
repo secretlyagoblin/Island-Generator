@@ -89,7 +89,7 @@ public class RecursiveHexTest : MonoBehaviour
         {
             iterator++;
 
-            var obj = x.Subdivide();
+            var obj = x;//.Subdivide();
 
             obj.ToGameObjects(Prefab);
             var finalLayer = obj.ToGraph<Levels.NoBehaviour>(identifier, connector);
