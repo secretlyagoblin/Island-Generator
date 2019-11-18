@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Terrain {
+namespace ProcTerrain {
 
     public class Chunk {
 
         bool _walkableTerrain = false;
-        HeightmapData _data;
+        TerrainData _data;
         Coord _coord;
 
         GameObject _object;
@@ -15,11 +15,11 @@ namespace Terrain {
         MeshCollider _collider;
         Mesh _collisionMesh;
 
-        public HeightmapData GetHeightmapData() {
+        public TerrainData GetHeightmapData() {
             return _data;        
         }
 
-        public Chunk(HeightmapData data)
+        public Chunk(TerrainData data)
         {
             _data = data;
         }
@@ -39,7 +39,7 @@ namespace Terrain {
 
         public void AddCollision(int decimationFactor, Rect rect)
         {
-            var collisionData = HeightmapData.CreateCollisionData(_data, decimationFactor, rect);
+            var collisionData = TerrainData.CreateCollisionData(_data, decimationFactor, rect);
             _collisionMesh = HeightmeshGenerator.GenerateAndFinaliseHeightMesh(collisionData);
         }
 

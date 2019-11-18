@@ -18,8 +18,8 @@ public class SpawnObjects : MonoBehaviour {
 
         for (int i = 0; i < Iterations; i++)
         {
-            var pos = new Vector3(RNG.NextFloat(0, 100),0,RNG.NextFloat(0, 100));
-            var rot = new Vector3(RNG.NextFloat(0, 100), 0, RNG.NextFloat(0, 100));
+            var pos = new Vector3(RNG.NextFloat(0, 1000),0,RNG.NextFloat(0, 1000));
+            var rot = new Vector3(0, RNG.NextFloat(0, 100),0);
 
             var colorNoise = Mathf.PerlinNoise(pos.x * 0.04f, pos.z * 0.04f) *0.5f;
 
@@ -35,7 +35,7 @@ public class SpawnObjects : MonoBehaviour {
 
             obj.transform.localScale = new Vector3(scale, scale, scale);
 
-            obj.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+            obj.GetComponentInChildren<MeshRenderer>().SetPropertyBlock(block);
         }
 		
 	}

@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Map;
+using Maps;
+using Buckets;
 
 public class VoronoiGenerator {
 
-    Layer _map;
-    Layer _distanceMap;
-    Layer _heightMap;
-    Layer _falloffMap;
-    List<VoronoiCell> _pointList;
+    Map _map;
+    Map _distanceMap;
+    Map _heightMap;
+    Map _falloffMap;
+    List<VoronoiCell> _allElements;
+    Bucket<VoronoiCell> _buckets;
 
     Coord _coord;
 
@@ -17,34 +19,44 @@ public class VoronoiGenerator {
 
     public static VoronoiGenerator Generator = null; 
 
-    public VoronoiGenerator(Layer map, int mapCoordinateX, int mapCoordinateY, float relativeDensity, float seed)
+    public VoronoiGenerator(Map map, List<VoronoiCell> cells)
     {
         _map = map;
-        _seed = seed;
-        _coord = new Coord(mapCoordinateX, mapCoordinateY);
+        _allElements = cells;
 
-        GetPointsIgnoringResolution(relativeDensity, 2, relativeDensity*0.75f);
+        var color = new Color(RNG.NextFloat(), RNG.NextFloat(), RNG.NextFloat());
+
+        _buckets = new Bucket<VoronoiCell>(5, new Rect(new Vector2(-0.5f, -0.5f), new Vector2(2f, 2f)));
+
+        for (int i = 0; i < _allElements.Count; i++)
+        {
+            var cell = _allElements[i];
+            //Debug.DrawRay(new Vector3(cell.Position.x, cell.Height, cell.Position.y), Vector3.up * 100f, color, 100f);
+            _buckets.AddElement(cell, cell.Position);
+        }
+
+
 
         //RandomlyDistributeCells(relativeDensity);
         LinkMapPointsToCells();
 
     }
 
-    public Layer GetDistanceMap()
+    public Map GetDistanceMap()
     {
-        return Layer.Clone(_distanceMap);
+        return Map.Clone(_distanceMap);
     }
 
-    public Layer GetSmattering(int chance)
+    public Map GetSmattering(int chance)
     {
-        var map = new Layer(_map.SizeX, _map.SizeY, 1);
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
 
         _distanceMap.Normalise();
 
-        for (int i = 0; i < _pointList.Count; i++)
+        for (int i = 0; i < _allElements.Count; i++)
         {
 
-            var cell = _pointList[i];
+            var cell = _allElements[i];
 
             if(RNG.Next(0, chance) == 0)
             {
@@ -52,7 +64,7 @@ public class VoronoiGenerator {
                 {
                     var point = cell.MapPoints[p];
 
-                    map[point.TileX, point.TileY] = _distanceMap[point.TileX, point.TileY];
+                    map[point.x, point.y] = _distanceMap[point.x, point.y];
                 }
             }
 
@@ -62,36 +74,68 @@ public class VoronoiGenerator {
         return map;
     }
 
-    public Layer GetVoronoiBoolMap(Layer insideMap)
+    public Map GetVoronoiBoolMap()
     {
-        var map = new Layer(_map.SizeX, _map.SizeY, 1);
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
 
-        for (int i = 0; i < _pointList.Count; i++)
+        for (int i = 0; i < _allElements.Count; i++)
         {
 
-            var cell = _pointList[i];
+            var cell = _allElements[i];
 
             if (cell.MapPoints.Count == 0)
                 continue;
 
-            cell.Sort(_distanceMap);
-
-            var center = cell.Center;
-
-            if(Mathf.Abs(insideMap[center.TileX,center.TileY]) <0.00001)
+            if(!cell.Inside)
             {
                 for (int p = 0; p < cell.MapPoints.Count; p++)
                 {
                     var point = cell.MapPoints[p];
 
 
-                    map[point.TileX, point.TileY] = 0;
+                    map[point.x, point.y] = 0;
                 }
             }
         }
         return map;
     }
 
+    public Map GetVoronoiBoolMap(Map insideMap)
+    {
+        var map = new Map(_map.SizeX, _map.SizeY, 1);
+
+        for (int i = 0; i < _allElements.Count; i++)
+        {
+
+            var cell = _allElements[i];
+
+            if (cell.MapPoints.Count == 0)
+                continue;
+
+            if (insideMap.BilinearSampleFromNormalisedVector2(cell.Position) < 0.5f)
+            {
+                for (int p = 0; p < cell.MapPoints.Count; p++)
+                {
+                    var point = cell.MapPoints[p];
+
+
+                    map[point.x, point.y] = 0;
+                }
+            }
+            else
+            {
+                for (int p = 0; p < cell.MapPoints.Count; p++)
+                {
+                    var point = cell.MapPoints[p];
+
+
+                    map[point.x, point.y] = 1;
+                }
+            }
+        }
+        return map;
+    }
+    /*
     void RandomlyDistributeCells(float relativeDensity)
     {
         var outputList = new List<VoronoiCell>();
@@ -160,207 +204,205 @@ public class VoronoiGenerator {
                         }
                     }
                 }
-                */
+                
             }
         }
 
-        _pointList = outputList;
+        _cells = outputList;
     }
-
+    */
     void LinkMapPointsToCells()
     {
-        var distanceMap = Layer.Clone(_map);
+        var distanceMap = Map.Clone(_map);
+
 
         for (int x = 0; x < _map.SizeX; x++)
         {
 
             for (int y = 0; y < _map.SizeY; y++)
             {
+                var currentPos = _map.GetNormalisedVector3FromIndex(x, y);
+                var current2dPos = new Vector2(currentPos.x, currentPos.z);
 
-                var currentPos = new Vector2(x, y);
-
-
+                //if (Vector2.Distance(currentPos,lastPos) < lastPosDistance)
+                //{
+                //    currentPos = lastPos;
+                //    bucketList = lastCells;
+                //}
+                //else
+                //{
+                var    bucketList = _buckets.GetBucketsWithinRangeOfPoint(current2dPos, 0.2f);
+                //}
 
                 var minDist = Mathf.Infinity;
                 var closest = new VoronoiCell(new Vector2(float.MaxValue, float.MaxValue));
 
-                for (var i = 0; i < _pointList.Count; i++)
+                for (int b = 0; b < bucketList.Count; b++)
                 {
-                    var dist = Vector2.Distance(_pointList[i].Position, currentPos);
-                    if (dist < minDist)
+                    var bucket = bucketList[b];
+
+                    for (var i = 0; i < bucket.Elements.Count; i++)
                     {
-                        closest = _pointList[i];
-                        minDist = dist;
+                        var cell = bucket.Elements[i];
+                        var dist = Vector2.Distance(cell.Position, current2dPos);
+                        if (dist < minDist)
+                        {
+                            closest = cell;
+
+                            minDist = dist;
+                        }
                     }
                 }
 
+
+                //if (!closestDistanceAssigned)
+                //{
+                //    closestDistanceAssigned = true;
+                //    closestDistanceAverage = minDist;
+                //}
+                //else
+                //{
+                //    closestDistanceAverage += minDist;
+                //    closestDistanceCount++;
+                //}
+
                 closest.MapPoints.Add(new Coord(x, y));
+
+                //Debug.DrawLine(current2dPos, closest.Position,Color.white,100f);
+
+                if (minDist == Mathf.Infinity)
+                {
+                    minDist = 0;
+                    //Debug.Log("Warning: Voronoi Cells are too sparse");
+                }
 
                 distanceMap[x, y] = minDist;
 
             }
         }
 
+        //Debug.Log("Average Distance " + closestDistanceAverage);
+
         _distanceMap = distanceMap;
     }
 
-    public Layer GetHeightMap(Layer sampleMap)
+    public Map GetHeightMap(Map sampleMap)
     {
-        _heightMap = new Layer(_map);
+        _heightMap = new Map(_map,0);
 
-        for (int i = 0; i < _pointList.Count; i++)
+
+        for (var i = 0; i < _allElements.Count; i++)
         {
-
-            var cell = _pointList[i];
+        
+            var cell = _allElements[i];
             if (cell.MapPoints.Count == 0)
                 continue;
-            cell.Sort(_distanceMap);
-            var center = cell.Center;
-            var value = sampleMap[center.TileX, center.TileY];
-
+        
+        
             for (int p = 0; p < cell.MapPoints.Count; p++)
             {
                 var point = cell.MapPoints[p];
-                _heightMap[point.TileX, point.TileY] = value;
+                _heightMap[point.x, point.y] = cell.Height;
             }
         }
 
-        return Layer.Clone(_heightMap);
+        return Map.Clone(_heightMap);
     }
 
-    public Layer GetFalloffMap(int searchDistance)
+    public Map GetFalloffMap(int searchDistance)
     {
-        _falloffMap = new Layer(_map);
+        _falloffMap = new Map(_map);
 
-        for (int i = 0; i < _pointList.Count; i++)
+        for (int i = 0; i < _allElements.Count; i++)
         {
 
-            var cell = _pointList[i];
+            var cell = _allElements[i];
             if (cell.MapPoints.Count == 0)
                 continue;
 
             cell.SetFalloff(_falloffMap, searchDistance);
         }
 
-        return Layer.Clone(_falloffMap);
+        return Map.Clone(_falloffMap);
     }
 
+}
 
-    void GetPointsIgnoringResolution(float sizeRelativeTo, int buffer, float percentageWarped)
+public class VoronoiCell {
+
+    public Vector2 Position
+    { get; private set; }
+    public float Height
+    { get; private set; }
+    public List<Coord> MapPoints
+    { get; private set; }
+    public bool Inside
+    { get; set; }
+    public Coord Center
+    { get; private set; }
+
+
+    public VoronoiCell(Vector3 position)
     {
-        _pointList = new List<VoronoiCell>();
-        var cellStep = 1f / sizeRelativeTo;
-
-        var intStartX = Mathf.FloorToInt(cellStep * _coord.TileX) - buffer;
-        var intStartY = Mathf.FloorToInt(cellStep * _coord.TileY) - buffer;
-
-        var intEndX = Mathf.CeilToInt(cellStep * (_coord.TileX+1)) + buffer;
-        var intEndY = Mathf.CeilToInt(cellStep * (_coord.TileY+1)) + buffer;
-
-        for (int x = intStartX; x < intEndX; x++)
-        {
-            for (int y = intStartY; y < intEndY; y++)
-            {
-                var vector = new Vector2(x * sizeRelativeTo, y * sizeRelativeTo);
-
-                var offset = Mathf.PerlinNoise(x + _seed, y + _seed);
-
-                var offsetVector = Vector2.zero;
-
-                offsetVector.x = Mathf.Cos(offset * Mathf.PI * 2);
-                offsetVector.x = Mathf.Sin(offset * Mathf.PI * 2);
-
-                vector += (offsetVector * percentageWarped);
-
-                vector.x -= _coord.TileX;
-                vector.y -= _coord.TileY;
-
-                vector.x *= _map.SizeX;
-                vector.y *= _map.SizeY;
-
-
-
-
-
-
-                _pointList.Add(new VoronoiCell(vector));
-            }
-        }
+        Position = new Vector2(position.x, position.z);
+        Height = position.y;
+        MapPoints = new List<Coord>();
+        Inside = false;
     }
 
-    class VoronoiCell {
-
-        public Vector2 Position
-        { get; private set; }
-        public List<Coord> MapPoints
-        { get; private set; }
-        public Coord Center
-        { get; private set; }
-
-
-        public VoronoiCell(Vector2 position)
-        {
-            Position = position;
-            MapPoints = new List<Coord>();
-        }
-
-        public void Sort(Layer _distanceMap)
-        {
-            var points = MapPoints.OrderBy(x => _distanceMap[x.TileX, x.TileY]).ToList();
-            Center = points.First();
-        }
-
-        public void SetFalloff(Layer bigMap, int searchDistance)
-        {
-            var minX = int.MaxValue;
-            var maxX = int.MinValue;
-
-            var minY = int.MaxValue;
-            var maxY = int.MinValue;
-
-            var buffer = 3;
-
-            for (int i = 0; i < MapPoints.Count; i++)
-            {
-                var p = MapPoints[i];
-
-                if (p.TileX > maxX)
-                    maxX = p.TileX;
-                if (p.TileX < minX)
-                    minX = p.TileX;
-
-                if (p.TileY > maxY)
-                    maxY = p.TileY;
-                if (p.TileY < minY)
-                    minY = p.TileY;
-            }
-
-            var map = new Layer(maxX - minX+1 + buffer, maxY - minY+1 + buffer, 0);
-
-            for (int i = 0; i < MapPoints.Count; i++)
-            {
-                var p = MapPoints[i];
-
-                map[p.TileX - minX + buffer, p.TileY - minY + buffer] = 1;
-
-            }
-
-            map.SmoothMap(searchDistance);
-
-            //map.GetDistanceMap(searchDistance);
-
-            for (int i = 0; i < MapPoints.Count; i++)
-            {
-                var p = MapPoints[i];
-                bigMap[p.TileX, p.TileY] = map[p.TileX - minX + buffer, p.TileY - minY + buffer];
-
-            }
-
-
-
-        }
+    public void Sort(Map _distanceMap)
+    {
+        var points = MapPoints.OrderBy(x => _distanceMap[x.x, x.y]).ToList();
+        Center = points.First();
     }
 
+    public void SetFalloff(Map bigMap, int searchDistance)
+    {
+        var minX = int.MaxValue;
+        var maxX = int.MinValue;
+
+        var minY = int.MaxValue;
+        var maxY = int.MinValue;
+
+        var buffer = 3;
+
+        for (int i = 0; i < MapPoints.Count; i++)
+        {
+            var p = MapPoints[i];
+
+            if (p.x > maxX)
+                maxX = p.x;
+            if (p.x < minX)
+                minX = p.x;
+
+            if (p.y > maxY)
+                maxY = p.y;
+            if (p.y < minY)
+                minY = p.y;
+        }
+
+        var map = new Map(maxX - minX + 1 + buffer, maxY - minY + 1 + buffer, 0);
+
+        for (int i = 0; i < MapPoints.Count; i++)
+        {
+            var p = MapPoints[i];
+
+            map[p.x - minX + buffer, p.y - minY + buffer] = 1;
+
+        }
+
+        map.SmoothMap(searchDistance);
+
+        //map.GetDistanceMap(searchDistance);
+
+        for (int i = 0; i < MapPoints.Count; i++)
+        {
+            var p = MapPoints[i];
+            bigMap[p.x, p.y] = map[p.x - minX + buffer, p.y - minY + buffer];
+
+        }
 
 
+
+    }
 }

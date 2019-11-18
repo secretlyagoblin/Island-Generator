@@ -18,6 +18,15 @@ namespace Nurbz {
             get { return GetOrientation(); }
         }
 
+        public static Line2 zero = new Line2(Vector2.zero, Vector2.zero);
+
+        public bool IsEqualTo(Line2 other)
+        {
+            if (start == other.start && end == other.end)
+                return true;
+            return false;
+        }
+
         public Line2(Vector2 a, Vector2 b)
         {
             start = a;
@@ -46,6 +55,12 @@ namespace Nurbz {
         public Vector2 IntersectionPoint(Line2 otherLine)
         {
             return LineMath.FindCoPlanarIntersectionPoint(this, otherLine);
+        }
+
+        public void DrawDebugView()
+        {
+            DrawDebugView(100f, Color.white);
+
         }
 
         public void DrawDebugView(float duration, Color color)

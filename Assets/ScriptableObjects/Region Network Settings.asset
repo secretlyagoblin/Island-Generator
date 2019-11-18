@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39c55ca2a228f5e48b80a04f0104d1ea, type: 3}
+  m_Name: Region Network Settings
+  m_EditorClassIdentifier: 
+  SpawnedNodeMin: 2
+  SpawnedNodeMax: 3
+  RadiusMin: 2
+  RadiusMax: 2.5
+  DestroyGameObject: 1

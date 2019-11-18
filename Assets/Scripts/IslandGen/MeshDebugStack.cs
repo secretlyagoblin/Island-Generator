@@ -1,22 +1,24 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Map;
+using Maps;
 
 public class MeshDebugStack {
 
-    List<Layer> _maps;
+    List<Map> _maps;
 
     Material _defaultMaterial;
 
     public MeshDebugStack(Material baseMaterial)
     {
         _defaultMaterial = baseMaterial;
-        _maps = new List<Layer>();
+        _maps = new List<Map>();
     }
 
-    public void RecordMapStateToStack(Layer map)
+    public MeshDebugStack RecordMapStateToStack(Map map)
     {
-        _maps.Add(Layer.Clone(map));
+        _maps.Add(Map.Clone(map));
+
+        return this;
     }
 
     public void CreateDebugStack(Transform parent)
@@ -27,7 +29,7 @@ public class MeshDebugStack {
         }
     }
 
-    GameObject CreateDebugLayer(Layer map, int layer, float heightMultiplier, Transform parent)
+    GameObject CreateDebugLayer(Map map, int layer, float heightMultiplier, Transform parent)
     {
         map.Normalise();
 
@@ -67,17 +69,21 @@ public class MeshDebugStack {
         obj.transform.parent = parent;
         obj.name = "Layer " + layer;
         obj.layer = parent.gameObject.layer;
-        obj.transform.localPosition =(Vector3.right * layer * heightMultiplier);
+        obj.transform.localPosition =(Vector3.right * layer * heightMultiplier)+new Vector3(0.5f,0f,0.5f);
+
+        obj.transform.rotation = Quaternion.Euler(0,90f,0f);
+
+        obj.transform.localScale = new Vector3(0.1f, 1f, -0.1f);
         
 
         return obj;
 
     }
 
-    public void CreateDebugStack(float height)
+    public void CreateDebugStack(float offset)
     {
         var gameObject = new GameObject();
-        gameObject.transform.Translate(Vector3.up * (height));
+        gameObject.transform.Translate(Vector3.forward * (offset));
         gameObject.name = "Debug Stack";
         gameObject.layer = 5;
 

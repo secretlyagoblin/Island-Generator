@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using BuildingGenerator;
 
-namespace Meshmasher
+namespace MeshMasher
 {
 
     public static class Converter

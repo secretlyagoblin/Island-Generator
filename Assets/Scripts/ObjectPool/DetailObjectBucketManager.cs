@@ -6,17 +6,17 @@ using Buckets;
 public class DetailObjectBucketManager<T> {
 
     Bucket<T> _bucket;
-    Bucket<T>[] _previousBuckets;
-    Bucket<T>[] _currentBuckets;
+    List<Bucket<T>> _previousBuckets;
+    List<Bucket<T>> _currentBuckets;
 
     public List<T> ObjectsExitingPool;
     public List<T> ObjectsEnteringPool;
 
-    public DetailObjectBucketManager(Vector2 lowerBounds, Vector2 upperBounds)
+    public DetailObjectBucketManager(int divisions, Rect rect)
     {
 
-        _bucket = new Bucket<T>(0, lowerBounds, upperBounds);
-        _previousBuckets = new Bucket<T>[0];
+        _bucket = new Bucket<T>(divisions, rect);
+        _previousBuckets = new List<Bucket<T>>();
 
         ObjectsEnteringPool = new List<T>();
         ObjectsExitingPool = new List<T>();
@@ -30,10 +30,12 @@ public class DetailObjectBucketManager<T> {
     public void Update(Vector2 testPosition, float testDistance)
     {
 
-        _currentBuckets = _bucket.GetBuckets(testPosition, testDistance);
+        _currentBuckets = _bucket.GetBucketsWithinRangeOfPoint(testPosition, testDistance);
 
         GetObjectsExitingPool();
         GetObjectsEnteringPool();
+
+
 
         _previousBuckets = _currentBuckets;
     }
@@ -42,7 +44,7 @@ public class DetailObjectBucketManager<T> {
     {
         ObjectsExitingPool.Clear();
 
-        for (int i = 0; i < _previousBuckets.Length; i++)
+        for (int i = 0; i < _previousBuckets.Count; i++)
         {
             if (_previousBuckets[i].PreviousIteration && _previousBuckets[i].CurrentIteration)
             {
@@ -63,7 +65,7 @@ public class DetailObjectBucketManager<T> {
     {
         ObjectsEnteringPool.Clear();
 
-        for (int i = 0; i < _currentBuckets.Length; i++)
+        for (int i = 0; i < _currentBuckets.Count; i++)
         {
             var bucket = _currentBuckets[i];
 
