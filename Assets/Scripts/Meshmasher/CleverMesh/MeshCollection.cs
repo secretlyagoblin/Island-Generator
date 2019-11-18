@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class MeshCollection<T>
+public class MeshCollection<T> where T:IGraphable
 {
     private MeshMasher.SmartMesh _smartMesh;
     public SubMesh<T>[] Meshes;

@@ -5,7 +5,7 @@ using System.Linq;
 using RecursiveHex;
 using System;
 
-public abstract class Graph<T> where T:struct
+public abstract class Graph<T> where T:struct, IGraphable
 {
     protected MeshMasher.SmartMesh _smartMesh;
     protected MeshCollection<T> _collection;
@@ -13,7 +13,8 @@ public abstract class Graph<T> where T:struct
 
     private Func<T, int> _identifier;
 
-    public Graph(Vector3[] verts, int[] tris, T[] nodes, Func<T, int> identifier, Func<T,int[]> connector){
+    public Graph(Vector3[] verts, int[] tris, T[] nodes, Func<T, int> identifier, Func<T,int[]> connector)
+    {
         _smartMesh = new MeshMasher.SmartMesh(verts, tris);
         _nodeMetadata = nodes;
         _identifier = identifier;
@@ -56,7 +57,7 @@ public abstract class Graph<T> where T:struct
 
     protected abstract void Generate();
 
-    internal T[] Finalise(Func<T, int[],T> finallyDo)
+    internal T[] Finalise(Func<T,Connection, int[],T> finallyDo)
     {
         Generate();
 
@@ -70,8 +71,8 @@ public abstract class Graph<T> where T:struct
             for (int u = 0; u < nodes.Length; u++)
             {
                 var index = nodes[u];
-                var result = m.ConnectionsFromState(index, _identifier);
-                outT[index] = finallyDo(_nodeMetadata[index], result);
+                var (status, neighbours) = m.ConnectionsFromState(index, _identifier);
+                outT[index] = finallyDo(_nodeMetadata[index], status, neighbours);
             }
         }
 

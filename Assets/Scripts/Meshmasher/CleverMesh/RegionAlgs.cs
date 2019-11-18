@@ -7,14 +7,14 @@ namespace LevelGen
 {    
     public static class States
     {
-        public static MeshState<Connection> DikstraWithRandomisation<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> DikstraWithRandomisation<T>(SubMesh<T> subMesh) where T:IGraphable
         {
             var dik = Dikstra(subMesh, 0.8f, 1.2f);
 
             return dik;
         }
 
-        public static MeshState<Connection> OpenPlains<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> OpenPlains<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             var nodes = subMesh.Nodes;
             var lines = subMesh.Lines;
@@ -35,7 +35,7 @@ namespace LevelGen
             return state;
         }
 
-        public static MeshState<Connection> SummedDikstra<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> SummedDikstra<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             var one = DikstraWithRandomisation(subMesh);
             var two = DikstraWithRandomisation(subMesh);
@@ -48,7 +48,7 @@ namespace LevelGen
             return one;
         }
 
-        public static MeshState<Connection> SummedDikstraRemoveDeadEnds<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> SummedDikstraRemoveDeadEnds<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             var one = SummedDikstra(subMesh);
 
@@ -58,7 +58,7 @@ namespace LevelGen
             return cleaned;
         }
 
-        public static MeshState<Connection> MinimalCorridor<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> MinimalCorridor<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             var keyMeshState = DikstraWithRandomisation(subMesh);
             keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
@@ -66,7 +66,7 @@ namespace LevelGen
             return keyMeshState;
         }
 
-        public static MeshState<Connection> TubbyCorridors<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> TubbyCorridors<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             var keyMeshState = DikstraWithRandomisation(subMesh);
             keyMeshState = RecursivelyRemoveDeadEnds(subMesh, keyMeshState);
@@ -74,14 +74,14 @@ namespace LevelGen
             return Entubben(subMesh, keyMeshState, 3);
         }
 
-        public static MeshState<Connection> DikstraWithRooms<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> DikstraWithRooms<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             var dik = Dikstra(subMesh, 0.8f, 1.2f);
             var next = RecursivelyRemoveDeadEnds(subMesh, dik, 2);
             return Entubben(subMesh, next, 3);
         }
 
-        public static MeshState<Connection> ConnectEverything<T>(SubMesh<T> subMesh)
+        public static MeshState<Connection> ConnectEverything<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             return new MeshState<Connection>()
             {
@@ -90,10 +90,19 @@ namespace LevelGen
             };
         }
 
+        public static MeshState<Connection> ConnectNothing<T>(SubMesh<T> subMesh) where T : IGraphable
+        {
+            return new MeshState<Connection>()
+            {
+                Nodes = Populate(subMesh.Nodes.Length, Connection.NotPresent),
+                Lines = Populate(subMesh.Lines.Length, Connection.NotPresent)
+            };
+        }
+
 
         //Private Functions
 
-        private static MeshState<Connection> Dikstra<T>(SubMesh<T> subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f)
+        private static MeshState<Connection> Dikstra<T>(SubMesh<T> subMesh, float lineLengthMultiplierMin = 1f, float lineLengthMultiplierMax = 1f) where T : IGraphable
         {
             var nodes = subMesh.Nodes;
             var lines = subMesh.Lines;
@@ -197,7 +206,7 @@ namespace LevelGen
             return meshState;
         }
 
-        private static MeshState<Connection> RecursivelyRemoveDeadEnds<T>(SubMesh<T> subMesh, MeshState<Connection> state, int iterations = 99)
+        private static MeshState<Connection> RecursivelyRemoveDeadEnds<T>(SubMesh<T> subMesh, MeshState<Connection> state, int iterations = 99) where T : IGraphable
         {
             var nodes = subMesh.Nodes;
             var mesh = subMesh.SourceMesh;
@@ -268,7 +277,7 @@ namespace LevelGen
 
         }
 
-        private static MeshState<Connection> Entubben<T>(SubMesh<T> subMesh, MeshState<Connection> state, int nodeConnectionsThreshold)
+        private static MeshState<Connection> Entubben<T>(SubMesh<T> subMesh, MeshState<Connection> state, int nodeConnectionsThreshold) where T : IGraphable
         {
             var nodes = subMesh.Nodes;
             var mesh = subMesh.SourceMesh;
@@ -363,7 +372,7 @@ namespace LevelGen
         //    return endState;
         //}
 
-        private static bool NodeAtIndexConnectsToOtherSubMesh<T>(SubMesh<T> subMesh, int index)
+        private static bool NodeAtIndexConnectsToOtherSubMesh<T>(SubMesh<T> subMesh, int index) where T : IGraphable
         {
             for (int u = 0; u < subMesh.BridgeConnectionIndices.Count; u++)
             {

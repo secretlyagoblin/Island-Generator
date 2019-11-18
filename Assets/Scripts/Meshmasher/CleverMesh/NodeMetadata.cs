@@ -5,7 +5,7 @@ using MeshMasher.NodeData.Types;
 
 namespace MeshMasher {
 
-    public struct NodeMetadata : IBlerpable<NodeMetadata> {
+    public struct NodeMetadata : IBlerpable<NodeMetadata>, IGraphable {
 
         public int Id;
         public int RoomCode { get { return _roomCode; } set { _roomCode = value; _zoneBoundary.RoomCode = value; } }
@@ -17,6 +17,7 @@ namespace MeshMasher {
         public bool IsFuzzyBoundary { get { return _cliffData.FuzzyBoundary; } set { _cliffData.FuzzyBoundary = value; } }
         public float CliffDistance { get { return _cliffData.Distance; } set { _cliffData.Distance = value; } }
 
+        public Connection ConnectionStatus { get; set; }
 
         int _roomCode;
         Color _roomColor;
@@ -34,6 +35,7 @@ namespace MeshMasher {
             _zoneBoundary = new ZoneBoundary(roomCode, true, links);
             _meshDual = new MeshDual(0);
             _cliffData = new CliffData(0, true);
+            ConnectionStatus = Connection.Present;
         }
 
         public NodeMetadata Blerp(NodeMetadata a, NodeMetadata b, NodeMetadata c, Barycenter weight)

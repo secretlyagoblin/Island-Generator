@@ -501,6 +501,7 @@ namespace RecursiveHex
         {
             (var vertices, var triangles) = this.ToNetwork(x => 0);
 
+            //Have to do this as you can't generate a T with a specific constructor
             var type = Activator.CreateInstance(typeof(T),
                 vertices,
                 triangles,

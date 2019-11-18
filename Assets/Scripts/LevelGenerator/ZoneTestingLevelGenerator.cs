@@ -88,7 +88,7 @@ namespace LevelGenerator {
             for (int i = 0; i < layer1WiderNeighbourhood.Count; i++)
             {
                 var n = layer1.Mesh.Nodes[layer1WiderNeighbourhood[i]].Index;
-                layer1.NodeMetadata[n].RoomConnections = subMesh.ConnectionsFromState(n,x => x.RoomCode);
+                layer1.NodeMetadata[n].RoomConnections = subMesh.ConnectionsFromState(n,x => x.RoomCode).neighbours;
                 //layer1.NodeMetadata[n].Code = i + 1;
             }    
 

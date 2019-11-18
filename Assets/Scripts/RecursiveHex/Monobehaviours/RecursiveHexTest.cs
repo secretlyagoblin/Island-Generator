@@ -20,15 +20,17 @@ public class RecursiveHexTest : MonoBehaviour
         var identifier = new Func<HexPayload, int>(x => x.Code);
         var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
 
-        var setRegionRemapper = new Func<HexPayload, int[], HexPayload>((x, connections) => { 
+        var setRegionRemapper = new Func<HexPayload, Connection, int[], HexPayload>((x,nodeStatus, connections) => { 
                 var done = x;
                 done.Connections = new CodeConnections(connections);
+            done.ConnectionStatus = nodeStatus;
             done.Region = done.Code;
                 return done;
             });
 
-        var standardRemapper = new Func<HexPayload, int[], HexPayload>((x, connections) => {
+        var standardRemapper = new Func<HexPayload, Connection, int[], HexPayload>((x, nodeStatus, connections) => {
             var done = x;
+            done.ConnectionStatus = nodeStatus;
             done.Connections = new CodeConnections(connections);
             return done;
         });
@@ -86,40 +88,44 @@ public class RecursiveHexTest : MonoBehaviour
         subGraphs.ForEach(x =>
         {
             iterator++;
-            x.ToGameObjects(Prefab);
 
-            var finalLayer = x.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[iterator]);
+            var obj = x.Subdivide();
+
+            obj.ToGameObjects(Prefab);
+            var finalLayer = obj.ToGraph<Levels.NoBehaviour>(identifier, connector);
+
+            finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
 
 
         });
 
         //var layer4 = layer3.Subdivide().ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(Color.white);
 
-        return;
-
-        for (int i = 1; i < 8; i++)
-        {
-            var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
-            var innerGraph = layer.ToGraph<Levels.HighLevelConnectivity>(identifier, connector);
-
-            //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
-
-            var bersults = innerGraph.Finalise((x, connections) => {
-                var done = x;
-                done.Connections = new CodeConnections(connections);
-                return done;
-            });
-
-            layer.MassUpdateHexes(bersults);
-
-            var mesh = layer.Subdivide();
-
-            mesh.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
-
-            Finalise(mesh);
-        }
-
-        return;
+       // return;
+       //
+       // for (int i = 1; i < 8; i++)
+       // {
+       //     var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
+       //     var innerGraph = layer.ToGraph<Levels.HighLevelConnectivity>(identifier, connector);
+       //
+       //     //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
+       //
+       //     var bersults = innerGraph.Finalise( (x, connections) => {
+       //         var done = x;
+       //         done.Connections = new CodeConnections(connections);
+       //         return done;
+       //     });
+       //
+       //     layer.MassUpdateHexes(bersults);
+       //
+       //     var mesh = layer.Subdivide();
+       //
+       //     mesh.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
+       //
+       //     Finalise(mesh);
+       // }
+       //
+       // return;
 
         //layer2.ToGameObjects(Prefab);
         //layer2.ToGameObjectsBorder(BorderPrefab);
@@ -314,7 +320,7 @@ public class NoBehaviour : HexGraph
 
     protected override void Generate()
     {
-
-    }
+            throw new Exception("NoBehaviour HexGraph should never be finalised, it's for preview only.");
+        }
 }
 }

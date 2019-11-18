@@ -12,7 +12,10 @@ public class PayloadData : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        if(((Connection)KeyValuePairs["NodeConnectionStatus"]) == Connection.Critical)
+        {
+            this.transform.localScale *= 1.5f;
+        }
     }
 
     // Update is called once per frame
@@ -25,6 +28,7 @@ public class PayloadData : MonoBehaviour
     List<Vector3> _lines = null;
     List<Vector3> _innerLines = null;
 
+    /*
     private void OnDrawGizmosSelected()
     {
         if (_lines == null)
@@ -91,4 +95,5 @@ public class PayloadData : MonoBehaviour
             });
         
     }
+    */
 }

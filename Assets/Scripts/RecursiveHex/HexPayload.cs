@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RecursiveHex
 {
-    public struct HexPayload
+    public struct HexPayload:IGraphable
     {
         public float Height;
         public Color Color;
@@ -17,7 +17,7 @@ namespace RecursiveHex
         public int Code;
         public CodeConnections Connections;
 
-        
+        public Connection ConnectionStatus { get; set; }
 
         public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
         {
@@ -27,7 +27,8 @@ namespace RecursiveHex
                 Color = Utils.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
                 Code = Utils.Blerp(a.Payload.Code, b.Payload.Code, c.Payload.Code, weights),
                 Connections = Utils.Blerp(a.Payload.Connections, b.Payload.Connections, c.Payload.Connections, weights),
-                Region = Utils.Blerp(a.Payload.Region, b.Payload.Region, c.Payload.Region, weights)
+                Region = Utils.Blerp(a.Payload.Region, b.Payload.Region, c.Payload.Region, weights),
+                ConnectionStatus = Utils.Blerp(a.Payload.ConnectionStatus, b.Payload.ConnectionStatus, c.Payload.ConnectionStatus, weights)
             };
         }
 
@@ -39,7 +40,8 @@ namespace RecursiveHex
                     {"Height",Height },
                     {"Color",Color },
                     {"Code",Code },
-                    {"Region",Region }
+                    {"Region",Region },
+                    {"NodeConnectionStatus",ConnectionStatus }
                 };
         }
     }
@@ -49,6 +51,7 @@ namespace RecursiveHex
     /// </summary>
     public struct CodeConnections
     {
+
         private readonly int Count;
         private readonly int C0;
         private readonly int C1;
@@ -73,6 +76,11 @@ namespace RecursiveHex
                 throw new Exception("Should never be more than 6, as these are hexagons - investigate");
             }
 
+        }
+
+        public bool IsFullyDefined
+        {
+            get { return Count == 6; }
         }
 
         public int[] ToArray()

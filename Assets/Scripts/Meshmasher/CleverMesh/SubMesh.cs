@@ -5,7 +5,7 @@ using System.Text;
 using MeshMasher;
 using UnityEngine;
 
-public class SubMesh<T> {
+public class SubMesh<T> where T:IGraphable {
     public int[] Nodes;
     public int[] Lines;
 
@@ -33,10 +33,13 @@ public class SubMesh<T> {
         Nodes = nodes;
         Lines = lines;
 
+        var nodeConnectivity = new Connection[nodes.Length];
+
         NodeMap = new Dictionary<int, int>();
         for (int i = 0; i < nodes.Length; i++)
         {
             NodeMap.Add(nodes[i], i);
+            nodeConnectivity[i] = nodeMetadata[i].ConnectionStatus;
         }
 
         LineMap = new Dictionary<int, int>();
@@ -44,6 +47,12 @@ public class SubMesh<T> {
         {
             LineMap.Add(lines[i], i);
         }
+
+        Connectivity = new MeshState<Connection>
+        {
+            Nodes = nodeConnectivity,
+            Lines = new Connection[lines.Length]
+        };
     }
 
     public SubMesh(int code, int[] nodes, T[] payloads, SmartMesh mesh)
@@ -213,13 +222,20 @@ public class SubMesh<T> {
     /// <param name="nodeIndex"></param>
     /// <param name="identifier"></param>
     /// <returns></returns>
-    public int[] ConnectionsFromState(int nodeIndex, Func<T, int> identifier)
+    public (Connection status, int[] neighbours) ConnectionsFromState(int nodeIndex, Func<T, int> identifier)
     {
+        if(Connectivity == null)
+        {
+            throw new Exception("Submesh Connectivity has not been set and therefore connection info can't be found. Check your level generator to make sure it is setting it correctly.");
+        }
+
         var node = SourceMesh.Nodes[nodeIndex];
 
         var connections = new List<int>(node.Lines.Count);
 
         var bridgeSubset = this.BridgeConnectionIndices.SelectMany(x => this.SourceBridges[x].Lines).Distinct().ToHashSet();
+
+        var connection = Connection.NotPresent;
 
         for (int i = 0; i < node.Lines.Count; i++)
         {
@@ -234,6 +250,8 @@ public class SubMesh<T> {
                         identifier(
                             this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
                         );
+
+                    connection = connection == Connection.NotPresent ? Connection.Present : connection;
                 }
             }
             else if (isInBridges)
@@ -242,6 +260,8 @@ public class SubMesh<T> {
                     identifier(
                         this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
                     );
+
+                connection = Connection.Critical;
             }
             else
             {
@@ -249,7 +269,7 @@ public class SubMesh<T> {
             }
         }
 
-        return connections.ToArray();
+        return (connection, connections.ToArray());
     }
 
     public static SubMesh<T>[] FromMesh(SmartMesh mesh, T[] payloads, Func<T, int> identifier)
@@ -300,6 +320,7 @@ public class SubMesh<T> {
             
 
             finalSubmeshes[i] = new SubMesh<T>(key, nodes.ToArray(), lines.Distinct().ToArray(),payloads, mesh);
+
         }
         return finalSubmeshes;
     }
