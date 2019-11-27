@@ -39,7 +39,7 @@ public class SubMesh<T> where T:IGraphable {
         for (int i = 0; i < nodes.Length; i++)
         {
             NodeMap.Add(nodes[i], i);
-            nodeConnectivity[i] = nodeMetadata[i].ConnectionStatus;
+            nodeConnectivity[i] = nodeMetadata[nodes[i]].ConnectionStatus;
         }
 
         LineMap = new Dictionary<int, int>();
@@ -104,7 +104,7 @@ public class SubMesh<T> where T:IGraphable {
         {
             if (Connectivity != null)
             {
-                if (Connectivity.Lines[i] == 0)
+                if (Connectivity.Lines[i] == Connection.NotPresent)
                     continue;
             }
             SourceMesh.Lines[Lines[i]].DebugDraw(color, duration);
@@ -231,11 +231,12 @@ public class SubMesh<T> where T:IGraphable {
 
         var node = SourceMesh.Nodes[nodeIndex];
 
+
         var connections = new List<int>(node.Lines.Count);
 
         var bridgeSubset = this.BridgeConnectionIndices.SelectMany(x => this.SourceBridges[x].Lines).Distinct().ToHashSet();
 
-        var connection = Connection.NotPresent;
+        var connection = this.Connectivity.Nodes[this.NodeMap[nodeIndex]];
 
         for (int i = 0; i < node.Lines.Count; i++)
         {
@@ -251,7 +252,7 @@ public class SubMesh<T> where T:IGraphable {
                             this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
                         );
 
-                    connection = connection == Connection.NotPresent ? Connection.Present : connection;
+                   
                 }
             }
             else if (isInBridges)

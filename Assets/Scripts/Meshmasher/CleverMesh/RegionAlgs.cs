@@ -83,11 +83,47 @@ namespace LevelGen
 
         public static MeshState<Connection> ConnectEverything<T>(SubMesh<T> subMesh) where T : IGraphable
         {
+            var outNodes = new Connection[subMesh.Connectivity.Nodes.Length];
+
+            for (int i = 0; i < outNodes.Length; i++)
+            {
+                outNodes[i] = subMesh.Connectivity.Nodes[i] == Connection.Critical ? Connection.Critical : Connection.Present;
+            }
+
+
             return new MeshState<Connection>()
             {
-                Nodes = Populate(subMesh.Nodes.Length, Connection.Present),
+                Nodes = outNodes,
                 Lines = Populate(subMesh.Lines.Length, Connection.Present)  
             };
+        }
+
+        //Really I should be finding the naked edges of the graph, for now, I'll do this assuming a hex grid as I have one.
+        public static MeshState<Connection> RemoveUnnecessaryCriticalNodesAssumingHexGrid<T>(SubMesh<T> subMesh) where T : IGraphable
+        {
+            var outConnectivity = subMesh.Connectivity.Clone();
+
+            for (int i = 0; i < subMesh.Nodes.Length; i++)
+            {
+                var node = subMesh.Nodes[i];
+
+                if (outConnectivity.Nodes[i] != Connection.Critical)
+                    continue;
+
+                var mesh = subMesh.SourceMesh;
+
+                var trueNode = mesh.Nodes[node];
+
+                if(trueNode.Lines.Count == 6)
+                {
+                    Debug.Log("I AM HAVING AN EFFECT");
+                }
+
+                outConnectivity.Nodes[i] = trueNode.Lines.Count == 6? Connection.Present:Connection.Critical;
+            }
+
+            return outConnectivity;
+
         }
 
         public static MeshState<Connection> ConnectNothing<T>(SubMesh<T> subMesh) where T : IGraphable

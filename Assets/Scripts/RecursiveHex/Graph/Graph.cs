@@ -63,6 +63,8 @@ public abstract class Graph<T> where T:struct, IGraphable
 
         var outT = new T[_nodeMetadata.Length];
 
+        Debug.LogError("The current error is in the way the nodes get propogated through connections from state - should really not have anything be set in here, instead rely on 'Generate' call in graph to do the work");
+
         for (int i = 0; i < _collection.Meshes.Length; i++)
         {
             var m = _collection.Meshes[i];

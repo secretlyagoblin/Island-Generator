@@ -13,11 +13,11 @@ public class RecursiveHexTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //RNG.Init("I'd kill");
-        RNG.Init();
+        RNG.Init("I'd kill");
+        //RNG.Init();
         RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
-        var identifier = new Func<HexPayload, int>(x => x.Code);
+        var codeIdentifier = new Func<HexPayload, int>(x => x.Code);
         var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
 
         var setRegionRemapper = new Func<HexPayload, Connection, int[], HexPayload>((x,nodeStatus, connections) => { 
@@ -30,6 +30,7 @@ public class RecursiveHexTest : MonoBehaviour
 
         var standardRemapper = new Func<HexPayload, Connection, int[], HexPayload>((x, nodeStatus, connections) => {
             var done = x;
+
             done.ConnectionStatus = nodeStatus;
             done.Connections = new CodeConnections(connections);
             return done;
@@ -66,7 +67,7 @@ public class RecursiveHexTest : MonoBehaviour
             ;
 
         layer2.MassUpdateHexes(
-            layer2.ToGraph<Levels.SingleConnectionGraph>(identifier, connector)
+            layer2.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector)
             .Finalise(setRegionRemapper));
 
         var groups = Enumerable.Range(1, 7);
@@ -77,55 +78,76 @@ public class RecursiveHexTest : MonoBehaviour
 
 
 
-        var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(identifier, connector);
+        var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);      
         layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
+        //graph3.DebugDrawSubmeshConnectivity(colours[0]);
+        //layer3.ToGameObjects(Prefab);
+
+        //var layer4 = layer3.Subdivide().Subdivide();
+
+        //var graph4 = layer4.ToGraph<Levels.SingleConnectionGraph>(identifier, connector);
+        //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
+        //graph4.DebugDrawSubmeshConnectivity(colours[0]);
+        //layer4.ToGameObjects(Prefab);
+        //
+        //return;
 
         var layer4 = layer3.Subdivide();
+        layer4.ToGameObjects(Prefab);
+        //var graph4 = layer4.ToGraph<Levels.NoBehaviour>(identifier, connector);
+        //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
+
+        //return;
+
 
         var subGraphs = layer4.GetSubGroups(x => x.Payload.Region);
-
+        
         var iterator = -1;
         subGraphs.ForEach(x =>
         {
             iterator++;
 
             var obj = x;//.Subdivide();
+            //obj.ToGameObjects(Prefab);
+            //return;
+
+            var finalLayer = obj.ToGraph<Levels.MinimiseCriticalNodes>(u => u.Region, connector);
+            var nodes = finalLayer.Finalise(standardRemapper);
+            obj.MassUpdateHexes(nodes);
 
             obj.ToGameObjects(Prefab);
-            var finalLayer = obj.ToGraph<Levels.NoBehaviour>(identifier, connector);
-
             finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
-
-
+        
+        
         });
 
         //var layer4 = layer3.Subdivide().ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(Color.white);
 
-       // return;
-       //
-       // for (int i = 1; i < 8; i++)
-       // {
-       //     var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
-       //     var innerGraph = layer.ToGraph<Levels.HighLevelConnectivity>(identifier, connector);
-       //
-       //     //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
-       //
-       //     var bersults = innerGraph.Finalise( (x, connections) => {
-       //         var done = x;
-       //         done.Connections = new CodeConnections(connections);
-       //         return done;
-       //     });
-       //
-       //     layer.MassUpdateHexes(bersults);
-       //
-       //     var mesh = layer.Subdivide();
-       //
-       //     mesh.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
-       //
-       //     Finalise(mesh);
-       // }
-       //
-       // return;
+        // return;
+        //
+        // for (int i = 1; i < 8; i++)
+        // {
+        //     var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
+        //     var innerGraph = layer.ToGraph<Levels.HighLevelConnectivity>(identifier, connector);
+        //
+        //     //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
+        //
+        //     var bersults = innerGraph.Finalise( (x, connections) => {
+        //         var done = x;
+        //         done.Connections = new CodeConnections(connections);
+        //         return done;
+        //     });
+        //
+        //     layer.MassUpdateHexes(bersults);
+        //
+        //     var mesh = layer.Subdivide();
+        //
+        //     mesh.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
+        //
+        //     Finalise(mesh);
+        // }
+        //
+        // return;
 
         //layer2.ToGameObjects(Prefab);
         //layer2.ToGameObjectsBorder(BorderPrefab);
@@ -159,29 +181,29 @@ public class RecursiveHexTest : MonoBehaviour
 
 
 
-            //var layer2 = layer1.Subdivide()//.Subdivide()//.Subdivide();
-            //    .ForEach((x, i) => new HexPayload()
-            //    {
-            //        Height = RNG.NextFloat(0, 5),
-            //        Color = RNG.NextColor(),
-            //        //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //        Code = i
-            //    }).Subdivide()
-            //                .ForEach((x, i) => new HexPayload()
-            //                {
-            //                    Height = x.Payload.Height + RNG.NextFloat(-1, 1),
-            //                    Color = x.Payload.Color,
-            //                    //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //                    Code = i
-            //                }).Subdivide()
-            //                                       .ForEach((x, i) => new HexPayload()
-            //                                       {
-            //                                           Height = x.Payload.Height + RNG.NextFloat(-0.25f, 0.25f),
-            //                                           Color = x.Payload.Color,
-            //                                           //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //                                           Code = i
-            //                                       }).Subdivide();
-            ;
+        //var layer2 = layer1.Subdivide()//.Subdivide()//.Subdivide();
+        //    .ForEach((x, i) => new HexPayload()
+        //    {
+        //        Height = RNG.NextFloat(0, 5),
+        //        Color = RNG.NextColor(),
+        //        //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+        //        Code = i
+        //    }).Subdivide()
+        //                .ForEach((x, i) => new HexPayload()
+        //                {
+        //                    Height = x.Payload.Height + RNG.NextFloat(-1, 1),
+        //                    Color = x.Payload.Color,
+        //                    //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+        //                    Code = i
+        //                }).Subdivide()
+        //                                       .ForEach((x, i) => new HexPayload()
+        //                                       {
+        //                                           Height = x.Payload.Height + RNG.NextFloat(-0.25f, 0.25f),
+        //                                           Color = x.Payload.Color,
+        //                                           //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
+        //                                           Code = i
+        //                                       }).Subdivide();
+        ;
 
 
 
@@ -268,6 +290,7 @@ namespace Levels{
                 }
 
                 mesh.SetConnectivity(LevelGen.States.ConnectEverything);
+                mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)
@@ -320,7 +343,40 @@ public class NoBehaviour : HexGraph
 
     protected override void Generate()
     {
+
             throw new Exception("NoBehaviour HexGraph should never be finalised, it's for preview only.");
-        }
+    }
 }
+
+    public class MinimiseCriticalNodes : HexGraph
+    {
+        public MinimiseCriticalNodes(Vector3[] verts,
+            int[] tris,
+            HexPayload[] nodes,
+            Func<HexPayload, int> identifier,
+            Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector) { }
+
+        protected override void Generate()
+        {
+            for (int i = 0; i < _collection.Meshes.Length; i++)
+            {
+                var mesh = _collection.Meshes[i];
+
+                if (mesh.Id < 0)
+                {
+                    continue;
+                }
+
+                mesh.SetConnectivity(LevelGen.States.ConnectEverything);
+                mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
+            }
+
+            for (int i = 0; i < _nodeMetadata.Length; i++)
+            {
+                _nodeMetadata[i].Code = i + 1;
+            }
+
+            _collection.Bridges.LeaveSingleRandomConnection();
+        }
+    }
 }
