@@ -19,6 +19,8 @@ public class LevelScriptEditor : Editor
             EditorGUILayout.LabelField(item.Key, item.Value.ToString());
         }
 
+        EditorGUILayout.LabelField("Border", myTarget.IsBorder.ToString());
+
         EditorGUILayout.TextArea(myTarget.NeighbourhoodData);
     }
 }

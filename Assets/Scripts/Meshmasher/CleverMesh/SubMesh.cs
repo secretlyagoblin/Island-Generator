@@ -262,7 +262,7 @@ public class SubMesh<T> where T:IGraphable {
                         this._nodeMetadata[node.Lines[i].GetOtherNode(node).Index])
                     );
 
-                connection = Connection.Critical;
+                //connection = Connection.Critical;
             }
             else
             {

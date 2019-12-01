@@ -66,9 +66,17 @@ public class RecursiveHexTest : MonoBehaviour
             //.Subdivide();
             ;
 
+        var graff = layer2.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);
+
         layer2.MassUpdateHexes(
-            layer2.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector)
+            graff
             .Finalise(setRegionRemapper));
+
+        //graff.DebugDrawSubmeshConnectivity(Color.red);
+        //
+        //layer2.ToGameObjects(Prefab);
+
+       
 
         var groups = Enumerable.Range(1, 7);
 
@@ -76,12 +84,12 @@ public class RecursiveHexTest : MonoBehaviour
 
 
 
-
-
         var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);      
         layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
-        //graph3.DebugDrawSubmeshConnectivity(colours[0]);
-        //layer3.ToGameObjects(Prefab);
+        graph3.DebugDrawSubmeshConnectivity(colours[0]);
+        layer3.ToGameObjects(Prefab);
+
+        return;
 
         //var layer4 = layer3.Subdivide().Subdivide();
 
@@ -97,7 +105,7 @@ public class RecursiveHexTest : MonoBehaviour
         //var graph4 = layer4.ToGraph<Levels.NoBehaviour>(identifier, connector);
         //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
 
-        //return;
+        return;
 
 
         var subGraphs = layer4.GetSubGroups(x => x.Payload.Region);
@@ -290,7 +298,7 @@ namespace Levels{
                 }
 
                 mesh.SetConnectivity(LevelGen.States.ConnectEverything);
-                mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
+                //mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)
@@ -299,6 +307,8 @@ namespace Levels{
             }
 
             _collection.Bridges.LeaveSingleRandomConnection();
+            _collection.MarkBridgeInterfacesAsCritical();
+
         }
     }
 

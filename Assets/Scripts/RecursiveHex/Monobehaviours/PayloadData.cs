@@ -7,6 +7,7 @@ using RecursiveHex;
 public class PayloadData : MonoBehaviour
 {
     public Dictionary<string, object> KeyValuePairs;
+    public bool IsBorder;
     public string NeighbourhoodData;
 
     // Start is called before the first frame update

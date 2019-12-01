@@ -117,6 +117,27 @@ public class MeshCollection<T> where T:IGraphable
         }
     }
 
+    public void MarkBridgeInterfacesAsCritical()
+    {
+        Debug.Log("Bridge interfaces should be populating criticality - currently not");
+
+        for (int i = 0; i < Meshes.Length; i++)
+        {
+            var mesh = Meshes[i];
+
+            foreach (var bridgeIndex in mesh.BridgeConnectionIndices)
+            {
+                var bridge = Bridges[bridgeIndex];
+                var nodes = bridge.A == mesh.Id ? bridge.NodesA : bridge.NodesB;
+
+                for (int u = 0; u < nodes.Length; u++)
+                {
+                    mesh.Connectivity.Nodes[bridge.NodesA[u]] = Connection.Critical;
+                }
+            }
+        }
+    }
+
 }
 
 public class BridgeCollection

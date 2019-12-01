@@ -98,6 +98,9 @@ namespace LevelGen
             };
         }
 
+
+
+
         //Really I should be finding the naked edges of the graph, for now, I'll do this assuming a hex grid as I have one.
         public static MeshState<Connection> RemoveUnnecessaryCriticalNodesAssumingHexGrid<T>(SubMesh<T> subMesh) where T : IGraphable
         {

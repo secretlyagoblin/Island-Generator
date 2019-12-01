@@ -36,6 +36,52 @@ namespace RecursiveHex
             _border = border;
         }
 
+        // Looks unnecsisary for now...
+        /*
+        public void RecalculateCriticalNodes()
+        {
+            //get all critical edge nodes
+
+            var criticalEdgeNodes = new HashSet<Vector2Int>();
+
+            foreach (var hexDictEntry in _border)
+            {
+                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var key = hexDictEntry.Key + neighbours[i];
+
+                    if (_inside.ContainsKey(key))
+                    {
+                        if (!criticalEdgeNodes.Contains(key))
+                            criticalEdgeNodes.Add(key);
+                    }
+                }
+            }
+           
+            this.ForEach(x => {
+
+                var newPayload = x.Payload;
+
+                //if critical and an edge, stay critical
+                if (x.Payload.ConnectionStatus == Connection.Critical && criticalEdgeNodes.Contains(x.Index))
+                {
+
+                }
+                else if  (x.Payload.ConnectionStatus == Connection.Critical) //downgrade to present
+                {
+                    newPayload.ConnectionStatus = Connection.Present;
+                }                               
+                
+                return newPayload;
+            });
+
+
+        }         
+        */ 
+
+
         /// <summary>
         /// Creates a new hexgroup given a parent.
         /// </summary>
@@ -214,6 +260,8 @@ namespace RecursiveHex
         {
             var border = new Dictionary<Vector2Int, Hex>();
 
+            var subgroupInternalEdgeHexes = new List<Vector2Int>();
+
             foreach (var hexDictEntry in subgroup)
             {
                 var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
@@ -236,6 +284,7 @@ namespace RecursiveHex
                     }
                     else if (_border.ContainsKey(key))
                     {
+
                         border.Add(key, new Hex(_border[key], true));
                     }
                     else
@@ -243,6 +292,8 @@ namespace RecursiveHex
                         Debug.LogError("The subregion being generated has invalid neighbours.");
                     }
                 }
+
+
             }
 
             return border;
@@ -359,6 +410,7 @@ namespace RecursiveHex
                 obj.transform.position = center;
                 var payload = obj.AddComponent<PayloadData>();
                 item.Value.Payload.PopulatePayloadObject(payload);
+                payload.IsBorder = item.Value.IsBorder;
                 payload.NeighbourhoodData= item.Value.DebugData;
 
                 if (Hex.IsInvalid(item.Value))
