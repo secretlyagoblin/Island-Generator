@@ -14,7 +14,7 @@ namespace RecursiveHex
 
         public bool IsBorder;
 
-        private bool _isNull;
+        private bool _notNull;
 
         public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
         public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
@@ -41,7 +41,7 @@ namespace RecursiveHex
             DebugData = debugData;
             IsBorder = isBorder;
 
-            _isNull = false;
+            _notNull = true;
         }
 
         public Hex(Hex hex, bool isBorder)
@@ -51,7 +51,7 @@ namespace RecursiveHex
             DebugData = hex.DebugData;
             IsBorder = isBorder;
 
-            _isNull = false;
+            _notNull = true;
         }
 
         public static Hex InvalidHex
@@ -60,14 +60,14 @@ namespace RecursiveHex
                 return new Hex()
                 {
                     IsBorder = true,
-                    _isNull = true
+                    _notNull = false
                 };
             }
         }
 
         public static bool IsInvalid(Hex hex)
         {
-            return hex._isNull;
+            return !hex._notNull;
         }
 
         /// <summary>

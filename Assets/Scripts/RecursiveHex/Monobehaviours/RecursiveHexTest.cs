@@ -123,8 +123,8 @@ public class RecursiveHexTest : MonoBehaviour
             var nodes = finalLayer.Finalise(standardRemapper);
             obj.MassUpdateHexes(nodes);
 
-            obj.ToGameObjects(Prefab);
-            finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
+            //obj.ToGameObjects(Prefab);
+            //finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
         
         
         });
