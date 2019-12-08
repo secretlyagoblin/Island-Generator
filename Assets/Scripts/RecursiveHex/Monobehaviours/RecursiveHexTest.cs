@@ -75,10 +75,13 @@ public class RecursiveHexTest : MonoBehaviour
         //graff.DebugDrawSubmeshConnectivity(Color.red);
         //
         //layer2.ToGameObjects(Prefab);
+        //
+        //return;
 
-       
+
 
         var groups = Enumerable.Range(1, 7);
+        //var groups = new List<int>() { 1, 3 };
 
         var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide();
 
@@ -86,10 +89,10 @@ public class RecursiveHexTest : MonoBehaviour
 
         var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);      
         layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
-        graph3.DebugDrawSubmeshConnectivity(colours[0]);
-        layer3.ToGameObjects(Prefab);
+        //graph3.DebugDrawSubmeshConnectivity(colours[0]);
+        //layer3.ToGameObjects(Prefab);
 
-        return;
+        //return;
 
         //var layer4 = layer3.Subdivide().Subdivide();
 
@@ -101,11 +104,11 @@ public class RecursiveHexTest : MonoBehaviour
         //return;
 
         var layer4 = layer3.Subdivide();
-        layer4.ToGameObjects(Prefab);
+        //layer4.ToGameObjects(Prefab);
         //var graph4 = layer4.ToGraph<Levels.NoBehaviour>(identifier, connector);
         //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
 
-        return;
+        //return;
 
 
         var subGraphs = layer4.GetSubGroups(x => x.Payload.Region);
@@ -115,16 +118,16 @@ public class RecursiveHexTest : MonoBehaviour
         {
             iterator++;
 
-            var obj = x;//.Subdivide();
+            var obj = x.Subdivide();
             //obj.ToGameObjects(Prefab);
             //return;
 
-            var finalLayer = obj.ToGraph<Levels.MinimiseCriticalNodes>(u => u.Region, connector);
+            var finalLayer = obj.ToGraph<Levels.SingleConnectionGraph>(u => u.Code, connector);
             var nodes = finalLayer.Finalise(standardRemapper);
             obj.MassUpdateHexes(nodes);
 
-            //obj.ToGameObjects(Prefab);
-            //finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
+            obj.ToGameObjects(Prefab);
+            finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
         
         
         });
@@ -298,7 +301,7 @@ namespace Levels{
                 }
 
                 mesh.SetConnectivity(LevelGen.States.ConnectEverything);
-                //mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
+                mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)

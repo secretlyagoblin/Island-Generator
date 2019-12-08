@@ -13,7 +13,7 @@ namespace RecursiveHex
 
         Func<Hex, int> _lookup;
 
-        Vector2Int _size = new Vector2Int(20,20);
+        Vector2Int _size = new Vector2Int(100,100);
 
         public HexMap(Func<Hex, int> lookup)
         {

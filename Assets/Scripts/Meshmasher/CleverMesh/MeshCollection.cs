@@ -121,18 +121,33 @@ public class MeshCollection<T> where T:IGraphable
     {
         Debug.Log("Bridge interfaces should be populating criticality - currently not");
 
+        //for (int i = 0; i < this.Bridges.Length; i++)
+        //{
+        //    var bridge = this.Bridges[i];
+        //
+        //    for (int u = 0; u < bridge.Lines.Length; u++)
+        //    {
+        //        var lineIndex = bridge.Lines[i];
+        //        var line = this._smartMesh.Lines[i];
+        //
+        //        bridge.NodesA
+        //    }
+        //}
+
         for (int i = 0; i < Meshes.Length; i++)
         {
             var mesh = Meshes[i];
-
+        
             foreach (var bridgeIndex in mesh.BridgeConnectionIndices)
             {
                 var bridge = Bridges[bridgeIndex];
                 var nodes = bridge.A == mesh.Id ? bridge.NodesA : bridge.NodesB;
-
+        
                 for (int u = 0; u < nodes.Length; u++)
                 {
-                    mesh.Connectivity.Nodes[bridge.NodesA[u]] = Connection.Critical;
+                    mesh.Connectivity.Nodes[nodes[u]] = Connection.Critical;
+        
+                    //Debug.DrawLine(bridge.Lines[0].)
                 }
             }
         }
@@ -161,19 +176,19 @@ public class BridgeCollection
     {
         for (int i = 0; i < _list.Length; i++)
         {
-            var a = _list[i];
-            var empty = a.NodesA.Length == 0;
+            var oldBridge = _list[i];
+            var empty = oldBridge.NodesA.Length == 0;
 
-            var random = RNG.Next(a.Lines.Length);
+            var random = RNG.Next(oldBridge.Lines.Length);
 
-            var b = new Bridge(
-                a.A,
-                a.B,
-                empty ? new int[0]: new int[] { a.NodesA[random] },
-                empty ? new int[0]: new int[] { a.NodesB[random] },
-                empty ? new int[0]: new int[] { a.Lines[random] }
+            var newBridge = new Bridge(
+                oldBridge.A,
+                oldBridge.B,
+                empty ? new int[0]: new int[] { oldBridge.NodesA[random] },
+                empty ? new int[0]: new int[] { oldBridge.NodesB[random] },
+                empty ? new int[0]: new int[] { oldBridge.Lines[random] }
                 );
-            _list[i] = b;
+            _list[i] = newBridge;
         }
     }
 }

@@ -34,6 +34,10 @@ public abstract class Graph<T> where T:struct, IGraphable
     {
         //_collection.DebugDisplayEnabledBridges(Color.white, 100f);
 
+        Color.RGBToHSV(color, out var h, out var s, out var v);
+        var shiftedColor = Color.HSVToRGB(h+0.2f, s, v);
+
+
         for (int i = 0; i < _collection.Meshes.Length; i++)
         {
             var mesh = _collection.Meshes[i];
@@ -42,11 +46,11 @@ public abstract class Graph<T> where T:struct, IGraphable
 
             mesh.BridgeConnectionIndices.ForEach(x =>
             {
-                var bridge = _collection.Bridges[x];
+                var bridge = _collection.Bridges[x];                
                 
                 for (int u = 0; u < bridge.Lines.Length; u++)
                 {
-                    this._smartMesh.Lines[bridge.Lines[u]].DebugDraw(color*0.75f, 100f);
+                    this._smartMesh.Lines[bridge.Lines[u]].DebugDraw(shiftedColor, 100f);
                 }
             });
         }
