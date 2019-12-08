@@ -117,10 +117,10 @@ namespace LevelGen
 
                 var trueNode = mesh.Nodes[node];
 
-                if(trueNode.Lines.Count == 6)
-                {
-                    Debug.Log("I AM HAVING AN EFFECT");
-                }
+                //if(trueNode.Lines.Count == 6)
+                //{
+                //    Debug.Log("I AM HAVING AN EFFECT");
+                //}
 
                 outConnectivity.Nodes[i] = trueNode.Lines.Count == 6? Connection.Present:Connection.Critical;
             }

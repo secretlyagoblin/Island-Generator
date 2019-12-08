@@ -119,7 +119,7 @@ public class MeshCollection<T> where T:IGraphable
 
     public void MarkBridgeInterfacesAsCritical()
     {
-        Debug.Log("Bridge interfaces should be populating criticality - currently not");
+        //Debug.Log("Bridge interfaces should be populating criticality - currently not");
 
         //for (int i = 0; i < this.Bridges.Length; i++)
         //{

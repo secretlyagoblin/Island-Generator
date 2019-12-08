@@ -118,16 +118,36 @@ public class RecursiveHexTest : MonoBehaviour
         {
             iterator++;
 
-            var obj = x.Subdivide();
+            var obj = x;
             //obj.ToGameObjects(Prefab);
             //return;
+
+            var color = RNG.NextColor();
 
             var finalLayer = obj.ToGraph<Levels.SingleConnectionGraph>(u => u.Code, connector);
             var nodes = finalLayer.Finalise(standardRemapper);
             obj.MassUpdateHexes(nodes);
 
-            obj.ToGameObjects(Prefab);
-            finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
+            obj.GetSubGroups(y => y.Payload.Code).ForEach(y => {
+
+                var next = y.Subdivide();
+
+                Color.RGBToHSV(color, out var h, out var s, out var v);
+                var shiftedColor = Color.HSVToRGB(h + RNG.NextFloat(-0.1f, 0.1f), 1, 0.8f);
+
+                var matt = new Material(Prefab.GetComponent<MeshRenderer>().sharedMaterial);
+                matt.color = shiftedColor;
+
+                var gobject = new GameObject();
+                gobject.AddComponent<MeshFilter>().sharedMesh = next.ToMesh();
+                gobject.AddComponent<MeshRenderer>().sharedMaterial = matt;
+
+
+            });
+
+
+            //obj.ToGameObjects(Prefab);
+            //finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
         
         
         });
