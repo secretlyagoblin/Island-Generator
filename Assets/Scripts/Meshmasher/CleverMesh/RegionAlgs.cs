@@ -110,7 +110,7 @@ namespace LevelGen
             {
                 var node = subMesh.Nodes[i];
 
-                if (outConnectivity.Nodes[i] != Connection.Critical)
+                if (subMesh.Connectivity.Nodes[i] != Connection.Critical)
                     continue;
 
                 var mesh = subMesh.SourceMesh;
@@ -146,13 +146,13 @@ namespace LevelGen
 
                 var isBorder = false;
 
-                if(trueNode.Lines.Count != 6)
-                {
-                    isBorder = true;
-                } else
-                {
+                //if(trueNode.Lines.Count != 6)
+                //{
+                //    //isBorder = true;
+                //} else
+                //{
 
-                    for (int u = 0;u < 6; u++)
+                    for (int u = 0;u < trueNode.Lines.Count; u++)
                     {
                         if (!subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index)){
                             isBorder = true;
@@ -160,7 +160,7 @@ namespace LevelGen
                         }
                             
                     }
-                }
+                //}
 
                 end:
 
@@ -168,14 +168,19 @@ namespace LevelGen
                 {
                     outConnectivity.Nodes[i] = Connection.NotPresent;
 
-                    //for (int u = 0; u < trueNode.Lines.Count; u++)
-                    //{
-                    //    if (subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index))
-                    //    {
-                    //        outConnectivity.Lines[subMesh.LineMap[trueNode.Lines[u].Index]] = Connection.NotPresent;
-                    //
-                    //    }
-                    //}
+                    for (int u = 0; u < trueNode.Lines.Count; u++)
+                    {
+                        if (subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index))
+                        {
+                            var index = subMesh.LineMap[trueNode.Lines[u].Index];
+
+                            outConnectivity.Lines[index] = Connection.NotPresent;
+                            //mesh.Lines[trueNode.Lines[u].Index].DebugDraw(Color.magenta, 100f);
+
+
+
+                        }
+                    }
                 }
 
             }
@@ -183,6 +188,134 @@ namespace LevelGen
             return outConnectivity;
 
         }
+
+        public static MeshState<Connection> RecoverOrphanedCriticalNodes<T>(SubMesh<T> subMesh) where T : IGraphable
+        {
+            var outConnectivity = subMesh.Connectivity.Clone();
+
+            for (int i = 0; i < subMesh.Nodes.Length; i++)
+            {
+                var node = subMesh.Nodes[i];
+
+                if (subMesh.Connectivity.Nodes[i] != Connection.Critical)
+                    continue;
+
+                var mesh = subMesh.SourceMesh;
+
+                var trueNode = mesh.Nodes[node];
+
+                var isOrphaned = true;
+
+                //if(trueNode.Lines.Count != 6)
+                //{
+                //    //isBorder = true;
+                //} else
+                //{
+
+                for (int u = 0; u < trueNode.Lines.Count; u++)
+                {
+                    if (subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index))
+                    {
+                        var index = subMesh.LineMap[trueNode.Lines[u].Index];
+                        if(outConnectivity.Lines[index] != Connection.NotPresent)
+                        {
+                            isOrphaned = false;
+                        }                        
+                    }
+                }
+
+                if (isOrphaned)
+                {
+                    var roadFound = false;
+                    var currentNode = trueNode;
+
+                    var options = new bool[6];
+                    var optionsCount = 0;
+
+                    var shortCircuit = 0;
+
+                    while (!roadFound)
+                    {
+                        for (int u = 0; u < 6; u++)
+                        {
+                            options[u] = false;
+                        }
+                        optionsCount = 0;
+
+                        SmartLine pickedLine = null;
+
+                        for (int u = 0; u < currentNode.Lines.Count; u++)
+                        {
+                            if (subMesh.LineMap.ContainsKey(currentNode.Lines[u].Index))
+                            {
+                                options[u] = true;
+                                optionsCount++;
+                            }
+                        }
+
+                        var randomOption = RNG.Next(optionsCount);
+                        var innerOptionCount = 0;
+
+                        for (int u = 0; u < 6; u++)
+                        {
+                            if (options[u])
+                            {
+                                if(randomOption == innerOptionCount)
+                                {
+                                    pickedLine = currentNode.Lines[u];
+                                    goto end;
+                                }
+                                innerOptionCount++;                                
+                            }
+                        }
+
+                        if (pickedLine == null)
+                            throw new System.Exception("Can't draw a line back to the source, good luck, nerd");
+
+                        end:
+
+                        var pickedLineIndex = subMesh.LineMap[pickedLine.Index];
+
+                        currentNode = pickedLine.GetOtherNode(currentNode);
+
+                        var pickedNodeIndex = subMesh.NodeMap[currentNode.Index];
+
+                        outConnectivity.Lines[pickedLineIndex] = Connection.Present;
+                        outConnectivity.Nodes[pickedNodeIndex] = Connection.Present;
+
+                        var indexCount = 0;
+
+                        for (int u = 0; u < currentNode.Lines.Count; u++)
+                        {
+                            if (subMesh.LineMap.ContainsKey(currentNode.Lines[u].Index))
+                            {
+                                var index = subMesh.LineMap[currentNode.Lines[u].Index];
+                                if (outConnectivity.Lines[index] != Connection.NotPresent)
+                                {
+                                    indexCount++;
+                                }
+                            }
+                        }
+
+                        if(indexCount == 6) {
+                            roadFound = true;
+                        }
+
+                        shortCircuit++;
+
+                        if(shortCircuit > 999)
+                        {
+                            throw new System.Exception("This needs to be rewritten so that it can't get stuck in an infinite cycle");
+                        }
+                    }
+                }
+
+            }
+
+            return outConnectivity;
+
+        }
+
 
         public static MeshState<Connection> ConnectNothing<T>(SubMesh<T> subMesh) where T : IGraphable
         {

@@ -89,10 +89,10 @@ public class RecursiveHexTest : MonoBehaviour
 
         var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);      
         layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
-        graph3.DebugDrawSubmeshConnectivity(colours[0]);
-        layer3.ToGameObjects(Prefab);
+        //graph3.DebugDrawSubmeshConnectivity(colours[0]);
+        //layer3.ToGameObjects(Prefab);
 
-        return;
+        //return;
 
         //var layer4 = layer3.Subdivide().Subdivide();
 
@@ -103,7 +103,7 @@ public class RecursiveHexTest : MonoBehaviour
         //
         //return;
 
-        var layer4 = layer3.Subdivide();
+       // var layer4 = layer3.Subdivide();
         //layer4.ToGameObjects(Prefab);
         //var graph4 = layer4.ToGraph<Levels.NoBehaviour>(identifier, connector);
         //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
@@ -111,39 +111,43 @@ public class RecursiveHexTest : MonoBehaviour
         //return;
 
 
-        var subGraphs = layer4.GetSubGroups(x => x.Payload.Region);
+        var subGraphs = layer3.GetSubGroups(x => x.Payload.Region);
         
         var iterator = -1;
         subGraphs.ForEach(x =>
         {
+            Debug.Log($"Iteration {iterator}");
+
             iterator++;
 
-            var obj = x;
-            //obj.ToGameObjects(Prefab);
-            //return;
+            var obj = x.Subdivide();//.Subdivide();
+            obj.ToGameObjects(Prefab);
+            return;
 
             var color = RNG.NextColor();
 
-            var finalLayer = obj.ToGraph<Levels.SingleConnectionGraph>(u => u.Code, connector);
+            var finalLayer = obj.ToGraph<Levels.ConnectEverything>(u => u.Code, connector);
             var nodes = finalLayer.Finalise(standardRemapper);
             obj.MassUpdateHexes(nodes);
-
-            obj.GetSubGroups(y => y.Payload.Code).ForEach(y => {
-
-                var next = y.Subdivide();
-
-                Color.RGBToHSV(color, out var h, out var s, out var v);
-                var shiftedColor = Color.HSVToRGB(h + RNG.NextFloat(-0.1f, 0.1f), 1, 0.8f);
-
-                var matt = new Material(Prefab.GetComponent<MeshRenderer>().sharedMaterial);
-                matt.color = shiftedColor;
-
-                var gobject = new GameObject();
-                gobject.AddComponent<MeshFilter>().sharedMesh = next.ToMesh();
-                gobject.AddComponent<MeshRenderer>().sharedMaterial = matt;
+            obj.ToGameObjects(Prefab);
 
 
-            });
+            //obj.GetSubGroups(y => y.Payload.Code).ForEach(y => {
+            //
+            //    var next = y.Subdivide();
+            //
+            //    Color.RGBToHSV(color, out var h, out var s, out var v);
+            //    var shiftedColor = Color.HSVToRGB(h + RNG.NextFloat(-0.1f, 0.1f), 1, 0.8f);
+            //
+            //    var matt = new Material(Prefab.GetComponent<MeshRenderer>().sharedMaterial);
+            //    matt.color = shiftedColor;
+            //
+            //    var gobject = new GameObject();
+            //    gobject.AddComponent<MeshFilter>().sharedMesh = next.ToMesh();
+            //    gobject.AddComponent<MeshRenderer>().sharedMaterial = matt;
+            //
+            //
+            //});
 
 
             //obj.ToGameObjects(Prefab);
@@ -342,9 +346,34 @@ namespace Levels{
                 }
 
                 mesh.SetConnectivity(LevelGen.States.AddOneLayerOfEdgeBufferAroundNeighbourSubMeshesAssumingHexGrid);
+                mesh.SetConnectivity(LevelGen.States.RecoverOrphanedCriticalNodes);
             }
         }
     }
+
+    public class ConnectEverything : HexGraph
+    {
+        public ConnectEverything(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        {
+        }
+
+        protected override void Generate()
+        {
+            for (int i = 0; i < _collection.Meshes.Length; i++)
+            {
+                var mesh = _collection.Meshes[i];
+
+                if (mesh.Id < 0)
+                {
+                    continue;
+                }
+
+                mesh.SetConnectivity(LevelGen.States.ConnectEverything);
+                mesh.SetConnectivity(LevelGen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
+            }
+        }
+    }
+
 
     public class HighLevelConnectivity : HexGraph
     {
