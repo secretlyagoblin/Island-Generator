@@ -129,6 +129,61 @@ namespace LevelGen
 
         }
 
+        public static MeshState<Connection> AddOneLayerOfEdgeBufferAroundNeighbourSubMeshesAssumingHexGrid<T>(SubMesh<T> subMesh) where T : IGraphable
+        {
+            var outConnectivity = subMesh.Connectivity.Clone();
+
+            for (int i = 0; i < subMesh.Nodes.Length; i++)
+            {
+                var node = subMesh.Nodes[i];
+
+                if (outConnectivity.Nodes[i] == Connection.Critical)
+                    continue;
+
+                var mesh = subMesh.SourceMesh;
+
+                var trueNode = mesh.Nodes[node];
+
+                var isBorder = false;
+
+                if(trueNode.Lines.Count != 6)
+                {
+                    isBorder = true;
+                } else
+                {
+
+                    for (int u = 0;u < 6; u++)
+                    {
+                        if (!subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index)){
+                            isBorder = true;
+                            goto end;
+                        }
+                            
+                    }
+                }
+
+                end:
+
+                if(isBorder)
+                {
+                    outConnectivity.Nodes[i] = Connection.NotPresent;
+
+                    //for (int u = 0; u < trueNode.Lines.Count; u++)
+                    //{
+                    //    if (subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index))
+                    //    {
+                    //        outConnectivity.Lines[subMesh.LineMap[trueNode.Lines[u].Index]] = Connection.NotPresent;
+                    //
+                    //    }
+                    //}
+                }
+
+            }
+
+            return outConnectivity;
+
+        }
+
         public static MeshState<Connection> ConnectNothing<T>(SubMesh<T> subMesh) where T : IGraphable
         {
             return new MeshState<Connection>()

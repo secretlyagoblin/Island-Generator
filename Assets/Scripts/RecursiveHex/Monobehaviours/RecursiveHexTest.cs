@@ -13,8 +13,8 @@ public class RecursiveHexTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        RNG.Init("I'd kill");
-        //RNG.Init();
+        //RNG.Init("I'd kill");
+        RNG.Init();
         RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
         var codeIdentifier = new Func<HexPayload, int>(x => x.Code);
@@ -83,16 +83,16 @@ public class RecursiveHexTest : MonoBehaviour
         var groups = Enumerable.Range(1, 7);
         //var groups = new List<int>() { 1, 3 };
 
-        var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide();
+        var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide().Subdivide();
 
 
 
         var graph3 = layer3.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);      
         layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
-        //graph3.DebugDrawSubmeshConnectivity(colours[0]);
-        //layer3.ToGameObjects(Prefab);
+        graph3.DebugDrawSubmeshConnectivity(colours[0]);
+        layer3.ToGameObjects(Prefab);
 
-        //return;
+        return;
 
         //var layer4 = layer3.Subdivide().Subdivide();
 
@@ -332,6 +332,17 @@ namespace Levels{
             _collection.Bridges.LeaveSingleRandomConnection();
             _collection.MarkBridgeInterfacesAsCritical();
 
+            for (int i = 0; i < _collection.Meshes.Length; i++)
+            {
+                var mesh = _collection.Meshes[i];
+
+                if (mesh.Id < 0)
+                {
+                    continue;
+                }
+
+                mesh.SetConnectivity(LevelGen.States.AddOneLayerOfEdgeBufferAroundNeighbourSubMeshesAssumingHexGrid);
+            }
         }
     }
 
