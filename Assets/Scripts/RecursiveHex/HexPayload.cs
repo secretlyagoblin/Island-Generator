@@ -19,9 +19,9 @@ namespace RecursiveHex
 
         public Connection ConnectionStatus { get; set; }
 
-        public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
+        public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights, EdgeCase edgeCase)
         {
-            return new HexPayload()
+            var payload = new HexPayload()
             {
                 Height = Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
                 Color = Utils.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
@@ -30,6 +30,15 @@ namespace RecursiveHex
                 Region = Utils.Blerp(a.Payload.Region, b.Payload.Region, c.Payload.Region, weights),
                 ConnectionStatus = Utils.Blerp(a.Payload.ConnectionStatus, b.Payload.ConnectionStatus, c.Payload.ConnectionStatus, weights)
             };
+
+            payload.SetConnectionsFromContext(edgeCase);
+
+            return payload;
+        }
+
+        private void SetConnectionsFromContext(EdgeCase edgeCase)
+        {
+            throw new Exception("Chris, start here, impliment the edge cases... shouldn't be too bad.");
         }
 
         public void PopulatePayloadObject(PayloadData data)
@@ -51,7 +60,6 @@ namespace RecursiveHex
     /// </summary>
     public struct CodeConnections
     {
-
         private readonly int Count;
         private readonly int C0;
         private readonly int C1;
@@ -107,5 +115,10 @@ namespace RecursiveHex
 
             return outInts;
         }
+    }
+
+    public enum EdgeCase
+    {
+        TopLeft,TopRight,MiddleLeft,MiddleCenter,MiddleRight,BottomLeft,BottomRight
     }
 }
