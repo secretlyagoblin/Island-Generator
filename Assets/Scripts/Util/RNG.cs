@@ -171,6 +171,12 @@ public static class RNG {
 
     }
 
+    public static Color SimilarColor(Color color, float bounds = 0.1f)
+    {
+        return new Color(color.r + RNG.NextFloat(-bounds,bounds), color.b + RNG.NextFloat(-bounds, bounds), color.g + RNG.NextFloat(-bounds, bounds));
+
+    }
+
     public static List<T> Shuffle<T>(List<T> list)
     {
         var intList = new T[list.Count];
