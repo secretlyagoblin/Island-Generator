@@ -75,7 +75,7 @@ namespace RecursiveHex
         /// Subdivides the grid by one level
         /// </summary>
         /// <returns></returns>
-        public Hex[] Subdivide(int rosetteSize)
+        public Hex[] Subdivide(int scale)
         {
             if (this.IsBorder && Hex.IsInvalid(this.Center))                  
                     return new Hex[0];
@@ -84,28 +84,28 @@ namespace RecursiveHex
 
             var largeHexPoints = new Vector2[]
             {
-                Hex.StaticFlatHexPoints[0] +  this.N0.GetNoiseOffset(),
-                Hex.StaticFlatHexPoints[1] +  this.N1.GetNoiseOffset(),
-                Hex.StaticFlatHexPoints[2] +  this.N2.GetNoiseOffset(),
-                Hex.StaticFlatHexPoints[3] +  this.N3.GetNoiseOffset(),
-                Hex.StaticFlatHexPoints[4] +  this.N4.GetNoiseOffset(),
-                Hex.StaticFlatHexPoints[5] +  this.N5.GetNoiseOffset()
+                 this.N0.Index.NestMultiply(scale).Position + this.N0.GetNoiseOffset(),
+                 this.N1.Index.NestMultiply(scale).Position + this.N1.GetNoiseOffset(),
+                 this.N2.Index.NestMultiply(scale).Position + this.N2.GetNoiseOffset(),
+                 this.N3.Index.NestMultiply(scale).Position + this.N3.GetNoiseOffset(),
+                 this.N4.Index.NestMultiply(scale).Position + this.N4.GetNoiseOffset(),
+                 this.N5.Index.NestMultiply(scale).Position + this.N5.GetNoiseOffset()
             };
 
-            var localOffset = GenerateRosette(rosetteSize);
+            var indexChildren = this.Center.Index.GenerateRosette(scale);
 
-            var children = new Hex[localOffset.Length];
+            var children = new Hex[indexChildren.Length];
 
-            for (int i = 0; i < localOffset.Length; i++)
+            for (int i = 0; i < indexChildren.Length; i++)
             {
-                var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(localOffset[i]);
+                var actualPosition = indexChildren[i].Position;
                 var weight = Vector3.zero;
                 var index = 0;
                 var foundChild = false;
 
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
-                    weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], innerCoord);
+                    weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], actualPosition);
                     var testX = weight.x;
                     var testY = weight.y;
                     var testZ = weight.z;
@@ -128,14 +128,14 @@ namespace RecursiveHex
                 var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
 
                 children[i] = new Hex(
-                    this.Center.GetNestedHexIndexFromOffset(localOffset[i]),
+                    indexChildren[i],
                     payload,
                     isBorder,
                     ""//$"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
                     );
             }
 
-            var childSubset = children;//ResolveEdgeCases(children);
+            var childSubset = ResolveEdgeCases(children);
 
             return childSubset;
         }
