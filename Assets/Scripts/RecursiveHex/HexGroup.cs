@@ -9,20 +9,20 @@ namespace RecursiveHex
 
     public class HexGroup
     {
-        private Dictionary<Vector2Int, Hex> _inside;
-        private Dictionary<Vector2Int, Hex> _border;
+        private Dictionary<Vector3Int, Hex> _inside;
+        private Dictionary<Vector3Int, Hex> _border;
 
         /// <summary>
         /// Creates a single hex cell at 0,0 with 6 border cells
         /// </summary>
         public HexGroup()
         {
-            _inside = new Dictionary<Vector2Int, Hex>(1);
-            _border = new Dictionary<Vector2Int, Hex>(6);
+            _inside = new Dictionary<Vector3Int, Hex>(1);
+            _border = new Dictionary<Vector3Int, Hex>(6);
 
-            AddHex(new Hex(Vector2Int.zero,new HexPayload(),false));
+            AddHex(new Hex(Vector3Int.zero,new HexPayload(),false));
 
-            var neighbours = Neighbourhood.GetNeighbours(Vector2Int.zero);
+            var neighbours = Neighbourhood.Neighbours;
             //
             for (int i = 0; i < neighbours.Length; i++)
             {
@@ -30,7 +30,7 @@ namespace RecursiveHex
             }
         }
 
-        private HexGroup(Dictionary<Vector2Int, Hex> inside, Dictionary<Vector2Int, Hex> border)
+        private HexGroup(Dictionary<Vector3Int, Hex> inside, Dictionary<Vector3Int, Hex> border)
         {
             _inside = inside;
             _border = border;
@@ -86,17 +86,17 @@ namespace RecursiveHex
         /// Creates a new hexgroup given a parent.
         /// </summary>
         /// <param name="parent"></param>
-        private HexGroup(HexGroup parent, bool debug = false)
+        private HexGroup(HexGroup parent, int rosetteSize)
         {
             var hoods = parent.GetNeighbourhoods();
-            _inside = new Dictionary<Vector2Int, Hex>(parent._inside.Count * 19); //magic numbers
-            _border = new Dictionary<Vector2Int, Hex>(parent._border.Count * 10); //magic numbers
+            _inside = new Dictionary<Vector3Int, Hex>(parent._inside.Count * 19); //magic numbers 
+            _border = new Dictionary<Vector3Int, Hex>(parent._border.Count * 10); //magic numbers
 
             for (int i = 0; i < hoods.Length; i++)
             {         
                 var hood = hoods[i];
 
-                var cells = debug ? hood.DebugSubdivide() : hood.Subdivide();
+                var cells = hood.Subdivide(rosetteSize);
 
                 for (int u = 0; u < cells.Length; u++)
                 {
@@ -132,7 +132,7 @@ namespace RecursiveHex
             {
                 var hexes = new Hex[6];
 
-                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
+                var neighbours = Neighbourhood.Neighbours;
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -169,7 +169,7 @@ namespace RecursiveHex
             foreach (var hexDictEntry in _border)
             {
                 var hexes = new Hex[6];
-                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
+                var neighbours = Neighbourhood.Neighbours;
 
                 var borderOrNullCount = 0;
 
@@ -218,20 +218,20 @@ namespace RecursiveHex
         /// Subdivide this hexgroup.
         /// </summary>
         /// <returns></returns>
-        public HexGroup Subdivide()
+        public HexGroup SubdivideThree()
         {
             //Debug.Log("Starting subdivide");
-            return new HexGroup(this);
+            return new HexGroup(this,3);
         }
 
         /// <summary>
         /// Subdivide this hexgroup returning results for debugging purposes.
         /// </summary>
         /// <returns></returns>
-        public HexGroup DebugSubdivide()
-        {
-            return new HexGroup(this, true);
-        }
+        //public HexGroup DebugSubdivide()
+        //{
+        //    return new HexGroup(this, true);
+        //}
 
         /// <summary>
         /// Hypothetical function that subdivides and returns a specific subset, based on a function, like Where() in linq.
@@ -256,15 +256,15 @@ namespace RecursiveHex
                 }).ToList();
         }
 
-        private Dictionary<Vector2Int, Hex> GetBorderOfSubgroup(Dictionary<Vector2Int,Hex> subgroup)
+        private Dictionary<Vector3Int, Hex> GetBorderOfSubgroup(Dictionary<Vector3Int,Hex> subgroup)
         {
-            var border = new Dictionary<Vector2Int, Hex>();
+            var border = new Dictionary<Vector3Int, Hex>();
 
             var subgroupInternalEdgeHexes = new List<Vector2Int>();
 
             foreach (var hexDictEntry in subgroup)
             {
-                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
+                var neighbours = Neighbourhood.Neighbours;
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -305,7 +305,7 @@ namespace RecursiveHex
 
         public HexGroup ForEach(Func<Hex, HexPayload> func)
         {
-            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
+            foreach (var pair in _inside.ToList())
             {
                 var hex = pair.Value;
                 hex.Payload = func(hex);
@@ -319,7 +319,7 @@ namespace RecursiveHex
         {
             var i = 0;
 
-            foreach (KeyValuePair<Vector2Int, Hex> pair in _inside.ToList())
+            foreach (var pair in _inside.ToList())
             {
                 var hex = pair.Value;
                 hex.Payload = func(hex, i);
@@ -334,7 +334,7 @@ namespace RecursiveHex
 
         #region ToMesh + ToGameObjects
 
-        private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict, Func<Hex,float> heightCalculator)
+        private static Mesh ToMesh(Dictionary<Vector3Int, Hex> dict, Func<Hex,float> heightCalculator)
         {
             var verts = new Vector3[dict.Count * 3 * 6];
             var tris = new int[dict.Count * 6 * 3];
@@ -344,7 +344,7 @@ namespace RecursiveHex
 
             foreach (var item in dict)
             {
-                var center = new Vector3(item.Key.x, 0, item.Key.y * Hex.ScaleY);
+                var center = new Vector3(item.Value.Index2d.x, 0, item.Value.Index2d.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 
                 var yHeight = Vector3.up * heightCalculator(item.Value);
@@ -386,22 +386,22 @@ namespace RecursiveHex
             };
         }
 
-        private static Mesh ToMesh(Dictionary<Vector2Int, Hex> dict)
+        private static Mesh ToMesh(Dictionary<Vector3Int, Hex> dict)
         {
             return ToMesh(dict, x => 0);
         }
 
-        private static void ToGameObjects(Dictionary<Vector2Int, Hex> dict, GameObject prefab)
+        private static void ToGameObjects(Dictionary<Vector3Int, Hex> dict, GameObject prefab)
         {
             var count = 0;
 
             foreach (var item in dict)
             {
                 var center = new Vector3(
-                    item.Key.x,
+                    item.Value.Index2d.x,
                     0,
-                    //item.Value.Payload.Height, 
-                    item.Key.y * Hex.ScaleY);
+                     //item.Value.Payload.Height, 
+                     item.Value.Index2d.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 
                 var obj = GameObject.Instantiate(prefab);
@@ -455,13 +455,13 @@ namespace RecursiveHex
         private (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> zOffset)
         {
             var count = 0;
-            var indexes = _inside.Keys;
+            var indexes = _inside.Values.Select(x => x.Index);
             var verts = indexes.ToDictionary(x => x, x => { var i = count; count++; return i; });
             HashSet<Vector3Int> triangles = new HashSet<Vector3Int>();
 
             foreach (var index in indexes)
             {
-                var neighbourhood = Neighbourhood.GetNeighbours(index);
+                var neighbourhood = Neighbourhood.Neighbours;
 
                 for (int i = 0; i < neighbourhood.Length; i++)
                 {
@@ -471,34 +471,38 @@ namespace RecursiveHex
                     if(!(verts.ContainsKey(n1) && verts.ContainsKey(n2)))
                         continue;
 
+                    var index2d = Hex.Get2dIndex(index);
+                    var n12d = Hex.Get2dIndex(n1);
+                    var n22d = Hex.Get2dIndex(n2);
+
                     //Determine triangle shape
 
-                    var threePoints = new Vector2Int[3];
-                    var indexIsOdd = index.y % 2 != 0;
-                    var n1IsOdd = n1.y % 2 != 0;
-                    var n2IsOdd = n2.y % 2 != 0;
+                    var threePoints = new Vector3Int[3];
+                    var indexIsOdd = index2d.y % 2 != 0;
+                    var n1IsOdd = n12d.y % 2 != 0;
+                    var n2IsOdd = n22d.y % 2 != 0;
 
-                    var testIndex = indexIsOdd? index.x+0.5f:index.x;
-                    var testn1 = n1IsOdd ? n1.x + 0.5f : n1.x;
-                    var testn2 = n2IsOdd ? n2.x + 0.5f : n2.x;
+                    var testIndex = indexIsOdd? index2d.x+0.5f: index2d.x;
+                    var testn1 = n1IsOdd ? n12d.x + 0.5f : n12d.x;
+                    var testn2 = n2IsOdd ? n22d.x + 0.5f : n22d.x;
 
                     if (testIndex<testn1 && testIndex< testn2)
                     {
-                        threePoints[0] = index;
-                        threePoints[1] = n1;
-                        threePoints[2] = n2;
+                        threePoints[0] = Hex.Get3dIndex(index2d);
+                        threePoints[1] = Hex.Get3dIndex(n12d);
+                        threePoints[2] = Hex.Get3dIndex(n22d);
                     }
                     else if (testn1< testIndex && testn1< testn2)
                     {
-                        threePoints[0] = n1;
-                        threePoints[1] = index;
-                        threePoints[2] = n2;
+                        threePoints[0] = Hex.Get3dIndex(n12d);
+                        threePoints[1] = Hex.Get3dIndex(index2d);
+                        threePoints[2] = Hex.Get3dIndex(n22d);
                     }
                     else if (testn2< testIndex && testn2< testn1)
                     {
-                        threePoints[0] = n2;
-                        threePoints[1] = n1;
-                        threePoints[2] = index;
+                        threePoints[0] = Hex.Get3dIndex(n22d);
+                        threePoints[1] = Hex.Get3dIndex(n12d);
+                        threePoints[2] = Hex.Get3dIndex(index2d);
                     }
                     else
                     {

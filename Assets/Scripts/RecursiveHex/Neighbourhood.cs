@@ -20,91 +20,46 @@ namespace RecursiveHex
         #region Static Vertex Lists
 
         /// <summary>
-        /// The neighbourhood around a hex when Y index is even - currently hardcoded, and shouldn't be changed
+        /// The neighbourhood around a hex - currently hardcoded, and shouldn't be changed
         /// </summary>
-        private static readonly Vector2Int[] NeighboursEven = new Vector2Int[]
+        public static readonly Vector3Int[] Neighbours = new Vector3Int[]
         {
-            new Vector2Int(+1,+0),
-            new Vector2Int(+0,+1),
-            new Vector2Int(-1,+1),
-            new Vector2Int(-1,+0),
-            new Vector2Int(-1,-1),
-            new Vector2Int(+0,-1),
+            new Vector3Int(+1,-1,0),
+            new Vector3Int(+1,0,-1),
+            new Vector3Int(0,+1,-1),
+            new Vector3Int(-1,+1,0),
+            new Vector3Int(-1,0,+1),
+            new Vector3Int(0,-1,+1),
         };
 
-        /// <summary>
-        /// The neighbourhood around a hex when Y index is odd - currently hardcoded, and shouldn't be changed
-        /// </summary>
-        private static readonly Vector2Int[] NeighboursOdd = new Vector2Int[]
-        {
-            new Vector2Int(+1,+0),
-            new Vector2Int(+1,+1),
-            new Vector2Int(-0,+1),
-            new Vector2Int(-1,+0),
-            new Vector2Int(-0,-1),
-            new Vector2Int(+1,-1),
-        };
+        private static Dictionary<int, Vector3Int[]> _cachedRosettes = new Dictionary<int, Vector3Int[]>();
 
-        /// <summary>
-        /// The children of a hexagon in a rough 3x3 grid - currently hardcoded, and shouldn't be changed
-        /// </summary>
-        private static readonly Vector2Int[] _3x3ChildrenOffsets = new Vector2Int[]
+        private static Vector3Int[] GenerateRosette(int radius)
         {
-            //Center
-            new Vector2Int(0,0),
-            NeighboursEven[0],
-            NeighboursEven[1],
-            NeighboursEven[2],
-            NeighboursEven[3],
-            NeighboursEven[4],
-            NeighboursEven[5],
-            new Vector2Int(-2,+1),
-            new Vector2Int(-2,-1),
-        };
+            if (_cachedRosettes.ContainsKey(radius))
+                return _cachedRosettes[radius];
 
-        /// <summary>
-        /// The offsets called when manually setting up a grid. Used for testing.
-        /// </summary>
-        private static readonly Vector2Int[] _DebugOffsets = new Vector2Int[]
-        {
-            new Vector2Int(0,0),
-            NeighboursEven[0],
-            NeighboursEven[1],
-            NeighboursEven[2],
-            NeighboursEven[3],
-            NeighboursEven[4],
-            NeighboursEven[5],
-        };
+            var cells = new List<Vector3Int>();
+
+            for (int q = -radius; q <= radius; q++)
+            {
+                int r1 = Mathf.Max(-radius, -q - radius);
+                int r2 = Mathf.Min(radius, -q + radius);
+                for (int r = r1; r <= r2; r++)
+                {
+                    cells.Add(new Vector3Int(q, r, -q - r));
+                }
+            }
+
+            var result = cells.ToArray();
+
+            _cachedRosettes.Add(radius, result);
+
+            return result;
+        }
+
 
         #endregion
-
-        /// <summary>
-        /// Get the correct neighbourhood for a given hexagon index
-        /// </summary>
-        /// <param name="index">XY index to test</param>
-        /// <returns></returns>
-        public static Vector2Int[] GetNeighbours(Vector2Int index)
-        {
-            return index.y % 2 == 0 ? NeighboursEven : NeighboursOdd;
-        }
-
-        /// <summary>
-        /// Subdivides the grid by one level
-        /// </summary>
-        /// <returns></returns>
-        public Hex[] Subdivide()
-        {
-            return Subdivide(_3x3ChildrenOffsets);
-        }
-
-        /// <summary>
-        /// Subdivides the grid by one level using the debug grid array. Should only really be used at the top of a stack.
-        /// </summary>
-        /// <returns></returns>
-        public Hex[] DebugSubdivide()
-        {
-            return Subdivide(_DebugOffsets);
-        }
 
         private static readonly int[] _triangleIndexPairs = new int[]
         {
@@ -116,22 +71,19 @@ namespace RecursiveHex
             5,0
         };
 
-        private Hex[] Subdivide(Vector2Int[] offsets)
+        /// <summary>
+        /// Subdivides the grid by one level
+        /// </summary>
+        /// <returns></returns>
+        public Hex[] Subdivide(int rosetteSize)
         {
-            if (this.IsBorder)
-            {
-                if (Hex.IsInvalid(this.Center))
-                {                    
+            if (this.IsBorder && Hex.IsInvalid(this.Center))                  
                     return new Hex[0];
-                }
-            }
-
 
             var center = this.Center.GetNoiseOffset();
 
             var largeHexPoints = new Vector2[]
             {
-
                 Hex.StaticFlatHexPoints[0] +  this.N0.GetNoiseOffset(),
                 Hex.StaticFlatHexPoints[1] +  this.N1.GetNoiseOffset(),
                 Hex.StaticFlatHexPoints[2] +  this.N2.GetNoiseOffset(),
@@ -140,11 +92,13 @@ namespace RecursiveHex
                 Hex.StaticFlatHexPoints[5] +  this.N5.GetNoiseOffset()
             };
 
-            var children = new Hex[offsets.Length];
+            var localOffset = GenerateRosette(rosetteSize);
 
-            for (int i = 0; i < offsets.Length; i++)
+            var children = new Hex[localOffset.Length];
+
+            for (int i = 0; i < localOffset.Length; i++)
             {
-                var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(offsets[i]);
+                var innerCoord = this.Center.GetNestedHexLocalCoordinateFromOffset(localOffset[i]);
                 var weight = Vector3.zero;
                 var index = 0;
                 var foundChild = false;
@@ -174,7 +128,7 @@ namespace RecursiveHex
                 var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
 
                 children[i] = new Hex(
-                    this.Center.GetNestedHexIndexFromOffset(offsets[i]),
+                    this.Center.GetNestedHexIndexFromOffset(localOffset[i]),
                     payload,
                     isBorder,
                     ""//$"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"

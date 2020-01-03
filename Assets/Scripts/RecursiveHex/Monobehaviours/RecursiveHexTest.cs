@@ -61,7 +61,7 @@ public class RecursiveHexTest : MonoBehaviour
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
 
         var layer2 = layer1
-            .Subdivide()
+            .SubdivideThree()
             //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
             //.Subdivide();
             ;
@@ -83,7 +83,7 @@ public class RecursiveHexTest : MonoBehaviour
         var groups = Enumerable.Range(1, 7);
         //var groups = new List<int>() { 1, 3 };
 
-        var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide().Subdivide();
+        var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).SubdivideThree().SubdivideThree();
 
 
 
@@ -120,7 +120,7 @@ public class RecursiveHexTest : MonoBehaviour
 
             iterator++;
 
-            var obj = x.Subdivide();//.Subdivide();
+            var obj = x.SubdivideThree();//.Subdivide();
             obj.ToGameObjects(Prefab);
             return;
 

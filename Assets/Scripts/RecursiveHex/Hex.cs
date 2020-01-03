@@ -8,7 +8,8 @@ namespace RecursiveHex
 {
     public struct Hex
     {
-        public readonly Vector2Int Index;
+        public readonly Vector3Int Index;
+        public readonly Vector2Int Index2d;
         public HexPayload Payload;
         public string DebugData;
 
@@ -34,12 +35,13 @@ namespace RecursiveHex
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        public Hex(Vector2Int index, HexPayload payload, bool isBorder, string debugData = "")
+        public Hex(Vector3Int index, HexPayload payload, bool isBorder, string debugData = "")
         {
             Index = index;
             Payload = payload;
             DebugData = debugData;
             IsBorder = isBorder;
+            Index2d = Get2dIndex(index);
 
             _notNull = true;
         }
@@ -47,6 +49,7 @@ namespace RecursiveHex
         public Hex(Hex hex, bool isBorder)
         {
             Index = hex.Index;
+            Index2d = hex.Index2d;
             Payload = hex.Payload;
             DebugData = hex.DebugData;
             IsBorder = isBorder;
@@ -135,6 +138,21 @@ namespace RecursiveHex
             var angle_rad = Mathf.PI / 180f * angle_deg;
             return new Vector3(Index.x + Hex.HalfHex * Mathf.Cos(-angle_rad),0,
                          (Index.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
+        }
+
+        public static Vector2Int Get2dIndex(Vector3Int index3d)
+        {
+            var col = index3d.x + (index3d.z - (index3d.z & 1)) / 2;
+            var row = index3d.z;
+            return new Vector2Int(col, row);
+        }
+
+        public static Vector3Int Get3dIndex(Vector2Int index2d)
+        {
+            var x = index2d.x - (index2d.y - (index2d.y & 1)) / 2;
+            var z = index2d.y;
+            var y = -x - z;
+            return new Vector3Int(x, y, z);
         }
     }
 

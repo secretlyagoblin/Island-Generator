@@ -57,16 +57,18 @@ namespace RecursiveHex
             return new Vector2Int(x, y);
         }
 
-        private const float MAGIC_INNER_ROTATION = 0f;// 0.33347317225183f;
+        private const float MAGIC_INNER_ROTATION = 0.33347317225183f;
 
-        private static readonly float _scale = (1f / 3f);//1f / (Mathf.Sqrt(7)); 
+        private static readonly float _scale = 1f / (Mathf.Sqrt(7)); //(1f / 3f);
 
-        public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector2Int offset)
+        public static Vector2 GetNestedHexLocalCoordinateFromOffset(this Hex hex, Vector3Int offset)
         {
-            var index = offset;
-            var isOdd =  index.y % 2 != 0;
+            var coord = hex.Index + offset;
+            var coord2d = Hex.Get2dIndex(coord);
+
+            var isOdd = coord2d.y % 2 != 0;
             var xOffset = isOdd ? 0.5f : 0f;
-            var finalX = index.x + xOffset;
+            var finalX = coord2d.x + xOffset;
 
             //https://stackoverflow.com/questions/13695317/rotate-a-point-around-another-point
 
@@ -74,8 +76,8 @@ namespace RecursiveHex
             float sinTheta = Mathf.Sin(MAGIC_INNER_ROTATION);
             return new Vector2(           
 
-                    (cosTheta * (finalX) - sinTheta * (index.y * Hex.ScaleY)) * _scale,
-                    (sinTheta * (finalX) + cosTheta * (index.y * Hex.ScaleY))* _scale
+                    (cosTheta * (finalX) - sinTheta * (coord2d.y * Hex.ScaleY)) * _scale,
+                    (sinTheta * (finalX) + cosTheta * (coord2d.y * Hex.ScaleY))* _scale
             );
         }
 

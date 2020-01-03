@@ -17,7 +17,7 @@ namespace Tests
             var hex = new HexGroup();
 
             var layer1 = new HexGroup().ForEach(x => new HexPayload() { Height = 1, Color = Color.red });
-            var layer2 = layer1.Subdivide();
+            var layer2 = layer1.SubdivideThree();
 
             //layer1.
 
