@@ -15,12 +15,12 @@ public class PayloadData : MonoBehaviour
     {
         if(((Connection)KeyValuePairs["NodeConnectionStatus"]) == Connection.Critical)
         {
-            this.transform.localScale *= 1.5f;
+            //this.transform.localScale *= 1.5f;
         }
 
         if (((Connection)KeyValuePairs["NodeConnectionStatus"]) == Connection.NotPresent)
         {
-            this.transform.localScale *= 0.25f;
+            //this.transform.localScale *= 0.25f;
         }
     }
 

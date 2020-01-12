@@ -6,7 +6,6 @@ using System.Linq;
 
 namespace RecursiveHex
 {
-
     public class HexGroup
     {
         private Dictionary<Vector3Int, Hex> _inside;
@@ -35,52 +34,6 @@ namespace RecursiveHex
             _inside = inside;
             _border = border;
         }
-
-        // Looks unnecsisary for now...
-        /*
-        public void RecalculateCriticalNodes()
-        {
-            //get all critical edge nodes
-
-            var criticalEdgeNodes = new HashSet<Vector2Int>();
-
-            foreach (var hexDictEntry in _border)
-            {
-                var neighbours = Neighbourhood.GetNeighbours(hexDictEntry.Key);
-
-                for (int i = 0; i < 6; i++)
-                {
-                    var key = hexDictEntry.Key + neighbours[i];
-
-                    if (_inside.ContainsKey(key))
-                    {
-                        if (!criticalEdgeNodes.Contains(key))
-                            criticalEdgeNodes.Add(key);
-                    }
-                }
-            }
-           
-            this.ForEach(x => {
-
-                var newPayload = x.Payload;
-
-                //if critical and an edge, stay critical
-                if (x.Payload.ConnectionStatus == Connection.Critical && criticalEdgeNodes.Contains(x.Index))
-                {
-
-                }
-                else if  (x.Payload.ConnectionStatus == Connection.Critical) //downgrade to present
-                {
-                    newPayload.ConnectionStatus = Connection.Present;
-                }                               
-                
-                return newPayload;
-            });
-
-
-        }         
-        */ 
-
 
         /// <summary>
         /// Creates a new hexgroup given a parent.
@@ -345,7 +298,7 @@ namespace RecursiveHex
             foreach (var item in dict)
             {
                 var index2d = item.Value.Index.Index2d;
-                var center = new Vector3(index2d.x, 0, index2d.y * Hex.ScaleY);
+                var center = item.Value.Index.Position3d;
                 var isOdd = item.Key.y % 2 != 0;
 
                 var yHeight = Vector3.up * heightCalculator(item.Value);
@@ -407,19 +360,12 @@ namespace RecursiveHex
 
             foreach (var item in dict)
             {
-                var index2d = item.Value.Index.Index2d;
-
-                var center = new Vector3(
-                    index2d.x,
-                    0,
-                     //item.Value.Payload.Height, 
-                     index2d.y * Hex.ScaleY);
-                var isOdd = item.Key.y % 2 != 0;
+                var position3d = item.Value.Index.Position3d;
 
                 var obj = GameObject.Instantiate(prefab);
 
                 obj.name = item.Key.ToString();
-                obj.transform.position = center;
+                obj.transform.position = position3d;
                 var payload = obj.AddComponent<PayloadData>();
                 item.Value.Payload.PopulatePayloadObject(payload);
                 payload.IsBorder = item.Value.IsBorder;
@@ -429,11 +375,6 @@ namespace RecursiveHex
                 {
                     payload.name += $"_NULL";
                 }       
-
-                if (isOdd)
-                {
-                    obj.transform.position = center + new Vector3(0.5f, 0, 0);
-                }
 
                 count++;
             }

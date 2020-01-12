@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RecursiveHex
 {
-    public static class InterpolationHelpers
+    static class InterpolationHelpers
     {
 
         public static float Blerp(float a, float b, float c, Vector3 weight)

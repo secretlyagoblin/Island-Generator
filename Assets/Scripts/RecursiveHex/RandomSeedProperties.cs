@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RecursiveHex
 {
-    public static class RandomSeedProperties
+    static class RandomSeedProperties
     {
         public static float X = 234.43546f;
         public static float Y = 124.3465f;

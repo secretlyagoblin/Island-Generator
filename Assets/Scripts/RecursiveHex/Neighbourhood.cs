@@ -80,7 +80,9 @@ namespace RecursiveHex
             if (this.IsBorder && Hex.IsInvalid(this.Center))                  
                     return new Hex[0];
 
-            var center = this.Center.Index.Position2d.AddNoiseOffset();
+            var nestedCenter = this.Center.Index.NestMultiply(scale);
+
+            //var center = this.Center.Index.Position2d.AddNoiseOffset();
 
             var largeHexPoints = new Vector2[]
             {
@@ -92,40 +94,78 @@ namespace RecursiveHex
                  this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset()
             };
 
-            var indexChildren = this.Center.Index.GenerateRosette(scale);
+            if(!this.IsBorder)
+            {
+
+                var a = 0;
+                var b = 1;
+
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+
+                a = 1;
+                b = 2;
+
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+
+                a = 2;
+                b = 3;
+
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+
+                a = 3;
+                b = 4;
+
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+
+                a = 4;
+                b = 5;
+
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+
+
+                a = 5;
+                b = 0;
+
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+
+            }
+
+            var indexChildren = nestedCenter.GenerateRosette(scale);
 
             var children = new Hex[indexChildren.Length];
 
             for (int i = 0; i < indexChildren.Length; i++)
             {
-                var actualPosition = indexChildren[i].Position2d;
                 var weight = Vector3.zero;
                 var index = 0;
                 var foundChild = false;
 
-                for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
-                {
-                    weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], actualPosition);
-                    var testX = weight.x;
-                    var testY = weight.y;
-                    var testZ = weight.z;
-
-                    if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
-                    {
-                        foundChild = true;
-                        break;
-                    }
-                    index++;
-                }
-
-                if (!foundChild)
-                {
-                    Debug.LogError($"No containing barycenter detected at {this.Center.Index} - inner hex not contained by outer hex. Using weight {weight}.");
-                }
+                //for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
+                //{
+                //    weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], actualPosition);
+                //    var testX = weight.x;
+                //    var testY = weight.y;
+                //    var testZ = weight.z;
+                //
+                //    if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
+                //    {
+                //        foundChild = true;
+                //        break;
+                //    }
+                //    index++;
+                //}
+                //
+                //if (!foundChild)
+                //{
+                //    Debug.LogError($"No containing barycenter detected at {this.Center.Index} - inner hex not contained by outer hex. Using weight {weight}.");
+                //}
 
                 var isBorder = this.InterpolateIsBorder(weight, index);
 
                 var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
+
+                Debug.DrawLine(nestedCenter.Position3d, indexChildren[i].Position3d, Color.blue, 100f);
+
 
                 children[i] = new Hex(
                     indexChildren[i],
@@ -203,215 +243,5 @@ namespace RecursiveHex
 
             return new Vector3(u, v, w);
         }
-
-
-
-        //I didn't need to do this :(
-        /*
-        private Hex[] ResolveEdgeCases(Hex[] ch)
-        {
-            if (Hex.IsInvalid(this.Center))
-            {
-                return new Hex[0];
-            }
-
-            var a = !Hex.IsInvalid(this.N0);
-            var b = !Hex.IsInvalid(this.N1);
-            var c = !Hex.IsInvalid(this.N2);
-            var d = !Hex.IsInvalid(this.N3);
-            var e = !Hex.IsInvalid(this.N4);
-            var f = !Hex.IsInvalid(this.N5);
-
-            
-
-            if(a && b && c && d && e && f)// 1-1-1-1-1-1
-            {
-                return ch;
-            }
-            else if (a && b && c && d && e && !f) // 1-1-1-1-1-0
-            {   
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && c && d && !e && !f) // 1-1-1-1-0-0
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[4],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && c && !d && !e && !f) // 1-1-1-0-0-0
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[6],ch[7]
-                };
-            }
-            else if (a && b && !c && !d && !e && !f) // 1-1-0-0-0-0
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[6]
-                };
-            }
-            else if (a && !b && !c && !d && !e && !f) // 1-0-0-0-0-0
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[6]
-                };
-            }
-            else if (!a && !b && !c && !d && !e && !f) // 0-0-0-0-0-0
-            {
-                return new Hex[0];
-            }
-            //Rest are sorted by order of occurence
-            else if (a && !b && !c && d && e && f) // 1-0-0-1-1-1
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && c && !d && e && f) // 1-1-1-0-1-1
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (!a && !b && c && d && e && !f) // 0-0-1-1-1-0
-            {
-                return new Hex[]
-                {
-                    ch[3],ch[4],ch[5],ch[7],ch[8]
-                };
-            }
-            else if (!a && b && c && d && e && f) // 0-1-1-1-1-1
-            {
-                return new Hex[]
-                {
-                    ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && c && d && !e && f) // 1-1-1-1-0-1
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && !c && d && e && f) // 1-1-0-1-1-1
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (!a && !b && !c && d && e && f) // 0-0-0-1-1-1
-            {
-                return new Hex[]
-                {
-                    ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && !b && c && d && e && f) // 1-0-1-1-1-1
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && !b && !c && !d && !e && f) // 1-0-0-0-0-1
-            {
-                return new Hex[]
-                {
-                    ch[1],ch[2],ch[5],ch[6]
-                };
-            }
-            else if (!a && b && c && d && !e && !f) // 0-1-1-1-0-0
-            {
-                return new Hex[]
-                {
-                   ch[2],ch[3],ch[4],ch[7],ch[8]
-                };
-            }
-            else if (!a && !b && c && d && e && f) // 0-0-1-1-1-1
-            {
-                return new Hex[]
-                {
-                   ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && !b && !c && !d && e && f) // 1-0-0-0-1-1
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[5],ch[6],ch[8]
-                };
-            }
-            else if (!a && b && c && d && e && !f) // 0-1-1-1-1-0
-            {
-                return new Hex[]
-                {
-                   ch[2],ch[3],ch[4],ch[5],ch[7],ch[8]
-                };
-            }
-            else if (a && !b && c && d && e && !f) // 1-0-1-1-1-0
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && !c && d && e && !f) // 1-1-0-1-1-0
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && !b && c && d && !e && f) // 1-0-1-1-0-1
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[3],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && !c && !d && !e && f) // 1-1-0-0-0-1
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[3],ch[5],ch[6]
-                };
-            }
-            else if (a && !b && !c && d && !e && f) // 1-0-0-1-0-1
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[4],ch[5],ch[6],ch[7],ch[8]
-                };
-            }
-            else if (a && b && !c && d && !e && !f) // 1-1-0-1-0-0
-            {
-                return new Hex[]
-                {
-                   ch[1],ch[2],ch[3],ch[4],ch[6],ch[7],ch[8]
-                };
-            }
-
-
-            Debug.LogError($"Unhandled case {(a?1:0)}-{(b ? 1 : 0)}-{(c ? 1 : 0)}-{(d ? 1 : 0)}-{(e ? 1 : 0)}-{(f ? 1 : 0)}");
-
-            return ch;
-
-            
-        }
-
-        */
     }
-
-
 }

@@ -16,6 +16,8 @@ public class RecursiveHexTest : MonoBehaviour
         //RNG.Init("I'd kill");
         RNG.Init();
         RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
+        RecursiveHex.RandomSeedProperties.Disable();
+
 
         var codeIdentifier = new Func<HexPayload, int>(x => x.Code);
         var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
@@ -65,6 +67,12 @@ public class RecursiveHexTest : MonoBehaviour
             //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
             //.Subdivide();
             ;
+
+        layer2.ToGameObjects(Prefab);
+
+        //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
+
+        return;
 
         var graff = layer2.ToGraph<Levels.SingleConnectionGraph>(codeIdentifier, connector);
 

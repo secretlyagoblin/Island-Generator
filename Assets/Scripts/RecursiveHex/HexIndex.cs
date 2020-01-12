@@ -51,7 +51,7 @@ namespace RecursiveHex
             var isOdd = index2d.y % 2 != 0;
 
             return new Vector2(
-                index2d.x + (isOdd ? 0 : 0.5f),
+                index2d.x - (isOdd ? 0 : 0.5f),
                 index2d.y * Hex.ScaleY);
         }
 
@@ -60,16 +60,10 @@ namespace RecursiveHex
             return new HexIndex(-Index3d.y, -Index3d.z, -Index3d.x);
         }
 
-        public static HexIndex NestMultiply(HexIndex index, int amount)
-        {
-            var newIndex = index.Index3d * (amount + 1) + (index.Rotate60().Index3d * amount);
-
-            return new HexIndex(newIndex.x, newIndex.y, newIndex.z);
-        }
-
         public HexIndex NestMultiply(int amount)
         {
-            return NestMultiply(this, amount);
+            var newIndex = Index3d * (amount + 1) + (Rotate60().Index3d * amount);
+            return new HexIndex(newIndex.x, newIndex.y, newIndex.z);
         }
 
         public HexIndex[] GenerateRosette(int radius)
