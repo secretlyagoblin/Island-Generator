@@ -354,8 +354,8 @@ namespace RecursiveHex
                 {
                     var index = (count * 3 * 6) + (i * 3);
                     verts[index] = center + yHeight;
-                    verts[index + 1] = item.Value.GetPointyCornerXZ(i)+ yHeight;
-                    verts[index + 2] = item.Value.GetPointyCornerXZ(i + 1)+ yHeight;
+                    verts[index + 1] = GetPointyCornerXZ(item.Value, i)+ yHeight;
+                    verts[index + 2] = GetPointyCornerXZ(item.Value, i+1) + yHeight;
 
                     if (isOdd)
                     {
@@ -385,6 +385,15 @@ namespace RecursiveHex
                 triangles = tris,
                 colors = colors
             };
+
+            Vector3 GetPointyCornerXZ(Hex hex, int i)
+            {
+                var index2d = hex.Index.Index2d;
+                var angle_deg = 60f * i - 30f;
+                var angle_rad = Mathf.PI / 180f * angle_deg;
+                return new Vector3(index2d.x + Hex.HalfHex * Mathf.Cos(-angle_rad), 0,
+                             (index2d.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
+            }
         }
 
         private static Mesh ToMesh(Dictionary<Vector3Int, Hex> dict)

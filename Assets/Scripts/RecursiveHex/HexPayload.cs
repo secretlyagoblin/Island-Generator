@@ -23,12 +23,12 @@ namespace RecursiveHex
         {
             return new HexPayload()
             {
-                Height = Utils.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
-                Color = Utils.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
-                Code = Utils.Blerp(a.Payload.Code, b.Payload.Code, c.Payload.Code, weights),
-                Connections = Utils.Blerp(a.Payload.Connections, b.Payload.Connections, c.Payload.Connections, weights),
-                Region = Utils.Blerp(a.Payload.Region, b.Payload.Region, c.Payload.Region, weights),
-                ConnectionStatus = Utils.Blerp(a.Payload.ConnectionStatus, b.Payload.ConnectionStatus, c.Payload.ConnectionStatus, weights)
+                Height = InterpolationHelpers.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
+                Color = InterpolationHelpers.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
+                Code = InterpolationHelpers.Blerp(a.Payload.Code, b.Payload.Code, c.Payload.Code, weights),
+                Connections = InterpolationHelpers.Blerp(a.Payload.Connections, b.Payload.Connections, c.Payload.Connections, weights),
+                Region = InterpolationHelpers.Blerp(a.Payload.Region, b.Payload.Region, c.Payload.Region, weights),
+                ConnectionStatus = InterpolationHelpers.Blerp(a.Payload.ConnectionStatus, b.Payload.ConnectionStatus, c.Payload.ConnectionStatus, weights)
             };
         }
 

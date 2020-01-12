@@ -151,12 +151,12 @@ namespace RecursiveHex
             switch (triangleIndex)
             {
                 default:
-                case 0: return Utils.Blerp<bool>(Center.IsBorder, N0.IsBorder, N1.IsBorder, weights);
-                case 1: return Utils.Blerp<bool>(Center.IsBorder, N1.IsBorder, N2.IsBorder, weights);
-                case 2: return Utils.Blerp<bool>(Center.IsBorder, N2.IsBorder, N3.IsBorder, weights);
-                case 3: return Utils.Blerp<bool>(Center.IsBorder, N3.IsBorder, N4.IsBorder, weights);
-                case 4: return Utils.Blerp<bool>(Center.IsBorder, N4.IsBorder, N5.IsBorder, weights);
-                case 5: return Utils.Blerp<bool>(Center.IsBorder, N5.IsBorder, N0.IsBorder, weights);
+                case 0: return InterpolationHelpers.Blerp<bool>(Center.IsBorder, N0.IsBorder, N1.IsBorder, weights);
+                case 1: return InterpolationHelpers.Blerp<bool>(Center.IsBorder, N1.IsBorder, N2.IsBorder, weights);
+                case 2: return InterpolationHelpers.Blerp<bool>(Center.IsBorder, N2.IsBorder, N3.IsBorder, weights);
+                case 3: return InterpolationHelpers.Blerp<bool>(Center.IsBorder, N3.IsBorder, N4.IsBorder, weights);
+                case 4: return InterpolationHelpers.Blerp<bool>(Center.IsBorder, N4.IsBorder, N5.IsBorder, weights);
+                case 5: return InterpolationHelpers.Blerp<bool>(Center.IsBorder, N5.IsBorder, N0.IsBorder, weights);
             }
         }
 
