@@ -80,16 +80,16 @@ namespace RecursiveHex
             if (this.IsBorder && Hex.IsInvalid(this.Center))                  
                     return new Hex[0];
 
-            var center = this.Center.GetNoiseOffset();
+            var center = this.Center.Index.GetNoiseOffset();
 
             var largeHexPoints = new Vector2[]
             {
-                 this.N0.Index.NestMultiply(scale).Position + this.N0.GetNoiseOffset(),
-                 this.N1.Index.NestMultiply(scale).Position + this.N1.GetNoiseOffset(),
-                 this.N2.Index.NestMultiply(scale).Position + this.N2.GetNoiseOffset(),
-                 this.N3.Index.NestMultiply(scale).Position + this.N3.GetNoiseOffset(),
-                 this.N4.Index.NestMultiply(scale).Position + this.N4.GetNoiseOffset(),
-                 this.N5.Index.NestMultiply(scale).Position + this.N5.GetNoiseOffset()
+                 this.N0.Index.NestMultiply(scale).Position2d + this.N0.Index.GetNoiseOffset(),
+                 this.N1.Index.NestMultiply(scale).Position2d + this.N1.Index.GetNoiseOffset(),
+                 this.N2.Index.NestMultiply(scale).Position2d + this.N2.Index.GetNoiseOffset(),
+                 this.N3.Index.NestMultiply(scale).Position2d + this.N3.Index.GetNoiseOffset(),
+                 this.N4.Index.NestMultiply(scale).Position2d + this.N4.Index.GetNoiseOffset(),
+                 this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.GetNoiseOffset()
             };
 
             var indexChildren = this.Center.Index.GenerateRosette(scale);
@@ -98,7 +98,7 @@ namespace RecursiveHex
 
             for (int i = 0; i < indexChildren.Length; i++)
             {
-                var actualPosition = indexChildren[i].Position;
+                var actualPosition = indexChildren[i].Position2d;
                 var weight = Vector3.zero;
                 var index = 0;
                 var foundChild = false;
@@ -135,9 +135,9 @@ namespace RecursiveHex
                     );
             }
 
-            var childSubset = ResolveEdgeCases(children);
+            //var childSubset = ResolveEdgeCases(children);
 
-            return childSubset;
+            return children;
         }
 
         /// <summary>
@@ -204,7 +204,10 @@ namespace RecursiveHex
             return new Vector3(u, v, w);
         }
 
+
+
         //I didn't need to do this :(
+        /*
         private Hex[] ResolveEdgeCases(Hex[] ch)
         {
             if (Hex.IsInvalid(this.Center))
@@ -406,6 +409,8 @@ namespace RecursiveHex
 
             
         }
+
+        */
     }
 
 

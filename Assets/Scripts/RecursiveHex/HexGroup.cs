@@ -20,13 +20,13 @@ namespace RecursiveHex
             _inside = new Dictionary<Vector3Int, Hex>(1);
             _border = new Dictionary<Vector3Int, Hex>(6);
 
-            AddHex(new Hex(Vector3Int.zero,new HexPayload(),false));
+            AddHex(new Hex(new HexIndex(),new HexPayload(),false));
 
             var neighbours = Neighbourhood.Neighbours;
             //
             for (int i = 0; i < neighbours.Length; i++)
             {
-                AddBorderHex(new Hex(neighbours[i],new HexPayload(),true));
+                AddBorderHex(new Hex(new HexIndex(neighbours[i]),new HexPayload(),true));
             }
         }
 
@@ -110,12 +110,12 @@ namespace RecursiveHex
 
         private void AddBorderHex(Hex hex)
         {
-            _border.Add(hex.Index, hex);
+            _border.Add(hex.Index.Index3d, hex);
         }
 
         private void AddHex(Hex hex)
         {
-            _inside.Add(hex.Index, hex);
+            _inside.Add(hex.Index.Index3d, hex);
         }
 
         /// <summary>
@@ -344,7 +344,8 @@ namespace RecursiveHex
 
             foreach (var item in dict)
             {
-                var center = new Vector3(item.Value.Index2d.x, 0, item.Value.Index2d.y * Hex.ScaleY);
+                var index2d = item.Value.Index.Index2d;
+                var center = new Vector3(index2d.x, 0, index2d.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 
                 var yHeight = Vector3.up * heightCalculator(item.Value);
@@ -363,7 +364,7 @@ namespace RecursiveHex
                         verts[index + 2].x += 0.5f;
                     }
 
-                    verts[index] = verts[index].AddNoiseOffset();
+                    verts[index] = verts[index].Index.AddNoiseOffset();
                     verts[index + 1] = verts[index + 1].AddNoiseOffset();
                     verts[index + 2] = verts[index + 2].AddNoiseOffset();
 
@@ -397,11 +398,13 @@ namespace RecursiveHex
 
             foreach (var item in dict)
             {
+                var index2d = item.Value.Index.Index2d;
+
                 var center = new Vector3(
-                    item.Value.Index2d.x,
+                    index2d.x,
                     0,
                      //item.Value.Payload.Height, 
-                     item.Value.Index2d.y * Hex.ScaleY);
+                     index2d.y * Hex.ScaleY);
                 var isOdd = item.Key.y % 2 != 0;
 
                 var obj = GameObject.Instantiate(prefab);
@@ -456,7 +459,7 @@ namespace RecursiveHex
         {
             var count = 0;
             var indexes = _inside.Values.Select(x => x.Index);
-            var verts = indexes.ToDictionary(x => x, x => { var i = count; count++; return i; });
+            var verts = indexes.ToDictionary(x => x.Index3d, x => { var i = count; count++; return i; });
             HashSet<Vector3Int> triangles = new HashSet<Vector3Int>();
 
             foreach (var index in indexes)
@@ -465,15 +468,16 @@ namespace RecursiveHex
 
                 for (int i = 0; i < neighbourhood.Length; i++)
                 {
-                    var n1 = index + neighbourhood[i];
-                    var n2 = index + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1]: neighbourhood[0]);
+                    var index3d = index.Index3d;
+                    var n1 = index3d + neighbourhood[i];
+                    var n2 = index3d + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1]: neighbourhood[0]);
 
                     if(!(verts.ContainsKey(n1) && verts.ContainsKey(n2)))
                         continue;
 
-                    var index2d = Hex.Get2dIndex(index);
-                    var n12d = Hex.Get2dIndex(n1);
-                    var n22d = Hex.Get2dIndex(n2);
+                    var index2d = index.Index2d;
+                    var n12d = HexIndex.Get2dIndex(n1);
+                    var n22d = HexIndex.Get2dIndex(n2);
 
                     //Determine triangle shape
 
@@ -488,21 +492,21 @@ namespace RecursiveHex
 
                     if (testIndex<testn1 && testIndex< testn2)
                     {
-                        threePoints[0] = Hex.Get3dIndex(index2d);
-                        threePoints[1] = Hex.Get3dIndex(n12d);
-                        threePoints[2] = Hex.Get3dIndex(n22d);
+                        threePoints[0] = HexIndex.Get3dIndex(index2d);
+                        threePoints[1] = HexIndex.Get3dIndex(n12d);
+                        threePoints[2] = HexIndex.Get3dIndex(n22d);
                     }
                     else if (testn1< testIndex && testn1< testn2)
                     {
-                        threePoints[0] = Hex.Get3dIndex(n12d);
-                        threePoints[1] = Hex.Get3dIndex(index2d);
-                        threePoints[2] = Hex.Get3dIndex(n22d);
+                        threePoints[0] = HexIndex.Get3dIndex(n12d);
+                        threePoints[1] = HexIndex.Get3dIndex(index2d);
+                        threePoints[2] = HexIndex.Get3dIndex(n22d);
                     }
                     else if (testn2< testIndex && testn2< testn1)
                     {
-                        threePoints[0] = Hex.Get3dIndex(n22d);
-                        threePoints[1] = Hex.Get3dIndex(n12d);
-                        threePoints[2] = Hex.Get3dIndex(index2d);
+                        threePoints[0] = HexIndex.Get3dIndex(n22d);
+                        threePoints[1] = HexIndex.Get3dIndex(n12d);
+                        threePoints[2] = HexIndex.Get3dIndex(index2d);
                     }
                     else
                     {
@@ -524,7 +528,7 @@ namespace RecursiveHex
                 }
             }
 
-            var vertices = indexes.Select(x => new Vector3((x.y % 2 == 0 ? x.x : x.x + 0.5f), zOffset(_inside[x].Payload), x.y * Hex.ScaleY)).ToArray();
+            var vertices = indexes.Select(x => x.Position3d).ToArray();
             var finalTriangles = triangles.SelectMany(x => new[] { x.x, x.y, x.z }).ToArray();
 
             return (vertices, finalTriangles);
@@ -575,4 +579,5 @@ namespace RecursiveHex
 
         #endregion
     }
+
 }

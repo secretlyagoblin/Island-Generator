@@ -140,15 +140,24 @@ namespace RecursiveHex
 
     public struct HexIndex
     {
-        public readonly Vector3Int Index;
-        public readonly Vector2Int Index2d;
-        public readonly Vector2 Position;
+        public readonly Vector3Int Index3d;
+
+        public Vector2Int Index2d { get { return Get2dIndex(Index3d); } }
+        public Vector2 Position2d { get { return GetPosition(Index2d); } }
+
+        public Vector3 Position3d { get { 
+                var twoD = GetPosition(Index2d);
+                return new Vector3(twoD.x,0, twoD.y); } 
+        }
 
         public HexIndex(int x, int y, int z)
         {
-            Index = new Vector3Int(x, y, z);
-            Index2d = Get2dIndex(Index);
-            Position = GetPosition(Index2d);
+            Index3d = new Vector3Int(x, y, z);
+        }
+
+        public HexIndex(Vector3Int vector3Int) : this()
+        {
+            Index3d = vector3Int;
         }
 
         public static Vector3Int Get3dIndex(Vector2Int index2d)
@@ -177,12 +186,12 @@ namespace RecursiveHex
 
         public HexIndex Rotate60()
         {
-            return new HexIndex(-Index.y, -Index.z, -Index.x);
+            return new HexIndex(-Index3d.y, -Index3d.z, -Index3d.x);
         }
 
         public static HexIndex NestMultiply (HexIndex index, int amount)
         {
-            var newIndex = index.Index * (amount + 1) + (index.Rotate60().Index * amount);
+            var newIndex = index.Index3d * (amount + 1) + (index.Rotate60().Index3d * amount);
 
             return new HexIndex(newIndex.x,newIndex.y,newIndex.z);
         }
@@ -209,19 +218,19 @@ namespace RecursiveHex
                 }
             }
 
-            //Do the whole thing again this time making an array
-
-            count = 0;
+            //Do the whole thing again this time making an array            
 
             var output = new HexIndex[count];
 
-                    for (int q = -radius; q <= radius; q++)
+            count = 0;
+
+            for (int q = -radius; q <= radius; q++)
             {
                 int r1 = Mathf.Max(-radius, -q - radius);
                 int r2 = Mathf.Min(radius, -q + radius);
                 for (int r = r1; r <= r2; r++)
                 {
-                    var vec = new Vector3Int(q, r, -q - r) + this.Index;
+                    var vec = new Vector3Int(q, r, -q - r) + this.Index3d;
                     output[count] = new HexIndex(vec.x,vec.y,vec.z);
                     count++;
                 }
@@ -229,6 +238,36 @@ namespace RecursiveHex
             }
 
             return output;
+        }
+
+        private const float NOISE_OFFSET_SCALE = 0.37f; //Any higher caused 1 or more barycenter errors
+
+        /// <summary>
+        /// Gets a consistent vector within 0.5 when given a hex or a hex with an offset
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        public Vector2 GetNoiseOffset()
+        {
+            var index2d = Position2d;
+            var result = RandomSeedProperties.GetOffset(index2d.x, index2d.y);
+
+            return new Vector2(
+                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
+        }
+
+        public Vector3 GetNoiseOffset3d()
+        {
+            var vector3 = Position3d;
+
+            var result = RandomSeedProperties.GetOffset(vector3.x, vector3.z);
+
+            return new Vector3(
+                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                0,
+                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
         }
     }
 
