@@ -10,6 +10,9 @@ namespace RecursiveHex
         public static float Y = 124.3465f;
         public static float Scale = 8.43645f;
 
+        private const float NOISE_OFFSET_SCALE = 0.37f; //We need to rethink this..
+
+
         private static bool _isDisabled = false;
 
         public static void SetRandomSeed(float x, float y)
@@ -21,7 +24,7 @@ namespace RecursiveHex
         public static void Disable()
         {
             _isDisabled = true;
-            Debug.LogError("Random Seed is disabled, no voronoi grid");
+            Debug.LogWarning("Random Seed is disabled, no voronoi grid");
         }
 
         public static RandomOffset GetOffset(int x, int y)
@@ -50,6 +53,36 @@ namespace RecursiveHex
                 Distance = perlinLength
             };
         }
+
+        /// <summary>
+        /// Gets a consistent vector within 0.5 when given a hex or a hex with an offset
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        public static Vector2 AddNoiseOffset(this Vector2 vec)
+        {
+            var index2d = vec;
+            var result = RandomSeedProperties.GetOffset(index2d.x, index2d.y);
+
+            return new Vector2(
+                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
+        }
+
+        public static Vector3 AddNoiseOffset(this Vector3 vec)
+        {
+            var vector3 = vec;
+
+            var result = RandomSeedProperties.GetOffset(vector3.x, vector3.z);
+
+            return new Vector3(
+                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                0,
+                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
+        }
+
+
     }
 
     public struct RandomOffset

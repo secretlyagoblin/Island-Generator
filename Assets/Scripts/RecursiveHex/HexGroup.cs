@@ -364,7 +364,7 @@ namespace RecursiveHex
                         verts[index + 2].x += 0.5f;
                     }
 
-                    verts[index] = verts[index].Index.AddNoiseOffset();
+                    verts[index] = verts[index].AddNoiseOffset();
                     verts[index + 1] = verts[index + 1].AddNoiseOffset();
                     verts[index + 2] = verts[index + 2].AddNoiseOffset();
 

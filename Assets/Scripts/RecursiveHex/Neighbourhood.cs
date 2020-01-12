@@ -80,16 +80,16 @@ namespace RecursiveHex
             if (this.IsBorder && Hex.IsInvalid(this.Center))                  
                     return new Hex[0];
 
-            var center = this.Center.Index.GetNoiseOffset();
+            var center = this.Center.Index.Position2d.AddNoiseOffset();
 
             var largeHexPoints = new Vector2[]
             {
-                 this.N0.Index.NestMultiply(scale).Position2d + this.N0.Index.GetNoiseOffset(),
-                 this.N1.Index.NestMultiply(scale).Position2d + this.N1.Index.GetNoiseOffset(),
-                 this.N2.Index.NestMultiply(scale).Position2d + this.N2.Index.GetNoiseOffset(),
-                 this.N3.Index.NestMultiply(scale).Position2d + this.N3.Index.GetNoiseOffset(),
-                 this.N4.Index.NestMultiply(scale).Position2d + this.N4.Index.GetNoiseOffset(),
-                 this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.GetNoiseOffset()
+                 this.N0.Index.NestMultiply(scale).Position2d + this.N0.Index.Position2d.AddNoiseOffset(),
+                 this.N1.Index.NestMultiply(scale).Position2d + this.N1.Index.Position2d.AddNoiseOffset(),
+                 this.N2.Index.NestMultiply(scale).Position2d + this.N2.Index.Position2d.AddNoiseOffset(),
+                 this.N3.Index.NestMultiply(scale).Position2d + this.N3.Index.Position2d.AddNoiseOffset(),
+                 this.N4.Index.NestMultiply(scale).Position2d + this.N4.Index.Position2d.AddNoiseOffset(),
+                 this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset()
             };
 
             var indexChildren = this.Center.Index.GenerateRosette(scale);
