@@ -137,7 +137,31 @@ namespace RecursiveHex
             //    (largeHexPoints[i] + floatingNestedCenter + largeHexPoints[i+1])/3
             //}
 
-            var indexChildren = nestedCenter.GenerateRosette(scale);
+            HexIndex[] indexChildren;
+
+            if (this.IsBorder)
+            {
+
+
+
+                indexChildren = nestedCenter.GenerateRosetteLinear(scale);
+            }
+            else
+            {
+                indexChildren = nestedCenter.GenerateRing(scale);
+            }
+
+            //var generationProducedCells = true;
+
+            //var radius = 1;
+
+            //while (generationProducedCells)
+            //{
+            //
+            //}
+
+
+
 
             var children = new Hex[indexChildren.Length];
 

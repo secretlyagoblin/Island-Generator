@@ -66,7 +66,7 @@ namespace RecursiveHex
             return new HexIndex(newIndex.x, newIndex.y, newIndex.z);
         }
 
-        public HexIndex[] GenerateRosette(int radius)
+        public HexIndex[] GenerateRosetteLinear(int radius)
         {
             //calculate rosette size without any GC :(
 
@@ -103,6 +103,95 @@ namespace RecursiveHex
             }
 
             return output;
+        }
+
+        public HexIndex[] GenerateRosetteCircular(int radius)
+        {
+            var results = new List<HexIndex>() { this };
+
+            for (int i = 1; i < radius; i++)
+            {
+                results.AddRange(GenerateRing(i));
+            }
+
+            return results.ToArray();
+        }
+
+        private static readonly HexIndex[] _directions = new HexIndex[]
+        {
+            new HexIndex(0,-1,+1),
+            new HexIndex(+1,-1,0),
+            new HexIndex(+1,0,-1),
+            new HexIndex(0,+1,-1),
+            new HexIndex(-1,+1,0),
+            new HexIndex(-1,0,+1),
+
+        };
+
+        public HexIndex[] GenerateRing(int radius)
+        {
+            var results = new List<HexIndex>();
+
+            var currentPos = this;// + (_directions[3] * radius);
+
+            Debug.DrawLine(this.Position3d, currentPos.Position3d, Color.blue * 0.75f, 100f);
+
+            var lastPos = currentPos;
+            currentPos += (_directions[0] * Mathf.FloorToInt(radius * 0.5f));
+
+            var ringStart = currentPos;
+
+            var i = 0;
+            var count = 0;
+
+            while (true)
+            {
+                i = i < 5 ? (i + 1) : 0;
+
+                for (int j = (count == 0 ? Mathf.FloorToInt(radius * 0.5f) : 0); j < radius; j++)
+                {
+
+                    //Debug.Log($"Added Cell {currentPos}");
+                    results.Add(currentPos);
+                    currentPos += _directions[i];
+                    Debug.DrawLine(lastPos.Position3d, currentPos.Position3d, Color.green * 0.5f, 100f);
+                    lastPos = currentPos;
+                    count++;
+
+                    if (ringStart == currentPos)
+                        return results.ToArray();
+                }
+            }
+        }
+
+        public static HexIndex operator +(HexIndex a, HexIndex b)
+        {
+            return new HexIndex(a.Index3d.x + b.Index3d.x, a.Index3d.y + b.Index3d.y, a.Index3d.z + b.Index3d.z);
+        }
+
+        public static HexIndex operator -(HexIndex a, HexIndex b)
+        {
+            return new HexIndex(a.Index3d.x - b.Index3d.x, a.Index3d.y - b.Index3d.y, a.Index3d.z - b.Index3d.z);
+        }
+
+        public static HexIndex operator *(HexIndex a, int b)
+        {
+            return new HexIndex(a.Index3d.x * b, a.Index3d.y * b, a.Index3d.z * b);
+        }
+
+        public static HexIndex operator *(HexIndex a, HexIndex b)
+        {
+            return new HexIndex(a.Index3d.x * b.Index3d.x, a.Index3d.y * b.Index3d.y, a.Index3d.z * b.Index3d.z);
+        }
+
+        public static bool operator ==(HexIndex a, HexIndex b)
+        {
+            return a.Index3d.x == b.Index3d.x && a.Index3d.y == b.Index3d.y && a.Index3d.z == b.Index3d.z;
+        }
+
+        public static bool operator !=(HexIndex a, HexIndex b)
+        {
+            return !(a == b);
         }
     }
 }
