@@ -15,8 +15,7 @@ public class RecursiveHexTest : MonoBehaviour
     {
         //RNG.Init("I'd kill");
         RNG.Init();
-        RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
-        RecursiveHex.RandomSeedProperties.Disable();
+        //RecursiveHex.RandomSeedProperties.Disable();
 
 
         var codeIdentifier = new Func<HexPayload, int>(x => x.Code);
@@ -60,17 +59,26 @@ public class RecursiveHexTest : MonoBehaviour
             colours.Add(RNG.NextColor());
         }
 
+       
+
         var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
+        var layer2 = layer1;
 
-        var layer2 = layer1
-            .SubdivideThree()
-            //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
-            //.Subdivide();
-            ;
+        for (int i = 0; i < 1; i++)
+        {
+           
+            RandomSeedProperties.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
-        layer2.ToGameObjects(Prefab);
+            var layerfruu = layer1
+                .SubdivideThree().SubdivideThree().SubdivideThree()
+                //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
+                //.Subdivide();
+                ;
 
-        //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
+            //layer2.ToGameObjects(Prefab);
+
+            //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
+        }
 
         return;
 

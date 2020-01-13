@@ -82,16 +82,16 @@ namespace RecursiveHex
 
             var nestedCenter = this.Center.Index.NestMultiply(scale);
 
-            //var center = this.Center.Index.Position2d.AddNoiseOffset();
+            var floatingNestedCenter = nestedCenter.Position2d+ this.Center.Index.Position2d.AddNoiseOffset(scale-1);
 
             var largeHexPoints = new Vector2[]
             {
-                 this.N0.Index.NestMultiply(scale).Position2d + this.N0.Index.Position2d.AddNoiseOffset(),
-                 this.N1.Index.NestMultiply(scale).Position2d + this.N1.Index.Position2d.AddNoiseOffset(),
-                 this.N2.Index.NestMultiply(scale).Position2d + this.N2.Index.Position2d.AddNoiseOffset(),
-                 this.N3.Index.NestMultiply(scale).Position2d + this.N3.Index.Position2d.AddNoiseOffset(),
-                 this.N4.Index.NestMultiply(scale).Position2d + this.N4.Index.Position2d.AddNoiseOffset(),
-                 this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset()
+                 this.N0.Index.NestMultiply(scale).Position2d + this.N0.Index.Position2d.AddNoiseOffset(scale-1),
+                 this.N1.Index.NestMultiply(scale).Position2d + this.N1.Index.Position2d.AddNoiseOffset(scale-1),
+                 this.N2.Index.NestMultiply(scale).Position2d + this.N2.Index.Position2d.AddNoiseOffset(scale-1),
+                 this.N3.Index.NestMultiply(scale).Position2d + this.N3.Index.Position2d.AddNoiseOffset(scale-1),
+                 this.N4.Index.NestMultiply(scale).Position2d + this.N4.Index.Position2d.AddNoiseOffset(scale-1),
+                 this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset(scale-1)
             };
 
             if(!this.IsBorder)
@@ -100,35 +100,42 @@ namespace RecursiveHex
                 var a = 0;
                 var b = 1;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
 
                 a = 1;
                 b = 2;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
 
                 a = 2;
                 b = 3;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
 
                 a = 3;
                 b = 4;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
 
                 a = 4;
                 b = 5;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y),new Color(10,0,0,0.1f), 100f);
 
 
                 a = 5;
                 b = 0;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), Color.red, 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
 
             }
+
+            //var barycenters
+            //
+            //for (int i = 0; i < 5; i++)
+            //{
+            //    (largeHexPoints[i] + floatingNestedCenter + largeHexPoints[i+1])/3
+            //}
 
             var indexChildren = nestedCenter.GenerateRosette(scale);
 
@@ -164,7 +171,7 @@ namespace RecursiveHex
 
                 var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
 
-                Debug.DrawLine(nestedCenter.Position3d, indexChildren[i].Position3d, Color.blue, 100f);
+                //Debug.DrawLine(nestedCenter.Position3d, indexChildren[i].Position3d, Color.blue, 100f);
 
 
                 children[i] = new Hex(

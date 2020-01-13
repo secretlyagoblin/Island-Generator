@@ -10,7 +10,7 @@ namespace RecursiveHex
         public static float Y = 124.3465f;
         public static float Scale = 8.43645f;
 
-        private const float NOISE_OFFSET_SCALE = 0.37f; //We need to rethink this..
+        //private const float NOISE_OFFSET_SCALE = 0.37f; //We need to rethink this..
 
 
         private static bool _isDisabled = false;
@@ -32,7 +32,7 @@ namespace RecursiveHex
             return GetOffset((float)x, (float)y);
         }
 
-            public static RandomOffset GetOffset(float x, float y)
+        public static RandomOffset GetOffset(float x, float y)
         {
             if (_isDisabled)
             {
@@ -50,7 +50,7 @@ namespace RecursiveHex
             return new RandomOffset()
             {
                 Angle = radian,
-                Distance = perlinLength
+                Distance = Mathf.Clamp(perlinLength,0,1)
             };
         }
 
@@ -60,26 +60,26 @@ namespace RecursiveHex
         /// <param name="hex"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static Vector2 AddNoiseOffset(this Vector2 vec)
+        public static Vector2 AddNoiseOffset(this Vector2 vec, int multiplier = 1)
         {
             var index2d = vec;
             var result = RandomSeedProperties.GetOffset(index2d.x, index2d.y);
 
             return new Vector2(
-                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
-                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
+                Mathf.Sin(result.Angle) * result.Distance * multiplier,
+                Mathf.Cos(result.Angle) * result.Distance * multiplier);
         }
 
-        public static Vector3 AddNoiseOffset(this Vector3 vec)
+        public static Vector3 AddNoiseOffset(this Vector3 vec, int multiplier = 1)
         {
             var vector3 = vec;
 
             var result = RandomSeedProperties.GetOffset(vector3.x, vector3.z);
 
             return new Vector3(
-                Mathf.Sin(result.Angle) * result.Distance * NOISE_OFFSET_SCALE,
+                Mathf.Sin(result.Angle) * result.Distance * multiplier,
                 0,
-                Mathf.Cos(result.Angle) * result.Distance * NOISE_OFFSET_SCALE);
+                Mathf.Cos(result.Angle) * result.Distance * multiplier);
         }
 
 
