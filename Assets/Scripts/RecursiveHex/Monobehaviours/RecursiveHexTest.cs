@@ -75,7 +75,7 @@ public class RecursiveHexTest : MonoBehaviour
                 //.Subdivide();
                 ;
 
-            layer2.ToGameObjects(Prefab);
+            layerfruu.ToGameObjects(Prefab);
 
             //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
         }

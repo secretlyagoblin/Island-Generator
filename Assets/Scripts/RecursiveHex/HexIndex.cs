@@ -119,13 +119,12 @@ namespace RecursiveHex
 
         private static readonly HexIndex[] _directions = new HexIndex[]
         {
-            new HexIndex(0,-1,+1),
-            new HexIndex(+1,-1,0),
-            new HexIndex(+1,0,-1),
-            new HexIndex(0,+1,-1),
-            new HexIndex(-1,+1,0),
-            new HexIndex(-1,0,+1),
-
+            new HexIndex(1,-1,0),
+            new HexIndex(0,-1,1),
+            new HexIndex(-1,0,1),
+            new HexIndex(-1,1,0),
+            new HexIndex(0,1,-1),
+            new HexIndex(1,0,-1)
         };
 
         public HexIndex[] GenerateRing(int radius)
@@ -133,7 +132,7 @@ namespace RecursiveHex
             var results = new List<HexIndex>();
 
             var currentPos = this + (_directions[4] * radius);
-            var lastPos = currentPos;
+            //var lastPos = currentPos;
             currentPos = currentPos + (_directions[0] * Mathf.FloorToInt(radius * 0.5f));
 
             var ringStart = currentPos;
@@ -142,22 +141,22 @@ namespace RecursiveHex
             var count = 0;
 
             while (true)
-            {
-                i = i < 5 ? (i + 1) : 0;
-
+            {        
                 for (int j = (count == 0 ? Mathf.FloorToInt(radius * 0.5f) : 0); j < radius; j++)
                 {
 
                     //Debug.Log($"Added Cell {currentPos}");
                     results.Add(currentPos);
                     currentPos += _directions[i];
-                    Debug.DrawLine(lastPos.Position3d, currentPos.Position3d, Color.green * 0.5f, 100f);
-                    lastPos = currentPos;
+                    //Debug.DrawLine(lastPos.Position3d, currentPos.Position3d, Color.green * 0.5f, 100f);
+                    //lastPos = currentPos;
                     count++;
 
                     if (ringStart == currentPos)
                         return results.ToArray();
                 }
+
+                i = i < 5 ? (i + 1) : 0;
             }
         }
 

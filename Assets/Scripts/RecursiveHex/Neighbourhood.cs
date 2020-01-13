@@ -148,7 +148,7 @@ namespace RecursiveHex
             }
             else
             {
-                indexChildren = nestedCenter.GenerateRing(scale);
+                indexChildren = nestedCenter.GenerateRosetteCircular(scale+1);
             }
 
             //var generationProducedCells = true;
