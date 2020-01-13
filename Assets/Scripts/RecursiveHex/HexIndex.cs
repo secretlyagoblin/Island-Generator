@@ -132,12 +132,9 @@ namespace RecursiveHex
         {
             var results = new List<HexIndex>();
 
-            var currentPos = this;// + (_directions[3] * radius);
-
-            Debug.DrawLine(this.Position3d, currentPos.Position3d, Color.blue * 0.75f, 100f);
-
+            var currentPos = this + (_directions[4] * radius);
             var lastPos = currentPos;
-            currentPos += (_directions[0] * Mathf.FloorToInt(radius * 0.5f));
+            currentPos = currentPos + (_directions[0] * Mathf.FloorToInt(radius * 0.5f));
 
             var ringStart = currentPos;
 
