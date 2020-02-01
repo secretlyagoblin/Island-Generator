@@ -129,7 +129,9 @@ namespace RecursiveHex
 
         public HexIndex[] GenerateRing(int radius)
         {
-            var results = new List<HexIndex>();
+            var resultsCount = radius == 0 ? 1 : (radius ) * 6;
+
+            var results = new HexIndex[resultsCount];
 
             var currentPos = this + (_directions[4] * radius);
             //var lastPos = currentPos;
@@ -146,14 +148,14 @@ namespace RecursiveHex
                 {
 
                     //Debug.Log($"Added Cell {currentPos}");
-                    results.Add(currentPos);
+                    results[count] = (currentPos);
                     currentPos += _directions[i];
                     //Debug.DrawLine(lastPos.Position3d, currentPos.Position3d, Color.green * 0.5f, 100f);
                     //lastPos = currentPos;
                     count++;
 
                     if (ringStart == currentPos)
-                        return results.ToArray();
+                        return results;
                 }
 
                 i = i < 5 ? (i + 1) : 0;
