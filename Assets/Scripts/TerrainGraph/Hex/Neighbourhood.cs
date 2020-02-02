@@ -101,33 +101,33 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 var a = 0;
                 var b = 1;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
 
                 a = 1;
                 b = 2;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
 
                 a = 2;
                 b = 3;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
 
                 a = 3;
                 b = 4;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
 
                 a = 4;
                 b = 5;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y),new Color(10,0,0,0.1f), 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y),new Color(10,0,0,1f), 100f);
 
 
                 a = 5;
                 b = 0;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 0.1f), 100f);
+                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
 
             }
 
@@ -176,12 +176,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                     {
                         weight = CalculateBarycentricWeight(floatingNestedCenter, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], testCenter.Position2d);
+                        
                         var testX = weight.x;
                         var testY = weight.y;
                         var testZ = weight.z;
 
                         if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
                         {
+                            if(InterpolationHelpers.Blerp(false, true, true, weight))
+                                break;
+
                             foundChild = true;
                             indices.Add(testCenter);
                             break;
