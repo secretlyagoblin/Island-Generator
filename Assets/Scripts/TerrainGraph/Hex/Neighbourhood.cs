@@ -138,19 +138,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //    (largeHexPoints[i] + floatingNestedCenter + largeHexPoints[i+1])/3
             //}
 
-            HexIndex[] indexChildren;
+            //HexIndex[] indexChildren;
 
-            if (this.IsBorder)
-            {
-
-
-
-                indexChildren = nestedCenter.GenerateRosetteLinear(scale);
-            }
-            else
-            {
-                indexChildren = nestedCenter.GenerateRosetteCircular(scale+1);
-            }
+            //if (this.IsBorder)
+            //{
+            //    indexChildren = nestedCenter.GenerateRosetteLinear(scale);
+            //}
+            //else
+            //{
+                //indexChildren = nestedCenter.GenerateRosetteCircular(scale+1);
+            //}
 
             //var generationProducedCells = true;
 
@@ -161,12 +158,49 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //
             //}
 
+            var indices = new List<HexIndex>() { nestedCenter };
+            var ringHasValidHexIndices = true;
+            var radius = 1;
 
+            while (ringHasValidHexIndices)
+            {
+                var results = nestedCenter.GenerateRing(radius);
+                var foundChild = false;
 
+                for (int i = 0; i < results.Length; i++)
+                {
+                    var testCenter = results[i];
+                    var weight = Vector3.zero;
+                    var index = 0;
 
-            var children = new Hex[indexChildren.Length];
+                    for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
+                    {
+                        weight = CalculateBarycentricWeight(floatingNestedCenter, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], testCenter.Position2d);
+                        var testX = weight.x;
+                        var testY = weight.y;
+                        var testZ = weight.z;
 
-            for (int i = 0; i < indexChildren.Length; i++)
+                        if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
+                        {
+                            foundChild = true;
+                            indices.Add(testCenter);
+                            break;
+                        }
+                        index++;
+                    }
+                }
+
+                if (!foundChild)
+                {
+                    ringHasValidHexIndices = false;
+                }
+
+                radius++;
+            }
+
+            var children = new Hex[indices.Count];
+
+            for (int i = 0; i < indices.Count; i++)
             {
                 var weight = Vector3.zero;
                 var index = 0;
@@ -200,7 +234,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
 
                 children[i] = new Hex(
-                    indexChildren[i],
+                    indices[i],
                     payload,
                     isBorder,
                     ""//$"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"

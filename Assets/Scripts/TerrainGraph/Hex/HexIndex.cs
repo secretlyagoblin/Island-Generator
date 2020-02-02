@@ -134,7 +134,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var currentPos = this + (_directions[4] * radius);
             //var lastPos = currentPos;
-            currentPos = currentPos + (_directions[0] * Mathf.FloorToInt(radius * 0.5f));
+            currentPos += _directions[0] * Mathf.FloorToInt(radius * 0.5f);
 
             var ringStart = currentPos;
 
