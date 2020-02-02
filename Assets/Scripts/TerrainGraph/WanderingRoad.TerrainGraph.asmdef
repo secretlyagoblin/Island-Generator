@@ -1,0 +1,15 @@
+{
+    "name": "WanderingRoad.TerrainGraph",
+    "references": [
+        "GUID:b8abd41bed9a2df40b98ff6b7d586570"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
