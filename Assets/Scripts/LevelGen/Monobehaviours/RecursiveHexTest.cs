@@ -70,13 +70,15 @@ namespace WanderingRoad.Procgen.Levelgen
             var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
             var layer2 = layer1;
 
+            RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
+
             for (int i = 0; i < 1; i++)
             {
 
-                RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
+
 
                 var layerfruu = layer1
-                    .SubdivideThree()//.SubdivideThree().SubdivideThree();
+                    .SubdivideThree().SubdivideThree().SubdivideThree()
                     ;
                     //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
                     //.Subdivide();

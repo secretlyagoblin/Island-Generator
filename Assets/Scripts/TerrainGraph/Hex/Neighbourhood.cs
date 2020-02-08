@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using WanderingRoad.Core.Random;
 
@@ -107,7 +108,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var a = new Vector3(debugHexPoints[i].x, 0, debugHexPoints[i].y);
                     var b = new Vector3(debugHexPoints[i + 1].x, 0, debugHexPoints[i + 1].y);
 
-                    Debug.DrawLine(a,b, new Color(0, 0.5f, 0, 1f), 100f);
+                    Debug.DrawLine(a,b, new Color(0, 1f, 0, 1f), 100f);
 
                     var average = (debugHexPoints[i] + floatingNestedCenter + debugHexPoints[i + 1]) / 3;
 
@@ -121,7 +122,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var a = new Vector3(baryNodes[i].x, 0, baryNodes[i].y);
                     var b = new Vector3(baryNodes[i + 1].x, 0, baryNodes[i + 1].y);
 
-                    Debug.DrawLine(a, b, new Color(0, 0.5f, 0, 1f), 100f);
+                    Debug.DrawLine(a, b, new Color(0, 0, 1f, 1f), 100f);
                 }
 
             }
@@ -141,7 +142,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //}
             //else
             //{
-                //indexChildren = nestedCenter.GenerateRosetteCircular(scale+1);
+                var indexChildren = nestedCenter.GenerateRosetteCircular(scale+1);
             //}
 
             //var generationProducedCells = true;
@@ -197,7 +198,10 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 radius++;
             }
 
-            var children = new Hex[indices.Count];
+            indices = indexChildren.ToList();
+
+            var children = new Hex[indices.Count]; 
+
 
             for (int i = 0; i < indices.Count; i++)
             {
