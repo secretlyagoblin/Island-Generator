@@ -95,39 +95,34 @@ namespace WanderingRoad.Procgen.RecursiveHex
                  this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset(scale-1)
             };
 
-            if(!this.IsBorder)
+            var debugHexPoints = new List<Vector2>(largeHexPoints);
+            debugHexPoints.Add(debugHexPoints[0]);
+
+            if (!this.IsBorder)
             {
+                var baryNodes = new List<Vector2>();
 
-                var a = 0;
-                var b = 1;
+                for (int i = 0; i < 6; i++)
+                {
+                    var a = new Vector3(debugHexPoints[i].x, 0, debugHexPoints[i].y);
+                    var b = new Vector3(debugHexPoints[i + 1].x, 0, debugHexPoints[i + 1].y);
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
+                    Debug.DrawLine(a,b, new Color(0, 0.5f, 0, 1f), 100f);
 
-                a = 1;
-                b = 2;
+                    var average = (debugHexPoints[i] + floatingNestedCenter + debugHexPoints[i + 1]) / 3;
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
+                    baryNodes.Add(average);
 
-                a = 2;
-                b = 3;
+                }
+                baryNodes.Add(baryNodes[0]);
 
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
+                for (int i = 0; i < 6; i++)
+                {
+                    var a = new Vector3(baryNodes[i].x, 0, baryNodes[i].y);
+                    var b = new Vector3(baryNodes[i + 1].x, 0, baryNodes[i + 1].y);
 
-                a = 3;
-                b = 4;
-
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
-
-                a = 4;
-                b = 5;
-
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y),new Color(10,0,0,1f), 100f);
-
-
-                a = 5;
-                b = 0;
-
-                Debug.DrawLine(new Vector3(largeHexPoints[a].x, 0, largeHexPoints[a].y), new Vector3(largeHexPoints[b].x, 0, largeHexPoints[b].y), new Color(10, 0, 0, 1f), 100f);
+                    Debug.DrawLine(a, b, new Color(0, 0.5f, 0, 1f), 100f);
+                }
 
             }
 
