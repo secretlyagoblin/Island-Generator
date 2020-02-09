@@ -26,7 +26,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //
             for (int i = 0; i < neighbours.Length; i++)
             {
-                AddBorderHex(new Hex(new HexIndex(neighbours[i]),new HexPayload(),true));
+                AddBorderHex(new Hex(new HexIndex(neighbours[i]),new HexPayload(),true), i);
             }
         }
 
@@ -55,21 +55,37 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 for (int u = 0; u < cells.Length; u++)
                 {
                     if (cells[u].IsBorder)
-                        this.AddBorderHex(cells[u]);
+                        this.AddBorderHex(cells[u], u);
                     else
                         this.AddHex(cells[u]);
                 }
             }
         }
 
-        private void AddBorderHex(Hex hex)
+        private void AddBorderHex(Hex hex, int indexTrack)
         {
-            _border.Add(hex.Index.Index3d, hex);
+            try
+            {
+                _border.Add(hex.Index.Index3d, hex);
+            }
+            catch (Exception ex)
+            {
+                //throw new Exception($"Duplicate Border Hex Discovered, Reference Index: {indexTrack}, 2D Pos: {hex.Index.Position2d}", ex);
+                Debug.LogError($"Duplicate Border Hex Discovered, Reference Index: {indexTrack}, 2D Pos: {hex.Index.Position2d}, 3D Index: {hex.Index.Index3d}");
+            }           
         }
 
         private void AddHex(Hex hex)
         {
-            _inside.Add(hex.Index.Index3d, hex);
+            try
+            {
+                _inside.Add(hex.Index.Index3d, hex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Duplicate Inner Hex Discovered", ex);
+            }
+            
         }
 
         /// <summary>
@@ -102,7 +118,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     else
                     {
                         Debug.LogError("A null neighbour detected on an inner hex.");
-                        hexes[i] = Hex.InvalidHex;
+                        hexes[i] = Hex.InvalidHex(new HexIndex(key));
                     }
                 }
 
@@ -143,11 +159,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     {
                         borderOrNullCount++;
                         //Debug.Log("This border has some nulls! That is fine");
-                        hexes[i] = Hex.InvalidHex;
+                        hexes[i] = Hex.InvalidHex(new HexIndex(key));
                     }
                 }
 
-                var finalCenter = borderOrNullCount < 6 ? hexDictEntry.Value : Hex.InvalidHex;
+                var finalCenter = borderOrNullCount < 6 ? hexDictEntry.Value : Hex.InvalidHex(hexDictEntry.Value.Index);
 
                 hood[count] = new Neighbourhood
                 {
@@ -172,10 +188,10 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// Subdivide this hexgroup.
         /// </summary>
         /// <returns></returns>
-        public HexGroup SubdivideThree()
+        public HexGroup Subdivide(int amount)
         {
             //Debug.Log("Starting subdivide");
-            return new HexGroup(this,3);
+            return new HexGroup(this, amount);
         }
 
         /// <summary>

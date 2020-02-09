@@ -17,7 +17,7 @@ namespace WanderingRoad.Procgen.Levelgen
         // Start is called before the first frame update
         void Start()
         {
-            //RNG.Init("I'd kill");
+            //RNG.Init("I'd kill fill zill");
             RNG.Init();
             //RecursiveHex.RandomSeedProperties.Disable();
 
@@ -76,13 +76,14 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var layerfruu = layer1
-                    .SubdivideThree()//.SubdivideThree().SubdivideThree();
+                    .Subdivide(3).Subdivide(3).Subdivide(1);
                     ;
                     //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
                     //.Subdivide();
                     ;
 
                 layerfruu.ToGameObjects(Prefab);
+                //layerfruu.ToGameObjectsBorder(BorderPrefab);
 
                 //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
             }
@@ -106,7 +107,7 @@ namespace WanderingRoad.Procgen.Levelgen
             var groups = Enumerable.Range(1, 7);
             //var groups = new List<int>() { 1, 3 };
 
-            var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).SubdivideThree().SubdivideThree();
+            var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide(3).Subdivide(3);
 
 
 
@@ -143,7 +144,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 iterator++;
 
-                var obj = x.SubdivideThree();//.Subdivide();
+                var obj = x.Subdivide(3);//.Subdivide();
             obj.ToGameObjects(Prefab);
                 return;
 

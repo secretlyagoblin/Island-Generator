@@ -98,32 +98,31 @@ namespace WanderingRoad.Procgen.RecursiveHex
             var debugHexPoints = new List<Vector2>(largeHexPoints);
             debugHexPoints.Add(debugHexPoints[0]);
 
-            if (!this.IsBorder)
+            if (false)//this.IsBorder)
             {
+                var c = new Vector3(floatingNestedCenter.x, 3, floatingNestedCenter.y);
                 var baryNodes = new List<Vector2>();
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var a = new Vector3(debugHexPoints[i].x, 0, debugHexPoints[i].y);
-                    var b = new Vector3(debugHexPoints[i + 1].x, 0, debugHexPoints[i + 1].y);
+                    var a = new Vector3(debugHexPoints[i].x, 3, debugHexPoints[i].y);
+                    var b = new Vector3(debugHexPoints[i + 1].x, 3, debugHexPoints[i + 1].y);
 
-                    Debug.DrawLine(a,b, new Color(0, 0.5f, 0, 1f), 100f);
+                    var centerA = Vector3.Lerp(a, c, 0.5f);
+                    var centerB = Vector3.Lerp(b, c, 0.5f);
 
                     var average = (debugHexPoints[i] + floatingNestedCenter + debugHexPoints[i + 1]) / 3;
 
-                    baryNodes.Add(average);
+                    var center = new Vector3(average.x, 3, average.y);
+
+                    Debug.DrawLine(centerA, center, new Color(0, 1f, 0, 1f), 100f);
+                    Debug.DrawLine(centerB, center, new Color(0, 1f, 0, 1f), 100f);
+
+                    //baryNodes.Add(average);
+
+                    Debug.DrawLine(c, b, new Color(1, 0, 0, 1f), 100f);
 
                 }
-                baryNodes.Add(baryNodes[0]);
-
-                for (int i = 0; i < 6; i++)
-                {
-                    var a = new Vector3(baryNodes[i].x, 0, baryNodes[i].y);
-                    var b = new Vector3(baryNodes[i + 1].x, 0, baryNodes[i + 1].y);
-
-                    Debug.DrawLine(a, b, new Color(0, 0.5f, 0, 1f), 100f);
-                }
-
             }
 
             //var barycenters
@@ -153,7 +152,13 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //
             //}
 
-            var indices = new List<HexIndex>() { nestedCenter };
+            var indices = new List<HexIndex>();
+
+            //if (!this.IsBorder)
+            //{
+                indices.Add(nestedCenter);
+            //}
+
             var ringHasValidHexIndices = true;
             var radius = 1;
 
@@ -178,7 +183,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                         if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
                         {
-                            if(InterpolationHelpers.Blerp(false, true, true, weight))
+                            if (!(testX >= testY && testX >= testZ))                            
                                 break;
 
                             foundChild = true;
@@ -189,7 +194,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     }
                 }
 
-                if (!foundChild)
+                if (!foundChild && indices.Count > 1)
                 {
                     ringHasValidHexIndices = false;
                 }
