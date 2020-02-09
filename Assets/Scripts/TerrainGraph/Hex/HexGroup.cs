@@ -70,8 +70,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
             catch (Exception ex)
             {
-                //throw new Exception($"Duplicate Border Hex Discovered, Reference Index: {indexTrack}, 2D Pos: {hex.Index.Position2d}", ex);
-                Debug.LogError($"Duplicate Border Hex Discovered, Reference Index: {indexTrack}, 2D Pos: {hex.Index.Position2d}, 3D Index: {hex.Index.Index3d}");
+                throw new Exception($"Duplicate Border Hex Discovered, Reference Index: {indexTrack}, 2D Pos: {hex.Index.Position2d}", ex);
+                //Debug.LogError($"Duplicate Border Hex Discovered, Reference Index: {indexTrack}, 2D Pos: {hex.Index.Position2d}, 3D Index: {hex.Index.Index3d}");
             }           
         }
 

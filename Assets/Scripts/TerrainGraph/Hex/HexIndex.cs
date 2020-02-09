@@ -180,6 +180,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return hashCode;
         }
 
+        public static HexIndex[] DrawLine(HexIndex a, HexIndex b)
+        {
+
+        }
+
         public static HexIndex operator +(HexIndex a, HexIndex b)
         {
             return new HexIndex(a.Index3d.x + b.Index3d.x, a.Index3d.y + b.Index3d.y, a.Index3d.z + b.Index3d.z);
