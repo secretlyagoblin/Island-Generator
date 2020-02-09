@@ -41,15 +41,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             _notNull = true;
         }
 
-        public static Hex InvalidHex
-        {
-            get {
+        public static Hex InvalidHex(HexIndex index)
+        {            
                 return new Hex()
                 {
                     IsBorder = true,
-                    _notNull = false
-                };
-            }
+                    _notNull = false,
+                    Index = index
+                };            
         }
 
         public static bool IsInvalid(Hex hex)

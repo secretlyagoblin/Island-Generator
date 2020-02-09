@@ -340,5 +340,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Prefab: {fileID: 6234638824148216032, guid: 550768e76b5da0e41a510fa88919384c, type: 3}
-  BorderPrefab: {fileID: 6234638824148216032, guid: 550768e76b5da0e41a510fa88919384c,
+  BorderPrefab: {fileID: 7852987963739023572, guid: 3f7c4710a561e8a4fbe2ff5955bd76c8,
     type: 3}

@@ -180,6 +180,64 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return hashCode;
         }
 
+
+        static int CubeDistance(HexIndex a, HexIndex b)
+        {
+            return Mathf.Max(Mathf.Abs(a.Index3d.x - b.Index3d.x), Mathf.Abs(a.Index3d.y - b.Index3d.y), Mathf.Abs(a.Index3d.z - b.Index3d.z));
+        }
+
+        static HexIndex RoundCube(Vector3 cube)
+        {
+            var rx = Mathf.RoundToInt(cube.x);
+            var ry = Mathf.RoundToInt(cube.y);
+            var rz = Mathf.RoundToInt(cube.z);
+
+            var x_diff = Mathf.Abs(rx - cube.x);
+            var y_diff = Mathf.Abs(ry - cube.y);
+            var z_diff = Mathf.Abs(rz - cube.z);
+
+            if (x_diff > y_diff && x_diff > z_diff)
+            {
+
+                rx = -ry - rz;
+            }
+            else if (y_diff > z_diff)
+            {
+                ry = -rx - rz;
+            }
+            else
+            {
+                rz = -rx - ry;
+            }
+
+            return new HexIndex(rx, ry, rz);
+        }
+
+        public static HexIndex[] DrawLine(HexIndex a, HexIndex b)
+        {
+            var N = CubeDistance(a, b);
+            var results = new HexIndex[N];
+            for (int i = 0; i < N; i++)
+            {
+                results[i] = RoundCube(Vector3.Lerp(a.Index3d, b.Index3d, 1.0f / N * i));
+            }
+
+            //if (RNG.SmallerThan(0.3f))
+            //{
+            //
+            //    results.RemoveAt(Mathf.FloorToInt(results.Count * 0.5f));
+            //
+            //    if (results.Count % 2 == 0)
+            //    {
+            //        results.RemoveAt(Mathf.FloorToInt(results.Count * 0.5f));
+            //    }
+            //}
+
+            //results.RemoveAt(0);
+
+            return results;
+        }
+
         public static HexIndex operator +(HexIndex a, HexIndex b)
         {
             return new HexIndex(a.Index3d.x + b.Index3d.x, a.Index3d.y + b.Index3d.y, a.Index3d.z + b.Index3d.z);
