@@ -30,6 +30,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
             Index3d = vector3Int;
         }
 
+        public HexIndex(Vector3 vector3) : this()
+        {
+            Index3d = RoundCube(vector3);
+        }
+
         public static Vector3Int Get3dIndex(Vector2Int index2d)
         {
             var x = index2d.x - (index2d.y - (index2d.y & 1)) / 2;
@@ -186,7 +191,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return Mathf.Max(Mathf.Abs(a.Index3d.x - b.Index3d.x), Mathf.Abs(a.Index3d.y - b.Index3d.y), Mathf.Abs(a.Index3d.z - b.Index3d.z));
         }
 
-        static HexIndex RoundCube(Vector3 cube)
+        static Vector3Int RoundCube(Vector3 cube)
         {
             var rx = Mathf.RoundToInt(cube.x);
             var ry = Mathf.RoundToInt(cube.y);
@@ -210,7 +215,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 rz = -rx - ry;
             }
 
-            return new HexIndex(rx, ry, rz);
+            return new Vector3Int(rx, ry, rz);
         }
 
         public static HexIndex[] DrawLine(HexIndex a, HexIndex b)
@@ -224,21 +229,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
             var results = new HexIndex[N];
             for (int i = 0; i < N; i++)
             {
-                results[i] = RoundCube(Vector3.Lerp(a.Index3d, b.Index3d, 1.0f / N * i));
+                results[i] = 
+                    new HexIndex(
+                        RoundCube(
+                            Vector3.Lerp(a.Index3d, b.Index3d, 1.0f / N * i)));
             }
-
-            //if (RNG.SmallerThan(0.3f))
-            //{
-            //
-            //    results.RemoveAt(Mathf.FloorToInt(results.Count * 0.5f));
-            //
-            //    if (results.Count % 2 == 0)
-            //    {
-            //        results.RemoveAt(Mathf.FloorToInt(results.Count * 0.5f));
-            //    }
-            //}
-
-            //results.RemoveAt(0);
 
             return results;
         }
