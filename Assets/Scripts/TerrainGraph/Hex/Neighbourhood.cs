@@ -154,8 +154,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //
             //}
 
-            /*
-
             var indices = new List<HexIndex>() { nestedCenter };
             var ringHasValidHexIndices = true;
             var radius = 1;
@@ -200,41 +198,36 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 radius++;
             }
 
-            */
-            var indices = indexChildren.ToList();
+            indices = indexChildren.ToList();
 
             var children = new Hex[indices.Count]; 
 
 
             for (int i = 0; i < indices.Count; i++)
             {
-                var testPos = indices[i].Position2d;
-
                 var weight = Vector3.zero;
                 var index = 0;
-                var foundChild = false;
+                //var foundChild = false;
 
-                for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
-                {
-                    weight = CalculateBarycentricWeight(floatingNestedCenter, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], testPos);
-                    var testX = weight.x;
-                    var testY = weight.y;
-                    var testZ = weight.z;
-
-
-                
-                    if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
-                    {
-                        foundChild = true;
-                        break;
-                    }
-                    index++;
-                }
-                
-                if (!foundChild)
-                {
-                    Debug.LogError($"No containing barycenter detected at {this.Center.Index} - inner hex not contained by outer hex. Using weight {weight}.");
-                }
+                //for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
+                //{
+                //    weight = CalculateBarycentricWeight(center, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], actualPosition);
+                //    var testX = weight.x;
+                //    var testY = weight.y;
+                //    var testZ = weight.z;
+                //
+                //    if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
+                //    {
+                //        foundChild = true;
+                //        break;
+                //    }
+                //    index++;
+                //}
+                //
+                //if (!foundChild)
+                //{
+                //    Debug.LogError($"No containing barycenter detected at {this.Center.Index} - inner hex not contained by outer hex. Using weight {weight}.");
+                //}
 
                 var isBorder = this.InterpolateIsBorder(weight, index);
 
@@ -316,11 +309,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
             var v = (d11 * d20 - d01 * d21) / denom;
             var w = (d00 * d21 - d01 * d20) / denom;
             var u = 1.0f - v - w;
-
-            if (float.IsNaN(u))
-            {
-
-            }
 
             return new Vector3(u, v, w);
         }

@@ -78,7 +78,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
 
                 var layerfruu = layer1
-                    .SubdivideThree()//.SubdivideThree()//.SubdivideThree()
+                    .SubdivideThree().SubdivideThree().SubdivideThree()
                     ;
                     //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
                     //.Subdivide();
