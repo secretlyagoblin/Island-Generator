@@ -98,10 +98,22 @@ namespace WanderingRoad.Procgen.RecursiveHex
             var debugHexPoints = new List<Vector2>(largeHexPoints);
             debugHexPoints.Add(debugHexPoints[0]);
 
-            if (false)//this.IsBorder)
+            var set = new HashSet<HexIndex>();
+
+            //TODO: 
+            // Create lines for barycentric edge
+            // Put into set
+            // check if nodes are in set
+            // if so make edge
+            // check that this works
+
+            start here^^^
+
+            
+
+            if (!this.IsBorder)
             {
                 var c = new Vector3(floatingNestedCenter.x, 3, floatingNestedCenter.y);
-                var baryNodes = new List<Vector2>();
 
                 for (int i = 0; i < 6; i++)
                 {

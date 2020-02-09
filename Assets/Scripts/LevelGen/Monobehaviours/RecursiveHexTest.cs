@@ -65,9 +65,8 @@ namespace WanderingRoad.Procgen.Levelgen
                 colours.Add(RNG.NextColor());
             }
 
+            var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.blue });
 
-
-            var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
             var layer2 = layer1;
 
             for (int i = 0; i < 1; i++)
@@ -76,13 +75,17 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var layerfruu = layer1
-                    .Subdivide(3).Subdivide(3).Subdivide(1);
+                    .Subdivide(3).ForEach(x => {
+                        var a = x.Payload;
+                        a.Color = RNG.NextColor();
+                        return a;
+                    }).Subdivide(3).Subdivide(1);
                     ;
                     //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
                     //.Subdivide();
                     ;
 
-                layerfruu.ToGameObjects(Prefab);
+                //layerfruu.ToGameObjects(Prefab);
                 //layerfruu.ToGameObjectsBorder(BorderPrefab);
 
                 //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
