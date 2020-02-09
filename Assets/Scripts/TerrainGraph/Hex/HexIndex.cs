@@ -215,6 +215,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public static HexIndex[] DrawLine(HexIndex a, HexIndex b)
         {
+            if(a == b)
+            {
+                return new HexIndex[] { a };
+            }
+
             var N = CubeDistance(a, b);
             var results = new HexIndex[N];
             for (int i = 0; i < N; i++)
