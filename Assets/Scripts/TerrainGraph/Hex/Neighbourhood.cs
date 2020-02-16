@@ -107,32 +107,57 @@ namespace WanderingRoad.Procgen.RecursiveHex
             // if so make edge
             // check that this works
 
-            start here^^^
+            var points = new List<HexIndex>();
+
+            //start here^^^
 
             
 
             if (!this.IsBorder)
             {
                 var c = new Vector3(floatingNestedCenter.x, 3, floatingNestedCenter.y);
+                var c2d = HexIndex.HexIndexFromPosition(floatingNestedCenter).Position2d;
+                var c2d3d = new Vector3(c2d.x, 3, c2d.y);
 
                 for (int i = 0; i < 6; i++)
                 {
                     var a = new Vector3(debugHexPoints[i].x, 3, debugHexPoints[i].y);
                     var b = new Vector3(debugHexPoints[i + 1].x, 3, debugHexPoints[i + 1].y);
-
                     var centerA = Vector3.Lerp(a, c, 0.5f);
                     var centerB = Vector3.Lerp(b, c, 0.5f);
 
-                    var average = (debugHexPoints[i] + floatingNestedCenter + debugHexPoints[i + 1]) / 3;
+                    var a2d = debugHexPoints[i];
+                    var b2d = debugHexPoints[i + 1];
+                    var centerA2d = Vector2.Lerp(a2d, c2d, 0.5f);
+                    var centerB2d = Vector2.Lerp(b2d, c2d, 0.5f);
 
+
+                    var average = (a2d + floatingNestedCenter + b2d) / 3;
                     var center = new Vector3(average.x, 3, average.y);
+                    Debug.DrawLine(centerA, center, new Color(0, 1f, 0, 0.3f), 100f);
+                    Debug.DrawLine(centerB, center, new Color(0, 1f, 0, 0.3f), 100f);
 
-                    Debug.DrawLine(centerA, center, new Color(0, 1f, 0, 1f), 100f);
-                    Debug.DrawLine(centerB, center, new Color(0, 1f, 0, 1f), 100f);
+                    var average2d = HexIndex.HexIndexFromPosition(average).Position2d;
+                    var average2d3d = new Vector3(average2d.x, 3, average2d.y);
 
-                    //baryNodes.Add(average);
 
-                    Debug.DrawLine(c, b, new Color(1, 0, 0, 1f), 100f);
+
+                    var lineA = HexIndex.HexIndexFromPosition(centerA2d).Position2d;
+                    var lineB = HexIndex.HexIndexFromPosition(centerB2d).Position2d;
+
+                    var line2dA = new Vector3(lineA.x, 3, lineA.y);
+                    var line2dB = new Vector3(lineB.x, 3, lineB.y);
+
+                    Debug.DrawLine(line2dA, average2d3d, new Color(1f, 1f, 0, 1f), 100f);
+                    Debug.DrawLine(line2dB, average2d3d, new Color(1f, 1f, 0, 1f), 100f);
+
+                    //points.AddRange(HexIndex.DrawLine(HexIndex.HexIndexFromPosition(centerA2d)))
+
+                    //Debug.DrawLine(a, c, new Color(1, 0, 0, 1f), 100f);
+
+                    Debug.DrawLine(line2dA, centerA, Color.magenta, 100f);
+
+                    Debug.DrawLine(line2dB, centerB, Color.magenta, 100f);
 
                 }
             }

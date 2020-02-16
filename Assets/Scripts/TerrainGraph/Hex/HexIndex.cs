@@ -59,6 +59,22 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 index2d.y * Hex.ScaleY);
         }
 
+        public static Vector2Int GetIndex(Vector2 loc2d)
+        {
+            var index2dy = Mathf.RoundToInt(loc2d.y * (1 / Hex.ScaleY));
+
+            var index2dx = (Mathf.Abs(loc2d.x - Mathf.FloorToInt(loc2d.x)) > 0.25) ? Mathf.RoundToInt(loc2d.x) : Mathf.RoundToInt(loc2d.x + 0.5f);
+
+            return new Vector2Int(
+                index2dx,
+                index2dy);
+        }
+
+        public static HexIndex HexIndexFromPosition(Vector2 loc2d)
+        {
+            return new HexIndex(Get3dIndex(GetIndex(loc2d)));
+        }
+
         public HexIndex Rotate60()
         {
             return new HexIndex(-Index3d.y, -Index3d.z, -Index3d.x);
