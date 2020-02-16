@@ -306,6 +306,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1240213087}
   - component: {fileID: 1240213088}
+  - component: {fileID: 1240213089}
   m_Layer: 0
   m_Name: RecursiveHexTest
   m_TagString: Untagged
@@ -334,7 +335,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1240213086}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fde07ddef59343642945f9010daeb9b0, type: 3}
   m_Name: 
@@ -342,3 +343,15 @@ MonoBehaviour:
   Prefab: {fileID: 6234638824148216032, guid: 550768e76b5da0e41a510fa88919384c, type: 3}
   BorderPrefab: {fileID: 7852987963739023572, guid: 3f7c4710a561e8a4fbe2ff5955bd76c8,
     type: 3}
+--- !u!114 &1240213089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240213086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec7c48a8d3e0586488b82d8bf4a7e1a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

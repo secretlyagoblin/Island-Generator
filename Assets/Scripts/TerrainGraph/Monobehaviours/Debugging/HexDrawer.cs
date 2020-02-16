@@ -13,7 +13,7 @@ public class HexDrawer : MonoBehaviour
 
         for (int i = 0; i < 5000; i++)
         {
-            var a = RNG.NextVector2(-2, 2);
+            var a = RNG.NextVector2(-3, 3);
             var b = HexIndex.HexIndexFromPosition(a).Position2d;
 
             var a3 = new Vector3(a.x, 3, a.y);

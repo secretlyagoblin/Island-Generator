@@ -52,11 +52,9 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public static Vector2 GetPosition(Vector2Int index2d)
         {
-            var isOdd = index2d.y % 2 != 0;
-
-            return new Vector2(
-                index2d.x + (isOdd ? 0 : 0.5f),
-                index2d.y * Hex.ScaleY);
+            var x = Hex.HalfHex * Mathf.Sqrt(3) * (index2d.x + 0.5f * (index2d.y & 1));
+            var y = Hex.HalfHex * 3 / 2 * index2d.y;
+            return new Vector2(x, y);
         }
 
         public static HexIndex HexIndexFromPosition(Vector2 loc2d)
