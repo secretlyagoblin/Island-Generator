@@ -55,24 +55,19 @@ namespace WanderingRoad.Procgen.RecursiveHex
             var isOdd = index2d.y % 2 != 0;
 
             return new Vector2(
-                index2d.x - (isOdd ? 0 : 0.5f),
+                index2d.x + (isOdd ? 0 : 0.5f),
                 index2d.y * Hex.ScaleY);
-        }
-
-        public static Vector2Int GetIndex(Vector2 loc2d)
-        {
-            var index2dy = Mathf.RoundToInt(loc2d.y * (1 / Hex.ScaleY));
-
-            var index2dx = (Mathf.Abs(loc2d.x - Mathf.FloorToInt(loc2d.x)) > 0.25) ? Mathf.RoundToInt(loc2d.x) : Mathf.RoundToInt(loc2d.x + 0.5f);
-
-            return new Vector2Int(
-                index2dx,
-                index2dy);
         }
 
         public static HexIndex HexIndexFromPosition(Vector2 loc2d)
         {
-            return new HexIndex(Get3dIndex(GetIndex(loc2d)));
+            var q = (Mathf.Sqrt(3f) / 3f * loc2d.x - 1f / 3f * loc2d.y) / Hex.HalfHex;
+            var r = (2f / 3f * loc2d.y) / Hex.HalfHex;
+
+            var cube = new Vector3(q, -q - r, r);
+            var roundCube = RoundCube(cube);
+
+            return new HexIndex(roundCube);
         }
 
         public HexIndex Rotate60()
