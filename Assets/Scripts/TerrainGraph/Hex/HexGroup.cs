@@ -387,12 +387,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             foreach (var item in dict)
             {
+                if (item.Value.Payload.ConnectionStatus != Connection.NotPresent)
+                    continue;
+
                 var position3d = item.Value.Index.Position3d;
 
                 var obj = GameObject.Instantiate(prefab);
 
                 obj.name = item.Key.ToString();
                 obj.transform.position = position3d;
+                obj.transform.localScale = item.Value.Payload.ConnectionStatus == Connection.NotPresent ? Vector3.one : Vector3.one * 0.1f;
                 var payload = obj.AddComponent<PayloadData>();
                 item.Value.Payload.PopulatePayloadObject(payload);
                 payload.IsBorder = item.Value.IsBorder;

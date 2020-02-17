@@ -235,8 +235,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
 
             var N = CubeDistance(a, b);
-            var results = new HexIndex[N];
-            for (int i = 0; i < N; i++)
+            var results = new HexIndex[N+1];
+            for (int i = 0; i < N+1; i++)
             {
                 results[i] = 
                     new HexIndex(

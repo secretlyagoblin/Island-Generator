@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using WanderingRoad.Core;
 using WanderingRoad.Core.Random;
 
 namespace WanderingRoad.Procgen.RecursiveHex
@@ -116,51 +118,49 @@ namespace WanderingRoad.Procgen.RecursiveHex
             if (!this.IsBorder)
             {
                 var c = new Vector3(floatingNestedCenter.x, 3, floatingNestedCenter.y);
-                var c2d = HexIndex.HexIndexFromPosition(floatingNestedCenter).Position2d;
+                var c2d = floatingNestedCenter;
                 var c2d3d = new Vector3(c2d.x, 3, c2d.y);
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var a = new Vector3(debugHexPoints[i].x, 3, debugHexPoints[i].y);
-                    var b = new Vector3(debugHexPoints[i + 1].x, 3, debugHexPoints[i + 1].y);
-                    var centerA = Vector3.Lerp(a, c, 0.5f);
-                    var centerB = Vector3.Lerp(b, c, 0.5f);
-
                     var a2d = debugHexPoints[i];
                     var b2d = debugHexPoints[i + 1];
                     var centerA2d = Vector2.Lerp(a2d, c2d, 0.5f);
                     var centerB2d = Vector2.Lerp(b2d, c2d, 0.5f);
 
+                    var centerA = new Vector3(centerA2d.x, 3, centerA2d.y);
+                    var centerB = new Vector3(centerB2d.x, 3, centerB2d.y);
+
 
                     var average = (a2d + floatingNestedCenter + b2d) / 3;
                     var center = new Vector3(average.x, 3, average.y);
-                    Debug.DrawLine(centerA, center, new Color(0, 1f, 0, 0.3f), 100f);
-                    Debug.DrawLine(centerB, center, new Color(0, 1f, 0, 0.3f), 100f);
+                    //Debug.DrawLine(centerA, center, new Color(0, 1f, 0, 0.3f), 100f);
+                    //Debug.DrawLine(centerB, center, new Color(0, 1f, 0, 0.3f), 100f);
 
-                    var average2d = HexIndex.HexIndexFromPosition(average).Position2d;
-                    var average2d3d = new Vector3(average2d.x, 3, average2d.y);
+                    var average2d = HexIndex.HexIndexFromPosition(average);
+                    var average2d3d = new Vector3(average2d.Position2d.x, 3, average2d.Position2d.y);
 
+                    var lineA = HexIndex.HexIndexFromPosition(centerA2d);
+                    var lineB = HexIndex.HexIndexFromPosition(centerB2d);
 
+                    var line2dA = new Vector3(lineA.Position2d.x, 3, lineA.Position2d.y);
+                    var line2dB = new Vector3(lineB.Position2d.x, 3, lineB.Position2d.y);
 
-                    var lineA = HexIndex.HexIndexFromPosition(centerA2d).Position2d;
-                    var lineB = HexIndex.HexIndexFromPosition(centerB2d).Position2d;
+                    Debug.DrawLine(line2dA, average2d3d, new Color(1f, 1f, 0, 0.1f), 100f);
+                    Debug.DrawLine(line2dB, average2d3d, new Color(1f, 1f, 0, 0.1f), 100f);
 
-                    var line2dA = new Vector3(lineA.x, 3, lineA.y);
-                    var line2dB = new Vector3(lineB.x, 3, lineB.y);
-
-                    Debug.DrawLine(line2dA, average2d3d, new Color(1f, 1f, 0, 1f), 100f);
-                    Debug.DrawLine(line2dB, average2d3d, new Color(1f, 1f, 0, 1f), 100f);
-
-                    //points.AddRange(HexIndex.DrawLine(HexIndex.HexIndexFromPosition(centerA2d)))
+                    points.AddRange(HexIndex.DrawLine(lineA, average2d));
+                    points.AddRange(HexIndex.DrawLine(lineB, average2d));
 
                     //Debug.DrawLine(a, c, new Color(1, 0, 0, 1f), 100f);
 
-                    Debug.DrawLine(line2dA, centerA, Color.magenta, 100f);
+                    //Debug.DrawLine(line2dA, centerA, Color.magenta, 100f);
 
-                    Debug.DrawLine(line2dB, centerB, Color.magenta, 100f);
-
+                    //Debug.DrawLine(line2dB, centerB, Color.magenta, 100f);
                 }
             }
+
+            var testSet = points.Distinct().ToHashSet();
 
             //var barycenters
             //
@@ -207,7 +207,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 for (int i = 0; i < results.Length; i++)
                 {
                     var testCenter = results[i];
-                    var weight = Vector3.zero;
+                    Vector3 weight;
                     var index = 0;
 
                     for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
@@ -244,6 +244,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
             for (int i = 0; i < indices.Count; i++)
             {
                 var weight = Vector3.zero;
+                var hex = indices[i];
+
                 var index = 0;
                 //var foundChild = false;
 
@@ -271,6 +273,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
 
+                payload.ConnectionStatus = testSet.Contains(hex) ? Topology.Connection.NotPresent : Topology.Connection.Present;
+
                 //Debug.DrawLine(nestedCenter.Position3d, indexChildren[i].Position3d, Color.blue, 100f);
 
 
@@ -278,7 +282,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     indices[i],
                     payload,
                     isBorder,
-                    ""//$"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
+                    $"Owner = {Center.Index.Index3d}"//$"{Center.Index}\n{N0.Index}\n{N1.Index}\n{N2.Index}\n{N3.Index}\n{N4.Index}\n{N5.Index}"
                     );
             }
 

@@ -17,8 +17,8 @@ namespace WanderingRoad.Procgen.Levelgen
         // Start is called before the first frame update
         void Start()
         {
-            RNG.Init("I'd kill fill zill");
-            //RNG.Init();
+            //RNG.Init("I'd kill fill zill");
+            RNG.Init();
             //RecursiveHex.RandomSeedProperties.Disable();
 
 
@@ -75,7 +75,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var layerfruu = layer1
-                    .Subdivide(7)//.Subdivide(3);
+                    .Subdivide(3).Subdivide(3).Subdivide(3)//.Subdivide(3);
                     //.ForEach(x => {
                     //    var a = x.Payload;
                     //    a.Color = RNG.NextColor();
