@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.Topology;
+using WanderingRoad.Core;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
@@ -381,22 +382,42 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return HexGroup.ToMesh(_inside,heightCalculator);
         }
 
-        private static void ToGameObjects(Dictionary<Vector3Int, Hex> dict, GameObject prefab)
+        private List<(Vector3 position, Color color, float height)> _gizmos = new List<(Vector3 position, Color color, float height)>();        
+
+        public void TriggerGizmos()
+        {       
+            foreach (var (position, color, height) in _gizmos)
+            {
+                Gizmos.color = color;
+                var p = position + (Vector3.up*height);
+
+                //Gizmos.DrawMesh <- use mesh
+
+                Gizmos.DrawSphere(p,1f);
+            }
+        }
+
+        private void ToGameObjects(Dictionary<Vector3Int, Hex> dict, GameObject prefab)
         {
             var count = 0;
 
             foreach (var item in dict)
             {
-                if (item.Value.Payload.ConnectionStatus != Connection.NotPresent)
-                    continue;
+                //if (item.Value.Payload.ConnectionStatus != Connection.NotPresent)
+                //  continue;
 
-                var position3d = item.Value.Index.Position3d;
+
+
+                _gizmos.Add((item.Value.Index.Position3d, item.Value.Payload.Color, item.Value.Payload.Height));
+
+
+                continue;
 
                 var obj = GameObject.Instantiate(prefab);
 
                 obj.name = item.Key.ToString();
-                obj.transform.position = position3d;
-                obj.transform.localScale = item.Value.Payload.ConnectionStatus == Connection.NotPresent ? Vector3.one : Vector3.one * 0.1f;
+                //obj.transform.position = position3d;
+                obj.transform.localScale = item.Value.Payload.Color.AsVector(); //== Connection.NotPresent ? Vector3.one : Vector3.one * 0.1f;
                 var payload = obj.AddComponent<PayloadData>();
                 item.Value.Payload.PopulatePayloadObject(payload);
                 payload.IsBorder = item.Value.IsBorder;
@@ -413,12 +434,12 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public void ToGameObjects(GameObject prefab)
         {
-            HexGroup.ToGameObjects(_inside, prefab);
+            this.ToGameObjects(_inside, prefab);
         }
 
         public void ToGameObjectsBorder(GameObject prefab)
         {
-            HexGroup.ToGameObjects(_border, prefab);
+            this.ToGameObjects(_border, prefab);
         }
 
         public Mesh ToMeshBorder()

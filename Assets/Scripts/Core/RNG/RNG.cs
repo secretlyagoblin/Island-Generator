@@ -176,6 +176,14 @@ namespace WanderingRoad.Core.Random
 
         }
 
+        public static Color NextColorBright()
+        {
+            return Color.HSVToRGB(
+                NextFloat(0, 1),
+                0.9f,
+                0.9f);
+        }
+
         public static Color SimilarColor(Color color, float bounds = 0.1f)
         {
             return new Color(color.r + RNG.NextFloat(-bounds, bounds), color.b + RNG.NextFloat(-bounds, bounds), color.g + RNG.NextFloat(-bounds, bounds));

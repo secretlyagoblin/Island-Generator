@@ -43,5 +43,10 @@ namespace WanderingRoad.Core
         {
             return new HashSet<T>(source, comparer);
         }
+
+        public static Vector3 AsVector(this Color color)
+        {
+            return new Vector3(color.r, color.b, color.g);
+        }
     }
 }

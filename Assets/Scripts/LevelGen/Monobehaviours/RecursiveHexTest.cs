@@ -14,6 +14,8 @@ namespace WanderingRoad.Procgen.Levelgen
         public GameObject Prefab;
         public GameObject BorderPrefab;
 
+        private HexGroup _gizmosHexGroup;
+
         // Start is called before the first frame update
         void Start()
         {
@@ -65,7 +67,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 colours.Add(RNG.NextColor());
             }
 
-            var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.blue });
+            var layer1 = new HexGroup().ForEach(x => new HexPayload() { Code = 1, Height = 0, Color = Color.white });
 
             var layer2 = layer1;
 
@@ -75,7 +77,12 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var layerfruu = layer1
-                    .Subdivide(3).Subdivide(3).Subdivide(3)//.Subdivide(3);
+                    .Subdivide(3)
+                    .Subdivide(3)
+                    .ForEach(x => new HexPayload() {Color = RNG.CoinToss()?Color.white:Color.black//RNG.NextColorBright()
+                    , Height = RNG.NextFloat(30) })
+                    .Subdivide(3)
+                    //.Subdivide(3)//.Subdivide(3);
                     //.ForEach(x => {
                     //    var a = x.Payload;
                     //    a.Color = RNG.NextColor();
@@ -86,7 +93,9 @@ namespace WanderingRoad.Procgen.Levelgen
                     //.Subdivide();
                     ;
 
+                //needs refactoring
                 layerfruu.ToGameObjects(Prefab);
+                _gizmosHexGroup = layerfruu;
                 //layerfruu.ToGameObjectsBorder(BorderPrefab);
 
                 //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
@@ -297,6 +306,12 @@ namespace WanderingRoad.Procgen.Levelgen
             //
             //this.gameObject.GetComponent<MeshFilter>().sharedMesh = subgroup.ToMesh();//(x => x.Payload.Height);
 
+        }
+
+        private void OnDrawGizmos()
+        {
+            if(_gizmosHexGroup != null)
+                _gizmosHexGroup.TriggerGizmos();
         }
 
         IEnumerator FinaliseHexgroup(List<HexGroup> hexGroup, Action<HexGroup> func)
