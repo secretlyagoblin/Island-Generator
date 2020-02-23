@@ -84,7 +84,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     return new Hex[0];
 
             var nestedCenter = this.Center.Index.NestMultiply(scale);
-
             var floatingNestedCenter = nestedCenter.Position2d+ this.Center.Index.Position2d.AddNoiseOffset(scale-1);
 
             var largeHexPoints = new Vector2[]
@@ -99,27 +98,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var debugHexPoints = new List<Vector2>(largeHexPoints);
             debugHexPoints.Add(debugHexPoints[0]);
-
-            var set = new HashSet<HexIndex>();
-
-            //TODO: 
-            // Create lines for barycentric edge
-            // Put into set
-            // check if nodes are in set
-            // if so make edge
-            // check that this works
-
             var points = new List<HexIndex>();
-
-            //start here^^^
-
-            
 
             if (!this.IsBorder)
             {
-                //var c = new Vector3(floatingNestedCenter.x, 3, floatingNestedCenter.y);
                 var c2d = floatingNestedCenter;
-                //var c2d3d = new Vector3(c2d.x, 3, c2d.y);
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -128,74 +111,31 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var centerA2d = Vector2.Lerp(a2d, c2d, 0.5f);
                     var centerB2d = Vector2.Lerp(b2d, c2d, 0.5f);
 
-                    //var centerA = new Vector3(centerA2d.x, 3, centerA2d.y);
-                   //var centerB = new Vector3(centerB2d.x, 3, centerB2d.y);
-
-
                     var average = (a2d + floatingNestedCenter + b2d) / 3;
-                    //var center = new Vector3(average.x, 3, average.y);
-                    //Debug.DrawLine(centerA, center, new Color(0, 1f, 0, 0.3f), 100f);
-                    //Debug.DrawLine(centerB, center, new Color(0, 1f, 0, 0.3f), 100f);
-
                     var average2d = HexIndex.HexIndexFromPosition(average);
-                    //var average2d3d = new Vector3(average2d.Position2d.x, 3, average2d.Position2d.y);
 
                     var lineA = HexIndex.HexIndexFromPosition(centerA2d);
                     var lineB = HexIndex.HexIndexFromPosition(centerB2d);
 
-                    //var line2dA = new Vector3(lineA.Position2d.x, 3, lineA.Position2d.y);
-                    //var line2dB = new Vector3(lineB.Position2d.x, 3, lineB.Position2d.y);
-
-                    //Debug.DrawLine(line2dA, average2d3d, new Color(1f, 1f, 0, 0.1f), 100f);
-                    //Debug.DrawLine(line2dB, average2d3d, new Color(1f, 1f, 0, 0.1f), 100f);
-
                     points.AddRange(HexIndex.DrawLine(lineA, average2d));
                     points.AddRange(HexIndex.DrawLine(lineB, average2d));
-
-                    //Debug.DrawLine(a, c, new Color(1, 0, 0, 1f), 100f);
-
-                    //Debug.DrawLine(line2dA, centerA, Color.magenta, 100f);
-
-                    //Debug.DrawLine(line2dB, centerB, Color.magenta, 100f);
                 }
             }
 
             var testSet = points.Distinct().ToHashSet();
 
-            //var barycenters
-            //
-            //for (int i = 0; i < 5; i++)
-            //{
-            //    (largeHexPoints[i] + floatingNestedCenter + largeHexPoints[i+1])/3
-            //}
-
-            //HexIndex[] indexChildren;
-
-            //if (this.IsBorder)
-            //{
-            //    indexChildren = nestedCenter.GenerateRosetteLinear(scale);
-            //}
-            //else
-            //{
-            //indexChildren = nestedCenter.GenerateRosetteCircular(scale+1);
-            //}
-
-            //var generationProducedCells = true;
-
-            //var radius = 1;
-
-            //while (generationProducedCells)
-            //{
-            //
-            //}
-
+            
             bool FoundChild(HexIndex testCenter, out Vector3 testWeight, out int testIndex)
             {
                 testIndex = 0;
 
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
-                    testWeight = CalculateBarycentricWeight(floatingNestedCenter, largeHexPoints[_triangleIndexPairs[u]], largeHexPoints[_triangleIndexPairs[u + 1]], testCenter.Position2d);
+                    testWeight = CalculateBarycentricWeight(
+                        floatingNestedCenter, 
+                        largeHexPoints[_triangleIndexPairs[u]], 
+                        largeHexPoints[_triangleIndexPairs[u + 1]], 
+                        testCenter.Position2d);
 
                     var testX = testWeight.x;
                     var testY = testWeight.y;
@@ -205,7 +145,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     {
                         if (!(testX >= testY && testX >= testZ))
                             break;
-
                         return true;
                     }
                     testIndex++;
@@ -216,9 +155,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 return false;
             }
 
-
             FoundChild(nestedCenter, out var weight, out var index);
-
 
             var children = new List<Hex>
             {
@@ -230,6 +167,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             while (ringHasValidHexIndices)
             {
+                var foundChild = false;
                 var results = nestedCenter.GenerateRing(radius);
 
                 for (int i = 0; i < results.Length; i++)
@@ -238,12 +176,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                     if(FoundChild(testCenter, out weight, out index))
                     {
-                        children.Add(FinaliseHex(testCenter, weight, index, testSet.Contains(testCenter)));
-                    }
-                    
+                        foundChild = true;
+                        children.Add(
+                            FinaliseHex(testCenter, weight, index, testSet.Contains(testCenter))
+                        );
+                    }                    
                 }
 
-                if (children.Count > 1)
+                if (!foundChild && children.Count > 1)
                 {
                     ringHasValidHexIndices = false;
                 }
@@ -251,13 +191,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 radius++;
             }
 
-            //var childSubset = ResolveEdgeCases(children);
-
             return children.ToArray();
-
-
-
-
         }
 
         Hex FinaliseHex(HexIndex hex, Vector3 weight, int index, bool isEdge)
