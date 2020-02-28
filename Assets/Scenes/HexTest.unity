@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -195,7 +195,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 2.263e-42, y: 1.01e-43, z: 980710.94, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -344,6 +344,7 @@ MonoBehaviour:
   Prefab: {fileID: 6234638824148216032, guid: 550768e76b5da0e41a510fa88919384c, type: 3}
   BorderPrefab: {fileID: 7852987963739023572, guid: 3f7c4710a561e8a4fbe2ff5955bd76c8,
     type: 3}
+  PreviewMesh: {fileID: 4300000, guid: a415174bfd1c4214c8fa8a3dd313aba6, type: 3}
 --- !u!114 &1240213089
 MonoBehaviour:
   m_ObjectHideFlags: 0

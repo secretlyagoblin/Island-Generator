@@ -13,12 +13,15 @@ namespace WanderingRoad.Procgen.Levelgen
     {
         public GameObject Prefab;
         public GameObject BorderPrefab;
+        public Mesh PreviewMesh;
 
-        private HexGroup _gizmosHexGroup;
+        private HexGroupVisualiser _gizmosHexGroup;// = new HexGroupVisualiser(PreviewMesh,)
 
         // Start is called before the first frame update
         void Start()
         {
+            _gizmosHexGroup = new HexGroupVisualiser(PreviewMesh);
+
             //RNG.Init("I'd kill fill zill");
             RNG.Init();
             //RecursiveHex.RandomSeedProperties.Disable();
@@ -79,6 +82,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 var layerfruu = layer1
                     .Subdivide(3)
                     .Subdivide(3)
+                    //.Subdivide(3)
                     .ForEach(x => new HexPayload() {Color = RNG.CoinToss()?Color.white:Color.black//RNG.NextColorBright()
                     , Height = RNG.NextFloat(30) })
                     .Subdivide(3)
@@ -94,8 +98,9 @@ namespace WanderingRoad.Procgen.Levelgen
                     ;
 
                 //needs refactoring
-                layerfruu.ToGameObjects(Prefab);
-                _gizmosHexGroup = layerfruu;
+                //layerfruu.
+                //layerfruu.ToGameObjects(Prefab);
+                _gizmosHexGroup.HexGroup = layerfruu;
                 //layerfruu.ToGameObjectsBorder(BorderPrefab);
 
                 //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
@@ -158,7 +163,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 iterator++;
 
                 var obj = x.Subdivide(3);//.Subdivide();
-            obj.ToGameObjects(Prefab);
+            //obj.ToGameObjects(Prefab);
                 return;
 
                 var color = RNG.NextColor();
@@ -166,7 +171,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 var finalLayer = obj.ToGraph<Levelgen.ConnectEverything>(u => u.Code, connector);
                 var nodes = finalLayer.Finalise(standardRemapper);
                 obj.MassUpdateHexes(nodes);
-                obj.ToGameObjects(Prefab);
+                //obj.ToGameObjects(Prefab);
 
 
             //obj.GetSubGroups(y => y.Payload.Code).ForEach(y => {
@@ -310,8 +315,10 @@ namespace WanderingRoad.Procgen.Levelgen
 
         private void OnDrawGizmos()
         {
-            if(_gizmosHexGroup != null)
-                _gizmosHexGroup.TriggerGizmos();
+            if (_gizmosHexGroup == null)
+                return;
+
+            //_gizmosHexGroup.DrawGizmos();
         }
 
         IEnumerator FinaliseHexgroup(List<HexGroup> hexGroup, Action<HexGroup> func)
@@ -336,7 +343,8 @@ namespace WanderingRoad.Procgen.Levelgen
         // Update is called once per frame
         void Update()
         {
-            this.transform.Rotate(Vector3.up, 5f * Time.deltaTime);
+            this._gizmosHexGroup.DrawMeshes();
+            //this.transform.Rotate(Vector3.up, 5f * Time.deltaTime);
         }
     }
     namespace Levels
