@@ -85,7 +85,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     //.Subdivide(3)
                     .ForEach(x => new HexPayload() {Color = RNG.CoinToss()?Color.white:Color.black//RNG.NextColorBright()
                     , Height = RNG.NextFloat(30) })
-                    .Subdivide(3)
+                    //.Subdivide(3)
                     //.Subdivide(3)//.Subdivide(3);
                     //.ForEach(x => {
                     //    var a = x.Payload;

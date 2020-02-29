@@ -12,7 +12,16 @@ public class HexGroupVisualiser
         set
         {
             _hexes = value.GetHexes();
-            _matrices = _hexes.Select(x => Matrix4x4.Translate(x.Index.Position3d)).Chunk(1023).Select(x => x.ToArray()).ToArray();
+
+            var groups = _hexes
+                .GroupBy(x => x.Payload.Color).SelectMany(x => x.Chunk(1023))
+                .Select(x => x.ToArray())
+                .ToArray();
+            var matricesAndColours = groups
+                .Select(x => (x.First().Payload.Color, x.Select(y => Matrix4x4.Translate(y.Index.Position3d)).ToArray())).ToArray();
+
+
+            _renderData = matricesAndColours;
         }
     }
 
@@ -53,13 +62,18 @@ public class HexGroupVisualiser
     }
 
     private Material _material;
-    private Matrix4x4[][] _matrices;
+    private (Color Color, Matrix4x4[] Matrices)[] _renderData;
+    private MaterialPropertyBlock _block = new MaterialPropertyBlock();
 
     public void DrawMeshes()
     {
-        for (int i = 0; i < _matrices.Length; i++)
+        for (int i = 0; i < _renderData.Length; i++)
         {
-            Graphics.DrawMeshInstanced(this.PreviewMesh, 0, _material, _matrices[i]);
+            var d = _renderData[i];
+
+            _block.SetColor("_Color", d.Color);
+
+            Graphics.DrawMeshInstanced(this.PreviewMesh, 0, _material, d.Matrices,d.Matrices.Length,_block);
         }
 
         
