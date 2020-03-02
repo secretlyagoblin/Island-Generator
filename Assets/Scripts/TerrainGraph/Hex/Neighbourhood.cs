@@ -200,6 +200,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
 
+            Start here - CodeConnections status = check neighbourhood and give results
+
             payload.ConnectionStatus = isEdge ? Topology.Connection.NotPresent : Topology.Connection.Present;
 
             //Debug.DrawLine(nestedCenter.Position3d, indexChildren[i].Position3d, Color.blue, 100f);
