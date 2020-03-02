@@ -83,11 +83,17 @@ namespace WanderingRoad.Procgen.Levelgen
                     .Subdivide(3)
                     .Subdivide(3)
                     //.Subdivide(3)
-                    .ForEach(x => new HexPayload() {Color = x.Payload.ConnectionStatus == Connection.Present?Color.white:Color.black//RNG.NextColorBright()
-                    , Height = RNG.NextFloat(30) })
-                    .Subdivide(3)
-                    .ForEach(x => new HexPayload() {Color = x.Payload.Color.grayscale+RNG.NextFloat(-0.3f,0.3f)>0.4?Color.white:Color.black
+                    .ForEach(x => new HexPayload()
+                    {
+                        Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
+                    ,
+                        Height = RNG.NextFloat(30)
                     })
+                    .Subdivide(3)
+                    .ForEach(x => new HexPayload()
+                    {
+                        Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.3f, 0.3f) < 0.4 ? Color.black : RNG.SmallerThan(0.4) ? Color.black : Color.white
+                    });
                     //.Subdivide(3)//.Subdivide(3);
                     //.ForEach(x => {
                     //    var a = x.Payload;
