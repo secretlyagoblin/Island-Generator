@@ -8,6 +8,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
     {
         public readonly Vector3Int Index3d;
 
+        public override string ToString()
+        {
+            return Index3d.ToString();
+        }
+
         public Vector2Int Index2d { get { return Get2dIndex(Index3d); } }
         public Vector2 Position2d { get { return GetPosition(Index2d); } }
 
@@ -225,6 +230,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
 
             return new Vector3Int(rx, ry, rz);
+        }
+
+        public static HexIndex[] DrawOrientedLine(HexIndex a, HexIndex b)
+        {
+            if (a.Position2d.y > b.Position2d.y)
+            {
+                return DrawLine(a, b);
+            }
+
+            return DrawLine(b, a);
         }
 
         public static HexIndex[] DrawLine(HexIndex a, HexIndex b)

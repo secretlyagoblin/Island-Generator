@@ -98,11 +98,15 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var debugHexPoints = new List<Vector2>(largeHexPoints);
             debugHexPoints.Add(debugHexPoints[0]);
-            var points = new List<HexIndex>();
+
+            var halfSegments = new HexIndex[12][];
 
             if (!this.IsBorder)
             {
                 var c2d = floatingNestedCenter;
+
+                var connectionStatus = Center.Payload.Connections;
+                //N0.
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -111,18 +115,24 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var centerA2d = Vector2.Lerp(a2d, c2d, 0.5f);
                     var centerB2d = Vector2.Lerp(b2d, c2d, 0.5f);
 
+                    var flipCurve = centerA2d.y > centerB2d.y;
+
                     var average = (a2d + floatingNestedCenter + b2d) / 3;
                     var average2d = HexIndex.HexIndexFromPosition(average);
 
-                    var lineA = HexIndex.HexIndexFromPosition(centerA2d);
-                    var lineB = HexIndex.HexIndexFromPosition(centerB2d);
+                    var centerAIndex = HexIndex.HexIndexFromPosition(centerA2d);
+                    var centerBIndex = HexIndex.HexIndexFromPosition(centerB2d);
 
-                    points.AddRange(HexIndex.DrawLine(lineA, average2d));
-                    points.AddRange(HexIndex.DrawLine(lineB, average2d));
+                    var lineA = flipCurve ? centerAIndex : centerBIndex;
+                    var lineB = flipCurve ? centerBIndex : centerAIndex;
+
+                    halfSegments[i * 2] = HexIndex.DrawOrientedLine(lineA, average2d);
+                    halfSegments[(i * 2)+1] = HexIndex.DrawOrientedLine(lineB, average2d);
+
+
                 }
             }
 
-            var testSet = points.Distinct().ToHashSet();
 
             
             bool FoundChild(HexIndex testCenter, out Vector3 testWeight, out int testIndex)
@@ -159,7 +169,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var children = new List<Hex>
             {
-                FinaliseHex(nestedCenter,weight,index,testSet.Contains(nestedCenter))
+                FinaliseHex(nestedCenter,weight,index,BorderContains(halfSegments,nestedCenter))
             };
 
             var ringHasValidHexIndices = true;
@@ -178,7 +188,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     {
                         foundChild = true;
                         children.Add(
-                            FinaliseHex(testCenter, weight, index, testSet.Contains(testCenter))
+                            FinaliseHex(testCenter, weight, index, BorderContains(halfSegments, testCenter))
                         );
                     }                    
                 }
@@ -200,7 +210,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var payload = isBorder ? this.Center.Payload : this.InterpolateHexPayload(weight, index);
 
-            Start here - CodeConnections status = check neighbourhood and give results
+            //Start here - CodeConnections status = check neighbourhood and give results
 
             payload.ConnectionStatus = isEdge ? Topology.Connection.NotPresent : Topology.Connection.Present;
 
@@ -278,6 +288,23 @@ namespace WanderingRoad.Procgen.RecursiveHex
             var u = 1.0f - v - w;
 
             return new Vector3(u, v, w);
+        }
+
+        private static bool BorderContains(HexIndex[][] set, HexIndex testIndex)
+        {
+            for (int i = 0; i < set.Length; i++)
+            {
+                if (set[i] == null)
+                    continue;
+
+                for (int u = 0; u < set[i].Length; u++)
+                {
+                    if (set[i][u] == testIndex)
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }
