@@ -25,7 +25,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             AddHex(new Hex(new HexIndex(),new HexPayload(),false));
 
-            var neighbours = Neighbourhood.Neighbours;
+            var neighbours = Neighbourhood.StaticHexNeighbours;
             //
             for (int i = 0; i < neighbours.Length; i++)
             {
@@ -105,7 +105,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             {
                 var hexes = new Hex[6];
 
-                var neighbours = Neighbourhood.Neighbours;
+                var neighbours = Neighbourhood.StaticHexNeighbours;
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -142,7 +142,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             foreach (var hexDictEntry in _border)
             {
                 var hexes = new Hex[6];
-                var neighbours = Neighbourhood.Neighbours;
+                var neighbours = Neighbourhood.StaticHexNeighbours;
 
                 var borderOrNullCount = 0;
 
@@ -237,7 +237,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             foreach (var hexDictEntry in subgroup)
             {
-                var neighbours = Neighbourhood.Neighbours;
+                var neighbours = Neighbourhood.StaticHexNeighbours;
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -398,7 +398,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             foreach (var index in indexes)
             {
-                var neighbourhood = Neighbourhood.Neighbours;
+                var neighbourhood = Neighbourhood.StaticHexNeighbours;
 
                 for (int i = 0; i < neighbourhood.Length; i++)
                 {

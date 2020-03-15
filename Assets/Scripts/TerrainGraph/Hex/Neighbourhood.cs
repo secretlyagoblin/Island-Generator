@@ -25,7 +25,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// <summary>
         /// The neighbourhood around a hex - currently hardcoded, and shouldn't be changed
         /// </summary>
-        public static readonly Vector3Int[] Neighbours = new Vector3Int[]
+        public static readonly Vector3Int[] StaticHexNeighbours = new Vector3Int[]
         {
             new Vector3Int(+1,-1,0),
             new Vector3Int(+1,0,-1),
