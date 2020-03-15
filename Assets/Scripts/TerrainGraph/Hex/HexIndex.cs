@@ -232,6 +232,42 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new Vector3Int(rx, ry, rz);
         }
 
+        public static HexIndex[] DrawOrientedLineWithHole(HexIndex a, HexIndex b)
+        {
+            HexIndex[] line;
+
+            if (a.Position2d.y > b.Position2d.y)
+            {
+                line =  DrawLine(a, b);
+            }
+            else
+            {
+                line = DrawLine(b, a);
+            }
+
+            if (line.Length <= 1) return line;
+
+            var midPoint = Mathf.FloorToInt(line.Length * 0.5f)-1;
+            var count = 0;
+            var outline = new HexIndex[line.Length - 1];
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                try
+                {
+                    outline[count] = line[i];
+
+                    if (i != midPoint) count++;
+                }
+                catch
+                {
+                    throw new System.Exception("Dugg");
+                }
+            }
+
+            return new HexIndex[0];       
+        }
+
         public static HexIndex[] DrawOrientedLine(HexIndex a, HexIndex b)
         {
             if (a.Position2d.y > b.Position2d.y)
@@ -240,6 +276,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
 
             return DrawLine(b, a);
+        }
+
+        public int DistanceTo(HexIndex other)
+        {
+            return CubeDistance(this, other);
         }
 
         public static HexIndex[] DrawLine(HexIndex a, HexIndex b)

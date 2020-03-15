@@ -23,7 +23,8 @@ namespace WanderingRoad.Procgen.Levelgen
             _gizmosHexGroup = new HexGroupVisualiser(PreviewMesh);
 
             //RNG.Init("I'd kill fill zill");
-            RNG.Init();
+            RNG.Init("3/15/2020 5:58:48 PM");
+            //RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
 
@@ -80,20 +81,25 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var layerfruu = layer1
-                    .Subdivide(3)
-                    .Subdivide(3)
+                    .Subdivide(10, codeIdentifier)
+                    .ForEach(x => new HexPayload(x.Payload)
+                    {
+                        Code = 7,
+                        Connections = new CodeConnections(new int[] {7})
+                    })
+                    .Subdivide(4, codeIdentifier)
                     //.Subdivide(3)
-                    .ForEach(x => new HexPayload()
+                    .ForEach(x => new HexPayload(x.Payload)
                     {
                         Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
                     ,
                         Height = RNG.NextFloat(30)
                     })
-                    .Subdivide(3)
-                    .ForEach(x => new HexPayload()
-                    {
-                        Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.3f, 0.3f) < 0.4 ? Color.black : RNG.SmallerThan(0.4) ? Color.black : Color.white
-                    });
+                    //.Subdivide(3, codeIdentifier)
+                    //.ForEach(x => new HexPayload()
+                    //{
+                    //    Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.3f, 0.3f) < 0.4 ? Color.black : Color.white
+                    //});
                     //.Subdivide(3)//.Subdivide(3);
                     //.ForEach(x => {
                     //    var a = x.Payload;
@@ -104,6 +110,8 @@ namespace WanderingRoad.Procgen.Levelgen
                     //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
                     //.Subdivide();
                     ;
+
+
 
                 //needs refactoring
                 //layerfruu.
@@ -133,7 +141,7 @@ namespace WanderingRoad.Procgen.Levelgen
             var groups = Enumerable.Range(1, 7);
             //var groups = new List<int>() { 1, 3 };
 
-            var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide(3).Subdivide(3);
+            var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide(3, codeIdentifier).Subdivide(3, codeIdentifier);
 
 
 
@@ -170,7 +178,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 iterator++;
 
-                var obj = x.Subdivide(3);//.Subdivide();
+                var obj = x.Subdivide(3, codeIdentifier);//.Subdivide();
             //obj.ToGameObjects(Prefab);
                 return;
 

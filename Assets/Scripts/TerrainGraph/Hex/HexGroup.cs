@@ -43,7 +43,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// Creates a new hexgroup given a parent.
         /// </summary>
         /// <param name="parent"></param>
-        private HexGroup(HexGroup parent, int rosetteSize)
+        private HexGroup(HexGroup parent, int rosetteSize, Func<HexPayload, int> connectionIndentifier)
         {
             var hoods = parent.GetNeighbourhoods();
             _inside = new Dictionary<Vector3Int, Hex>(parent._inside.Count * 19); //magic numbers 
@@ -53,7 +53,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             {         
                 var hood = hoods[i];
 
-                var cells = hood.Subdivide(rosetteSize);
+                var cells = hood.Subdivide(rosetteSize, connectionIndentifier);
 
                 for (int u = 0; u < cells.Length; u++)
                 {
@@ -191,10 +191,10 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// Subdivide this hexgroup.
         /// </summary>
         /// <returns></returns>
-        public HexGroup Subdivide(int amount)
+        public HexGroup Subdivide(int amount, Func<HexPayload, int> connectionIndentifier)
         {
             //Debug.Log("Starting subdivide");
-            return new HexGroup(this, amount);
+            return new HexGroup(this, amount, connectionIndentifier);
         }
 
         /// <summary>

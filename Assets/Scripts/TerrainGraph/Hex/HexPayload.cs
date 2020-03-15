@@ -17,6 +17,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public Connection ConnectionStatus { get; set; }
 
+        public HexPayload(HexPayload payload)
+        {
+            this.Height = payload.Height;
+            this.Color = payload.Color;
+            this.Region = payload.Region;
+            this.Code = payload.Code;
+            this.Connections = payload.Connections;
+            this.ConnectionStatus = payload.ConnectionStatus;
+        }
+
         public static HexPayload Blerp(Hex a, Hex b, Hex c, Vector3 weights)
         {
             return new HexPayload()

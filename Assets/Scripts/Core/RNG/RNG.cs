@@ -30,6 +30,7 @@ namespace WanderingRoad.Core.Random
             { }
             else
             {
+                Debug.Log($"Current Seed: \"{seed}\"");
                 _pseudoRandom = new System.Random(seed.GetHashCode());
                 _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
                 _initialised = true;

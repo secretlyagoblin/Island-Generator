@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -78,7 +79,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// Subdivides the grid by one level
         /// </summary>
         /// <returns></returns>
-        public Hex[] Subdivide(int scale)
+        public Hex[] Subdivide(int scale, Func<HexPayload, int> connectionIndentifier)
         {
             if (this.IsBorder && Hex.IsInvalid(this.Center))                  
                     return new Hex[0];
@@ -96,17 +97,24 @@ namespace WanderingRoad.Procgen.RecursiveHex
                  this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset(scale-1)
             };
 
+            var neighbourCodes = new int[]
+            {
+                 connectionIndentifier(this.N0.Payload),
+                 connectionIndentifier(this.N1.Payload),
+                 connectionIndentifier(this.N2.Payload),
+                 connectionIndentifier(this.N3.Payload),
+                 connectionIndentifier(this.N4.Payload),
+                 connectionIndentifier(this.N5.Payload)
+            };
+
             var debugHexPoints = new List<Vector2>(largeHexPoints);
             debugHexPoints.Add(debugHexPoints[0]);
 
-            var halfSegments = new HexIndex[12][];
+            var halfSegments = new List<HexIndex>[12];
 
             if (!this.IsBorder)
             {
-                var c2d = floatingNestedCenter;
-
-                var connectionStatus = Center.Payload.Connections;
-                //N0.
+                var c2d = floatingNestedCenter;                
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -115,7 +123,13 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var centerA2d = Vector2.Lerp(a2d, c2d, 0.5f);
                     var centerB2d = Vector2.Lerp(b2d, c2d, 0.5f);
 
-                    var flipCurve = centerA2d.y > centerB2d.y;
+                    var flipCurve =
+                        centerA2d.y > centerB2d.y | (centerA2d.y > centerB2d.y && centerA2d.x > centerB2d.x) ? true : false;
+
+                    //if(centerA2d.y == centerB2d.y && centerA2d.x>centerB2d.x)
+                    //{
+                    //    flipCurve = true;
+                    //}
 
                     var average = (a2d + floatingNestedCenter + b2d) / 3;
                     var average2d = HexIndex.HexIndexFromPosition(average);
@@ -126,14 +140,15 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var lineA = flipCurve ? centerAIndex : centerBIndex;
                     var lineB = flipCurve ? centerBIndex : centerAIndex;
 
-                    halfSegments[i * 2] = HexIndex.DrawOrientedLine(lineA, average2d);
-                    halfSegments[(i * 2)+1] = HexIndex.DrawOrientedLine(lineB, average2d);
+                    halfSegments[i * 2] = new List<HexIndex>(HexIndex.DrawLine(lineA, average2d));
 
+                    halfSegments[(i * 2)+1] = new List<HexIndex>(HexIndex.DrawLine(lineB, average2d));
 
                 }
+                FilterSet(halfSegments);
             }
 
-
+            
             
             bool FoundChild(HexIndex testCenter, out Vector3 testWeight, out int testIndex)
             {
@@ -290,14 +305,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new Vector3(u, v, w);
         }
 
-        private static bool BorderContains(HexIndex[][] set, HexIndex testIndex)
+        private static bool BorderContains(List<HexIndex>[] set, HexIndex testIndex)
         {
             for (int i = 0; i < set.Length; i++)
             {
                 if (set[i] == null)
                     continue;
 
-                for (int u = 0; u < set[i].Length; u++)
+                for (int u = 0; u < set[i].Count; u++)
                 {
                     if (set[i][u] == testIndex)
                         return true;
@@ -305,6 +320,78 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
 
             return false;
+        }
+
+        private static void FilterSet(List<HexIndex>[] startSet)
+        {
+            for (int b = 0; b < 12; b+=2)
+            {
+                var a = b == 0 ? 11 : b - 1; //nope multiple of 2
+
+
+                var halfEdgeA = startSet[a];
+                var halfEdgeB = startSet[b];
+
+                //halfEdgeA.RemoveAt(0);
+                //halfEdgeB.RemoveAt(0);
+
+                //Debug.Log($"{halfEdgeA.Count}-{halfEdgeB.Count}");
+
+                //if (halfEdgeA.Count > 5)
+                //{
+                //    foreach (var item in halfEdgeA)
+                //    {
+                //        Debug.DrawRay(item.Position3d, Vector3.up * 3, Color.red * 2, 100f);
+                //    }
+                //}
+
+                //if(halfEdgeA.First().DistanceTo(halfEdgeB.First()) < 2)
+                //{
+                //    Debug.DrawRay(halfEdgeA[0].Position3d + RNG.NextVector3(-0.2f, 0.2f), Vector3.up * 3, Color.green * 2, 100f);
+                //    //Debug.DrawRay(halfEdgeB[0].Position3d + RNG.NextVector3(-0.2f, 0.2f), Vector3.up * 3, Color.magenta * 2, 100f);
+                //
+                //    //halfEdgeA.RemoveAt(0);
+                //    //halfEdgeB.RemoveAt(0);
+                //
+                //    foreach (var item in halfEdgeA)
+                //    {
+                //        Debug.DrawRay(item.Position3d+RNG.NextVector3(-0.2f,0.2f), Vector3.up * 3, Color.red * 2, 100f);
+                //    }
+                //
+                //    foreach (var item in halfEdgeB)
+                //    {
+                //        Debug.DrawRay(item.Position3d + RNG.NextVector3(-0.2f, 0.2f), Vector3.up * 3, Color.blue * 2, 100f);
+                //    }
+                //}
+                //else
+                {
+                    var vec = Vector3.one;
+
+                    foreach (var item in halfEdgeA)
+                    {
+                        Debug.DrawRay(item.Position3d + (Vector3.forward*0.1f), vec, Color.cyan * 2, 100f);
+                    }
+                
+                    foreach (var item in halfEdgeB)
+                    {
+                        Debug.DrawRay(item.Position3d, vec, Color.magenta * 2, 100f);
+                    }
+                }
+
+
+
+                //var odd = false;
+
+                //while(halfEdgeA.First().DistanceTo(halfEdgeB.First()) < 2)
+                //{
+                //    if (odd)
+                //        halfEdgeA.RemoveAt(0);
+                //    else
+                //        halfEdgeB.RemoveAt(1);
+                //
+                //    odd = !odd;
+                //}
+            }
         }
     }
 }
