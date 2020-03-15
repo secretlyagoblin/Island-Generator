@@ -62,7 +62,7 @@ public class HexGroupVisualiser
     }
 
     private Material _material;
-    private (Color Color, Matrix4x4[] Matrices)[] _renderData;
+    private (Color Color, Matrix4x4[] Matrices)[] _renderData = new (Color Color, Matrix4x4[] Matrices)[0];
     private MaterialPropertyBlock _block = new MaterialPropertyBlock();
 
     public void DrawMeshes()
