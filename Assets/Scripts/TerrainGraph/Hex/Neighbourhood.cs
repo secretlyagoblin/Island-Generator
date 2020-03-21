@@ -156,39 +156,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                     //Debug.DrawLine(averageA.Position3d + (Vector3.up * 3), averageB.Position3d + (Vector3.up * 3), Color.yellow, 100f);
 
-                    var a2dPos = averageA.Position2d;
-                    var b2sPos = averageB.Position2d;
+                    //var a2dPos = averageA.Position2d;
+                    //var b2sPos = averageB.Position2d;
 
-                    var flipCurve = a2dPos.y.EqualsOrLargerThanWithinTolerance(b2sPos.y);
-
-                    var hex1 = flipCurve ? averageA : averageB;
-                    var hex2 = flipCurve ? averageB : averageA;
-
-
-                    //If line is horizontal, handle edge case, inelegantly.
-                    if (a2dPos.y.EqualsWithinTolerance(b2sPos.y))
-                    {
-                        var pos1 = flipCurve ? a2dPos : b2sPos;
-                        var pos2 = flipCurve ? b2sPos : a2dPos;
-
-                        if (pos2.x < pos1.x)
-                        {
-                            var store = hex1;
-
-                            hex1 = hex2;
-                            hex2 = store;
-
-                            flipCurve = !flipCurve;
-                        }
-                    }
-
-                    var color = RNG.NextColorBright();
+                    //var color = RNG.NextColorBright();
 
                     halfSegments[i] = new LineEdge
                     {
-                        EdgeA = new List<HexIndex>(HexIndex.DrawLine(hex1, centerAIndex)),
-                        EdgeB = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, hex2)),
-                        Flipped = flipCurve
+                        EdgeA = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, averageA)),
+                        EdgeB = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, averageB)),
+
                     };
 
                     //Debug.DrawLine(hex1.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f,0.3f), centerAIndex.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
@@ -403,17 +380,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
         {
             public List<HexIndex> EdgeA { get; set; }
             public List<HexIndex> EdgeB { get; set; }
-            public bool Flipped;
 
             public void DebugDraw(Color color)
             {
-                Debug.DrawLine(EdgeA.First().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), EdgeB.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
+                Debug.DrawLine(EdgeA.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), EdgeB.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
 
             }
 
             public void RemoveCenterNode()
             {
-                EdgeA.RemoveAt(EdgeA.Count - 1);
+                EdgeA.RemoveAt(0);
                 EdgeB.RemoveAt(0);
             }
 
@@ -422,19 +398,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 if (thisEdge)
                 {
                     RemoveCenterNode();
-                }
-
-
-                if (thisEdge && left)
-                {
-                    var apply = Flipped ? EdgeA : EdgeB;
-                    apply.Clear();
-                }
-
-                if (thisEdge && right)
-                {
-                    var apply = Flipped ? EdgeB : EdgeA;
-                    apply.Clear();
                 }
             }
         }
