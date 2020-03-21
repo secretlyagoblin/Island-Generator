@@ -141,38 +141,15 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 for (int i = 0; i < 6; i++)
                 {
-
-
-                    var sharedVertex2d = debugHexPoints[i + 1];
-
-                    var centerA2d = Vector2.Lerp(sharedVertex2d, c2d, 0.5f);
-
-                    var averageA = triangleAverages[i];
-                    var averageB = triangleAverages[i + 1];
-
-                    //Debug.DrawRay(average2d.Position3d, new Vector3(0, 1, -1), Color.yellow, 100f);
-
-                    var centerAIndex = HexIndex.HexIndexFromPosition(centerA2d);
-
-                    //Debug.DrawLine(averageA.Position3d + (Vector3.up * 3), averageB.Position3d + (Vector3.up * 3), Color.yellow, 100f);
-
-                    //var a2dPos = averageA.Position2d;
-                    //var b2sPos = averageB.Position2d;
-
-                    //var color = RNG.NextColorBright();
+                    var centerAIndex = HexIndex.HexIndexFromPosition(
+                        Vector2.Lerp(debugHexPoints[i + 1], c2d, 0.5f));
 
                     halfSegments[i] = new LineEdge
                     {
-                        EdgeA = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, averageA)),
-                        EdgeB = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, averageB)),
+                        EdgeA = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, triangleAverages[i])),
+                        EdgeB = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, triangleAverages[i + 1])),
 
                     };
-
-                    //Debug.DrawLine(hex1.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f,0.3f), centerAIndex.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
-
-
-
-                    //Debug.DrawLine(hex2.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), centerAIndex.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
                 }
 
                 var colour = RNG.NextColorBright();
@@ -189,7 +166,9 @@ namespace WanderingRoad.Procgen.RecursiveHex
                         halfSegments[i].ApplyEdgeConditions(
                             neighbourCodes[last],
                             neighbourCodes[i],
-                            neighbourCodes[next]
+                            neighbourCodes[next],
+                            neighbourLinks[i],
+                            neighbourLinks[next]
                             );
                     }
                 }
@@ -378,12 +357,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         private class LineEdge
         {
+            private static float _jitter = 0f;
+
             public List<HexIndex> EdgeA { get; set; }
             public List<HexIndex> EdgeB { get; set; }
 
             public void DebugDraw(Color color)
             {
-                Debug.DrawLine(EdgeA.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), EdgeB.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
+                Debug.DrawLine(EdgeA.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-_jitter, _jitter), EdgeB.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-_jitter, _jitter), color, 100f);
 
             }
 
@@ -393,11 +374,21 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 EdgeB.RemoveAt(0);
             }
 
-            public void ApplyEdgeConditions(bool left, bool thisEdge, bool right)
+            public void ApplyEdgeConditions(bool left, bool thisEdge, bool right, bool leftLink, bool rightLink)
             {
                 if (thisEdge)
                 {
                     RemoveCenterNode();
+                }
+
+                if(left && leftLink && thisEdge)
+                {
+                    EdgeA.Clear();
+                }
+
+                if(right && rightLink && thisEdge)
+                {
+                    EdgeB.Clear();
                 }
             }
         }

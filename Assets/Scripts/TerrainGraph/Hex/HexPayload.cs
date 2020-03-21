@@ -61,7 +61,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
     public struct CodeConnections
     {
 
-        private readonly int Count;
+        public readonly int Count;
         private readonly int C0;
         private readonly int C1;
         private readonly int C2;
