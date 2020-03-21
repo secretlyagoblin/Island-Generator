@@ -116,5 +116,29 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             return outInts;
         }
+
+        public bool ContainsCode(int i)
+        {
+            if (Count == 0) return false;
+
+            if (C0 == i) return true;
+            if (Count == 1) return false;
+
+            if (C1 == i) return true;
+            if (Count == 2) return false;
+
+            if (C2 == i) return true;
+            if (Count == 3) return false;
+
+            if (C3 == i) return true;
+            if (Count == 4) return false;
+
+            if (C4 == i) return true;
+            if (Count == 5) return false;
+
+            if (C5 == i) return true;
+
+            return false;
+        }
     }
 }

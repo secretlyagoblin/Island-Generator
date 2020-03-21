@@ -50,6 +50,19 @@ namespace WanderingRoad.Core
             return new Vector3(color.r, color.b, color.g);
         }
 
+        public static bool EqualsWithinTolerance(this float a, float other, float tolerance = 0.0001f)
+        {
+            return Mathf.Abs(a - other) < tolerance;
+        }
+
+        public static bool EqualsOrLargerThanWithinTolerance(this float a, float other, float tolerance = 0.0001f)
+        {
+            if (a.EqualsWithinTolerance(other, tolerance))
+                return true;
+
+            return a > other;
+        }
+
         /// <summary>
         /// Break a list of items into chunks of a specific size
         /// </summary>

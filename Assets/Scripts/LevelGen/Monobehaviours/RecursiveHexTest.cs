@@ -81,13 +81,13 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var layerfruu = layer1
-                    .Subdivide(10, codeIdentifier)
-                    .ForEach(x => new HexPayload(x.Payload)
+                    .Subdivide(5, codeIdentifier)
+                    .ForEach((x,b) => new HexPayload(x.Payload)
                     {
-                        Code = 7,
-                        Connections = new CodeConnections(new int[] {7})
+                        Code = b<3 ? 3 : 7,
+                        Connections = new CodeConnections(b < 3 ? new int[] {7,3}: new int[] { 3 })
                     })
-                    .Subdivide(4, codeIdentifier)
+                    .Subdivide(8, codeIdentifier)
                     //.Subdivide(3)
                     .ForEach(x => new HexPayload(x.Payload)
                     {

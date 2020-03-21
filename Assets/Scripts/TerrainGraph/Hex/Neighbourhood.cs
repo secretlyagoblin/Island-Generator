@@ -81,11 +81,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// <returns></returns>
         public Hex[] Subdivide(int scale, Func<HexPayload, int> connectionIndentifier)
         {
-            if (this.IsBorder && Hex.IsInvalid(this.Center))                  
-                    return new Hex[0];
+            if (this.IsBorder && Hex.IsInvalid(this.Center))
+                return new Hex[0];
 
             var nestedCenter = this.Center.Index.NestMultiply(scale);
-            var floatingNestedCenter = nestedCenter.Position2d+ this.Center.Index.Position2d.AddNoiseOffset(scale-1);
+            var floatingNestedCenter = nestedCenter.Position2d + this.Center.Index.Position2d.AddNoiseOffset(scale - 1);
 
             var largeHexPoints = new Vector2[]
             {
@@ -97,59 +97,130 @@ namespace WanderingRoad.Procgen.RecursiveHex
                  this.N5.Index.NestMultiply(scale).Position2d + this.N5.Index.Position2d.AddNoiseOffset(scale-1)
             };
 
-            var neighbourCodes = new int[]
+            var neighbourCodes = new bool[]
             {
-                 connectionIndentifier(this.N0.Payload),
-                 connectionIndentifier(this.N1.Payload),
-                 connectionIndentifier(this.N2.Payload),
-                 connectionIndentifier(this.N3.Payload),
-                 connectionIndentifier(this.N4.Payload),
-                 connectionIndentifier(this.N5.Payload)
+                 Center.Payload.Connections.ContainsCode(connectionIndentifier(this.N1.Payload)),
+                 Center.Payload.Connections.ContainsCode(connectionIndentifier(this.N2.Payload)),
+                 Center.Payload.Connections.ContainsCode(connectionIndentifier(this.N3.Payload)),
+                 Center.Payload.Connections.ContainsCode(connectionIndentifier(this.N4.Payload)),
+                 Center.Payload.Connections.ContainsCode(connectionIndentifier(this.N5.Payload)),
+                 Center.Payload.Connections.ContainsCode(connectionIndentifier(this.N0.Payload))
+            };
+
+            var neighbourLinks = new bool[]
+            {
+                 N0.Payload.Connections.ContainsCode(connectionIndentifier(this.N1.Payload)),
+                 N1.Payload.Connections.ContainsCode(connectionIndentifier(this.N2.Payload)),
+                 N2.Payload.Connections.ContainsCode(connectionIndentifier(this.N3.Payload)),
+                 N3.Payload.Connections.ContainsCode(connectionIndentifier(this.N4.Payload)),
+                 N4.Payload.Connections.ContainsCode(connectionIndentifier(this.N5.Payload)),
+                 N5.Payload.Connections.ContainsCode(connectionIndentifier(this.N0.Payload))
             };
 
             var debugHexPoints = new List<Vector2>(largeHexPoints);
             debugHexPoints.Add(debugHexPoints[0]);
 
-            var halfSegments = new List<HexIndex>[12];
+            var halfSegments = new LineEdge[6];
 
             if (!this.IsBorder)
             {
-                var c2d = floatingNestedCenter;                
+                var c2d = floatingNestedCenter;
+
+                var triangleAverages = new HexIndex[7];
 
                 for (int i = 0; i < 6; i++)
                 {
                     var a2d = debugHexPoints[i];
                     var b2d = debugHexPoints[i + 1];
-                    var centerA2d = Vector2.Lerp(a2d, c2d, 0.5f);
-                    var centerB2d = Vector2.Lerp(b2d, c2d, 0.5f);
-
-                    var flipCurve =
-                        centerA2d.y > centerB2d.y | (centerA2d.y > centerB2d.y && centerA2d.x > centerB2d.x) ? true : false;
-
-                    //if(centerA2d.y == centerB2d.y && centerA2d.x>centerB2d.x)
-                    //{
-                    //    flipCurve = true;
-                    //}
 
                     var average = (a2d + floatingNestedCenter + b2d) / 3;
-                    var average2d = HexIndex.HexIndexFromPosition(average);
+                    triangleAverages[i] = HexIndex.HexIndexFromPosition(average);
+                }
+
+                triangleAverages[6] = triangleAverages[0];
+
+                for (int i = 0; i < 6; i++)
+                {
+
+
+                    var sharedVertex2d = debugHexPoints[i + 1];
+
+                    var centerA2d = Vector2.Lerp(sharedVertex2d, c2d, 0.5f);
+
+                    var averageA = triangleAverages[i];
+                    var averageB = triangleAverages[i + 1];
+
+                    //Debug.DrawRay(average2d.Position3d, new Vector3(0, 1, -1), Color.yellow, 100f);
 
                     var centerAIndex = HexIndex.HexIndexFromPosition(centerA2d);
-                    var centerBIndex = HexIndex.HexIndexFromPosition(centerB2d);
 
-                    var lineA = flipCurve ? centerAIndex : centerBIndex;
-                    var lineB = flipCurve ? centerBIndex : centerAIndex;
+                    //Debug.DrawLine(averageA.Position3d + (Vector3.up * 3), averageB.Position3d + (Vector3.up * 3), Color.yellow, 100f);
 
-                    halfSegments[i * 2] = new List<HexIndex>(HexIndex.DrawLine(lineA, average2d));
+                    var a2dPos = averageA.Position2d;
+                    var b2sPos = averageB.Position2d;
 
-                    halfSegments[(i * 2)+1] = new List<HexIndex>(HexIndex.DrawLine(lineB, average2d));
+                    var flipCurve = a2dPos.y.EqualsOrLargerThanWithinTolerance(b2sPos.y);
 
+                    var hex1 = flipCurve ? averageA : averageB;
+                    var hex2 = flipCurve ? averageB : averageA;
+
+
+                    //If line is horizontal, handle edge case, inelegantly.
+                    if (a2dPos.y.EqualsWithinTolerance(b2sPos.y))
+                    {
+                        var pos1 = flipCurve ? a2dPos : b2sPos;
+                        var pos2 = flipCurve ? b2sPos : a2dPos;
+
+                        if (pos2.x < pos1.x)
+                        {
+                            var store = hex1;
+
+                            hex1 = hex2;
+                            hex2 = store;
+
+                            flipCurve = !flipCurve;
+                        }
+                    }
+
+                    var color = RNG.NextColorBright();
+
+                    halfSegments[i] = new LineEdge
+                    {
+                        EdgeA = new List<HexIndex>(HexIndex.DrawLine(hex1, centerAIndex)),
+                        EdgeB = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, hex2)),
+                        Flipped = flipCurve
+                    };
+
+                    //Debug.DrawLine(hex1.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f,0.3f), centerAIndex.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
+
+
+
+                    //Debug.DrawLine(hex2.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), centerAIndex.Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
                 }
-                FilterSet(halfSegments);
+
+                var colour = RNG.NextColorBright();
+                //var colourOther = RNG.NextColorBright();
+
+                for (int i = 0; i < 6; i++)
+                {
+                    if (neighbourCodes[i])
+                    {
+                        var last = i - 1 < 0 ? 5 : i - 1;
+                        var next = i + 1 > 5 ? 0 : i +1;
+
+                        halfSegments[i].DebugDraw(colour);
+                        halfSegments[i].ApplyEdgeConditions(
+                            neighbourCodes[last],
+                            neighbourCodes[i],
+                            neighbourCodes[next]
+                            );
+                    }
+                }
+
             }
 
-            
-            
+
+
             bool FoundChild(HexIndex testCenter, out Vector3 testWeight, out int testIndex)
             {
                 testIndex = 0;
@@ -157,9 +228,9 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
                 {
                     testWeight = CalculateBarycentricWeight(
-                        floatingNestedCenter, 
-                        largeHexPoints[_triangleIndexPairs[u]], 
-                        largeHexPoints[_triangleIndexPairs[u + 1]], 
+                        floatingNestedCenter,
+                        largeHexPoints[_triangleIndexPairs[u]],
+                        largeHexPoints[_triangleIndexPairs[u + 1]],
                         testCenter.Position2d);
 
                     var testX = testWeight.x;
@@ -199,13 +270,13 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 {
                     var testCenter = results[i];
 
-                    if(FoundChild(testCenter, out weight, out index))
+                    if (FoundChild(testCenter, out weight, out index))
                     {
                         foundChild = true;
                         children.Add(
                             FinaliseHex(testCenter, weight, index, BorderContains(halfSegments, testCenter))
                         );
-                    }                    
+                    }
                 }
 
                 if (!foundChild && children.Count > 1)
@@ -305,16 +376,22 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new Vector3(u, v, w);
         }
 
-        private static bool BorderContains(List<HexIndex>[] set, HexIndex testIndex)
+        private static bool BorderContains(LineEdge[] set, HexIndex testIndex)
         {
             for (int i = 0; i < set.Length; i++)
             {
                 if (set[i] == null)
                     continue;
 
-                for (int u = 0; u < set[i].Count; u++)
+                for (int u = 0; u < set[i].EdgeA.Count; u++)
                 {
-                    if (set[i][u] == testIndex)
+                    if (set[i].EdgeA[u] == testIndex)
+                        return true;
+                }
+
+                for (int u = 0; u < set[i].EdgeB.Count; u++)
+                {
+                    if (set[i].EdgeB[u] == testIndex)
                         return true;
                 }
             }
@@ -322,75 +399,43 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return false;
         }
 
-        private static void FilterSet(List<HexIndex>[] startSet)
+        private class LineEdge
         {
-            for (int b = 0; b < 12; b+=2)
+            public List<HexIndex> EdgeA { get; set; }
+            public List<HexIndex> EdgeB { get; set; }
+            public bool Flipped;
+
+            public void DebugDraw(Color color)
             {
-                var a = b == 0 ? 11 : b - 1; //nope multiple of 2
+                Debug.DrawLine(EdgeA.First().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), EdgeB.Last().Position3d + (Vector3.up * 3) + RNG.NextVector3(-0.3f, 0.3f), color, 100f);
 
+            }
 
-                var halfEdgeA = startSet[a];
-                var halfEdgeB = startSet[b];
+            public void RemoveCenterNode()
+            {
+                EdgeA.RemoveAt(EdgeA.Count - 1);
+                EdgeB.RemoveAt(0);
+            }
 
-                //halfEdgeA.RemoveAt(0);
-                //halfEdgeB.RemoveAt(0);
-
-                //Debug.Log($"{halfEdgeA.Count}-{halfEdgeB.Count}");
-
-                //if (halfEdgeA.Count > 5)
-                //{
-                //    foreach (var item in halfEdgeA)
-                //    {
-                //        Debug.DrawRay(item.Position3d, Vector3.up * 3, Color.red * 2, 100f);
-                //    }
-                //}
-
-                //if(halfEdgeA.First().DistanceTo(halfEdgeB.First()) < 2)
-                //{
-                //    Debug.DrawRay(halfEdgeA[0].Position3d + RNG.NextVector3(-0.2f, 0.2f), Vector3.up * 3, Color.green * 2, 100f);
-                //    //Debug.DrawRay(halfEdgeB[0].Position3d + RNG.NextVector3(-0.2f, 0.2f), Vector3.up * 3, Color.magenta * 2, 100f);
-                //
-                //    //halfEdgeA.RemoveAt(0);
-                //    //halfEdgeB.RemoveAt(0);
-                //
-                //    foreach (var item in halfEdgeA)
-                //    {
-                //        Debug.DrawRay(item.Position3d+RNG.NextVector3(-0.2f,0.2f), Vector3.up * 3, Color.red * 2, 100f);
-                //    }
-                //
-                //    foreach (var item in halfEdgeB)
-                //    {
-                //        Debug.DrawRay(item.Position3d + RNG.NextVector3(-0.2f, 0.2f), Vector3.up * 3, Color.blue * 2, 100f);
-                //    }
-                //}
-                //else
+            public void ApplyEdgeConditions(bool left, bool thisEdge, bool right)
+            {
+                if (thisEdge)
                 {
-                    var vec = Vector3.one;
-
-                    foreach (var item in halfEdgeA)
-                    {
-                        Debug.DrawRay(item.Position3d + (Vector3.forward*0.1f), vec, Color.cyan * 2, 100f);
-                    }
-                
-                    foreach (var item in halfEdgeB)
-                    {
-                        Debug.DrawRay(item.Position3d, vec, Color.magenta * 2, 100f);
-                    }
+                    RemoveCenterNode();
                 }
 
 
+                if (thisEdge && left)
+                {
+                    var apply = Flipped ? EdgeA : EdgeB;
+                    apply.Clear();
+                }
 
-                //var odd = false;
-
-                //while(halfEdgeA.First().DistanceTo(halfEdgeB.First()) < 2)
-                //{
-                //    if (odd)
-                //        halfEdgeA.RemoveAt(0);
-                //    else
-                //        halfEdgeB.RemoveAt(1);
-                //
-                //    odd = !odd;
-                //}
+                if (thisEdge && right)
+                {
+                    var apply = Flipped ? EdgeB : EdgeA;
+                    apply.Clear();
+                }
             }
         }
     }
