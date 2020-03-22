@@ -397,54 +397,28 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var neighbourhood = Neighbourhood.StaticHexNeighbours;
 
+            var triangleStore = new List<int>() {0,0,0};
+
             foreach (var index in indexes)
-            {               
+            {
 
                 for (int i = 0; i < neighbourhood.Length; i++)
                 {
                     var hexCenter = index;
                     var hexN1 = hexCenter + neighbourhood[i];
-                    var hexN2 = hexCenter + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1]: neighbourhood[0]);
+                    var hexN2 = hexCenter + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1] : neighbourhood[0]);
 
                     //Ditch if edge isn't in network
-                    if(!(verts.ContainsKey(hexN1.Index3d) && verts.ContainsKey(hexN2.Index3d)))
+                    if (!(verts.ContainsKey(hexN1.Index3d) && verts.ContainsKey(hexN2.Index3d)))
                         continue;
 
-                    var center = hexCenter.Position2d;
-                    var n1 = hexN1.Position2d;
-                    var n2 = hexN2.Position2d;
+                    triangleStore[0] = (verts[hexCenter.Index3d]);
+                    triangleStore[1] = (verts[hexN1.Index3d]);
+                    triangleStore[2] = (verts[hexN2.Index3d]);
 
-                    if (testIndex<testn1 && testIndex< testn2)
-                    {
-                        threePoints[0] = HexIndex.Get3dIndex(index2d);
-                        threePoints[1] = HexIndex.Get3dIndex(n12d);
-                        threePoints[2] = HexIndex.Get3dIndex(n22d);
-                    }
-                    else if (testn1< testIndex && testn1< testn2)
-                    {
-                        threePoints[0] = HexIndex.Get3dIndex(n12d);
-                        threePoints[1] = HexIndex.Get3dIndex(index2d);
-                        threePoints[2] = HexIndex.Get3dIndex(n22d);
-                    }
-                    else if (testn2< testIndex && testn2< testn1)
-                    {
-                        threePoints[0] = HexIndex.Get3dIndex(n22d);
-                        threePoints[1] = HexIndex.Get3dIndex(n12d);
-                        threePoints[2] = HexIndex.Get3dIndex(index2d);
-                    }
-                    else
-                    {
-                        Debug.Log("Whelp");
-                    }
+                    triangleStore.Sort();
 
-                    if (threePoints[1].y < threePoints[2].y)
-                    {
-                        var temp = threePoints[1];
-                        threePoints[1] = threePoints[2];
-                        threePoints[2] = temp;
-                    }
-
-                    var tri = new Vector3Int(verts[threePoints[0]], verts[threePoints[1]], verts[threePoints[2]]);
+                    var tri = new Vector3Int(triangleStore[0], triangleStore[1], triangleStore[2]);                    
 
                     if (triangles.Contains(tri))
                         continue;
@@ -453,7 +427,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
 
             var vertices = indexes.Select(x => x.Position3d).ToArray();
-            var finalTriangles = triangles.SelectMany(x => new[] { x.x, x.y, x.z }).ToArray();
+            var finalTriangles = 
+                triangles.SelectMany(x => {
+                    var cross = Vector3.Cross(vertices[x.y] - vertices[x.x], vertices[x.z] - vertices[x.x]);
+                    if (cross.y > 0)
+                        return new[] { x.x, x.y, x.z };
+                    else
+                        return new[] { x.z, x.y, x.x };
+                    }).ToArray();
 
             return (vertices, finalTriangles);
             //,indexes.Select(x => new Vector3(x.x, 0, x.y)).ToArray()

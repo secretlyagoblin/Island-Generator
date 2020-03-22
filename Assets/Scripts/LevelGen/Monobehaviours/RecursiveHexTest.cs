@@ -82,17 +82,19 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
-                var splayer = layer1.Subdivide(3, codeIdentifier).Subdivide(4, codeIdentifier)//.Subdivide(3, codeIdentifier)
-                   //var graphe = splayer.ToGraph<SingleConnectionGraph>(codeIdentifier, connector);
+                var splayer = layer1.Subdivide(7, codeIdentifier)//.Subdivide(4, codeIdentifier);//.Subdivide(3, codeIdentifier)
+                    ;
+                   var graphe = splayer.ToGraph<HighLevelConnectivity>(codeIdentifier, connector);
+                graphe.DebugDraw(transform);
                    //var anotherLayer = splayer.MassUpdateHexes(graphe.Finalise(standardRemapper))                    
                    // .Subdivide(5, codeIdentifier)
                    // //.Subdivide(3)
-                   .ForEach(x => new HexPayload(x.Payload)
-                   {
-                       Color = Color.white//Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
-                   ,
-                       Height = RNG.NextFloat(30)
-                   });
+                   //.ForEach(x => new HexPayload(x.Payload)
+                   //{
+                   //    Color = Color.white//Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
+                   //,
+                   //    Height = RNG.NextFloat(30)
+                   //});
                     //.Subdivide(2, codeIdentifier)
                     //.ForEach(x => new HexPayload()
                     //{
@@ -110,20 +112,26 @@ namespace WanderingRoad.Procgen.Levelgen
                     ;
 
                 var mesh = splayer.ToMesh();
-                var (vertices, triangles) = splayer.ToNetwork(x => 0);
-
-                var offset = 0.1f;
-
-                for (int t = 0; t < triangles.Length; t+=3)
-                {
-                    Debug.DrawLine(vertices[triangles[t]]+RNG.NextVector3(-offset,offset), vertices[triangles[t + 1]] + RNG.NextVector3(-offset, offset), Color.red, 100f);
-                    Debug.DrawLine(vertices[triangles[t+1]] + RNG.NextVector3(-offset, offset), vertices[triangles[t + 2]] + RNG.NextVector3(-offset, offset), Color.red, 100f);
-                    Debug.DrawLine(vertices[triangles[t+2]] + RNG.NextVector3(-offset, offset), vertices[triangles[t]] + RNG.NextVector3(-offset, offset), Color.red, 100f);
-
-                }
-
-
-
+                //var (vertices, triangles) = splayer.ToNetwork(x => 0);
+                //
+                //var offset = 0.0f;
+                //
+                //vertices = vertices.Select(x => x + RNG.NextVector3(-offset, offset)+ Vector3.up).ToArray();
+                //
+                //offset = 0.1f;
+                //
+                //for (int t = 0; t < triangles.Length; t+=3)
+                //{
+                //    var localOffset = RNG.NextVector3(-offset, offset);
+                //    var color = RNG.NextColorBright();
+                //    Debug.DrawLine(vertices[triangles[t]]+ localOffset, vertices[triangles[t + 1]] + localOffset, color, 100f);
+                //    Debug.DrawLine(vertices[triangles[t+1]] + localOffset, vertices[triangles[t + 2]] + localOffset, color, 100f);
+                //    Debug.DrawLine(vertices[triangles[t+2]] + localOffset, vertices[triangles[t]] + localOffset, color, 100f);
+                //
+                //}
+                
+                
+                
                 this.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
 
 
