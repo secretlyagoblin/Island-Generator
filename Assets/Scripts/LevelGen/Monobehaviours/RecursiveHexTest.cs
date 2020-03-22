@@ -87,7 +87,7 @@ namespace WanderingRoad.Procgen.Levelgen
                         Code = b<8 ? b==0?2:3 : 7,
                         Connections = new CodeConnections(b < 8 ? b == 0 ? new int[] {0}:new int[] {7,3}: new int[] { 3 })
                     })
-                    .Subdivide(6, codeIdentifier)
+                    .Subdivide(5, codeIdentifier)
                     //.Subdivide(3)
                     .ForEach(x => new HexPayload(x.Payload)
                     {
@@ -95,11 +95,11 @@ namespace WanderingRoad.Procgen.Levelgen
                     ,
                         Height = RNG.NextFloat(30)
                     })
-                    .Subdivide(3, codeIdentifier)
-                    .ForEach(x => new HexPayload()
-                    {
-                        Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.3f, 0.3f) < 0.4 ? Color.black : Color.white
-                    });
+                    //.Subdivide(2, codeIdentifier)
+                    //.ForEach(x => new HexPayload()
+                    //{
+                    //    Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.0f, 0.0f) < 0.7 ? Color.black : Color.white
+                    //});
                     //.Subdivide(3)//.Subdivide(3);
                     //.ForEach(x => {
                     //    var a = x.Payload;
