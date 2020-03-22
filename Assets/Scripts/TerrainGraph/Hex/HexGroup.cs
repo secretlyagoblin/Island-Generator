@@ -29,7 +29,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             //
             for (int i = 0; i < neighbours.Length; i++)
             {
-                AddBorderHex(new Hex(new HexIndex(neighbours[i]),new HexPayload(),true), i);
+                AddBorderHex(new Hex(neighbours[i],new HexPayload(),true), i);
             }
         }
 
@@ -109,7 +109,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var key = hexDictEntry.Key + neighbours[i];
+                    var key = hexDictEntry.Key + neighbours[i].Index3d;
                     if (_border.ContainsKey(key))
                     {
                         hexes[i] = _border[key];
@@ -148,7 +148,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var key = hexDictEntry.Key + neighbours[i];
+                    var key = hexDictEntry.Key + neighbours[i].Index3d;
                     if (_border.ContainsKey(key))
                     {
                         borderOrNullCount++;
@@ -241,7 +241,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var key = hexDictEntry.Key + neighbours[i];
+                    var key = hexDictEntry.Key + neighbours[i].Index3d;
 
                     if (border.ContainsKey(key))
                     {
@@ -317,7 +317,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             foreach (var item in dict)
             {
-                var index2d = item.Value.Index.Index2d;
+                //var index2d = item.Value.Index.Index2d;
                 var center = item.Value.Index.Position3d;
                 var isOdd = item.Key.y % 2 != 0;
 
@@ -327,19 +327,19 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 {
                     var index = (count * 3 * 6) + (i * 3);
                     verts[index] = center + yHeight;
-                    verts[index + 1] = GetPointyCornerXZ(item.Value, i)+ yHeight;
-                    verts[index + 2] = GetPointyCornerXZ(item.Value, i+1) + yHeight;
+                    verts[index + 1] = GetPointyCornerXZ(center, i)+ yHeight;
+                    verts[index + 2] = GetPointyCornerXZ(center, i+1) + yHeight;
 
-                    if (isOdd)
-                    {
-                        verts[index].x += 0.5f;
-                        verts[index + 1].x += 0.5f;
-                        verts[index + 2].x += 0.5f;
-                    }
+                    //if (isOdd)
+                    //{
+                    //    verts[index].x += 0.5f;
+                    //    verts[index + 1].x += 0.5f;
+                    //    verts[index + 2].x += 0.5f;
+                    //}
 
-                    verts[index] = verts[index].AddNoiseOffset(1);
-                    verts[index + 1] = verts[index + 1].AddNoiseOffset(1);
-                    verts[index + 2] = verts[index + 2].AddNoiseOffset(1);
+                    verts[index] = verts[index].AddNoiseOffset(0.2f);
+                    verts[index + 1] = verts[index + 1].AddNoiseOffset(0.2f);
+                    verts[index + 2] = verts[index + 2].AddNoiseOffset(0.2f);
 
                     tris[index] = index;
                     tris[index + 1] = index + 1;
@@ -359,13 +359,12 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 colors = colors
             };
 
-            Vector3 GetPointyCornerXZ(Hex hex, int i)
+            Vector3 GetPointyCornerXZ(Vector3 vec, int i)
             {
-                var index2d = hex.Index.Index2d;
                 var angle_deg = 60f * i - 30f;
                 var angle_rad = Mathf.PI / 180f * angle_deg;
-                return new Vector3(index2d.x + Hex.HalfHex * Mathf.Cos(-angle_rad), 0,
-                             (index2d.y * Hex.ScaleY) + Hex.HalfHex * Mathf.Sin(-angle_rad));
+                return vec + new Vector3(Hex.HalfHex * Mathf.Cos(-angle_rad), 0,
+                             Hex.HalfHex * Mathf.Sin(-angle_rad));
             }
         }
 
@@ -389,40 +388,31 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return _inside.Select(x => x.Value).ToArray();
         }
 
-        private (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> zOffset)
+        public (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> zOffset)
         {
             var count = 0;
             var indexes = _inside.Values.Select(x => x.Index);
             var verts = indexes.ToDictionary(x => x.Index3d, x => { var i = count; count++; return i; });
             HashSet<Vector3Int> triangles = new HashSet<Vector3Int>();
 
+            var neighbourhood = Neighbourhood.StaticHexNeighbours;
+
             foreach (var index in indexes)
-            {
-                var neighbourhood = Neighbourhood.StaticHexNeighbours;
+            {               
 
                 for (int i = 0; i < neighbourhood.Length; i++)
                 {
-                    var index3d = index.Index3d;
-                    var n1 = index3d + neighbourhood[i];
-                    var n2 = index3d + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1]: neighbourhood[0]);
+                    var hexCenter = index;
+                    var hexN1 = hexCenter + neighbourhood[i];
+                    var hexN2 = hexCenter + (i < neighbourhood.Length - 1 ? neighbourhood[i + 1]: neighbourhood[0]);
 
-                    if(!(verts.ContainsKey(n1) && verts.ContainsKey(n2)))
+                    //Ditch if edge isn't in network
+                    if(!(verts.ContainsKey(hexN1.Index3d) && verts.ContainsKey(hexN2.Index3d)))
                         continue;
 
-                    var index2d = index.Index2d;
-                    var n12d = HexIndex.Get2dIndex(n1);
-                    var n22d = HexIndex.Get2dIndex(n2);
-
-                    //Determine triangle shape
-
-                    var threePoints = new Vector3Int[3];
-                    var indexIsOdd = index2d.y % 2 != 0;
-                    var n1IsOdd = n12d.y % 2 != 0;
-                    var n2IsOdd = n22d.y % 2 != 0;
-
-                    var testIndex = indexIsOdd? index2d.x+0.5f: index2d.x;
-                    var testn1 = n1IsOdd ? n12d.x + 0.5f : n12d.x;
-                    var testn2 = n2IsOdd ? n22d.x + 0.5f : n22d.x;
+                    var center = hexCenter.Position2d;
+                    var n1 = hexN1.Position2d;
+                    var n2 = hexN2.Position2d;
 
                     if (testIndex<testn1 && testIndex< testn2)
                     {

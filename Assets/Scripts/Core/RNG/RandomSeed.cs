@@ -70,16 +70,18 @@ namespace WanderingRoad.Core.Random
                 Mathf.Cos(result.Angle) * result.Distance * multiplier);
         }
 
-        public static Vector3 AddNoiseOffset(this Vector3 vec, int multiplier = 1)
+        public static Vector3 AddNoiseOffset(this Vector3 vec, float multiplier = 1)
         {
             var vector3 = vec;
 
             var result = RandomXY.GetOffset(vector3.x, vector3.z);
 
-            return new Vector3(
+            var offset = new Vector3(
                 Mathf.Sin(result.Angle) * result.Distance * multiplier,
                 0,
                 Mathf.Cos(result.Angle) * result.Distance * multiplier);
+
+            return vec + offset;
         }
 
 

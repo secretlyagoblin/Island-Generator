@@ -26,14 +26,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// <summary>
         /// The neighbourhood around a hex - currently hardcoded, and shouldn't be changed
         /// </summary>
-        public static readonly Vector3Int[] StaticHexNeighbours = new Vector3Int[]
+        public static readonly HexIndex[] StaticHexNeighbours = new HexIndex[]
         {
-            new Vector3Int(+1,-1,0),
-            new Vector3Int(+1,0,-1),
-            new Vector3Int(0,+1,-1),
-            new Vector3Int(-1,+1,0),
-            new Vector3Int(-1,0,+1),
-            new Vector3Int(0,-1,+1),
+            new HexIndex(+1,-1,0),
+            new HexIndex(+1,0,-1),
+            new HexIndex(0,+1,-1),
+            new HexIndex(-1,+1,0),
+            new HexIndex(-1,0,+1),
+            new HexIndex(0,-1,+1),
         };
 
         private static Dictionary<int, Vector3Int[]> _cachedRosettes = new Dictionary<int, Vector3Int[]>();
