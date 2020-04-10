@@ -82,10 +82,11 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
-                var splayer = layer1.Subdivide(7, codeIdentifier)//.Subdivide(4, codeIdentifier);//.Subdivide(3, codeIdentifier)
+                var splayer = layer1
+                    .Subdivide(7, codeIdentifier)
+                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector,true)
                     ;
-                   var graphe = splayer.ToGraph<HighLevelConnectivity>(codeIdentifier, connector);
-                graphe.DebugDraw(transform);
+
                    //var anotherLayer = splayer.MassUpdateHexes(graphe.Finalise(standardRemapper))                    
                    // .Subdivide(5, codeIdentifier)
                    // //.Subdivide(3)
@@ -111,7 +112,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     //.Subdivide();
                     ;
 
-                var mesh = splayer.ToMesh();
+                //var mesh = splayer.ToMesh();
                 //var (vertices, triangles) = splayer.ToNetwork(x => 0);
                 //
                 //var offset = 0.0f;
@@ -132,7 +133,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 
                 
                 
-                this.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
+                //this.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
 
 
 

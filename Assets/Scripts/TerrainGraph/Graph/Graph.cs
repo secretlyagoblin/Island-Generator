@@ -25,9 +25,10 @@ namespace WanderingRoad.Procgen.Topology
 
         }
 
-        public Graph<T> DebugDraw(Transform transform)
+        public Graph<T> DebugDraw()
         {
-            _smartMesh.DrawMesh(transform, Color.white * 0.5f, Color.blue);
+
+            _smartMesh.DrawMesh(Color.white * 0.5f, Color.blue,Matrix4x4.identity);
 
             return this;
         }

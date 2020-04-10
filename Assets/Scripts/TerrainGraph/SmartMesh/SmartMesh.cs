@@ -211,17 +211,17 @@ namespace WanderingRoad.Procgen.Meshes
 
     */ //Debug mesh
 
-        public void DrawMesh(Transform transform)
+        public void DrawMesh(Matrix4x4 transform)
         {
-            DrawMesh(transform, Color.red, Color.green);
+            DrawMesh(Color.red, Color.green, transform);
         }
 
-        public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor)
+        public void DrawMesh(Color graphColor, Color inverseGraphColor, Matrix4x4 transform)
         {
-            DrawMesh(transform, graphColor, inverseGraphColor, 0f);
+            DrawMesh(graphColor, inverseGraphColor, 0f, transform);
         }
 
-        public void DrawMesh(Transform transform, Color graphColor, Color inverseGraphColor, float time)
+        public void DrawMesh(Color graphColor, Color inverseGraphColor, float time, Matrix4x4 transform)
         {
             foreach (var cell in Cells)
             {
@@ -232,13 +232,13 @@ namespace WanderingRoad.Procgen.Meshes
                     float scale = 0.5f;
                     scaledVector = new Vector3(scaledVector.x * scale, scaledVector.y * scale, scaledVector.z * scale);
 
-                    Debug.DrawLine(transform.TransformPoint(cell.Center), transform.TransformPoint(scaledVector), inverseGraphColor, time);
+                    Debug.DrawLine(transform.MultiplyPoint(cell.Center), transform.MultiplyPoint(scaledVector), inverseGraphColor, time);
                 }
             }
 
             foreach (var line in Lines)
             {
-                Debug.DrawLine(transform.TransformPoint(line.Nodes[0].Vert), transform.TransformPoint(line.Nodes[1].Vert), graphColor, time);
+                Debug.DrawLine(transform.MultiplyPoint(line.Nodes[0].Vert), transform.MultiplyPoint(line.Nodes[1].Vert), graphColor, time);
             }
 
         }

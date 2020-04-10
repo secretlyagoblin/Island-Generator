@@ -95,7 +95,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     continue;
                 }
 
-                mesh.SetConnectivity(Levelgen.States.DikstraWithRooms);
+                mesh.SetConnectivity(Levelgen.States.DikstraWithRandomisation);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)
