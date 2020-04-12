@@ -83,31 +83,42 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var splayer = layer1
-                    .Subdivide(7, codeIdentifier)
-                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector,true)
-                    ;
+                    .Subdivide(1, codeIdentifier)
+                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector, false)
+                    .Subdivide(4, codeIdentifier)
+                    //.
+                    //.Subdivide(4, codeIdentifier)
+                    .ForEach(x => new HexPayload(x.Payload)
+                     {
+                         Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
+                    ,
+                         Height = RNG.NextFloat(30)
+                     })
+                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector, true)
 
-                   //var anotherLayer = splayer.MassUpdateHexes(graphe.Finalise(standardRemapper))                    
-                   // .Subdivide(5, codeIdentifier)
-                   // //.Subdivide(3)
-                   //.ForEach(x => new HexPayload(x.Payload)
-                   //{
-                   //    Color = Color.white//Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
-                   //,
-                   //    Height = RNG.NextFloat(30)
-                   //});
-                    //.Subdivide(2, codeIdentifier)
-                    //.ForEach(x => new HexPayload()
-                    //{
-                    //    Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.0f, 0.0f) < 0.7 ? Color.black : Color.white
-                    //});
-                    //.Subdivide(3)//.Subdivide(3);
-                    //.ForEach(x => {
-                    //    var a = x.Payload;
-                    //    a.Color = RNG.NextColor();
-                    //    return a;
-                    //}).Subdivide(3).Subdivide(1);
-                    ;
+                ;
+
+                //var anotherLayer = splayer.MassUpdateHexes(graphe.Finalise(standardRemapper))                    
+                // .Subdivide(5, codeIdentifier)
+                // //.Subdivide(3)
+                //.ForEach(x => new HexPayload(x.Payload)
+                //{
+                //    Color = Color.white//Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
+                //,
+                //    Height = RNG.NextFloat(30)
+                //});
+                //.Subdivide(2, codeIdentifier)
+                //.ForEach(x => new HexPayload()
+                //{
+                //    Color = x.Payload.Color.grayscale + RNG.NextFloat(-0.0f, 0.0f) < 0.7 ? Color.black : Color.white
+                //});
+                //.Subdivide(3)//.Subdivide(3);
+                //.ForEach(x => {
+                //    var a = x.Payload;
+                //    a.Color = RNG.NextColor();
+                //    return a;
+                //}).Subdivide(3).Subdivide(1);
+                ;
                     //.ForEach((x, i) => new HexPayload() { Code = 1, Height = 0, Color = Color.white })
                     //.Subdivide();
                     ;
