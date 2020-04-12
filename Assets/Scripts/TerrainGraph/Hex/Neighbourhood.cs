@@ -144,12 +144,10 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     var centerAIndex = HexIndex.HexIndexFromPosition(
                         Vector2.Lerp(debugHexPoints[i + 1], c2d, 0.5f));
 
-                    halfSegments[i] = new LineEdge
-                    {
-                        EdgeA = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, triangleAverages[i])),
-                        EdgeB = new List<HexIndex>(HexIndex.DrawLine(centerAIndex, triangleAverages[i + 1])),
-
-                    };
+                    halfSegments[i] = new LineEdge(                   
+                        HexIndex.DrawLine(centerAIndex, triangleAverages[i]),
+                        HexIndex.DrawLine(centerAIndex, triangleAverages[i + 1])
+                    );
                 }
 
                 var colour = RNG.NextColorBright();
@@ -246,7 +244,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return children.ToArray();
         }
 
-        Hex FinaliseHex(HexIndex hex, Vector3 weight, int index, bool isEdge)
+        Hex FinaliseHex(HexIndex hex, Vector3 weight, int index, Topology.Connection connection)
         {
             var isBorder = InterpolateIsBorder(weight, index);
 
@@ -254,7 +252,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             //Start here - CodeConnections status = check neighbourhood and give results
 
-            payload.ConnectionStatus = isEdge ? Topology.Connection.NotPresent : Topology.Connection.Present;
+            payload.ConnectionStatus = connection;
 
             //Debug.DrawLine(nestedCenter.Position3d, indexChildren[i].Position3d, Color.blue, 100f);
 
@@ -332,35 +330,46 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new Vector3(u, v, w);
         }
 
-        private static bool BorderContains(LineEdge[] set, HexIndex testIndex)
+        private static Topology.Connection BorderContains(LineEdge[] set, HexIndex testIndex)
         {
             for (int i = 0; i < set.Length; i++)
             {
                 if (set[i] == null)
                     continue;
 
-                for (int u = 0; u < set[i].EdgeA.Count; u++)
+                for (int u = 0; u < set[i].EdgeA.Length; u++)
                 {
                     if (set[i].EdgeA[u] == testIndex)
-                        return true;
+                        return set[i].EdgeAStatus[u];
                 }
 
-                for (int u = 0; u < set[i].EdgeB.Count; u++)
+                for (int u = 0; u < set[i].EdgeB.Length; u++)
                 {
                     if (set[i].EdgeB[u] == testIndex)
-                        return true;
+                        return set[i].EdgeBStatus[u];
                 }
             }
 
-            return false;
+            return Topology.Connection.Present;
         }
 
         private class LineEdge
         {
             private static float _jitter = 0f;
 
-            public List<HexIndex> EdgeA { get; set; }
-            public List<HexIndex> EdgeB { get; set; }
+            public HexIndex[] EdgeA { get; set; }
+            public Topology.Connection[] EdgeAStatus { get; }
+
+            public HexIndex[] EdgeB { get; set; }
+            public Topology.Connection[] EdgeBStatus { get; }
+
+            public LineEdge(HexIndex[] edgeA, HexIndex[] edgeB)
+            {
+                EdgeA = edgeA;
+                EdgeAStatus = new Topology.Connection[EdgeA.Length];
+                EdgeB = edgeB;
+                EdgeBStatus = new Topology.Connection[EdgeB.Length];
+            }
 
             public void DebugDraw(Color color)
             {
@@ -370,8 +379,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             public void RemoveCenterNode()
             {
-                EdgeA.RemoveAt(0);
-                EdgeB.RemoveAt(0);
+                EdgeAStatus[0] = Topology.Connection.Critical;
+                EdgeBStatus[0] = Topology.Connection.Critical;
             }
 
             public void ApplyEdgeConditions(bool left, bool thisEdge, bool right, bool leftLink, bool rightLink)
@@ -383,12 +392,18 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 if(left && leftLink && thisEdge)
                 {
-                    EdgeA.Clear();
+                    for (int i = 0; i < EdgeA.Length; i++)
+                    {
+                        EdgeAStatus[i] = Topology.Connection.Critical;
+                    }
                 }
 
                 if(right && rightLink && thisEdge)
                 {
-                    EdgeB.Clear();
+                    for (int i = 0; i < EdgeB.Length; i++)
+                    {
+                        EdgeBStatus[i] = Topology.Connection.Critical;
+                    }
                 }
             }
         }

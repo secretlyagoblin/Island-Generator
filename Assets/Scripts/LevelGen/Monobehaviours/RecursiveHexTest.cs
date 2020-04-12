@@ -90,7 +90,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     //.Subdivide(4, codeIdentifier)
                     .ForEach(x => new HexPayload(x.Payload)
                      {
-                         Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : Color.black//RNG.NextColorBright()
+                         Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.red:Color.black//RNG.NextColorBright()
                     ,
                          Height = RNG.NextFloat(30)
                      })
