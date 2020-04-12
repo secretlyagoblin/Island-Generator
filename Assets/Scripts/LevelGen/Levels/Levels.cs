@@ -133,7 +133,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 _nodeMetadata[i].Code = i + 1;
             }
 
-            _collection.Bridges.LeaveSingleRandomConnection();
+            //_collection.Bridges.LeaveSingleRandomConnection();
         }
     }
 

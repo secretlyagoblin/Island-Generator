@@ -126,6 +126,15 @@ public class SubMesh<T> where T:IGraphable {
             var a = identifier(nodeMetadata[line.Nodes[0].Index]);
             var b = identifier(nodeMetadata[line.Nodes[1].Index]);
 
+            var statusA = nodeMetadata[line.Nodes[0].Index].ConnectionStatus;
+            var statusB = nodeMetadata[line.Nodes[1].Index].ConnectionStatus;
+
+            if (statusA == Connection.NotPresent | statusB == Connection.NotPresent)
+                return false;
+
+            if (statusA != Connection.Critical && statusB != Connection.Critical)
+                return false;
+
             if (a == codeA && b == codeB)
                 return true;
 
@@ -154,7 +163,7 @@ public class SubMesh<T> where T:IGraphable {
             {
                 nodesA[i] = this.NodeMap[line.Nodes[1].Index];
                 nodesB[i] = mesh.NodeMap[line.Nodes[0].Index];
-            }
+            }            
         }
 
         return (lines, nodesA, nodesB);

@@ -150,7 +150,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     );
                 }
 
-                var colour = RNG.NextColorBright();
+                //var colour = RNG.NextColorBright();
                 //var colourOther = RNG.NextColorBright();
 
                 for (int i = 0; i < 6; i++)
@@ -160,7 +160,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                         var last = i - 1 < 0 ? 5 : i - 1;
                         var next = i + 1 > 5 ? 0 : i +1;
 
-                        halfSegments[i].DebugDraw(colour);
+                        //halfSegments[i].DebugDraw(colour);
                         halfSegments[i].ApplyEdgeConditions(
                             neighbourCodes[last],
                             neighbourCodes[i],
