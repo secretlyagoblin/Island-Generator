@@ -73,9 +73,9 @@ namespace WanderingRoad.Procgen.Levelgen
         }
     }
 
-    public class MinimalCorridorsAgain : HexGraph
+    public class TestBed : HexGraph
     {
-        public MinimalCorridorsAgain(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        public TestBed(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
         {
         }
 
@@ -91,7 +91,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     continue;
                 }
 
-                mesh.SetConnectivity(Levelgen.States.MinimalCorridor);
+                mesh.SetConnectivity(Levelgen.States.ConnectEverythingExceptEdges);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)
@@ -99,7 +99,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 _nodeMetadata[i].Code = i + 1;
             }
 
-            _collection.Bridges.LeaveSingleRandomConnection();
+            //_collection.Bridges.LeaveSingleRandomConnection();
         }
     }
 

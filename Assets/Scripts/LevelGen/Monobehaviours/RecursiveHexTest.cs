@@ -94,7 +94,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     ,
                          Height = RNG.NextFloat(30)
                      })
-                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector, true)
+                    .ApplyGraph<TestBed>(codeIdentifier, connector, true)
 
                 ;
 

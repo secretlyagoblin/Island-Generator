@@ -101,6 +101,77 @@ namespace WanderingRoad.Procgen.Levelgen
             };
         }
 
+        private static SmartNode LookupNode<T>(this int i, SubMesh<T> subMesh) where T:IGraphable
+        {
+            return subMesh.SourceMesh.Nodes[subMesh.Nodes[i]];
+        }
+
+        private static SmartLine LookupLine<T>(this int i, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.SourceMesh.Lines[subMesh.Lines[i]];
+        }
+
+        private static bool ReverseLookupIndex<T>(this SmartNode node, SubMesh<T> subMesh, out int index) where T : IGraphable
+        {
+            if (!subMesh.NodeMap.ContainsKey(node.Index))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = subMesh.NodeMap[node.Index];
+
+            return true;
+        }
+
+        private static bool ReverseLookupIndex<T>(this SmartLine line, SubMesh<T> subMesh, out int index) where T : IGraphable
+        {
+            if (!subMesh.LineMap.ContainsKey(line.Index))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = subMesh.LineMap[line.Index];
+
+            return true;
+        }
+
+
+        public static MeshState<Connection> ConnectEverythingExceptEdges<T>(SubMesh<T> subMesh) where T : IGraphable
+        {
+
+            var outNodes = new Connection[subMesh.Connectivity.Nodes.Length];
+            var outLines = Populate(subMesh.Connectivity.Lines.Length, Connection.Present);
+
+            for (int i = 0; i < outNodes.Length; i++)
+            {
+
+                outNodes[i] = subMesh.Connectivity.Nodes[i];
+
+                if (outNodes[i] != Connection.NotPresent)
+                    continue;
+
+                    var node = i.LookupNode(subMesh);
+
+                for (int u = 0; u < node.Lines.Count; u++)
+                {
+                    if(node.Lines[u].ReverseLookupIndex(subMesh, out var index))
+                    {
+                        outLines[index] = Connection.NotPresent;
+                    }
+                }
+            }
+
+
+
+            return new MeshState<Connection>()
+            {
+                Nodes = outNodes,
+                Lines = outLines
+            };
+        }
+
 
 
 
