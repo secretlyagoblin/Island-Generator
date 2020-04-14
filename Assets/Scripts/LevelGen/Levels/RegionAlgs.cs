@@ -5,6 +5,8 @@ using UnityEngine;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.Meshes;
 using WanderingRoad.Procgen.Topology;
+using System.Linq;
+using System;
 
 namespace WanderingRoad.Procgen.Levelgen
 {    
@@ -97,7 +99,7 @@ namespace WanderingRoad.Procgen.Levelgen
             return new MeshState<Connection>()
             {
                 Nodes = outNodes,
-                Lines = Populate(subMesh.Lines.Length, Connection.Present)  
+                Lines = CreateAndPopulateArray(subMesh.Lines.Length, Connection.Present)  
             };
         }
 
@@ -106,9 +108,20 @@ namespace WanderingRoad.Procgen.Levelgen
             return subMesh.SourceMesh.Nodes[subMesh.Nodes[i]];
         }
 
+
         private static SmartLine LookupLine<T>(this int i, SubMesh<T> subMesh) where T : IGraphable
         {
             return subMesh.SourceMesh.Lines[subMesh.Lines[i]];
+        }
+
+        private static int ReverseLookupIndexUnsafe<T>(this SmartNode node, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.NodeMap[node.Index];
+        }
+
+        private static int ReverseLookupIndexUnsafe<T>(this SmartLine node, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.LineMap[node.Index];
         }
 
         private static bool ReverseLookupIndex<T>(this SmartNode node, SubMesh<T> subMesh, out int index) where T : IGraphable
@@ -142,7 +155,7 @@ namespace WanderingRoad.Procgen.Levelgen
         {
 
             var outNodes = new Connection[subMesh.Connectivity.Nodes.Length];
-            var outLines = Populate(subMesh.Connectivity.Lines.Length, Connection.Present);
+            var outLines = CreateAndPopulateArray(subMesh.Connectivity.Lines.Length, Connection.Present);
 
             for (int i = 0; i < outNodes.Length; i++)
             {
@@ -395,8 +408,8 @@ namespace WanderingRoad.Procgen.Levelgen
         {
             return new MeshState<Connection>()
             {
-                Nodes = Populate(subMesh.Nodes.Length, Connection.NotPresent),
-                Lines = Populate(subMesh.Lines.Length, Connection.NotPresent)
+                Nodes = CreateAndPopulateArray(subMesh.Nodes.Length, Connection.NotPresent),
+                Lines = CreateAndPopulateArray(subMesh.Lines.Length, Connection.NotPresent)
             };
         }
 
@@ -415,18 +428,27 @@ namespace WanderingRoad.Procgen.Levelgen
                 lineLengthRandomiser[i] = RNG.NextFloat(lineLengthMultiplierMin, lineLengthMultiplierMax);
             }
 
+            var counter = -1;
+
+            var firstIndex = subMesh.Nodes.First(x => {
+                counter++;
+                return subMesh.Connectivity.Nodes[counter] != Connection.NotPresent;
+                });
+
             var isPartOfCurrentSortingEvent = new bool[nodes.Length];
             var visitedNodesList = new List<SmartNode>();
-            var firstNode = mesh.Nodes[nodes[0]];
-            var visitedNodes = new Connection[nodes.Length];
-            var visitedLines = new Connection[lines.Length];
+
+
+            var firstNode = mesh.Nodes[firstIndex];
+            var visitedNodes = CreateAndPopulateArray(nodes.Length,Connection.NotPresent);
+            var visitedLines = CreateAndPopulateArray(lines.Length,Connection.NotPresent);
             var visitedLinesIteration = new int[lines.Length];
             visitedNodesList.Add(firstNode);
             visitedNodes[subMesh.NodeMap[firstNode.Index]] = Connection.Present;
-            var outputLines = new List<SmartLine>();
+            var outputLines = new List<SmartLine>(firstNode.Lines); //hacky
             var iteration = 0;
 
-            while (visitedNodesList.Count < nodes.Length)
+            while (outputLines.Count > 0)
             {
                 outputLines.Clear();
                 iteration++;
@@ -437,13 +459,16 @@ namespace WanderingRoad.Procgen.Levelgen
 
                     for (int u = 0; u < n.Lines.Count; u++)
                     {
-                        if (!subMesh.LineMap.ContainsKey(n.Lines[u].Index))
+                        var currentLine = n.Lines[u];
+                        if (!subMesh.LineMap.ContainsKey(currentLine.Index))
                             continue;
 
-                        var lineIndex = subMesh.LineMap[n.Lines[u].Index];
+                        var lineIndex = subMesh.LineMap[currentLine.Index];
 
                         if (visitedLines[lineIndex] == Connection.NotPresent &&
-                            visitedLinesIteration[lineIndex] != iteration)
+                            visitedLinesIteration[lineIndex] != iteration &&
+                            subMesh.Connectivity.Lines[currentLine.ReverseLookupIndexUnsafe(subMesh)] != Connection.NotPresent) 
+
                         {
                             outputLines.Add(n.Lines[u]);
                             visitedLinesIteration[lineIndex] = iteration;
@@ -469,13 +494,17 @@ namespace WanderingRoad.Procgen.Levelgen
                     length = line.Length * randomMultiplier;
                     bestLine = line;
                 }
+
+                if (bestLine == null)
+                    break;
+
                 try
                 {
                     isPartOfCurrentSortingEvent[subMesh.NodeMap[bestLine.Nodes[0].Index]] = true;
                 }
-                catch
+                catch(Exception ex)
                 {
-                    Debug.Log("Whey");
+                    throw new System.Exception("Dikstra Failed. Ensure that there are connected lines and nodes in the graph you are manipulating.",ex);
                 }
 
                 isPartOfCurrentSortingEvent[subMesh.NodeMap[bestLine.Nodes[1].Index]] = true;
@@ -494,13 +523,8 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var meshState = new MeshState<Connection>
             {
-                Nodes = new Connection[nodes.Length]
+                Nodes = subMesh.Connectivity.Nodes.Clone() as Connection[]
             };
-
-            for (int i = 0; i < meshState.Nodes.Length; i++)
-            {
-                meshState.Nodes[i] = Connection.Present;
-            }
 
             meshState.Lines = visitedLines;
 
@@ -692,7 +716,7 @@ namespace WanderingRoad.Procgen.Levelgen
             return false;
         }
 
-        private static T[] Populate<T>(int length, T value)
+        private static T[] CreateAndPopulateArray<T>(int length, T value)
         {
             var array = new T[length];
 

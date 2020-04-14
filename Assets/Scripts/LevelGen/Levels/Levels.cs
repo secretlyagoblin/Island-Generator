@@ -92,6 +92,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 }
 
                 mesh.SetConnectivity(Levelgen.States.ConnectEverythingExceptEdges);
+                mesh.SetConnectivity(Levelgen.States.DikstraWithRandomisation);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)
@@ -125,6 +126,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     continue;
                 }
 
+                mesh.SetConnectivity(Levelgen.States.ConnectEverything);
                 mesh.SetConnectivity(Levelgen.States.SummedDikstra);
             }
 
