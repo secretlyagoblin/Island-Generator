@@ -92,7 +92,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 }
 
                 mesh.SetConnectivity(Levelgen.States.ConnectEverythingExceptEdges);
-                mesh.SetConnectivity(Levelgen.States.SummedDikstra);
+                mesh.SetConnectivity(Levelgen.States.SummedDikstraRemoveDeadEnds);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)

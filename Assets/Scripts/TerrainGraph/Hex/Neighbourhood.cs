@@ -209,7 +209,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             var children = new List<Hex>
             {
-                FinaliseHex(nestedCenter,weight,index,BorderContains(halfSegments,nestedCenter))
+                
+                FinaliseHex(nestedCenter,weight,index,this.Center.Payload.Connections.Count == 0? Topology.Connection.NotPresent:BorderContains(halfSegments,nestedCenter))
             };
 
             var ringHasValidHexIndices = true;
@@ -228,7 +229,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                     {
                         foundChild = true;
                         children.Add(
-                            FinaliseHex(testCenter, weight, index, BorderContains(halfSegments, testCenter))
+                            FinaliseHex(testCenter, weight, index, this.Center.Payload.Connections.Count == 0 ? Topology.Connection.NotPresent : BorderContains(halfSegments, testCenter))
                         );
                     }
                 }
@@ -240,6 +241,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
                 radius++;
             }
+
+            //if(this.Center.Payload.Connections.Count == 0)
+            //{
+            //    children.ForEach(x => x.Payload.ConnectionStatus = Topology.Connection.NotPresent);
+            //}
 
             return children.ToArray();
         }

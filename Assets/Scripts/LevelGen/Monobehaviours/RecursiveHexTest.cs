@@ -88,13 +88,21 @@ namespace WanderingRoad.Procgen.Levelgen
                     .Subdivide(4, codeIdentifier)
                     //.
                     //.Subdivide(4, codeIdentifier)
-                    .ForEach(x => new HexPayload(x.Payload)
-                    {
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.green : Color.black//RNG.NextColorBright()
+                    //.ForEach(x => new HexPayload(x.Payload)
+                    // {
+                    //     Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.green:Color.black//RNG.NextColorBright()
+                    //,
+                    //     Height = RNG.NextFloat(30)
+                    // })
+                    .ApplyGraph<TestBed>(codeIdentifier, connector, false)
+                    .Subdivide(3, codeIdentifier)
+                    .Subdivide(4, codeIdentifier)
+                                    .ForEach(x => new HexPayload(x.Payload)
+                                     {
+                                         Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black//RNG.NextColorBright()
                     ,
-                        Height = RNG.NextFloat(30)
-                    })
-                    .ApplyGraph<TestBed>(codeIdentifier, connector, false);
+                                         Height = RNG.NextFloat(30)
+                                     })
 
                 ;
 

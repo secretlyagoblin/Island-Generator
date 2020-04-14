@@ -55,7 +55,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
         public static MeshState<Connection> SummedDikstraRemoveDeadEnds<T>(SubMesh<T> subMesh) where T : IGraphable
         {
-            var one = DikstraWithRandomisation(subMesh);
+            var one = SummedDikstra(subMesh);
 
             var cleaned = RecursivelyRemoveDeadEnds(subMesh, one);
             //var finalided = RemoveShortCliffs(subMesh, cleaned);
