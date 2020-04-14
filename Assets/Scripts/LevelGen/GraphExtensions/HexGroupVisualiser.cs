@@ -18,7 +18,7 @@ public class HexGroupVisualiser
                 .Select(x => x.ToArray())
                 .ToArray();
             var matricesAndColours = groups
-                .Select(x => (x.First().Payload.Color, x.Select(y => Matrix4x4.Translate(y.Index.Position3d)).ToArray())).ToArray();
+                .Select(x => (x.First().Payload.Color, x.Select(y => Matrix4x4.Translate(y.Index.Position3d-(Vector3.up*2))).ToArray())).ToArray();
 
 
             _renderData = matricesAndColours;

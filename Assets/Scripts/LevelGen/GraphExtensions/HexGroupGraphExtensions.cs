@@ -16,7 +16,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
             if (debugDraw)
             {
-                graph.DebugDrawSubmeshConnectivity(Color.red);
+                graph.DebugDrawSubmeshConnectivity(Color.blue) ;
             }
 
             return hexgroup.MassUpdateHexes(payloads);

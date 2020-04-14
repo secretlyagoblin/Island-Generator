@@ -53,7 +53,7 @@ namespace WanderingRoad.Procgen.Topology
 
                     for (int u = 0; u < bridge.Lines.Length; u++)
                     {
-                        this._smartMesh.Lines[bridge.Lines[u]].DebugDraw(shiftedColor, 100f);
+                        //this._smartMesh.Lines[bridge.Lines[u]].DebugDraw(shiftedColor, 100f);
                     }
                 });
             }

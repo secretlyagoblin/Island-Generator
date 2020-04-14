@@ -55,7 +55,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
         public static MeshState<Connection> SummedDikstraRemoveDeadEnds<T>(SubMesh<T> subMesh) where T : IGraphable
         {
-            var one = SummedDikstra(subMesh);
+            var one = DikstraWithRandomisation(subMesh);
 
             var cleaned = RecursivelyRemoveDeadEnds(subMesh, one);
             //var finalided = RemoveShortCliffs(subMesh, cleaned);
@@ -544,7 +544,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    if (NodeAtIndexConnectsToOtherSubMesh(subMesh, i))
+                    if (subMesh.Connectivity.Nodes[i] == Connection.Critical)
                         goto skip;
 
                     var node = mesh.Nodes[nodes[i]];
@@ -560,7 +560,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
                         var testIndex = subMesh.LineMap[node.Lines[u].Index];
 
-                        if (startState.Lines[testIndex] == Connection.Present)
+                        if (startState.Lines[testIndex] != Connection.NotPresent)
                         {
                             lastTrueLine = node.Lines[u].Index;
                             lastIndex = testIndex;
