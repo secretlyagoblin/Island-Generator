@@ -83,9 +83,9 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var splayer = layer1
-                    .Subdivide(4, regionIdentifier)
-                    .ApplyGraph<HighLevelConnectivity>(HexGroupGraphExtensions.GraphLevel.Region)
-                    .Subdivide(8, regionIdentifier)
+                    .Subdivide(4, codeIdentifier)
+                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier,connector)
+                    .Subdivide(8, codeIdentifier)
                     //.
                     //.Subdivide(4, codeIdentifier)
                     //.ForEach(x => new HexPayload(x.Payload)
@@ -94,7 +94,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     //,
                     //     Height = RNG.NextFloat(30)
                     // })
-                    .ApplyGraph<TestBed>(HexGroupGraphExtensions.GraphLevel.Code, true)
+                    .ApplyGraph<TestBed>(codeIdentifier, connector,true)
                     .Subdivide(2, codeIdentifier)
                     //.Subdivide(4, codeIdentifier)
                     .ForEach(x => new HexPayload(x.Payload)
