@@ -17,12 +17,12 @@ namespace WanderingRoad.Procgen.Levelgen
 
         public bool Preview = true;
 
-        private HexGroupVisualiser _gizmosHexGroup;// = new HexGroupVisualiser(PreviewMesh,)
+        private List<HexGroupVisualiser> _gizmosHexGroups;// = new HexGroupVisualiser(PreviewMesh,)
 
         // Start is called before the first frame update
         void Start()
         {
-            _gizmosHexGroup = new HexGroupVisualiser(PreviewMesh);
+            _gizmosHexGroups = new List<HexGroupVisualiser>() { };//HexGroupVisualiser(PreviewMesh);
 
             //RNG.Init("I'd kill fill zill");
             RNG.Init("3/15/2020 5:58:48 PM");
@@ -31,6 +31,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var regionIdentifier = new Func<HexPayload, int>(x => x.Region);
             var codeIdentifier = new Func<HexPayload, int>(x => x.Code);
+            var interiorExterior = new Func<HexPayload, int>(x => x.ConnectionStatus == Connection.NotPresent? 1:2);
             var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
 
             var setRegionRemapper = new Func<HexPayload, Connection, int[], HexPayload>((x, nodeStatus, connections) =>
@@ -82,27 +83,60 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
-                var splayer = layer1
+                //var splayers = new List<HexGroup>(){layer1
+                //    .Subdivide(4, codeIdentifier)
+                //    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector)
+                //    .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
+                //    .Subdivide(8, codeIdentifier)
+                //        .ApplyGraph<TestBed>(codeIdentifier, connector, true)
+                //    //.Subdivide(2, codeIdentifier)
+                //};
+
+
+
+                var splayers = layer1
                     .Subdivide(4, codeIdentifier)
-                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier,connector)
+                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector)
+                    .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
                     .Subdivide(8, codeIdentifier)
-                    //.
-                    //.Subdivide(4, codeIdentifier)
-                    //.ForEach(x => new HexPayload(x.Payload)
-                    // {
-                    //     Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.green:Color.black//RNG.NextColorBright()
-                    //,
-                    //     Height = RNG.NextFloat(30)
-                    // })
-                    .ApplyGraph<TestBed>(codeIdentifier, connector,true)
-                    .Subdivide(2, codeIdentifier)
-                    //.Subdivide(4, codeIdentifier)
-                    .ForEach(x => new HexPayload(x.Payload)
-                                     {
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black//RNG.NextColorBright()
-                    ,
-                                         Height = RNG.NextFloat(30)
-                                     })
+                    .ApplyGraph<TestBed>(codeIdentifier, connector, false)
+                    .ApplyGraph<ApplyBounds>(interiorExterior, connector, true)
+                    .GetSubGroups(x => x.Payload.Region)
+                    .Select(x => x
+                        
+                        //.Subdivide(3, codeIdentifier)
+                        //.Subdivide(2, codeIdentifier)
+                        );
+
+                foreach (var layer in splayers)
+                {
+                    var group = new HexGroupVisualiser(PreviewMesh);
+
+                    var randomColor = RNG.NextColorBright();
+                    var randomColorDark = RNG.NextColorDark();
+
+                    layer.ForEach(x => new HexPayload(x.Payload)
+                    {
+                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
+                    });
+
+
+                    group.HexGroup = layer;
+
+                    _gizmosHexGroups.Add(group);
+                }
+
+
+
+
+                   //.Subdivide(2, codeIdentifier)
+                   ////.Subdivide(4, codeIdentifier)
+                   //.ForEach(x => new HexPayload(x.Payload)
+                   //                 {
+                   //    Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black//RNG.NextColorBright()
+                   //,
+                   //                     Height = RNG.NextFloat(30)
+                   //                 })
 
                 ;
 
@@ -159,7 +193,6 @@ namespace WanderingRoad.Procgen.Levelgen
                 //needs refactoring
                 //layerfruu.
                 //layerfruu.ToGameObjects(Prefab);
-                _gizmosHexGroup.HexGroup = splayer;
                 //layerfruu.ToGameObjectsBorder(BorderPrefab);
 
                 //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
@@ -171,9 +204,10 @@ namespace WanderingRoad.Procgen.Levelgen
 
         private void OnDrawGizmos()
         {
-            if (_gizmosHexGroup == null)
-                return;
-
+            for (int i = 0; i < _gizmosHexGroups.Count; i++)
+            {
+                _gizmosHexGroups[i].DrawGizmos();
+            }
             //_gizmosHexGroup.DrawGizmos();
         }
 
@@ -201,7 +235,10 @@ namespace WanderingRoad.Procgen.Levelgen
         {
             if (Preview)
             {
-                this._gizmosHexGroup.DrawMeshes();
+                for (int i = 0; i < _gizmosHexGroups.Count; i++)
+                {
+                    _gizmosHexGroups[i].DrawMeshes();
+                }
             }
             
             //this.transform.Rotate(Vector3.up, 5f * Time.deltaTime);

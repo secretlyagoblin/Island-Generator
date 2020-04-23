@@ -10,7 +10,7 @@ using System;
 
 namespace WanderingRoad.Procgen.Levelgen
 {    
-    public static class States
+    public static class Connectivity
     {
         public static MeshState<Connection> DikstraWithRandomisation<T>(SubMesh<T> subMesh) where T:IGraphable
         {
@@ -176,6 +176,39 @@ namespace WanderingRoad.Procgen.Levelgen
                 }
             }
 
+
+
+            return new MeshState<Connection>()
+            {
+                Nodes = outNodes,
+                Lines = outLines
+            };
+        }
+
+        public static MeshState<Connection> ConnectOnlyEdges<T>(SubMesh<T> subMesh) where T : IGraphable
+        {
+
+            var outNodes = new Connection[subMesh.Connectivity.Nodes.Length];
+            var outLines = CreateAndPopulateArray(subMesh.Connectivity.Lines.Length, Connection.Present);
+
+            for (int i = 0; i < outNodes.Length; i++)
+            {
+
+                outNodes[i] = subMesh.Connectivity.Nodes[i];
+
+                if (outNodes[i] == Connection.NotPresent)
+                    continue;
+
+                var node = i.LookupNode(subMesh);
+
+                for (int u = 0; u < node.Lines.Count; u++)
+                {
+                    if (node.Lines[u].ReverseLookupIndex(subMesh, out var index))
+                    {
+                        outLines[index] = Connection.NotPresent;
+                    }
+                }
+            }
 
 
             return new MeshState<Connection>()
@@ -738,6 +771,77 @@ namespace WanderingRoad.Procgen.Levelgen
         }
 
 
+    }
+
+    public static class Height
+    {
+        public static MeshState<int> GetDistanceFromEdge<T>(SubMesh<T> subMesh, int iterations) where T : IGraphable
+        {
+            var nodes = subMesh.Nodes;
+            var lines = subMesh.Lines;
+            var mesh = subMesh.SourceMesh;
+
+            var state = new MeshState<int>();
+            state.Nodes = new int[nodes.Length];
+            state.Lines = new int[lines.Length];
+
+                for (int i = 0; i < nodes.Length; i++)
+                {
+
+                    var node = i.LookupNode(subMesh);
+
+                    for (int u = 0; u < node.Lines.Count; u++)
+                    {
+                        var testLine = node.Lines[u];
+
+                        if (!subMesh.LineMap.ContainsKey(testLine.Index))
+                            continue;
+
+                        var testIndex = subMesh.LineMap[testLine.Index];
+
+                        if (subMesh.Connectivity.Lines[testIndex] == Connection.NotPresent)
+                        {
+                            state.Nodes[i] = 1;
+                        goto skip;
+                        }
+                    }
+
+                skip:
+                    continue;
+                }
+
+            for (int u = 0; u < iterations-1; u++)
+            {
+
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    if (state.Nodes[i] > 0)
+                        continue;
+
+                    var node = i.LookupNode(subMesh);
+
+                    for (int v = 0; v < node.Lines.Count; v++)
+                    {
+                        var testLine = node.Lines[v];
+
+                        if (!subMesh.LineMap.ContainsKey(testLine.Index))
+                            continue;
+
+                        var testIndex = subMesh.LineMap[testLine.Index];
+
+                        if (subMesh.Connectivity.Lines[testIndex] == Connection.Present)
+                        {
+                            testLine
+                            state.Nodes[i] = 1;
+                            goto skip;
+                        }
+                    }
+
+                skip:
+                    continue;
+                }
+            }
+        }
     }
 
 
