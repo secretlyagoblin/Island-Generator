@@ -14,7 +14,7 @@ namespace WanderingRoad.Procgen.Levelgen
     {
         public static MeshState<Connection> DikstraWithRandomisation<T>(SubMesh<T> subMesh) where T:IGraphable
         {
-            var dik = Dikstra(subMesh, 0.8f, 1.2f);
+            var dik = Dikstra(subMesh, 0.3f, 1.7f);
 
             return dik;
         }
@@ -547,7 +547,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     if (subMesh.Connectivity.Nodes[i] == Connection.Critical)
                         goto skip;
 
-                    var node = mesh.Nodes[nodes[i]];
+                    var node = i.LookupNode(subMesh);
 
                     var connectionsCount = 0;
                     var lastTrueLine = -1;
@@ -555,14 +555,16 @@ namespace WanderingRoad.Procgen.Levelgen
 
                     for (int u = 0; u < node.Lines.Count; u++)
                     {
-                        if (!subMesh.LineMap.ContainsKey(node.Lines[u].Index))
+                        var testLine = node.Lines[u];
+
+                        if (!subMesh.LineMap.ContainsKey(testLine.Index))
                             continue;
 
-                        var testIndex = subMesh.LineMap[node.Lines[u].Index];
+                        var testIndex = subMesh.LineMap[testLine.Index];
 
                         if (startState.Lines[testIndex] != Connection.NotPresent)
                         {
-                            lastTrueLine = node.Lines[u].Index;
+                            lastTrueLine = testLine.Index;
                             lastIndex = testIndex;
                             connectionsCount++;
                             //mesh.Lines[lastTrueLine].DebugDraw(Color.magenta, 3);
@@ -571,6 +573,13 @@ namespace WanderingRoad.Procgen.Levelgen
 
                     if (connectionsCount == 1)
                     {
+                        var otherNode = subMesh.SourceMesh.Lines[lastTrueLine].GetOtherNode(node);
+
+                        if (otherNode.ReverseLookupIndex(subMesh, out var otherIndex))
+                        {
+                            if (startState.Nodes[otherIndex] == Connection.Critical)
+                                continue;
+                        }
 
                         endState.Nodes[i] = Connection.NotPresent;
                         endState.Lines[lastIndex] = Connection.NotPresent;

@@ -25,11 +25,11 @@ namespace WanderingRoad.Procgen.Levelgen
             _gizmosHexGroup = new HexGroupVisualiser(PreviewMesh);
 
             //RNG.Init("I'd kill fill zill");
-            //RNG.Init("3/15/2020 5:58:48 PM");
-            RNG.DateTimeInit();
+            RNG.Init("3/15/2020 5:58:48 PM");
+            //RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
-
+            var regionIdentifier = new Func<HexPayload, int>(x => x.Region);
             var codeIdentifier = new Func<HexPayload, int>(x => x.Code);
             var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
 
@@ -83,9 +83,9 @@ namespace WanderingRoad.Procgen.Levelgen
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
                 var splayer = layer1
-                    .Subdivide(1, codeIdentifier)
-                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector, false)
-                    .Subdivide(4, codeIdentifier)
+                    .Subdivide(4, regionIdentifier)
+                    .ApplyGraph<HighLevelConnectivity>(HexGroupGraphExtensions.GraphLevel.Region)
+                    .Subdivide(8, regionIdentifier)
                     //.
                     //.Subdivide(4, codeIdentifier)
                     //.ForEach(x => new HexPayload(x.Payload)
@@ -94,12 +94,12 @@ namespace WanderingRoad.Procgen.Levelgen
                     //,
                     //     Height = RNG.NextFloat(30)
                     // })
-                    .ApplyGraph<TestBed>(codeIdentifier, connector, false)
-                    .Subdivide(3, codeIdentifier)
-                    .Subdivide(4, codeIdentifier)
-                                    .ForEach(x => new HexPayload(x.Payload)
+                    .ApplyGraph<TestBed>(HexGroupGraphExtensions.GraphLevel.Code, true)
+                    .Subdivide(2, codeIdentifier)
+                    //.Subdivide(4, codeIdentifier)
+                    .ForEach(x => new HexPayload(x.Payload)
                                      {
-                                         Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black//RNG.NextColorBright()
+                        Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black//RNG.NextColorBright()
                     ,
                                          Height = RNG.NextFloat(30)
                                      })
@@ -166,209 +166,6 @@ namespace WanderingRoad.Procgen.Levelgen
             }
 
             return;
-
-            var graff = layer2.ToGraph<Levelgen.SingleConnectionGraph>(codeIdentifier, connector);
-
-            layer2.MassUpdateHexes(
-                graff
-                .Finalise(setRegionRemapper));
-
-            //graff.DebugDrawSubmeshConnectivity(Color.red);
-            //
-            //layer2.ToGameObjects(Prefab);
-            //
-            //return;
-
-
-
-            var groups = Enumerable.Range(1, 7);
-            //var groups = new List<int>() { 1, 3 };
-
-            var layer3 = layer2.GetSubGroup(x => groups.Contains(x.Payload.Code)).Subdivide(3, codeIdentifier).Subdivide(3, codeIdentifier);
-
-
-
-            var graph3 = layer3.ToGraph<Levelgen.SingleConnectionGraph>(codeIdentifier, connector);
-            layer3.MassUpdateHexes(graph3.Finalise(standardRemapper));
-            //graph3.DebugDrawSubmeshConnectivity(colours[0]);
-            //layer3.ToGameObjects(Prefab);
-
-            //return;
-
-            //var layer4 = layer3.Subdivide().Subdivide();
-
-            //var graph4 = layer4.ToGraph<Levels.SingleConnectionGraph>(identifier, connector);
-            //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
-            //graph4.DebugDrawSubmeshConnectivity(colours[0]);
-            //layer4.ToGameObjects(Prefab);
-            //
-            //return;
-
-            // var layer4 = layer3.Subdivide();
-            //layer4.ToGameObjects(Prefab);
-            //var graph4 = layer4.ToGraph<Levels.NoBehaviour>(identifier, connector);
-            //layer4.MassUpdateHexes(graph4.Finalise(standardRemapper));
-
-            //return;
-
-
-            var subGraphs = layer3.GetSubGroups(x => x.Payload.Region);
-
-            var iterator = -1;
-            subGraphs.ForEach(x =>
-            {
-                Debug.Log($"Iteration {iterator}");
-
-                iterator++;
-
-                var obj = x.Subdivide(3, codeIdentifier);//.Subdivide();
-            //obj.ToGameObjects(Prefab);
-                return;
-
-                var color = RNG.NextColor();
-
-                var finalLayer = obj.ToGraph<Levelgen.ConnectEverything>(u => u.Code, connector);
-                var nodes = finalLayer.Finalise(standardRemapper);
-                obj.MassUpdateHexes(nodes);
-                //obj.ToGameObjects(Prefab);
-
-
-            //obj.GetSubGroups(y => y.Payload.Code).ForEach(y => {
-            //
-            //    var next = y.Subdivide();
-            //
-            //    Color.RGBToHSV(color, out var h, out var s, out var v);
-            //    var shiftedColor = Color.HSVToRGB(h + RNG.NextFloat(-0.1f, 0.1f), 1, 0.8f);
-            //
-            //    var matt = new Material(Prefab.GetComponent<MeshRenderer>().sharedMaterial);
-            //    matt.color = shiftedColor;
-            //
-            //    var gobject = new GameObject();
-            //    gobject.AddComponent<MeshFilter>().sharedMesh = next.ToMesh();
-            //    gobject.AddComponent<MeshRenderer>().sharedMaterial = matt;
-            //
-            //
-            //});
-
-
-            //obj.ToGameObjects(Prefab);
-            //finalLayer.DebugDrawSubmeshConnectivity(colours[iterator]);
-
-
-        });
-
-            //var layer4 = layer3.Subdivide().ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(Color.white);
-
-            // return;
-            //
-            // for (int i = 1; i < 8; i++)
-            // {
-            //     var layer = layer2.GetSubGroup(x => x.Payload.Code == i).Subdivide();
-            //     var innerGraph = layer.ToGraph<Levels.HighLevelConnectivity>(identifier, connector);
-            //
-            //     //innerGraph.DebugDrawSubmeshConnectivity(colours[i]);
-            //
-            //     var bersults = innerGraph.Finalise( (x, connections) => {
-            //         var done = x;
-            //         done.Connections = new CodeConnections(connections);
-            //         return done;
-            //     });
-            //
-            //     layer.MassUpdateHexes(bersults);
-            //
-            //     var mesh = layer.Subdivide();
-            //
-            //     mesh.ToGraph<Levels.NoBehaviour>(identifier, connector).DebugDrawSubmeshConnectivity(colours[i]);
-            //
-            //     Finalise(mesh);
-            // }
-            //
-            // return;
-
-            //layer2.ToGameObjects(Prefab);
-            //layer2.ToGameObjectsBorder(BorderPrefab);
-
-            //var identifier = new Func<HexPayload, int>(x => x.Code);
-            //var connector = new Func<HexPayload, int[]>(x => x.Connections.ToArray());
-
-            //var graph = layer2
-            //    .ToGraph(
-            //        identifier,
-            //        connector)
-            //    .ApplyBlueprint(HighLevelConnectivity.CreateSingleRegion);
-            //    //.DebugDrawSubmeshConnectivity(transform);
-            //
-            //var results = graph.Finally((x,connections) => {
-            //    var done = x;
-            //    done.Connections = new CodeConnections(connections);
-            //    return done;
-            //});
-            //
-            //layer2.MassUpdateHexes(results);
-            //
-            //var layer3 = layer2
-            //    .Subdivide();
-            //
-            //
-            //var graph2 = layer3.ToGraph(identifier, connector)
-            //    //.DebugDraw(this.transform)
-            //    .DebugDrawSubmeshConnectivity(colours[0]);
-
-
-
-
-            //var layer2 = layer1.Subdivide()//.Subdivide()//.Subdivide();
-            //    .ForEach((x, i) => new HexPayload()
-            //    {
-            //        Height = RNG.NextFloat(0, 5),
-            //        Color = RNG.NextColor(),
-            //        //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //        Code = i
-            //    }).Subdivide()
-            //                .ForEach((x, i) => new HexPayload()
-            //                {
-            //                    Height = x.Payload.Height + RNG.NextFloat(-1, 1),
-            //                    Color = x.Payload.Color,
-            //                    //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //                    Code = i
-            //                }).Subdivide()
-            //                                       .ForEach((x, i) => new HexPayload()
-            //                                       {
-            //                                           Height = x.Payload.Height + RNG.NextFloat(-0.25f, 0.25f),
-            //                                           Color = x.Payload.Color,
-            //                                           //Color = x.Index == Vector2Int.zero ? Color.white:Color.black,
-            //                                           Code = i
-            //                                       }).Subdivide();
-            ;
-
-
-
-            //var layer3 = layer2.Subdivide().Subdivide()//.Subdivide()//.Subdivide()
-            //    .ForEach(x => new HexPayload()
-            //    {
-            //        Height = 0f,
-            //        //Color = x.Payload.Color,
-            //        Color = x.IsBorder?Color.black:colours[x.Payload.Code],
-            //        Code = x.Payload.Code
-            //    });
-            //    ;
-
-            //this.StartCoroutine(FinaliseHexgroup(
-            //    layer3.GetSubGroups(x => x.Payload.Code),
-            //    x => Finalise(x.Subdivide()))
-            //    );
-
-            //layer3.GetSubGroups(x => x.Payload.Code).ForEach(x=> Finalise(x.Subdivide().Subdivide()));
-
-            //.Subdivide();
-            //.Subdivide().Subdivide().Subdivide()//.Subdivide().Subdivide();
-            ;
-
-            //layer2.ToGameObjects(Prefab);
-            //Finalise(layer2);
-            //layer3.ToGameObjectsBorder(BorderPrefab);
-            //
-            //this.gameObject.GetComponent<MeshFilter>().sharedMesh = subgroup.ToMesh();//(x => x.Payload.Height);
 
         }
 

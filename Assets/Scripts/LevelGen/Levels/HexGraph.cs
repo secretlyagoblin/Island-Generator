@@ -9,7 +9,7 @@ namespace WanderingRoad.Procgen.Levelgen
 {
     public abstract class HexGraph : Graph<HexPayload>
     {
-        public HexGraph(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        public HexGraph(Vector3[] verts, int[] tris, HexPayload[] nodes, GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings)
         {
         }
     }

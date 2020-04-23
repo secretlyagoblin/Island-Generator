@@ -8,7 +8,7 @@ namespace WanderingRoad.Procgen.Levelgen
 {
     public class SingleConnectionGraph : HexGraph
     {
-        public SingleConnectionGraph(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        public SingleConnectionGraph(Vector3[] verts, int[] tris, HexPayload[] nodes, Topology.GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings)
         {
         }
 
@@ -52,7 +52,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
     public class ConnectEverything : HexGraph
     {
-        public ConnectEverything(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        public ConnectEverything(Vector3[] verts, int[] tris, HexPayload[] nodes, Topology.GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings)
         {
         }
 
@@ -75,7 +75,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
     public class TestBed : HexGraph
     {
-        public TestBed(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        public TestBed(Vector3[] verts, int[] tris, HexPayload[] nodes, Topology.GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings)
         {
         }
 
@@ -92,13 +92,11 @@ namespace WanderingRoad.Procgen.Levelgen
                 }
 
                 mesh.SetConnectivity(Levelgen.States.ConnectEverythingExceptEdges);
-                mesh.SetConnectivity(Levelgen.States.SummedDikstraRemoveDeadEnds);
+                mesh.SetConnectivity(Levelgen.States.TubbyCorridors);
+                mesh.SetConnectivity(Levelgen.States.ConnectEverythingExceptEdges);
             }
 
-            for (int i = 0; i < _nodeMetadata.Length; i++)
-            {
-                _nodeMetadata[i].Code = i + 1;
-            }
+            ApplyCodes();
 
             //_collection.Bridges.LeaveSingleRandomConnection();
         }
@@ -107,12 +105,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
     public class HighLevelConnectivity : HexGraph
     {
-        public HighLevelConnectivity(
-            Vector3[] verts,
-            int[] tris,
-            HexPayload[] nodes,
-            Func<HexPayload, int> identifier,
-            Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector) { }
+        public HighLevelConnectivity(Vector3[] verts, int[] tris, HexPayload[] nodes, Topology.GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings) { }
 
         protected override void Generate()
         {
@@ -130,10 +123,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 mesh.SetConnectivity(Levelgen.States.SummedDikstra);
             }
 
-            for (int i = 0; i < _nodeMetadata.Length; i++)
-            {
-                _nodeMetadata[i].Code = i + 1;
-            }
+            ApplyCodes();
 
             //_collection.Bridges.LeaveSingleRandomConnection();
         }
@@ -141,11 +131,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
     public class NoBehaviour : HexGraph
     {
-        public NoBehaviour(Vector3[] verts,
-            int[] tris,
-            HexPayload[] nodes,
-            Func<HexPayload, int> identifier,
-            Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector) { }
+        public NoBehaviour(Vector3[] verts, int[] tris, HexPayload[] nodes, Topology.GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings) { }
 
         protected override void Generate()
         {
@@ -156,11 +142,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
     public class MinimiseCriticalNodes : HexGraph
     {
-        public MinimiseCriticalNodes(Vector3[] verts,
-            int[] tris,
-            HexPayload[] nodes,
-            Func<HexPayload, int> identifier,
-            Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector) { }
+        public MinimiseCriticalNodes(Vector3[] verts, int[] tris, HexPayload[] nodes, Topology.GraphSettings<HexPayload> settings) : base(verts, tris, nodes, settings) { }
 
         protected override void Generate()
         {
@@ -177,10 +159,9 @@ namespace WanderingRoad.Procgen.Levelgen
                 mesh.SetConnectivity(Levelgen.States.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
             }
 
-            for (int i = 0; i < _nodeMetadata.Length; i++)
-            {
-                _nodeMetadata[i].Code = i + 1;
-            }
+            ApplyCodes();
+
+
 
             _collection.Bridges.LeaveSingleRandomConnection();
         }

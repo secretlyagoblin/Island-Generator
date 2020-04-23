@@ -462,7 +462,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         #region graphs
 
-        public T ToGraph<T>(Func<HexPayload, int> regionIndentifier, Func<HexPayload, int[]> regionConnector) where T : Graph<HexPayload>
+        public T ToGraph<T>(Func<HexPayload, int> regionIndentifier, Func<HexPayload, int[]> regionConnector, Func<HexPayload, int,HexPayload> regionEncoder) where T : Graph<HexPayload>
         {
             (var vertices, var triangles) = this.ToNetwork(x => 0);
 
@@ -471,8 +471,10 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 vertices,
                 triangles,
                 this._inside.Select(x => x.Value.Payload).ToArray(),
+                new GraphSettings<HexPayload>(
                 regionIndentifier,
-                regionConnector) as T;
+                regionConnector,
+                regionEncoder)) as T;
 
             return type;
         }

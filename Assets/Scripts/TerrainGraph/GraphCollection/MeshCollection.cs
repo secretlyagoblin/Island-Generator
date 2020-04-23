@@ -63,6 +63,16 @@ namespace WanderingRoad.Procgen.Topology
 
                 a.BridgeConnectionIndices.Add(i);
                 b.BridgeConnectionIndices.Add(i);
+
+                for (int u = 0; u < nodesA.Length; u++)
+                {
+                    a.Connectivity.Nodes[nodesA[u]] = Connection.Critical;
+                }
+
+                for (int u = 0; u < nodesB.Length; u++)
+                {
+                    b.Connectivity.Nodes[nodesB[u]] = Connection.Critical;
+                }
             }
         }
 
