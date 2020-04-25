@@ -103,52 +103,7 @@ namespace WanderingRoad.Procgen.Levelgen
             };
         }
 
-        private static SmartNode LookupNode<T>(this int i, SubMesh<T> subMesh) where T:IGraphable
-        {
-            return subMesh.SourceMesh.Nodes[subMesh.Nodes[i]];
-        }
 
-
-        private static SmartLine LookupLine<T>(this int i, SubMesh<T> subMesh) where T : IGraphable
-        {
-            return subMesh.SourceMesh.Lines[subMesh.Lines[i]];
-        }
-
-        private static int ReverseLookupIndexUnsafe<T>(this SmartNode node, SubMesh<T> subMesh) where T : IGraphable
-        {
-            return subMesh.NodeMap[node.Index];
-        }
-
-        private static int ReverseLookupIndexUnsafe<T>(this SmartLine node, SubMesh<T> subMesh) where T : IGraphable
-        {
-            return subMesh.LineMap[node.Index];
-        }
-
-        private static bool ReverseLookupIndex<T>(this SmartNode node, SubMesh<T> subMesh, out int index) where T : IGraphable
-        {
-            if (!subMesh.NodeMap.ContainsKey(node.Index))
-            {
-                index = -1;
-                return false;
-            }
-
-            index = subMesh.NodeMap[node.Index];
-
-            return true;
-        }
-
-        private static bool ReverseLookupIndex<T>(this SmartLine line, SubMesh<T> subMesh, out int index) where T : IGraphable
-        {
-            if (!subMesh.LineMap.ContainsKey(line.Index))
-            {
-                index = -1;
-                return false;
-            }
-
-            index = subMesh.LineMap[line.Index];
-
-            return true;
-        }
 
 
         public static MeshState<Connection> ConnectEverythingExceptEdges<T>(SubMesh<T> subMesh) where T : IGraphable
@@ -775,7 +730,9 @@ namespace WanderingRoad.Procgen.Levelgen
 
     public static class Height
     {
-        public static MeshState<int> GetDistanceFromEdge<T>(SubMesh<T> subMesh, int iterations) where T : IGraphable
+
+
+            public static MeshState<int> GetDistanceFromEdge<T>(SubMesh<T> subMesh, int iterations) where T : IGraphable
         {
             var nodes = subMesh.Nodes;
             var lines = subMesh.Lines;
@@ -783,7 +740,6 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var state = new MeshState<int>();
             state.Nodes = new int[nodes.Length];
-            state.Lines = new int[lines.Length];
 
                 for (int i = 0; i < nodes.Length; i++)
                 {
@@ -795,11 +751,6 @@ namespace WanderingRoad.Procgen.Levelgen
                         var testLine = node.Lines[u];
 
                         if (!subMesh.LineMap.ContainsKey(testLine.Index))
-                            continue;
-
-                        var testIndex = subMesh.LineMap[testLine.Index];
-
-                        if (subMesh.Connectivity.Lines[testIndex] == Connection.NotPresent)
                         {
                             state.Nodes[i] = 1;
                         goto skip;
@@ -831,18 +782,69 @@ namespace WanderingRoad.Procgen.Levelgen
 
                         if (subMesh.Connectivity.Lines[testIndex] == Connection.Present)
                         {
-                            testLine
-                            state.Nodes[i] = 1;
-                            goto skip;
+                            var index = testLine.GetOtherNode(node).ReverseLookupIndexUnsafe(subMesh);
+
+                            if(state.Nodes[index] == u+1)
+                            state.Nodes[i] = u + 2;
                         }
                     }
-
-                skip:
-                    continue;
                 }
             }
+
+            return state;
         }
     }
+
+    internal static class SharedUtils
+    {
+        public static SmartNode LookupNode<T>(this int i, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.SourceMesh.Nodes[subMesh.Nodes[i]];
+        }
+
+
+        public static SmartLine LookupLine<T>(this int i, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.SourceMesh.Lines[subMesh.Lines[i]];
+        }
+
+        public static int ReverseLookupIndexUnsafe<T>(this SmartNode node, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.NodeMap[node.Index];
+        }
+
+        public static int ReverseLookupIndexUnsafe<T>(this SmartLine node, SubMesh<T> subMesh) where T : IGraphable
+        {
+            return subMesh.LineMap[node.Index];
+        }
+
+        public static bool ReverseLookupIndex<T>(this SmartNode node, SubMesh<T> subMesh, out int index) where T : IGraphable
+        {
+            if (!subMesh.NodeMap.ContainsKey(node.Index))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = subMesh.NodeMap[node.Index];
+
+            return true;
+        }
+
+        public static bool ReverseLookupIndex<T>(this SmartLine line, SubMesh<T> subMesh, out int index) where T : IGraphable
+        {
+            if (!subMesh.LineMap.ContainsKey(line.Index))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = subMesh.LineMap[line.Index];
+
+            return true;
+        }
+    }
+        
 
 
 }

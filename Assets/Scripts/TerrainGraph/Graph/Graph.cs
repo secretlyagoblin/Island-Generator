@@ -87,5 +87,13 @@ namespace WanderingRoad.Procgen.Topology
 
             return outT;
         }
+
+        protected void ApplyValuesToNodeMetadata(MeshState<int> state, SubMesh<T> submesh, Func<T,int,T> application)
+        {
+            for (int i = 0; i < state.Nodes.Length; i++)
+            {
+                _nodeMetadata[submesh.Nodes[i]] = application(_nodeMetadata[submesh.Nodes[i]], state.Nodes[i]);
+            }
+        }
     }
 }

@@ -68,7 +68,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 }
 
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverything);
-                mesh.SetConnectivity(Levelgen.Connectivity.RemoveUnnecessaryCriticalNodesAssumingHexGrid);
+                mesh.SetConnectivity(Levelgen.Connectivity.RemoveUnnecessaryCriticalNodesAssumingHexGrid);   
             }
         }
     }
@@ -105,6 +105,31 @@ namespace WanderingRoad.Procgen.Levelgen
         }
     }
 
+    public class PostprocessTerrain : HexGraph
+    {
+        public PostprocessTerrain(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
+        {
+        }
+
+        protected override void Generate()
+        {
+
+            for (int i = 0; i < _collection.Meshes.Length; i++)
+            {
+                var mesh = _collection.Meshes[i];
+
+                if (mesh.Id < 0)
+                {
+                    continue;
+                }
+
+                mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
+            }
+        }
+    }
+
+
+
     public class ApplyBounds : HexGraph
     {
         public ApplyBounds(Vector3[] verts, int[] tris, HexPayload[] nodes, Func<HexPayload, int> identifier, Func<HexPayload, int[]> connector) : base(verts, tris, nodes, identifier, connector)
@@ -123,7 +148,18 @@ namespace WanderingRoad.Procgen.Levelgen
                     continue;
                 }
 
+                var storedConnectivity = mesh.Connectivity.Clone();
+
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectOnlyEdges);
+
+                this.ApplyValuesToNodeMetadata(
+                    Levelgen.Height.GetDistanceFromEdge(mesh, 8),
+                    mesh,
+                    (x, y) => new HexPayload(x) { Height = y }
+                 );
+
+                mesh.SetConnectivity(storedConnectivity);
+
 
                 //Levelgen.
 

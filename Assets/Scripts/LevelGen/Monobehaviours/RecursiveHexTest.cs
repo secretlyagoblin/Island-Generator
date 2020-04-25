@@ -25,8 +25,8 @@ namespace WanderingRoad.Procgen.Levelgen
             _gizmosHexGroups = new List<HexGroupVisualiser>() { };//HexGroupVisualiser(PreviewMesh);
 
             //RNG.Init("I'd kill fill zill");
-            RNG.Init("3/15/2020 5:58:48 PM");
-            //RNG.DateTimeInit();
+            //RNG.Init("3/15/2020 5:58:48 PM");
+            RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
             var regionIdentifier = new Func<HexPayload, int>(x => x.Region);
@@ -83,30 +83,33 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
-                //var splayers = new List<HexGroup>(){layer1
-                //    .Subdivide(4, codeIdentifier)
-                //    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector)
-                //    .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
-                //    .Subdivide(8, codeIdentifier)
-                //        .ApplyGraph<TestBed>(codeIdentifier, connector, true)
-                //    //.Subdivide(2, codeIdentifier)
-                //};
-
-
-
-                var splayers = layer1
+                var splayers = new List<HexGroup>(){layer1
                     .Subdivide(4, codeIdentifier)
                     .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector)
                     .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
                     .Subdivide(8, codeIdentifier)
-                    .ApplyGraph<TestBed>(codeIdentifier, connector, false)
-                    .ApplyGraph<ApplyBounds>(interiorExterior, connector, true)
-                    .GetSubGroups(x => x.Payload.Region)
-                    .Select(x => x
-                        
-                        //.Subdivide(3, codeIdentifier)
-                        //.Subdivide(2, codeIdentifier)
-                        );
+                    .ApplyGraph<InterconnectionLogic>()
+                    //.ApplyGraph<TestBed>(codeIdentifier, connector, false)
+                    //.ApplyGraph<ApplyBounds>(interiorExterior, connector, false)
+                    //.ApplyGraph<PostprocessTerrain>(codeIdentifier, connector, true)
+                    .Subdivide(2, codeIdentifier)
+                };
+
+
+
+                //var splayers = layer1
+                //    .Subdivide(4, codeIdentifier)
+                //    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector)
+                //    .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
+                //    .Subdivide(8, codeIdentifier)
+                //    .ApplyGraph<TestBed>(codeIdentifier, connector, false)
+                //    //.ApplyGraph<ApplyBounds>(interiorExterior, connector, true)
+                //    .GetSubGroups(x => x.Payload.Region)
+                //    .Select(x => x
+                //        
+                //        //.Subdivide(3, codeIdentifier)
+                //        //.Subdivide(2, codeIdentifier)
+                //        );
 
                 foreach (var layer in splayers)
                 {
@@ -117,8 +120,10 @@ namespace WanderingRoad.Procgen.Levelgen
 
                     layer.ForEach(x => new HexPayload(x.Payload)
                     {
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                    });
+                        //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
+                        Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.2f, x.Payload.Height * 0.2f, x.Payload.Height * 0.2f) : new Color(x.Payload.Height * 0.2f, x.Payload.Height * 0.2f, 1)
+
+                    }) ;
 
 
                     group.HexGroup = layer;
@@ -204,11 +209,11 @@ namespace WanderingRoad.Procgen.Levelgen
 
         private void OnDrawGizmos()
         {
-            for (int i = 0; i < _gizmosHexGroups.Count; i++)
-            {
-                _gizmosHexGroups[i].DrawGizmos();
-            }
-            //_gizmosHexGroup.DrawGizmos();
+            //for (int i = 0; i < _gizmosHexGroups.Count; i++)
+            //{
+            //    _gizmosHexGroups[i].DrawGizmos();
+            //}
+            ////_gizmosHexGroup.DrawGizmos();
         }
 
         IEnumerator FinaliseHexgroup(List<HexGroup> hexGroup, Action<HexGroup> func)

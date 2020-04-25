@@ -22,6 +22,19 @@ namespace WanderingRoad.Procgen.Levelgen
             return hexgroup.MassUpdateHexes(payloads);
         }
 
+        public static HexGroup ApplyGraph<T>(this HexGroup hexgroup, bool debugDraw = false) where T : MultiHexGraph
+        {
+            var multiGraph = Activator.CreateInstance(typeof(T), hexgroup) as T;
+            var payloads = multiGraph.Finalise();
+
+            if (debugDraw)
+            {
+                multiGraph.DebugDraw(Color.blue);
+            }
+
+            return hexgroup.MassUpdateHexes(payloads);
+        }
+
 
 
         private static HexPayload StandardRemapper(HexPayload hex, Connection nodeStatus, int[] connections)

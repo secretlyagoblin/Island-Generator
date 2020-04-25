@@ -100,6 +100,19 @@ public class SubMesh<T> where T:IGraphable {
         }
     }
 
+    public void SetConnectivity(MeshState<Connection> connectivity)
+    {
+        try
+        {
+            Connectivity = connectivity;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error in Room Code " + Id, ex);
+        }
+    }
+
+
     public void DebugDraw(UnityEngine.Color color, float duration)
     {
         for (int i = 0; i < Lines.Length; i++)
