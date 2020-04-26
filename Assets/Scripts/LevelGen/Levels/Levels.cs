@@ -86,12 +86,18 @@ namespace WanderingRoad.Procgen.Levelgen.Levels
             {
                 var mesh = _collection.Meshes[i];
 
-                if (mesh.Id < 0)
+                mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
+
+                //Handle empty regions
+                for (int u = 0; u < mesh.Connectivity.Nodes.Length; u++)
                 {
-                    continue;
+                    if (mesh.Connectivity.Nodes[u] != Topology.Connection.NotPresent)
+                        goto end;
                 }
 
-                mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
+                break;
+            end:
+
                 mesh.SetConnectivity(Levelgen.Connectivity.TubbyCorridors);
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
             }
@@ -153,7 +159,7 @@ namespace WanderingRoad.Procgen.Levelgen.Levels
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectOnlyEdges);
 
                 this.ApplyValuesToNodeMetadata(
-                    Levelgen.Height.GetDistanceFromEdge(mesh, 8),
+                    Levelgen.Height.GetDistanceFromEdge(mesh, 12),
                     mesh,
                     (x, y) => new HexPayload(x) { Height = y }
                  );
@@ -199,6 +205,7 @@ namespace WanderingRoad.Procgen.Levelgen.Levels
                 }
 
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverything);
+                mesh.SetConnectivity(Levelgen.Connectivity.AddOneLayerOfEdgeBufferAroundNeighbourSubMeshesAssumingHexGrid);
                 mesh.SetConnectivity(Levelgen.Connectivity.SummedDikstra);
             }
 

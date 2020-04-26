@@ -27,7 +27,7 @@ namespace WanderingRoad.Procgen.Levelgen
             var multiGraph = Activator.CreateInstance(typeof(T), hexgroup) as T;
 
             //Note, this is modifying the hexgroup as a side effect, not returing a new instance
-            var processedHexgroup = multiGraph.Finalise();
+            var processedHexgroup = multiGraph.Finalise(debugDraw);
 
             return processedHexgroup;
         }

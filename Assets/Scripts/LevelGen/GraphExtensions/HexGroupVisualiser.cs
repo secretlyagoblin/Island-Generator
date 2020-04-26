@@ -21,7 +21,7 @@ public class HexGroupVisualiser
                 .Select(x => (x.First().Payload.Color, x.Select(y =>
                 {
                     var matrix = Matrix4x4.identity;
-                    var pos = y.Index.Position3d;// + (((Vector3.up * 2)+(Vector3.up*y.Payload.Height))*0.1f);
+                    var pos = y.Index.Position3d - (Vector3.up * 10);//+(Vector3.up*y.Payload.Height))*0.1f);
                     matrix.SetTRS(pos, Quaternion.identity, new Vector3(1, y.Payload.Height, 1));
                     return matrix;
                 })

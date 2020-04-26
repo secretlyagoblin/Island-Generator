@@ -13,10 +13,13 @@ namespace WanderingRoad.Procgen.Levelgen
 
         public override HexGroup Finalise(bool debugDraw = false)
         {
-            var walkability = _hexGroup.ToGraph<Levels.TestBed>(
+            var walkabilityGraph = _hexGroup.ToGraph<Levels.TestBed>(
                 x => x.Code,
-                x => x.Connections.ToArray())
-                .Finalise(StandardRemapper);
+                x => x.Connections.ToArray());
+
+            var walkability = walkabilityGraph.Finalise(StandardRemapper);
+
+            if(debugDraw) walkabilityGraph.DebugDrawSubmeshConnectivity(Color.blue);
 
             _hexGroup.MassUpdateHexes(walkability);
 

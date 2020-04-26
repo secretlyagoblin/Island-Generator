@@ -221,20 +221,21 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 var isBorder = false;
 
-                //if(trueNode.Lines.Count != 6)
-                //{
-                //    //isBorder = true;
-                //} else
+                if(trueNode.Lines.Count != 6)
+                {
+                    isBorder = true;
+                    goto end;
+                } //else
                 //{
 
-                    for (int u = 0;u < trueNode.Lines.Count; u++)
-                    {
-                        if (!subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index)){
-                            isBorder = true;
-                            goto end;
-                        }
-                            
-                    }
+                    //for (int u = 0;u < trueNode.Lines.Count; u++)
+                    //{
+                    //    if (!subMesh.LineMap.ContainsKey(trueNode.Lines[u].Index)){
+                    //        isBorder = true;
+                    //        goto end;
+                    //    }
+                    //        
+                    //}
                 //}
 
                 end:
