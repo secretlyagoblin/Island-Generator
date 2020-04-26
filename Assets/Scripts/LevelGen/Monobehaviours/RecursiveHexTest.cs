@@ -85,15 +85,22 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 var splayers = new List<HexGroup>(){layer1
                     .Subdivide(4, codeIdentifier)
-                    .ApplyGraph<HighLevelConnectivity>(codeIdentifier, connector)
+                    .ApplyGraph<Levels.HighLevelConnectivity>(codeIdentifier, connector)
                     .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
                     .Subdivide(8, codeIdentifier)
                     .ApplyGraph<InterconnectionLogic>()
-                    //.ApplyGraph<TestBed>(codeIdentifier, connector, false)
-                    //.ApplyGraph<ApplyBounds>(interiorExterior, connector, false)
-                    //.ApplyGraph<PostprocessTerrain>(codeIdentifier, connector, true)
-                    .Subdivide(2, codeIdentifier)
-                };
+                                        .ForEach(x => new HexPayload(x.Payload)
+                    {
+                        //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
+                        Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
+                        Height = (x.Payload.ConnectionStatus == Connection.NotPresent ? x.Payload.Height+3 : 1f) + RandomXY.GetOffset(x.Index.Position3d.x,x.Index.Position3d.z).Distance
+                    })
+                                        .Subdivide(2,codeIdentifier)
+                //.ApplyGraph<TestBed>(codeIdentifier, connector, false)
+                //.ApplyGraph<ApplyBounds>(interiorExterior, connector, false)
+                //.ApplyGraph<PostprocessTerrain>(codeIdentifier, connector, true)
+                //.Subdivide(2, codeIdentifier)
+            };
 
 
 
@@ -118,12 +125,20 @@ namespace WanderingRoad.Procgen.Levelgen
                     var randomColor = RNG.NextColorBright();
                     var randomColorDark = RNG.NextColorDark();
 
+                    //layer.ForEach(x => new HexPayload(x.Payload)
+                    //{
+                    //    //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
+                    //    Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
+                    //    Height = (x.Payload.ConnectionStatus == Connection.NotPresent ? x.Payload.Height+3 : 1f) + RandomXY.GetOffset(x.Index.Position3d.x,x.Index.Position3d.z).Distance
+                    //}); ;
+
                     layer.ForEach(x => new HexPayload(x.Payload)
                     {
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                        Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.2f, x.Payload.Height * 0.2f, x.Payload.Height * 0.2f) : new Color(x.Payload.Height * 0.2f, x.Payload.Height * 0.2f, 1)
-
-                    }) ;
+                        Color = Color.grey,
+                        //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
+                        Height = x.Payload.Height*20
+                    });; ;
 
 
                     group.HexGroup = layer;

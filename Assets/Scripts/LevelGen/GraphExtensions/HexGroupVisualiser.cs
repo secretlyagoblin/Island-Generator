@@ -18,7 +18,14 @@ public class HexGroupVisualiser
                 .Select(x => x.ToArray())
                 .ToArray();
             var matricesAndColours = groups
-                .Select(x => (x.First().Payload.Color, x.Select(y => Matrix4x4.Translate(y.Index.Position3d-(Vector3.up*2))).ToArray())).ToArray();
+                .Select(x => (x.First().Payload.Color, x.Select(y =>
+                {
+                    var matrix = Matrix4x4.identity;
+                    var pos = y.Index.Position3d;// + (((Vector3.up * 2)+(Vector3.up*y.Payload.Height))*0.1f);
+                    matrix.SetTRS(pos, Quaternion.identity, new Vector3(1, y.Payload.Height, 1));
+                    return matrix;
+                })
+                .ToArray())).ToArray();
 
 
             _renderData = matricesAndColours;

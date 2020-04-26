@@ -25,14 +25,11 @@ namespace WanderingRoad.Procgen.Levelgen
         public static HexGroup ApplyGraph<T>(this HexGroup hexgroup, bool debugDraw = false) where T : MultiHexGraph
         {
             var multiGraph = Activator.CreateInstance(typeof(T), hexgroup) as T;
-            var payloads = multiGraph.Finalise();
 
-            if (debugDraw)
-            {
-                multiGraph.DebugDraw(Color.blue);
-            }
+            //Note, this is modifying the hexgroup as a side effect, not returing a new instance
+            var processedHexgroup = multiGraph.Finalise();
 
-            return hexgroup.MassUpdateHexes(payloads);
+            return processedHexgroup;
         }
 
 

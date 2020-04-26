@@ -2,21 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 using WanderingRoad.Procgen.RecursiveHex;
+using WanderingRoad.Procgen.Topology;
 
 namespace WanderingRoad.Procgen.Levelgen
 {
     public abstract class MultiHexGraph
     {
-        protected HexGroup _sourceGroup;
+        protected HexGroup _hexGroup;
 
         public MultiHexGraph(HexGroup hexGroup)
         {
-            _sourceGroup = hexGroup;
+            _hexGroup = hexGroup;
         }
 
-        public abstract void DebugDraw(Color color);
+        public abstract HexGroup Finalise(bool debugDraw = false);
 
-        public abstract HexPayload[] Finalise(); 
+        protected static HexPayload StandardRemapper(HexPayload hex, Connection nodeStatus, int[] connections)
+        {
+            var done = hex;
+
+            done.ConnectionStatus = nodeStatus;
+            done.Connections = new CodeConnections(connections);
+            return done;
+        }
 
     }
 }

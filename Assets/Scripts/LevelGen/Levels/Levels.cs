@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using WanderingRoad.Procgen.RecursiveHex;
 
-namespace WanderingRoad.Procgen.Levelgen
+namespace WanderingRoad.Procgen.Levelgen.Levels
 {
     public class SingleConnectionGraph : HexGraph
     {

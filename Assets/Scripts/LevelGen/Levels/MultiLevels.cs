@@ -8,18 +8,36 @@ namespace WanderingRoad.Procgen.Levelgen
     public class InterconnectionLogic : MultiHexGraph
     {
         public InterconnectionLogic(HexGroup hexGroup) : base(hexGroup)
-        {
-
+        { 
         }
 
-        public override void DebugDraw(Color color)
+        public override HexGroup Finalise(bool debugDraw = false)
         {
-            throw new System.NotImplementedException();
+            var walkability = _hexGroup.ToGraph<Levels.TestBed>(
+                x => x.Code,
+                x => x.Connections.ToArray())
+                .Finalise(StandardRemapper);
+
+            _hexGroup.MassUpdateHexes(walkability);
+
+            var cliffDistance = _hexGroup.ToGraph<Levels.ApplyBounds>(
+                x => x.ConnectionStatus == Topology.Connection.NotPresent ? 1 : 2,
+                x => x.Connections.ToArray())
+                .Finalise(StandardRemapper);
+
+            for (int i = 0; i < walkability.Length; i++)
+            {
+                walkability[i] = new HexPayload(walkability[i])
+                {
+                    Height = cliffDistance[i].Height
+                };
+            }
+
+            return _hexGroup.MassUpdateHexes(walkability);
         }
 
-        public override HexPayload[] Finalise()
-        {
-            throw new System.NotImplementedException();
-        }
+
     }
+
+    
 }
