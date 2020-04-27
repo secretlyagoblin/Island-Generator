@@ -25,8 +25,10 @@ namespace WanderingRoad.Procgen.Levelgen
             _gizmosHexGroups = new List<HexGroupVisualiser>() { };//HexGroupVisualiser(PreviewMesh);
 
             //RNG.Init("I'd kill fill zill");
-            RNG.Init("3/15/2020 5:58:48 PM");
-            //RNG.DateTimeInit();
+            //cool seed "4/27/2020 7:45:28 PM"
+            // orphan node to test.. "4/27/2020 5:56:43 PM"
+            //RNG.Init("3/15/2020 5:58:48 PM");
+            RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
             var regionIdentifier = new Func<HexPayload, int>(x => x.Region);
@@ -107,9 +109,9 @@ namespace WanderingRoad.Procgen.Levelgen
                     .ApplyGraph<Levels.HighLevelConnectivity>(codeIdentifier, connector, true)
                     .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
                     .Subdivide(8, codeIdentifier)
-                    .ApplyGraph<InterconnectionLogic>(true)
+                    .ApplyGraph<InterconnectionLogic>(false)
                     .GetSubGroups(x => x.Payload.Region);
-                    
+
 
                 //var splayers = layer1
                 //    .Subdivide(4, codeIdentifier)
@@ -125,11 +127,13 @@ namespace WanderingRoad.Procgen.Levelgen
                 //        //.Subdivide(2, codeIdentifier)
                 //        );
 
+                var color = RNG.NextColor();
+
                 foreach (var layer in splayers)
                 {
                     var group = new HexGroupVisualiser(PreviewMesh);
 
-                    var randomColor = RNG.NextColorBright();
+                    var randomColor = RNG.SimilarColor(color);
                     var randomColorDark = RNG.SimilarColor(randomColor);
 
                     //layer.ForEach(x => new HexPayload(x.Payload)
@@ -142,10 +146,12 @@ namespace WanderingRoad.Procgen.Levelgen
                     layer.ForEach(x => new HexPayload(x.Payload)
                     {
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark,//RNG.NextColorBright()
+                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : Color.black,//RNG.NextColorBright()
+                        //Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black,//RNG.NextColorBright()
                         //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
-                        Height = x.Payload.Height + 1//*20
-                    }); ;; ;
+                        //Height = (x.Payload.Height + 1)*5
+                        Height = 1
+                    }); ; ;; ;
 
 
                     group.HexGroup = layer;

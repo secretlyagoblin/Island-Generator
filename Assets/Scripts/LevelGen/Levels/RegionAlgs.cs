@@ -79,11 +79,22 @@ namespace WanderingRoad.Procgen.Levelgen
             return Entubben(subMesh, keyMeshState, 3);
         }
 
-        public static MeshState<Connection> DikstraWithRooms<T>(SubMesh<T> subMesh) where T : IGraphable
+        public static MeshState<Connection> MinimalCorridorTwo<T>(SubMesh<T> subMesh) where T : IGraphable
         {
-            var dik = Dikstra(subMesh, 0.8f, 1.2f);
-            var next = RecursivelyRemoveDeadEnds(subMesh, dik, 2);
-            return Entubben(subMesh, next, 3);
+            var one = MinimalCorridor(subMesh);
+            var two = MinimalCorridor(subMesh);
+
+            for (int i = 0; i < subMesh.Nodes.Length; i++)
+            {
+                one.Nodes[i] = two.Nodes[i] == Connection.Present ? Connection.Present : one.Nodes[i];
+            }
+
+            for (int i = 0; i < subMesh.Lines.Length; i++)
+            {
+                one.Lines[i] = two.Lines[i] == Connection.Present ? Connection.Present : one.Lines[i];
+            }
+
+            return one;
         }
 
         public static MeshState<Connection> ConnectEverything<T>(SubMesh<T> subMesh) where T : IGraphable
@@ -102,9 +113,6 @@ namespace WanderingRoad.Procgen.Levelgen
                 Lines = CreateAndPopulateArray(subMesh.Lines.Length, Connection.Present)  
             };
         }
-
-
-
 
         public static MeshState<Connection> ConnectEverythingExceptEdges<T>(SubMesh<T> subMesh) where T : IGraphable
         {

@@ -11,6 +11,9 @@ public class SubMesh<T> where T:IGraphable {
     public int[] Nodes;
     public int[] Lines;
 
+    public SubMeshProperties Properties { get; private set; }
+    public bool IsEmpty { get; private set; }
+
     public List<int> BridgeConnectionIndices = new List<int>();
 
     public readonly Dictionary<int, int> NodeMap;
@@ -55,6 +58,14 @@ public class SubMesh<T> where T:IGraphable {
             Nodes = nodeConnectivity,
             Lines = new Connection[lines.Length]
         };
+
+        for (int i = 0; i < Connectivity.Nodes.Length; i++)
+        {
+            if(Connectivity.Nodes[i] != Connection.NotPresent)
+            {
+
+            }
+        }
     }
 
     public SubMesh(int code, int[] nodes, T[] payloads, SmartMesh mesh)
@@ -120,7 +131,10 @@ public class SubMesh<T> where T:IGraphable {
             if (Connectivity != null)
             {
                 if (Connectivity.Lines[i] == Connection.NotPresent)
+                {
+                    //SourceMesh.Lines[Lines[i]].DebugDraw(Color.green, duration);
                     continue;
+                }
             }
             SourceMesh.Lines[Lines[i]].DebugDraw(color, duration);
         }
@@ -178,6 +192,14 @@ public class SubMesh<T> where T:IGraphable {
                 nodesB[i] = mesh.NodeMap[line.Nodes[0].Index];
             }            
         }
+
+        this.Properties = new SubMeshProperties()
+        {
+            Connections = this.Properties.Connections + 1,
+            MultiConnectionInterfaces = this.Properties.MultiConnectionInterfaces + (lines.Length > 2 ? 1 : 0),
+            SingleConnectionInterfaces = this.Properties.SingleConnectionInterfaces + (lines.Length > 2 ? 0 : 1),
+        };
+        
 
         return (lines, nodesA, nodesB);
 
@@ -350,6 +372,23 @@ public class SubMesh<T> where T:IGraphable {
         return finalSubmeshes;
     }
 
+}
+
+public struct SubMeshProperties
+{
+    public int Connections;
+    public int SingleConnectionInterfaces;
+    public int MultiConnectionInterfaces;
+
+    public bool AllSingle { get { return Connections == SingleConnectionInterfaces; } }
+    public bool SomeSingle { get { return SingleConnectionInterfaces>0; } }
+
+    public bool AllMulti { get { return Connections == MultiConnectionInterfaces; } }
+    public bool SomeMulti { get { return MultiConnectionInterfaces > 0; } }
+
+    public bool MoreSingleInclusive { get { return SingleConnectionInterfaces >= MultiConnectionInterfaces; } }
+
+    public bool MoreMultiInclusive { get { return SingleConnectionInterfaces <= MultiConnectionInterfaces; } }
 }
 
 //class TopologyData {

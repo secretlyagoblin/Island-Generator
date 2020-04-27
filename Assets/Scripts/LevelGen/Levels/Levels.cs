@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 
 namespace WanderingRoad.Procgen.Levelgen.Levels
@@ -79,26 +80,62 @@ namespace WanderingRoad.Procgen.Levelgen.Levels
         {
         }
 
+
         protected override void Generate()
         {
+            var corridorDeck = new LevelDeck();
+            //corridorDeck.DebugMode = true;
+            corridorDeck.Add(Levelgen.Connectivity.MinimalCorridorTwo, 3, "Two Corridors");
+            corridorDeck.Add(Levelgen.Connectivity.TubbyCorridors,2, "Thicc Corridors");
+            //corridorDeck.Add(Levelgen.Connectivity.MinimalCorridor, 1, "One Corridor");
+
+            var roomDeck = new LevelDeck();
+            //corridorDeck.DebugMode = true;
+            roomDeck.Add(Levelgen.Connectivity.MinimalCorridorTwo, 1, "Two Corridors");
+            roomDeck.Add(Levelgen.Connectivity.TubbyCorridors, 3, "Thicc Corridors");
+
+            var openAreaDeck = new LevelDeck();
+            openAreaDeck.Add(Levelgen.Connectivity.TubbyCorridors, 10, "Thicc Corridors");
+
+
 
             for (int i = 0; i < _collection.Meshes.Length; i++)
             {
                 var mesh = _collection.Meshes[i];
 
-                mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
-
                 //Handle empty regions
                 for (int u = 0; u < mesh.Connectivity.Nodes.Length; u++)
                 {
                     if (mesh.Connectivity.Nodes[u] != Topology.Connection.NotPresent)
-                        goto end;
+                        goto notEmpty;
                 }
 
-                break;
-            end:
+                continue;
+            notEmpty:
 
-                mesh.SetConnectivity(Levelgen.Connectivity.TubbyCorridors);
+                mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
+
+                var props = mesh.Properties;
+
+                if(props.Connections < 3 && props.MoreSingleInclusive)
+                {
+                    mesh.SetConnectivity(corridorDeck.Draw());
+                    mesh.DebugDraw(Color.red, 100f);
+                    Debug.Log("Corridor!");
+                }
+                else if (props.Connections < 4)
+                {
+                    mesh.SetConnectivity(roomDeck.Draw());
+                    mesh.DebugDraw(Color.blue, 100f);
+                    Debug.Log("Room!");
+                }
+                else
+                {
+                    mesh.SetConnectivity(openAreaDeck.Draw());
+                    mesh.DebugDraw(Color.green, 100f);
+                    Debug.Log("Open area!");
+                }                
+
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverythingExceptEdges);
             }
 
@@ -206,7 +243,8 @@ namespace WanderingRoad.Procgen.Levelgen.Levels
 
                 mesh.SetConnectivity(Levelgen.Connectivity.ConnectEverything);
                 mesh.SetConnectivity(Levelgen.Connectivity.AddOneLayerOfEdgeBufferAroundNeighbourSubMeshesAssumingHexGrid);
-                mesh.SetConnectivity(Levelgen.Connectivity.SummedDikstra);
+                //mesh.SetConnectivity(Levelgen.Connectivity.SummedDikstra);
+                mesh.SetConnectivity(Levelgen.Connectivity.SummedDikstraRemoveDeadEnds);
             }
 
             for (int i = 0; i < _nodeMetadata.Length; i++)
