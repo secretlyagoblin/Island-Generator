@@ -115,7 +115,7 @@ namespace WanderingRoad.Procgen.Topology
             return _smartMesh.Nodes.Select(x => x.Lines.Where(y => lineMap[y.Index]).Select(y => y.GetOtherNode(x).Index).ToArray()).ToArray();
         }
 
-        public void DebugDisplayEnabledBridges(Color color, float duration)
+        public void DebugDraw(Color color, float duration,bool drawDisabled = false)
         {
             for (int i = 0; i < Bridges.Length; i++)
             {
@@ -123,8 +123,11 @@ namespace WanderingRoad.Procgen.Topology
 
                 for (int u = 0; u < b.Lines.Length; u++)
                 {
-                    if (b.LineCodes[u] == 0)
+                    if (b.LineCodes[u] == 0 && drawDisabled)
+                    {
+                        _smartMesh.Lines[b.Lines[u]].DebugDraw(color, duration);
                         continue;
+                    }
 
                     _smartMesh.Lines[b.Lines[u]].DebugDraw(color, duration);
                 }

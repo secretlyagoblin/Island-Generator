@@ -8,6 +8,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
     public struct HexPayload: IGraphable
     {
         public float Height;
+        public float EdgeDistance;
         public Color Color;
 
         public int Region;
@@ -20,6 +21,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         public HexPayload(HexPayload payload)
         {
             this.Height = payload.Height;
+            this.EdgeDistance = payload.EdgeDistance;
             this.Color = payload.Color;
             this.Region = payload.Region;
             this.Code = payload.Code;
@@ -32,6 +34,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new HexPayload()
             {
                 Height = InterpolationHelpers.Blerp(a.Payload.Height, b.Payload.Height, c.Payload.Height, weights),
+                EdgeDistance = InterpolationHelpers.Blerp(a.Payload.EdgeDistance, b.Payload.EdgeDistance, c.Payload.EdgeDistance, weights),
                 Color = InterpolationHelpers.Blerp(a.Payload.Color, b.Payload.Color, c.Payload.Color, weights),
                 Code = InterpolationHelpers.Blerp(a.Payload.Code, b.Payload.Code, c.Payload.Code, weights),
                 Connections = InterpolationHelpers.Blerp(a.Payload.Connections, b.Payload.Connections, c.Payload.Connections, weights),
@@ -46,6 +49,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 new Dictionary<string, object>()
                 {
                     {"Height",Height },
+                    {"EdgeDistance",EdgeDistance },
                     {"Color",Color },
                     {"Code",Code },
                     {"Region",Region },

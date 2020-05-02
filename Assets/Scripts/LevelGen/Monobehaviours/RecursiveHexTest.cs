@@ -28,6 +28,7 @@ namespace WanderingRoad.Procgen.Levelgen
             //cool seed "4/27/2020 7:45:28 PM"
             // orphan node to test.. "4/27/2020 5:56:43 PM"
             //RNG.Init("3/15/2020 5:58:48 PM");
+            // dead end to test... RNG.Init("5/2/2020 5:04:24 PM");
             RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
@@ -110,7 +111,9 @@ namespace WanderingRoad.Procgen.Levelgen
                     .ForEach(x => new HexPayload(x.Payload) { Region = x.Payload.Code })
                     .Subdivide(8, codeIdentifier)
                     .ApplyGraph<InterconnectionLogic>(false)
-                    .GetSubGroups(x => x.Payload.Region);
+                    .GetSubGroups(x => x.Payload.Region)
+                    .Select(x => x.Subdivide(2, codeIdentifier))
+                    ;
 
 
                 //var splayers = layer1
@@ -150,7 +153,7 @@ namespace WanderingRoad.Procgen.Levelgen
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black,//RNG.NextColorBright()
                         //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
                         //Height = (x.Payload.Height + 1)*5
-                        Height = 1
+                        Height = (x.Payload.Height*4 + (x.Payload.EdgeDistance*1))*15 + (x.Payload.ConnectionStatus == Connection.NotPresent?(3+this.NoiseAtIndex(x) * 20) :0) 
                     }); ; ;; ;
 
 
@@ -275,6 +278,20 @@ namespace WanderingRoad.Procgen.Levelgen
             }
             
             //this.transform.Rotate(Vector3.up, 5f * Time.deltaTime);
+        }
+
+        private float NoiseAtIndex(Hex hex)
+        {
+            var pos = hex.Index.Position2d;
+            var perlin = Mathf.PerlinNoise(
+                pos.x * 0.25324f,
+                pos.y * 0.25324f
+                );
+
+            var multiplier = Mathf.InverseLerp(0, 6, hex.Payload.EdgeDistance);
+
+            return perlin*multiplier;
+
         }
     }
     namespace Levels

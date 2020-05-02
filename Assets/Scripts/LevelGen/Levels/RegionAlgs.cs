@@ -737,7 +737,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
     }
 
-    public static class Height
+    public static class Distance
     {
 
 

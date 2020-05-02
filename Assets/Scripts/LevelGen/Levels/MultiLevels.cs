@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 
 namespace WanderingRoad.Procgen.Levelgen
@@ -24,7 +25,7 @@ namespace WanderingRoad.Procgen.Levelgen
             _hexGroup.MassUpdateHexes(walkability);
 
             var cliffDistance = _hexGroup.ToGraph<Levels.ApplyBounds>(
-                x => x.ConnectionStatus == Topology.Connection.NotPresent ? 1 : 2,
+                x => x.ConnectionStatus == Topology.Connection.NotPresent ? 1 : 0,
                 x => x.Connections.ToArray())
                 .Finalise(StandardRemapper);
 
@@ -32,7 +33,8 @@ namespace WanderingRoad.Procgen.Levelgen
             {
                 walkability[i] = new HexPayload(walkability[i])
                 {
-                    Height = cliffDistance[i].Height
+                    EdgeDistance = cliffDistance[i].EdgeDistance,
+                    Height= walkability[i].Height+ (RNG.NextFloat(0.05f))
                 };
             }
 
