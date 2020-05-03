@@ -149,11 +149,11 @@ namespace WanderingRoad.Procgen.Levelgen
                     layer.ForEach(x => new HexPayload(x.Payload)
                     {
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : Color.black,//RNG.NextColorBright()
+                        Color = x.Payload.ConnectionStatus == Connection.Present ? color : x.Payload.ConnectionStatus == Connection.Critical ? color : color,//RNG.NextColorBright()
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black,//RNG.NextColorBright()
                         //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
                         //Height = (x.Payload.Height + 1)*5
-                        Height = (x.Payload.Height*4 + (x.Payload.EdgeDistance*1))*15 + (x.Payload.ConnectionStatus == Connection.NotPresent?(3+this.NoiseAtIndex(x) * 20) :0) 
+                        Height = Mathf.RoundToInt((x.Payload.Height*4 + (x.Payload.EdgeDistance*1))*15 + (x.Payload.ConnectionStatus == Connection.NotPresent?(3+this.NoiseAtIndex(x) * 20) :0)) 
                     }); ; ;; ;
 
 

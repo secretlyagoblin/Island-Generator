@@ -1,18 +1,41 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WanderingRoad.Procgen.RecursiveHex;
 
-public class TerrainGen : MonoBehaviour
+public struct StampData
 {
-    // Start is called before the first frame update
-    void Start()
+    public bool Filled;
+}
+
+public class TerrainStamp
+{
+    public BoundsInt Bounds;
+
+    public StampData[,] Map;
+
+    public TerrainStamp(BoundsInt bounds)
     {
-        
+        Bounds = bounds;
+        Map = new StampData[bounds.size.x+1, bounds.size.y+1];
+
     }
 
-    // Update is called once per frame
-    void Update()
+    public bool ApplyPixels(Neighbourhood neighbourhood, System.Func<HexPayload,StampData> func)
     {
-        
+        var bounds = GetHexBounds(neighbourhood);
+        bounds.ClampToBounds(Bounds);
+
+        for (int i = bounds; i < length; i++)
+        {
+
+        }
     }
+
+    private static BoundsInt GetHexBounds(Neighbourhood neighbourhood)
+    {
+        throw new NotImplementedException();
+    }
+
 }
