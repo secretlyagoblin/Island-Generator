@@ -12,9 +12,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         private bool _notNull;
 
-        public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
-        public static readonly float HalfHex = 0.5f/Mathf.Cos(Mathf.PI/180f*30);
-
 
         /// <summary>
         /// Create a new hex just from the XY. Will need to be expanded later.

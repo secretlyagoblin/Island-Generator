@@ -33,6 +33,72 @@ namespace WanderingRoad.Core
             Selection.activeObject = asset;
         }
 
+        public static void DrawBounds(this Bounds bounds, Color color, float time)
+        {
+            Debug.DrawLine(
+                new Vector3(
+                    bounds.min.x,
+                    0,
+                    bounds.min.y),
+                new Vector3(
+                    bounds.min.x,
+                    0,
+                    bounds.max.y),
+                color,
+                time);
+            Debug.DrawLine(
+    new Vector3(
+        bounds.max.x,
+        0,
+        bounds.min.y),
+    new Vector3(
+        bounds.max.x,
+        0,
+        bounds.max.y),
+    color,
+    time);
+            Debug.DrawLine(
+new Vector3(
+bounds.max.x,
+0,
+bounds.max.y),
+new Vector3(
+bounds.min.x,
+0,
+bounds.max.y),
+color,
+time);
+            Debug.DrawLine(
+new Vector3(
+bounds.max.x,
+0,
+bounds.min.y),
+new Vector3(
+bounds.min.x,
+0,
+bounds.min.y),
+color,
+time);
+        }
+
+        public static BoundsInt ToBoundsInt(this Bounds bounds)
+        {
+            return new BoundsInt(
+                Mathf.FloorToInt(bounds.min.x),
+                Mathf.FloorToInt(bounds.min.y),
+                Mathf.FloorToInt(bounds.min.z),
+                                Mathf.CeilToInt(bounds.max.x),
+                Mathf.CeilToInt(bounds.max.y),
+                Mathf.CeilToInt(bounds.max.z));
+        }
+
+        public static Bounds ToBounds(this BoundsInt bounds)
+        {
+            return new Bounds(bounds.center, bounds.size);
+        }
+
+
+
         public static float InverseLerpUnclamped(float from, float to, float value)
         {
             return (value - from) / (to - from);

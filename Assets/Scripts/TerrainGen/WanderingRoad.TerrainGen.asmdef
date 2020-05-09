@@ -1,7 +1,8 @@
 {
     "name": "TerrainGen",
     "references": [
-        "GUID:8409954a3e4feaa41bc29f6f8cf0e4cf"
+        "GUID:8409954a3e4feaa41bc29f6f8cf0e4cf",
+        "GUID:b8abd41bed9a2df40b98ff6b7d586570"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

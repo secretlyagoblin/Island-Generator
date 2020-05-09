@@ -6,6 +6,7 @@ using System.Linq;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 using WanderingRoad.Procgen.Topology;
+using WanderingRoad.Core;
 
 namespace WanderingRoad.Procgen.Levelgen
 {
@@ -112,7 +113,7 @@ namespace WanderingRoad.Procgen.Levelgen
                     .Subdivide(8, codeIdentifier)
                     .ApplyGraph<InterconnectionLogic>(false)
                     .GetSubGroups(x => x.Payload.Region)
-                    .Select(x => x.Subdivide(2, codeIdentifier))
+                    //.Select(x => x.Subdivide(2, codeIdentifier))
                     ;
 
 
@@ -146,10 +147,14 @@ namespace WanderingRoad.Procgen.Levelgen
                     //    Height = (x.Payload.ConnectionStatus == Connection.NotPresent ? x.Payload.Height+3 : 1f) + RandomXY.GetOffset(x.Index.Position3d.x,x.Index.Position3d.z).Distance
                     //}); ;
 
+                    layer.Bounds.DrawBounds(Color.white,100f);
+
+                    //Debug.Log(layer.Bounds);
+
                     layer.ForEach(x => new HexPayload(x.Payload)
                     {
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? color : x.Payload.ConnectionStatus == Connection.Critical ? color : color,//RNG.NextColorBright()
+                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColor,//RNG.NextColorBright()
                         //Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black,//RNG.NextColorBright()
                         //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
                         //Height = (x.Payload.Height + 1)*5

@@ -13,6 +13,9 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return Index3d.ToString();
         }
 
+        public static readonly float ScaleY = Mathf.Sqrt(3f) * 0.5f;
+        public static readonly float HalfHex = 0.5f / Mathf.Cos(Mathf.PI / 180f * 30);
+
         public Vector2Int Index2d { get { return Get2dIndex(Index3d); } }
         public Vector2 Position2d { get { return GetPosition(Index2d); } }
 
@@ -22,6 +25,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             {
                 var twoD = GetPosition(Index2d);
                 return new Vector3(twoD.x, 0, twoD.y);
+            }
+        }
+
+        public Bounds Bounds
+        {
+            get {
+                var pos = Position2d;
+                return new Bounds(pos, new Vector3(1f, HalfHex*2, 0));            
             }
         }
 
@@ -57,20 +68,25 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public static Vector2 GetPosition(Vector2Int index2d)
         {
-            var x = Hex.HalfHex * Mathf.Sqrt(3) * (index2d.x + 0.5f * (index2d.y & 1));
-            var y = Hex.HalfHex * 3 / 2 * index2d.y;
+            var x = HalfHex * Mathf.Sqrt(3) * (index2d.x + 0.5f * (index2d.y & 1));
+            var y = HalfHex * 3 / 2 * index2d.y;
             return new Vector2(x, y);
         }
 
-        public static HexIndex HexIndexFromPosition(Vector2 loc2d)
+        public static HexIndex HexIndexFromPosition(float x, float y)
         {
-            var q = (Mathf.Sqrt(3f) / 3f * loc2d.x - 1f / 3f * loc2d.y) / Hex.HalfHex;
-            var r = (2f / 3f * loc2d.y) / Hex.HalfHex;
+            var q = (Mathf.Sqrt(3f) / 3f * x - 1f / 3f * y) / HalfHex;
+            var r = (2f / 3f * y) / HalfHex;
 
             var cube = new Vector3(q, -q - r, r);
             var roundCube = RoundCube(cube);
 
             return new HexIndex(roundCube);
+        }
+
+        public static HexIndex HexIndexFromPosition(Vector2 loc2d)
+        {
+            return HexIndexFromPosition(loc2d.x, loc2d.y);
         }
 
         public HexIndex Rotate60()
@@ -332,5 +348,17 @@ namespace WanderingRoad.Procgen.RecursiveHex
         {
             return !(a == b);
         }
+
+        public static HexIndex PixelToHex(int x, int y, float size = 1)
+        {
+            return HexIndexFromPosition(x * size, y * size);
+        }
+
+        public static HexIndex PixelToHex(Vector2Int vec, float size = 1)
+        {
+            return HexIndexFromPosition(vec.x * size, vec.y * size);
+        }
+
+
     }
 }

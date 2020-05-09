@@ -10,7 +10,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
 {
     public class HexGroup
     {
-        private Dictionary<Vector3Int, Hex> _inside;
+        public Bounds Bounds { get { return _inside.Bounds; } }
+        private HexDictionary _inside;
         private Dictionary<Vector3Int, Hex> _border;
 
         static public Mesh _previewMesh;
@@ -20,7 +21,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// </summary>
         public HexGroup()
         {
-            _inside = new Dictionary<Vector3Int, Hex>(1);
+            _inside = new HexDictionary(1);
             _border = new Dictionary<Vector3Int, Hex>(6);
 
             AddHex(new Hex(new HexIndex(),new HexPayload(),false));
@@ -33,7 +34,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
         }
 
-        private HexGroup(Dictionary<Vector3Int, Hex> inside, Dictionary<Vector3Int, Hex> border)
+        private HexGroup(HexDictionary inside, Dictionary<Vector3Int, Hex> border)
         {
             _inside = inside;
             _border = border;
@@ -46,7 +47,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         private HexGroup(HexGroup parent, int rosetteSize, Func<HexPayload, int> connectionIndentifier)
         {
             var hoods = parent.GetNeighbourhoods();
-            _inside = new Dictionary<Vector3Int, Hex>(parent._inside.Count * 19); //magic numbers 
+            _inside = new HexDictionary(parent._inside.Count * 19); //magic numbers 
             _border = new Dictionary<Vector3Int, Hex>(parent._border.Count * 10); //magic numbers
 
             for (int i = 0; i < hoods.Length; i++)
@@ -89,6 +90,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 throw new Exception("Duplicate Inner Hex Discovered", ex);
             }
             
+        }
+
+        public Dictionary<Vector3Int, Neighbourhood> GetNeighbourhoodDictionary()
+        {
+            return GetNeighbourhoods().ToDictionary(x => x.Center.Index.Index3d, x => x);
         }
 
         /// <summary>
@@ -213,10 +219,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// <returns></returns>
         public HexGroup GetSubGroup(Func<Hex, bool> func)
         {
-            var inside = _inside.Where(x => func(x.Value)).ToDictionary(x => x.Key, x => x.Value);
+                        
+            var inside = _inside.Where(x => func(x.Value)).ToList();
+            var hexDict = new HexDictionary(inside.Count);
+
+            inside.ForEach(x => hexDict.Add(x.Key, x.Value));
 
 
-            return new HexGroup(inside, GetBorderOfSubgroup(inside));
+            return new HexGroup(hexDict, GetBorderOfSubgroup(hexDict));
         }
 
         public List<HexGroup> GetSubGroups(Func<Hex, int> func)
@@ -224,12 +234,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return _inside.GroupBy(x => func(x.Value))
                 .Select(x =>
                 {
-                    var inside = x.ToDictionary(y => y.Key, y => y.Value);
-                    return new HexGroup(inside, GetBorderOfSubgroup(inside));
+                    var inside = x.ToList();
+                    var hexDict = new HexDictionary(inside.Count);
+                    inside.ForEach(y => hexDict.Add(y.Key, y.Value));
+                    return new HexGroup(hexDict, GetBorderOfSubgroup(hexDict));
                 }).ToList();
         }
 
-        private Dictionary<Vector3Int, Hex> GetBorderOfSubgroup(Dictionary<Vector3Int,Hex> subgroup)
+        private Dictionary<Vector3Int, Hex> GetBorderOfSubgroup(HexDictionary subgroup)
         {
             var border = new Dictionary<Vector3Int, Hex>();
 
@@ -363,8 +375,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
             {
                 var angle_deg = 60f * i - 30f;
                 var angle_rad = Mathf.PI / 180f * angle_deg;
-                return vec + new Vector3(Hex.HalfHex * Mathf.Cos(-angle_rad), 0,
-                             Hex.HalfHex * Mathf.Sin(-angle_rad));
+                return vec + new Vector3(HexIndex.HalfHex * Mathf.Cos(-angle_rad), 0,
+                             HexIndex.HalfHex * Mathf.Sin(-angle_rad));
             }
         }
 
@@ -375,12 +387,12 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public Mesh ToMesh()
         {
-            return HexGroup.ToMesh(_inside);
+            return HexGroup.ToMesh(_inside.GetDictionary());
         }
 
         public Mesh ToMesh(Func<Hex, float> heightCalculator)
         {
-            return HexGroup.ToMesh(_inside,heightCalculator);
+            return HexGroup.ToMesh(_inside.GetDictionary(),heightCalculator);
         }
 
         public Hex[] GetHexes()
