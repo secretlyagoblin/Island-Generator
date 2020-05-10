@@ -8,11 +8,12 @@ using WanderingRoad.Core;
 public class TerrainChunkCollection
 {
     public List<HexGroup> HexGroups = new List<HexGroup>();
-    private int Size;
+    public int Size { get; private set; }
+    public int Multiplier { get; private set; }
 
-    private List<TerrainChunk> _chunks;
+    private List<TerrainChunk> _chunks = new List<TerrainChunk>();
 
-    public TerrainChunkCollection(List<HexGroup> groups)
+    public TerrainChunkCollection(List<HexGroup> groups, int Size, int Multiplier)
     {
         var bounds = groups[0].Bounds;
 
@@ -21,12 +22,21 @@ public class TerrainChunkCollection
             bounds.Encapsulate(hexgroup.Bounds);
         }
 
-        var chunkBounds = new BoundsInt(0, 0, 0, 1000, 1000, 0);
+        var chunkBounds = new BoundsInt(-Size, -Size, 0, Size * 2, Size * 2, 0);
 
-        var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Intersects(x.Bounds)).ToList());
+        var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Intersects(x.Bounds)).ToList(),Multiplier);
+        chunk.ApplyPixels();
+
+        chunk.Bounds.ToBounds().DrawBounds(Color.blue, 100f);
+        chunk.ScaledBounds.ToBounds().DrawBounds(Color.red, 100f);
 
         _chunks.Add(chunk);
 
+    }
+
+    public Vector3[][] GetPositions()
+    {     
+        return _chunks.Select(x => x.To1DArray()).ToArray();
     }
 
 

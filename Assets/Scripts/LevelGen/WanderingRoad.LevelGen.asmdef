@@ -2,7 +2,8 @@
     "name": "WanderingRoad.LevelGen",
     "references": [
         "WanderingRoad.Core",
-        "WanderingRoad.TerrainGraph"
+        "WanderingRoad.TerrainGraph",
+        "TerrainGen"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

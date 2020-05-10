@@ -87,9 +87,9 @@ time);
                 Mathf.FloorToInt(bounds.min.x),
                 Mathf.FloorToInt(bounds.min.y),
                 Mathf.FloorToInt(bounds.min.z),
-                                Mathf.CeilToInt(bounds.max.x),
-                Mathf.CeilToInt(bounds.max.y),
-                Mathf.CeilToInt(bounds.max.z));
+                                Mathf.CeilToInt(bounds.size.x),
+                Mathf.CeilToInt(bounds.size.y),
+                Mathf.CeilToInt(bounds.size.z));
         }
 
         public static Bounds ToBounds(this BoundsInt bounds)

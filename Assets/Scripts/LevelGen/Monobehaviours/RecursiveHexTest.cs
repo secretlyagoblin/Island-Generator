@@ -28,9 +28,9 @@ namespace WanderingRoad.Procgen.Levelgen
             //RNG.Init("I'd kill fill zill");
             //cool seed "4/27/2020 7:45:28 PM"
             // orphan node to test.. "4/27/2020 5:56:43 PM"
-            //RNG.Init("3/15/2020 5:58:48 PM");
+            RNG.Init("3/15/2020 5:58:48 PM");
             // dead end to test... RNG.Init("5/2/2020 5:04:24 PM");
-            RNG.DateTimeInit();
+            //RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
             var regionIdentifier = new Func<HexPayload, int>(x => x.Region);
@@ -82,8 +82,6 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var layer2 = layer1;
 
-            for (int i = 0; i < 1; i++)
-            {
 
                 RandomXY.SetRandomSeed(RNG.NextFloat(-1000, 1000), RNG.NextFloat(-1000, 1000));
 
@@ -133,39 +131,57 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 var color = RNG.NextColor();
 
-                foreach (var layer in splayers)
+            var chunks = new TerrainChunkCollection(splayers, 75, 4);
+
+            var pts = chunks.GetPositions();
+
+            for (int i = 0; i < pts.Length; i++)
+            {
+                for (int u = 0; u < pts[i].Length; u++)
                 {
-                    var group = new HexGroupVisualiser(PreviewMesh);
+                    var pos = pts[i][u];
 
-                    var randomColor = RNG.SimilarColor(color);
-                    var randomColorDark = RNG.SimilarColor(randomColor);
-
-                    //layer.ForEach(x => new HexPayload(x.Payload)
-                    //{
-                    //    //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                    //    Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
-                    //    Height = (x.Payload.ConnectionStatus == Connection.NotPresent ? x.Payload.Height+3 : 1f) + RandomXY.GetOffset(x.Index.Position3d.x,x.Index.Position3d.z).Distance
-                    //}); ;
-
-                    layer.Bounds.DrawBounds(Color.white,100f);
-
-                    //Debug.Log(layer.Bounds);
-
-                    layer.ForEach(x => new HexPayload(x.Payload)
-                    {
-                        //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
-                        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColor,//RNG.NextColorBright()
-                        //Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black,//RNG.NextColorBright()
-                        //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
-                        //Height = (x.Payload.Height + 1)*5
-                        Height = Mathf.RoundToInt((x.Payload.Height*4 + (x.Payload.EdgeDistance*1))*15 + (x.Payload.ConnectionStatus == Connection.NotPresent?(3+this.NoiseAtIndex(x) * 20) :0)) 
-                    }); ; ;; ;
-
-
-                    group.HexGroup = layer;
-
-                    _gizmosHexGroups.Add(group);
+                    if (pos.y == 0)
+                        continue;
+                    var gob = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    gob.transform.position = pos;
                 }
+            }
+
+
+                //foreach (var layer in splayers)
+                //{
+                //    var group = new HexGroupVisualiser(PreviewMesh);
+                //
+                //    var randomColor = RNG.SimilarColor(color);
+                //    var randomColorDark = RNG.SimilarColor(randomColor);
+                //
+                //    //layer.ForEach(x => new HexPayload(x.Payload)
+                //    //{
+                //    //    //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
+                //    //    Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
+                //    //    Height = (x.Payload.ConnectionStatus == Connection.NotPresent ? x.Payload.Height+3 : 1f) + RandomXY.GetOffset(x.Index.Position3d.x,x.Index.Position3d.z).Distance
+                //    //}); ;
+                //
+                //    layer.Bounds.DrawBounds(Color.white,100f);
+                //
+                //    //Debug.Log(layer.Bounds);
+                //
+                //    layer.ForEach(x => new HexPayload(x.Payload)
+                //    {
+                //        //Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColorDark//RNG.NextColorBright()
+                //        Color = x.Payload.ConnectionStatus == Connection.Present ? randomColor : x.Payload.ConnectionStatus == Connection.Critical ? randomColor : randomColor,//RNG.NextColorBright()
+                //        //Color = x.Payload.ConnectionStatus == Connection.Present ? Color.white : x.Payload.ConnectionStatus == Connection.Critical ? Color.white : Color.black,//RNG.NextColorBright()
+                //        //Color = x.Payload.ConnectionStatus == Connection.NotPresent ? new Color(x.Payload.Height * 0.1f, x.Payload.Height * 0.1f, x.Payload.Height * 0.1f) : new Color(x.Payload.Height * 0.3f, 0.6f, x.Payload.Height * 0.3f),
+                //        //Height = (x.Payload.Height + 1)*5
+                //        Height = Mathf.RoundToInt((x.Payload.Height*4 + (x.Payload.EdgeDistance*1))*15 + (x.Payload.ConnectionStatus == Connection.NotPresent?(3+this.NoiseAtIndex(x) * 20) :0)) 
+                //    });
+                //
+                //
+                //    group.HexGroup = layer;
+                //
+                //    _gizmosHexGroups.Add(group);
+                //}
 
 
 
@@ -237,7 +253,7 @@ namespace WanderingRoad.Procgen.Levelgen
                 //layerfruu.ToGameObjectsBorder(BorderPrefab);
 
                 //this.GetComponent<MeshFilter>().sharedMesh = layer2.ToMesh();
-            }
+            
 
             return;
 
