@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 
 public struct StampData
@@ -52,7 +53,7 @@ public class TerrainChunk
 
             foreach (var pt in item.Value)
             {
-                var val = (p.Center.Payload.Height*0) + (p.Center.Payload.EdgeDistance * 1f);
+                var val = (p.Center.Payload.Height*1) + ((Mathf.Max(p.Center.Payload.EdgeDistance-0.5f,0)) * 0.35f) + RNG.NextFloat(-0.1f, 0.1f);
                 if (val > _maxValue) _maxValue = val;
                 Map[pt.x - (Bounds.min.x*Multiplier), pt.y - (Bounds.min.y*Multiplier)] = new StampData() { Height = val };
 
