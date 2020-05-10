@@ -15,9 +15,11 @@ public static class TerrainBuilder
         terrainData.size = new Vector3(chunk.ScaledBounds.size.x, chunk._maxValue - chunk._minValue, chunk.ScaledBounds.size.y);
         terrainData.alphamapResolution = 256;
         terrainData.SetHeights(0, 0, chunk.GetResizedHeightmap(1025));
+        
 
         GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
         var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
+        terrain.drawInstanced = true;
         //terrain.detailObjectDistance = 150f;
         terrain.heightmapPixelError = 30f;
         //terrain.basemapDistance = 200f;
