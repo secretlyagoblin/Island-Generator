@@ -21,6 +21,9 @@ public class TerrainChunk
 
     public int Multiplier { get; private set; }
 
+    internal float _minValue = -10;
+    internal float _maxValue = 0f;
+
 
 
     public TerrainChunk(BoundsInt bounds, List<HexGroup> groups, int multiplier)
@@ -49,7 +52,10 @@ public class TerrainChunk
 
             foreach (var pt in item.Value)
             {
-                Map[pt.x - (Bounds.min.x*Multiplier), pt.y - (Bounds.min.y*Multiplier)] = new StampData() { Height = p.Center.Payload.Height + (p.Center.Payload.EdgeDistance*0.2f) };
+                var val = (p.Center.Payload.Height*0) + (p.Center.Payload.EdgeDistance * 0.05f);
+                if (val > _maxValue) _maxValue = val;
+                Map[pt.x - (Bounds.min.x*Multiplier), pt.y - (Bounds.min.y*Multiplier)] = new StampData() { Height = val };
+
             }            
         }
 
@@ -83,20 +89,39 @@ public class TerrainChunk
         return map;
     }
 
-    public float[,] GetHeightmap()
+    public float[,] GetResizedHeightmap(int newSize)
     {
-        var floats = new float[this.Map.GetLength(0), this.Map.GetLength(1)];
+        var map = new float[newSize, newSize]; ;
 
-        for (int x = 0; x < this.Map.GetLength(0); x++)
+        for (int x = 0; x < newSize; x++)
         {
-            for (int y = 0; y < this.Map.GetLength(1); y++)
+            for (int y = 0; y < newSize; y++)
             {
-                floats[x, y] = this.Map[x, y].Height;
+                var normalisedX = Mathf.InverseLerp(0, newSize - 1, x);
+                var normalisedY = Mathf.InverseLerp(0, newSize - 1, y);
+
+                var num = BilinearSampleFromNormalisedVector2(new Vector2(normalisedX, normalisedY));
+
+                map[x, y] = Mathf.InverseLerp(_minValue, _maxValue, num);
             }
         }
-
-        return floats;
+        return map;
     }
+
+    //public float[,] GetHeightmap()
+    //{
+    //    var floats = new float[this.Map.GetLength(0), this.Map.GetLength(1)];
+    //
+    //    for (int x = 0; x < this.Map.GetLength(0); x++)
+    //    {
+    //        for (int y = 0; y < this.Map.GetLength(1); y++)
+    //        {
+    //            floats[x, y] = Mathf.InverseLerp(_minValue,_maxValue,this.Map[x, y].Height);
+    //        }
+    //    }
+    //
+    //    return floats;
+    //}
 
 
     public Vector3[] To1DArray()
@@ -116,5 +141,36 @@ public class TerrainChunk
         }
         // Step 3: return the new array.
         return result;
+    }
+
+    private float BilinearSampleFromNormalisedVector2(Vector2 normalisedVector)
+    {
+
+        if (normalisedVector.x > 1 | normalisedVector.y > 1 | normalisedVector.x < 0 | normalisedVector.y < 0)
+        {
+            Debug.Log("You aren't normal and as such are not welcome here, in this debug log");
+
+            Debug.Log(normalisedVector);
+        }
+
+        float u = normalisedVector.x * (Map.GetLength(0) - 1);
+        float v = normalisedVector.y * (Map.GetLength(1) - 1);
+        int x = (int)Mathf.Floor(u);
+        int y = (int)Mathf.Floor(v);
+        if (u == x && u != 0)
+            x--;
+        if (v == y && v != 0)
+            y--;
+        float u_ratio = u - x;
+        float v_ratio = v - y;
+        float u_opposite = 1f - u_ratio;
+        float v_opposite = 1f - v_ratio;
+
+
+        float result = (this.Map[x, y].Height * u_opposite + this.Map[x + 1, y].Height * u_ratio) * v_opposite +
+                   (this.Map[x, y + 1].Height * u_opposite + this.Map[x + 1, y + 1].Height * u_ratio) * v_ratio;
+        return result;
+
+
     }
 }

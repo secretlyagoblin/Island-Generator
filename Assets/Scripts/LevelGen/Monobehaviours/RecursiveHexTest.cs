@@ -131,9 +131,9 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 var color = RNG.NextColor();
 
-            var chunks = new TerrainChunkCollection(splayers, 75, 4);
+            var chunks = new TerrainChunkCollection(splayers, 64, 1);
 
-            TerrainBuilder.BuildTerrain(chunks);
+            var terrain = TerrainBuilder.BuildTerrain(chunks);
 
             //var pts = chunks.GetPositions();
             //
