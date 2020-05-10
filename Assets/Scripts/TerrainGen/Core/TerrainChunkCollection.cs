@@ -11,7 +11,7 @@ public class TerrainChunkCollection
     public int Size { get; private set; }
     public int Multiplier { get; private set; }
 
-    private List<TerrainChunk> _chunks = new List<TerrainChunk>();
+    internal List<TerrainChunk> _chunks = new List<TerrainChunk>();
 
     public TerrainChunkCollection(List<HexGroup> groups, int Size, int Multiplier)
     {

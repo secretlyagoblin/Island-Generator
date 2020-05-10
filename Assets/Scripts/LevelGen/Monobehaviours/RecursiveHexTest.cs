@@ -133,20 +133,22 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var chunks = new TerrainChunkCollection(splayers, 75, 4);
 
-            var pts = chunks.GetPositions();
+            TerrainBuilder.BuildTerrain(chunks);
 
-            for (int i = 0; i < pts.Length; i++)
-            {
-                for (int u = 0; u < pts[i].Length; u++)
-                {
-                    var pos = pts[i][u];
-
-                    if (pos.y == 0)
-                        continue;
-                    var gob = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    gob.transform.position = pos;
-                }
-            }
+            //var pts = chunks.GetPositions();
+            //
+            //for (int i = 0; i < pts.Length; i++)
+            //{
+            //    for (int u = 0; u < pts[i].Length; u++)
+            //    {
+            //        var pos = pts[i][u];
+            //
+            //        if (pos.y == 0)
+            //            continue;
+            //        var gob = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            //        gob.transform.position = pos;
+            //    }
+            //}
 
 
                 //foreach (var layer in splayers)

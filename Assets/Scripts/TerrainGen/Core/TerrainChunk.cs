@@ -83,6 +83,22 @@ public class TerrainChunk
         return map;
     }
 
+    public float[,] GetHeightmap()
+    {
+        var floats = new float[this.Map.GetLength(0), this.Map.GetLength(1)];
+
+        for (int x = 0; x < this.Map.GetLength(0); x++)
+        {
+            for (int y = 0; y < this.Map.GetLength(1); y++)
+            {
+                floats[x, y] = this.Map[x, y].Height;
+            }
+        }
+
+        return floats;
+    }
+
+
     public Vector3[] To1DArray()
     {
         // Step 1: get total size of 2D array, and allocate 1D array.
