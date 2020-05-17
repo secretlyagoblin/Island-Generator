@@ -38,26 +38,33 @@ public class TerrainChunk
 
     public bool ApplyPixels()
     {
-        var pixels = AssociatePixels();
+        var hexToPixel = AssociatePixels();
 
         var bloops = _groups.ConvertAll(x => x.GetNeighbourhoodDictionary());
 
-        foreach (var item in pixels)
+        var sloops = _groups.SelectMany(x => x.GetNeighbourhoodDictionary()).ToDictionary(x => x.Key,x => x.Value);
+
+        var inverseMultiplier = 1f / this.Multiplier;
+
+        foreach (var pixelList in hexToPixel)
         {
-            var g = bloops.FirstOrDefault(x => x.ContainsKey(item.Key.Index3d));
-            if(g == null)
+            if (sloops.TryGetValue(pixelList.Key.Index3d, out var p))
+            {
+
+                foreach (var pt in pixelList.Value)
+                {
+                    var payload = p.HexPayloadAtPosition((Vector2)pt * inverseMultiplier);
+
+                    var val = ((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f);
+                    if (val > _maxValue) _maxValue = val;
+                    Map[pt.x - (Bounds.min.x * Multiplier), pt.y - (Bounds.min.y * Multiplier)] = new StampData() { Height = val };
+
+                }
+            }
+            else
             {
                 continue;
             }
-            var p = g[item.Key.Index3d];
-
-            foreach (var pt in item.Value)
-            {
-                var val = ((p.Center.Payload.Height * 1) + ((Mathf.Max(p.Center.Payload.EdgeDistance - 0.5f, 0)) * 0.5f))*6;// + RNG.NextFloat(-0.1f, 0.1f);
-                if (val > _maxValue) _maxValue = val;
-                Map[pt.x - (Bounds.min.x*Multiplier), pt.y - (Bounds.min.y*Multiplier)] = new StampData() { Height = val };
-
-            }            
         }
 
         return true;
