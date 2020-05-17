@@ -53,7 +53,7 @@ public class TerrainChunk
 
             foreach (var pt in item.Value)
             {
-                var val = (p.Center.Payload.Height*1) + ((Mathf.Max(p.Center.Payload.EdgeDistance-0.5f,0)) * 0.35f) + RNG.NextFloat(-0.1f, 0.1f);
+                var val = ((p.Center.Payload.Height * 1) + ((Mathf.Max(p.Center.Payload.EdgeDistance - 0.5f, 0)) * 0.5f))*6;// + RNG.NextFloat(-0.1f, 0.1f);
                 if (val > _maxValue) _maxValue = val;
                 Map[pt.x - (Bounds.min.x*Multiplier), pt.y - (Bounds.min.y*Multiplier)] = new StampData() { Height = val };
 

@@ -21,7 +21,7 @@ public static class TerrainBuilder
         var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
         terrain.drawInstanced = true;
         //terrain.detailObjectDistance = 150f;
-        terrain.heightmapPixelError = 30f;
+        terrain.heightmapPixelError = 6f;
         //terrain.basemapDistance = 200f;
 
         return terrain;

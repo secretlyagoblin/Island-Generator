@@ -73,13 +73,22 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new Vector2(x, y);
         }
 
-        public static HexIndex HexIndexFromPosition(float x, float y)
+        public static Vector3 FloatingHexFromPosition(float x, float y)
         {
             var q = (Mathf.Sqrt(3f) / 3f * x - 1f / 3f * y) / HalfHex;
             var r = (2f / 3f * y) / HalfHex;
 
             var cube = new Vector3(q, -q - r, r);
-            var roundCube = RoundCube(cube);
+
+            return cube;
+        }
+
+
+        public static HexIndex HexIndexFromPosition(float x, float y)
+        {
+            var floatingHex = FloatingHexFromPosition(x, y);
+
+            var roundCube = RoundCube(floatingHex);
 
             return new HexIndex(roundCube);
         }
