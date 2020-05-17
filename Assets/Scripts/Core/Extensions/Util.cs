@@ -129,6 +129,14 @@ time);
             return a > other;
         }
 
+        public static bool EqualsOrSmallerThanWithinTolerance(this float a, float other, float tolerance = 0.0001f)
+        {
+            if (a.EqualsWithinTolerance(other, tolerance))
+                return true;
+
+            return a < other;
+        }
+
         /// <summary>
         /// Break a list of items into chunks of a specific size
         /// </summary>
