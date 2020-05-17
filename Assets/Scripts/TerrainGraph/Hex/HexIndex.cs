@@ -358,16 +358,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return !(a == b);
         }
 
-        public static HexIndex PixelToHex(int x, int y, float size = 1)
-        {
-            return HexIndexFromPosition(x * size, y * size);
-        }
-
-        public static HexIndex PixelToHex(Vector2Int vec, float size = 1)
-        {
-            return HexIndexFromPosition(vec.x * size, vec.y * size);
-        }
-
 
     }
 }
