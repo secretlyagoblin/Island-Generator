@@ -74,7 +74,11 @@ public class TerrainChunk
             for (int y = 0; y < Map.GetLength(1); y++)
             {
                 var pixel = new Vector2Int(Bounds.min.x*Multiplier + (x), Bounds.min.y*Multiplier + (y));
-                var hex = HexIndex.PixelToHex(pixel, inverseSize);
+                var position = new Vector2(
+                    pixel.x * inverseSize,
+                    pixel.y * inverseSize);
+
+                var hex = HexIndex.HexIndexFromPosition(position);
 
                 if (map.ContainsKey(hex))
                 {
