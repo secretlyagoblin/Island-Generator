@@ -173,39 +173,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             }
 
-
-
-            bool FoundChild(HexIndex testCenter, out Vector3 testWeight, out int testIndex)
-            {
-                testIndex = 0;
-
-                for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
-                {
-                    testWeight = CalculateBarycentricWeight(
-                        floatingNestedCenter,
-                        largeHexPoints[_triangleIndexPairs[u]],
-                        largeHexPoints[_triangleIndexPairs[u + 1]],
-                        testCenter.Position2d);
-
-                    var testX = testWeight.x;
-                    var testY = testWeight.y;
-                    var testZ = testWeight.z;
-
-                    if (testX >= 0 && testX <= 1 && testY >= 0 && testY <= 1 && testZ >= 0 && testZ <= 1)
-                    {
-                        if (!(testX >= testY && testX >= testZ))
-                            break;
-                        return true;
-                    }
-                    testIndex++;
-                }
-
-                testWeight = Vector3.zero;
-
-                return false;
-            }
-
-            FoundChild(nestedCenter, out var weight, out var index);
+            FoundChild(floatingNestedCenter, largeHexPoints, nestedCenter.Position2d, out var weight, out var index);
 
             var children = new List<Hex>
             {
@@ -221,11 +189,13 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 var foundChild = false;
                 var results = nestedCenter.GenerateRing(radius);
 
+                
+
                 for (int i = 0; i < results.Length; i++)
                 {
                     var testCenter = results[i];
 
-                    if (FoundChild(testCenter, out weight, out index))
+                    if (FoundChild(floatingNestedCenter, largeHexPoints, testCenter.Position2d, out weight, out index))
                     {
                         foundChild = true;
                         children.Add(
@@ -249,6 +219,45 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             return children.ToArray();
         }
+
+        private bool FoundChild(Vector2 floatingNestedCenter, Vector2[] largeHexPoints, Vector2 testCenter, out Vector3 testWeight, out int testIndex, bool barycentric = true)
+        {
+            testIndex = 0;
+
+            for (int u = 0; u < _triangleIndexPairs.Length; u += 2)
+            {
+                testWeight = CalculateBarycentricWeight(
+                    floatingNestedCenter,
+                    largeHexPoints[_triangleIndexPairs[u]],
+                    largeHexPoints[_triangleIndexPairs[u + 1]],
+                    testCenter);
+
+                var testX = testWeight.x;
+                var testY = testWeight.y;
+                var testZ = testWeight.z;
+
+                var tolerance = 0.001f;
+
+                if (
+                    testX.EqualsOrLargerThanWithinTolerance(0, tolerance) && 
+                    testX.EqualsOrSmallerThanWithinTolerance(1, tolerance) && 
+                    testY.EqualsOrLargerThanWithinTolerance(0, tolerance) &&
+                    testY.EqualsOrSmallerThanWithinTolerance(1, tolerance) &&
+                    testZ.EqualsOrLargerThanWithinTolerance(0, tolerance) &&
+                    testZ.EqualsOrSmallerThanWithinTolerance(1, tolerance))
+                {
+                    if (barycentric && !(testX >= testY && testX >= testZ))
+                        break;
+                    return true;
+                }
+                testIndex++;
+            }
+
+            testWeight = Vector3.zero;
+
+            return false;
+        }
+
 
         Hex FinaliseHex(HexIndex hex, Vector3 weight, int index, Topology.Connection connection)
         {
@@ -310,6 +319,37 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 case 4: return HexPayload.Blerp(Center, N4, N5, weights);
                 case 5: return HexPayload.Blerp(Center, N5, N0, weights);
             }
+        }
+
+
+        public HexPayload HexPayloadAtPosition(Vector2 position)
+        {
+            var center = this.Center.Index.Position2d;
+            //center += center.AddNoiseOffset();
+
+            var largeHexPoints = new Vector2[]
+{
+                 this.N0.Index.Position2d, //+ this.N0.Index.Position2d.AddNoiseOffset(),
+                 this.N1.Index.Position2d, //+ this.N1.Index.Position2d.AddNoiseOffset(),
+                 this.N2.Index.Position2d, //+ this.N2.Index.Position2d.AddNoiseOffset(),
+                 this.N3.Index.Position2d, //+ this.N3.Index.Position2d.AddNoiseOffset(),
+                 this.N4.Index.Position2d, //+ this.N4.Index.Position2d.AddNoiseOffset(),
+                 this.N5.Index.Position2d //+ this.N5.Index.Position2d.AddNoiseOffset()
+};
+
+
+
+
+            if (FoundChild(center, largeHexPoints, position, out var weight, out var index, false))
+            {
+                return this.InterpolateHexPayload(weight, index);
+            }
+            //else
+            //{
+                //return new HexPayload();
+            //}
+
+            throw new Exception("Invalid Payload");
         }
 
         /// <summary>
