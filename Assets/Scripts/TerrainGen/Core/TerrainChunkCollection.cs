@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using WanderingRoad.Procgen.RecursiveHex;
 using WanderingRoad.Core;
+using System;
 
 public class TerrainChunkCollection
 {
@@ -13,7 +14,9 @@ public class TerrainChunkCollection
 
     internal List<TerrainChunk> _chunks = new List<TerrainChunk>();
 
-    public TerrainChunkCollection(List<HexGroup> groups, int Size, int Multiplier)
+    private Func<float, float, HexPayload, float> _heightCalculation;
+
+    public TerrainChunkCollection(List<HexGroup> groups, int Size, int Multiplier, Func<float, float, HexPayload, float> heightCalculation)
     {
         var bounds = groups[0].Bounds;
 
@@ -22,10 +25,12 @@ public class TerrainChunkCollection
             bounds.Encapsulate(hexgroup.Bounds);
         }
 
+        HexGroups = groups;
+
         var chunkBounds = new BoundsInt(-Size, -Size, 0, Size * 2, Size * 2, 0);
 
         var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Intersects(x.Bounds)).ToList(),Multiplier);
-        chunk.ApplyPixels();
+        chunk.ApplyPixels(heightCalculation);
 
         chunk.Bounds.ToBounds().DrawBounds(Color.blue, 100f);
         chunk.ScaledBounds.ToBounds().DrawBounds(Color.red, 100f);

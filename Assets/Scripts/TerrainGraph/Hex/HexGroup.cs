@@ -97,13 +97,15 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return GetNeighbourhoods().ToDictionary(x => x.Center.Index.Index3d, x => x);
         }
 
+
+
         /// <summary>
         /// Get an array of neighbourhoods that allow all cells to be subdivided
         /// </summary>
         /// <returns></returns>
-        private Neighbourhood[] GetNeighbourhoods()
+        public Neighbourhood[] GetNeighbourhoods(bool includeBorder = true)
         {
-            var hood = new Neighbourhood[_inside.Count + _border.Count];
+            var hood = new Neighbourhood[includeBorder?_inside.Count + _border.Count:_inside.Count];
 
             var count = 0;
 
@@ -144,6 +146,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 };
                 count++;
             }
+
+            if (!includeBorder) return hood;
 
             foreach (var hexDictEntry in _border)
             {

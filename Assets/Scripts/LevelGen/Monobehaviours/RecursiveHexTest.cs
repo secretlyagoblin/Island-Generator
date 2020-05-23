@@ -28,9 +28,9 @@ namespace WanderingRoad.Procgen.Levelgen
             //RNG.Init("I'd kill fill zill");
             //cool seed "4/27/2020 7:45:28 PM"
             // orphan node to test.. "4/27/2020 5:56:43 PM"
-            RNG.Init("3/15/2020 5:58:48 PM");
+            //RNG.Init("3/15/2020 5:58:48 PM");
             // dead end to test... RNG.Init("5/2/2020 5:04:24 PM");
-            //RNG.DateTimeInit();
+            RNG.DateTimeInit();
             //RecursiveHex.RandomSeedProperties.Disable();
 
             var regionIdentifier = new Func<HexPayload, int>(x => x.Region);
@@ -131,7 +131,7 @@ namespace WanderingRoad.Procgen.Levelgen
 
                 var color = RNG.NextColor();
 
-            var chunks = new TerrainChunkCollection(splayers, 64, 4);
+            var chunks = new TerrainChunkCollection(splayers, 64, 4, CalculateNoise);
 
             var terrain = TerrainBuilder.BuildTerrain(chunks);
 
@@ -315,6 +315,35 @@ namespace WanderingRoad.Procgen.Levelgen
 
             return perlin*multiplier;
 
+        }
+
+        private float CalculateNoise(float x, float y, HexPayload payload)
+        {
+            var offset = 0.01332f;
+            var scale = 0.0745f;
+            x += offset;
+            y += offset;
+
+            var noise = Mathf.PerlinNoise(x * scale, y * scale);
+
+            offset = 0.03332f;
+            scale = 0.1545f;
+            x += offset;
+            y += offset;
+
+            var noise2 = Mathf.PerlinNoise(x * scale, y * scale);
+
+            var edgeDistance = Mathf.Max(payload.EdgeDistance + (RNG.CoinToss()?RNG.NextFloat(-0.1f, 0.1f):0) - 0.5f, 0f);
+            var distance = Mathf.InverseLerp(0, 2, edgeDistance);
+            noise *= distance;
+            var distance2 = Mathf.InverseLerp(0, 5, edgeDistance);
+            noise += (distance2*noise2*0.3f);
+
+            var height = (payload.Height * 4) + (edgeDistance * 2f) + (noise * 6) ;
+
+
+
+            return height;
         }
     }
     namespace Levels

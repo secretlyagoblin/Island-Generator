@@ -36,26 +36,27 @@ public class TerrainChunk
 
     }
 
-    public bool ApplyPixels()
+    public bool ApplyPixels(Func<float, float, HexPayload, float> func)
     {
         var hexToPixel = AssociatePixels();
+        var hexes = new Dictionary<Vector3Int, Neighbourhood>();
 
-        var bloops = _groups.ConvertAll(x => x.GetNeighbourhoodDictionary());
-
-        var sloops = _groups.SelectMany(x => x.GetNeighbourhoodDictionary()).ToDictionary(x => x.Key,x => x.Value);
+        _groups.ForEach(x => x.GetNeighbourhoods(false).ToList().ForEach(y => hexes.Add(y.Center.Index.Index3d,y)));
 
         var inverseMultiplier = 1f / this.Multiplier;
 
         foreach (var pixelList in hexToPixel)
         {
-            if (sloops.TryGetValue(pixelList.Key.Index3d, out var p))
+            if (hexes.TryGetValue(pixelList.Key.Index3d, out var p))
             {
 
                 foreach (var pt in pixelList.Value)
                 {
                     var payload = p.HexPayloadAtPosition((Vector2)pt * inverseMultiplier);
 
-                    var val = ((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f);
+
+
+                    var val = func(pt.x, pt.y, payload);//((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f);
                     if (val > _maxValue) _maxValue = val;
                     Map[pt.x - (Bounds.min.x * Multiplier), pt.y - (Bounds.min.y * Multiplier)] = new StampData() { Height = val };
 
