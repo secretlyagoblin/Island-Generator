@@ -7,6 +7,7 @@ using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 using WanderingRoad.Procgen.Topology;
 using WanderingRoad.Core;
+using System.IO;
 
 namespace WanderingRoad.Procgen.Levelgen
 {
@@ -114,6 +115,22 @@ namespace WanderingRoad.Procgen.Levelgen
                     //.Select(x => x.Subdivide(2, codeIdentifier))
                     ;
 
+            var savePath = $"{Application.persistentDataPath}/{RNG.CurrentSeed()}/Chunks";
+           
+           
+
+            foreach (var item in splayers)
+            {
+                var path = $"{savePath}/{Guid.NewGuid()}.json";
+                var info = new System.IO.FileInfo(path);
+
+                if (!info.Exists)
+                    Directory.CreateDirectory(info.Directory.FullName);
+
+                System.IO.File.WriteAllText(path, JsonUtility.ToJson(item.ToSerialisable()));
+                Debug.Log($"Json written to {path}");
+            }
+
 
                 //var splayers = layer1
                 //    .Subdivide(4, codeIdentifier)
@@ -129,11 +146,26 @@ namespace WanderingRoad.Procgen.Levelgen
                 //        //.Subdivide(2, codeIdentifier)
                 //        );
 
-                var color = RNG.NextColor();
+            var color = RNG.NextColor();
 
-            var chunks = new TerrainChunkCollection(splayers, 64, 4, CalculateNoise);
+            //var chunks = new TerrainChunkCollection(splayers, 64, 4, CalculateNoise);
 
-            var terrain = TerrainBuilder.BuildTerrain(chunks);
+            //var terrain = TerrainBuilder.BuildTerrain(chunks);
+
+            var propsets = splayers.ConvertAll(x => new RegionProps(x, new PropGen()));
+
+            var allProps = new List<PropData>();
+
+            foreach (var item in propsets)
+            {
+                item.GetFarProps(allProps);
+
+                foreach (var prop in allProps)
+                {
+                    Instantiate(Prefab, prop.Position, Quaternion.Euler(prop.Rotation, prop.Yaw, 0));
+                }
+            }
+
 
             //var pts = chunks.GetPositions();
             //
@@ -346,11 +378,38 @@ namespace WanderingRoad.Procgen.Levelgen
             return height;
         }
     }
-    namespace Levels
+
+    public class PropGen : IDeterminePropRelationships
     {
+        public bool GetFarProps(Dictionary<Vector3Int, Neighbourhood> hoods, List<PropData> propDataToWrite)
+        {
+            propDataToWrite.Clear();
 
+            foreach (var item in hoods)
+            {
+                var payload = item.Value.Center.Payload;
+                if (payload.EdgeDistance < 0.75f || payload.EdgeDistance >2)
+                    continue;
 
+                var data = new PropData()
+                {
+                    Position = item.Value.Center.Index.Position2d,
+                    HeightGuide = 2,
+                    Rotation = RNG.NextFloat(360),
+                    Yaw = 0,
+                    PropType = PropType.Backdrop
+                };
 
+                propDataToWrite.Add(data);
+            }
 
+            return true;
+
+        }
+
+        public bool GetCloseProps(Dictionary<Vector3Int, Neighbourhood> hoods, List<PropData> propDataToWrite)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

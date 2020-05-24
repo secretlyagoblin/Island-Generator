@@ -5,6 +5,7 @@ using WanderingRoad.Procgen.Topology;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
+
     public struct HexPayload: IGraphable
     {
         public float Height;

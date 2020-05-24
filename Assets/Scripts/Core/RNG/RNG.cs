@@ -11,7 +11,14 @@ namespace WanderingRoad.Core.Random
         static System.Random _pseudoRandom;
         static bool _initialised = false;
 
+        private static int _seed;
+
         private static uint _derivedXYSeed;
+
+        public static int CurrentSeed()
+        {
+            return _seed;
+        }
 
         public static void DateTimeInit()
         {
@@ -31,30 +38,31 @@ namespace WanderingRoad.Core.Random
             else
             {
                 Debug.Log($"Current Seed: \"{seed}\"");
-                _pseudoRandom = new System.Random(seed.GetHashCode());
+                _seed = seed.GetHashCode();
+                _pseudoRandom = new System.Random(_seed);
                 _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
                 _initialised = true;
             }
         }
 
-        public static void Init()
-        {
-            if (_initialised)
-            { }
-            else
-            {
-                _pseudoRandom = new System.Random();
-                _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
-                _initialised = true;
-            }
-        }
+        //public static void Init()
+        //{
+        //    if (_initialised)
+        //    { }
+        //    else
+        //    {
+        //        _pseudoRandom = new System.Random();
+        //        _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
+        //        _initialised = true;
+        //    }
+        //}
 
-        public static void ForceInit(string seed)
-        {
-            _pseudoRandom = new System.Random(seed.GetHashCode());
-            _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
-            _initialised = true;
-        }
+        //public static void ForceInit(string seed)
+        //{
+        //    _pseudoRandom = new System.Random(seed.GetHashCode());
+        //    _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
+        //    _initialised = true;
+        //}
 
         public static bool CoinToss()
         {

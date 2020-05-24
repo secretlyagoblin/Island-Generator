@@ -12,7 +12,7 @@ public class HexDrawer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        RNG.Init();
+        RNG.Init("Yeet");
 
 
         //var myList = new HexIndex().GenerateRosetteCircular(30).ToList();
