@@ -5,10 +5,11 @@ using System.Linq;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.Topology;
 using WanderingRoad.Core;
+using WanderingRoad.IO;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
-    public class HexGroup
+    public class HexGroup:IStreamable
     {
         public Bounds Bounds { get { return _inside.Bounds; } }
         private HexDictionary _inside;
@@ -38,7 +39,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             _border = border;
         }
 
-        public SerialisableHexGroup ToSerialisable()
+        public ISerialisable ToSerialisable()
         {
             var hexes = new Hex[_inside.Count + _border.Count];
             var count = 0;

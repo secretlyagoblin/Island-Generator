@@ -2,12 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WanderingRoad.IO;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
 
     [Serializable]
-    public class SerialisableHexGroup
+    public class SerialisableHexGroup : ISerialisable
     {
         public Vector3Int[] Indices;
         public float[] Height;
@@ -108,6 +109,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
 
             return hexes;
+        }
+
+        public IStreamable RestoreAsset()
+        {
+            return new HexGroup(this);
         }
     }
 }

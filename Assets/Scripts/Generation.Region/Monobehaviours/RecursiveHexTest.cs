@@ -44,9 +44,9 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var color = RNG.NextColor();
 
-            var chunks = new TerrainChunkCollection(layers, 64, 4, CalculateNoise);
+            //var chunks = new TerrainChunkCollection(layers, 64, 4, CalculateNoise);
 
-            var terrain = TerrainBuilder.BuildTerrain(chunks);
+            //var terrain = TerrainBuilder.BuildTerrain(chunks);
 
             //var propsets = getLayers.ConvertAll(x => new RegionProps(x, new PropGen()));
             //
@@ -254,37 +254,37 @@ namespace WanderingRoad.Procgen.Levelgen
         }
     }
 
-    public class PropGen : IDeterminePropRelationships
-    {
-        public bool GetFarProps(Dictionary<Vector3Int, Neighbourhood> hoods, List<PropData> propDataToWrite)
-        {
-            propDataToWrite.Clear();
-
-            foreach (var item in hoods)
-            {
-                var payload = item.Value.Center.Payload;
-                if (payload.EdgeDistance < 0.75f || payload.EdgeDistance >2)
-                    continue;
-
-                var data = new PropData()
-                {
-                    Position = item.Value.Center.Index.Position2d,
-                    HeightGuide = 2,
-                    Rotation = RNG.NextFloat(360),
-                    Yaw = 0,
-                    PropType = PropType.Backdrop
-                };
-
-                propDataToWrite.Add(data);
-            }
-
-            return true;
-
-        }
-
-        public bool GetCloseProps(Dictionary<Vector3Int, Neighbourhood> hoods, List<PropData> propDataToWrite)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //public class PropGen : IDeterminePropRelationships
+    //{
+    //    public bool GetFarProps(Dictionary<Vector3Int, Neighbourhood> hoods, List<PropData> propDataToWrite)
+    //    {
+    //        propDataToWrite.Clear();
+    //
+    //        foreach (var item in hoods)
+    //        {
+    //            var payload = item.Value.Center.Payload;
+    //            if (payload.EdgeDistance < 0.75f || payload.EdgeDistance >2)
+    //                continue;
+    //
+    //            var data = new PropData()
+    //            {
+    //                Position = item.Value.Center.Index.Position2d,
+    //                HeightGuide = 2,
+    //                Rotation = RNG.NextFloat(360),
+    //                Yaw = 0,
+    //                PropType = PropType.Backdrop
+    //            };
+    //
+    //            propDataToWrite.Add(data);
+    //        }
+    //
+    //        return true;
+    //
+    //    }
+    //
+    //    public bool GetCloseProps(Dictionary<Vector3Int, Neighbourhood> hoods, List<PropData> propDataToWrite)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

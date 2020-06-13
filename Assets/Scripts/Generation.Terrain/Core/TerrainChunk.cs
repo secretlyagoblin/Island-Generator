@@ -5,13 +5,14 @@ using System.Linq;
 using UnityEngine;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
+using WanderingRoad.IO;
 
 public struct StampData
 {
     public float Height;
 }
 
-public class TerrainChunk
+public class TerrainChunk:IStreamable
 {
     public BoundsInt Bounds;
     public BoundsInt ScaledBounds { get { return new BoundsInt(Bounds.min.x * Multiplier, Bounds.min.y * Multiplier, 0, Bounds.size.x * Multiplier, Bounds.size.y * Multiplier, 0); } }
@@ -24,8 +25,6 @@ public class TerrainChunk
 
     internal float _minValue = -10;
     internal float _maxValue = 0f;
-
-
 
     public TerrainChunk(BoundsInt bounds, List<HexGroup> groups, int multiplier)
     {
@@ -185,5 +184,10 @@ public class TerrainChunk
         return result;
 
 
+    }
+
+    public ISerialisable ToSerialisable()
+    {
+        throw new NotImplementedException();
     }
 }
