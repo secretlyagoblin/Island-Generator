@@ -15,6 +15,7 @@ public struct StampData
 public class TerrainChunk
 {
     public RectInt Bounds;
+
     public RectInt ScaledBounds { get { return new RectInt(Bounds.min.x * Multiplier, Bounds.min.y * Multiplier, Bounds.size.x * Multiplier, Bounds.size.y * Multiplier); } }
 
     public StampData[,] Map;
@@ -23,20 +24,20 @@ public class TerrainChunk
 
     public int Multiplier { get; private set; }
 
-    internal float _minValue = -10;
-    internal float _maxValue = 0f;
+    public float MinValue = float.MaxValue;
+    public float MaxValue = float.MinValue;
 
-    public TerrainChunk(RectInt bounds, List<HexGroup> groups, int multiplier)
+    public TerrainChunk(RectInt bounds, List<HexGroup> groups, int multiplier, Func<float, float, HexPayload, float> func)
     {
         Bounds = bounds;
         Multiplier = multiplier;
-        Map = new StampData[(bounds.size.x* Multiplier) +1, (bounds.size.y * Multiplier) +1];
 
+        Map = new StampData[(bounds.size.x* Multiplier) +1, (bounds.size.y * Multiplier) +1];
     }
 
-    public static bool ApplyPixels(Func<float, float, HexPayload, float> func, List<HexGroup> groups, int multiplier)
+    public bool ApplyPixels(List<HexGroup> groups, int multiplier, RectInt bounds, Func<float, float, HexPayload, float> func)
     {
-        var hexToPixel = AssociatePixels();
+        var hexToPixel = AssociatePixels(multiplier,bounds);
         var hexes = new Dictionary<Vector3Int, Neighbourhood>();
 
         groups.ForEach(x => x.GetNeighbourhoods(false).ToList().ForEach(y => hexes.Add(y.Center.Index.Index3d,y)));
@@ -52,10 +53,8 @@ public class TerrainChunk
                 {
                     var payload = p.HexPayloadAtPosition((Vector2)pt * inverseMultiplier);
 
-
-
                     var val = func(pt.x, pt.y, payload);//((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f);
-                    if (val > _maxValue) _maxValue = val;
+                    if (val > MaxValue) MaxValue = val;
                     Map[pt.x - (Bounds.min.x * Multiplier), pt.y - (Bounds.min.y * Multiplier)] = new StampData() { Height = val };
 
                 }
@@ -69,17 +68,17 @@ public class TerrainChunk
         return true;
     }
 
-    public static Dictionary<HexIndex,List<Vector2Int>> AssociatePixels(int multiplier, BoundsInt bounds)
+    private static Dictionary<HexIndex,List<Vector2Int>> AssociatePixels(int multiplier, RectInt bounds)
     {
         var map = new Dictionary<HexIndex, List<Vector2Int>>();
 
         var inverseSize = 1f / multiplier;
 
-        for (int x = 0; x < Map.GetLength(0); x++)
+        for (int x = 0; x < bounds.size.x*multiplier+1; x++)
         {
-            for (int y = 0; y < Map.GetLength(1); y++)
+            for (int y = 0; y < bounds.size.y * multiplier + 1; y++)
             {
-                var pixel = new Vector2Int(bounds.min.x* multiplier + (x), bounds.min.y*Multiplier + (y));
+                var pixel = new Vector2Int(bounds.min.x* multiplier + (x), bounds.min.y*multiplier + (y));
                 var position = new Vector2(
                     pixel.x * inverseSize,
                     pixel.y * inverseSize);
@@ -113,7 +112,7 @@ public class TerrainChunk
 
                 var num = BilinearSampleFromNormalisedVector2(new Vector2(normalisedX, normalisedY));
 
-                map[x, y] = Mathf.InverseLerp(_minValue, _maxValue, num);
+                map[x, y] = Mathf.InverseLerp(MinValue, MaxValue, num);
             }
         }
         return map;

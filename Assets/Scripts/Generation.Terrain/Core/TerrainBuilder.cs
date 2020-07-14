@@ -12,7 +12,7 @@ public static class TerrainBuilder
 
         terrainData.baseMapResolution = 1024;
         terrainData.heightmapResolution = 1025;
-        terrainData.size = new Vector3(chunk.ScaledBounds.size.x, chunk._maxValue - chunk._minValue, chunk.ScaledBounds.size.y);
+        terrainData.size = new Vector3(chunk.ScaledBounds.size.x, chunk.MaxValue - chunk.MinValue, chunk.ScaledBounds.size.y);
         terrainData.alphamapResolution = 256;
         terrainData.SetHeights(0, 0, chunk.GetResizedHeightmap(1025));
         

@@ -29,8 +29,7 @@ public class TerrainChunkCollection
 
         var chunkBounds = new RectInt(-Size, -Size, Size * 2, Size * 2);
 
-        var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Overlaps(x.Bounds)).ToList(),Multiplier);
-        chunk.ApplyPixels(heightCalculation);
+        var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Overlaps(x.Bounds)).ToList(),Multiplier, heightCalculation);
 
         chunk.Bounds.ToBounds().DrawRect(Color.blue, 100f);
         chunk.ScaledBounds.ToBounds().DrawRect(Color.red, 100f);
