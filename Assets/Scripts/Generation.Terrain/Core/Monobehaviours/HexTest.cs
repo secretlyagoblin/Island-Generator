@@ -9,7 +9,7 @@ public class HexTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        var stamp = new TerrainChunk(new BoundsInt(3, 5, 0, 76, 44, 0), new List<WanderingRoad.Procgen.RecursiveHex.HexGroup>(),5);
+        var stamp = new TerrainChunk(new RectInt(3, 5, 76, 44), new List<WanderingRoad.Procgen.RecursiveHex.HexGroup>(),5);
         var hexes = stamp.AssociatePixels();
 
         foreach (var hex in hexes)

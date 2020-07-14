@@ -8,6 +8,7 @@ using WanderingRoad.Procgen.RecursiveHex;
 using WanderingRoad.Procgen.Topology;
 using WanderingRoad.Core;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace WanderingRoad.Procgen.Levelgen
 {
@@ -22,6 +23,8 @@ namespace WanderingRoad.Procgen.Levelgen
         private List<HexGroupVisualiser> _gizmosHexGroups;// = new HexGroupVisualiser(PreviewMesh,)
 
         private string _savePath = "";
+
+        BinaryFormatter _formatter = new BinaryFormatter();
 
         // Start is called before the first frame update
         void Start()
@@ -144,19 +147,30 @@ namespace WanderingRoad.Procgen.Levelgen
 
             var chunkPath = $"{_savePath}/Chunks";
 
-
+            var manifest = new Dictionary<Rect, Guid>();
 
             foreach (var item in splayers)
             {
-                var path = $"{chunkPath}/{Guid.NewGuid()}.json";
+                var guid = Guid.NewGuid();
+                manifest.Add(item.Bounds, guid);
+                var path = $"{chunkPath}/{guid}.hexgroup";
                 var info = new System.IO.FileInfo(path);
 
                 if (!info.Exists)
                     Directory.CreateDirectory(info.Directory.FullName);
 
-                System.IO.File.WriteAllText(path, JsonUtility.ToJson(item.ToSerialisable()));
-                Debug.Log($"Json written to {path}");
+
+                var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
+
+                _formatter.Serialize(stream, item);
+                stream.Close();
+
+                Debug.Log($"Serialised to {path}");
             }
+
+            File.WriteAllText(
+                $"{ chunkPath}/{ manifest}.json", 
+                JsonUtility.ToJson(manifest, true));
 
             return splayers;
         }
@@ -165,7 +179,11 @@ namespace WanderingRoad.Procgen.Levelgen
         {
             Debug.Log("Known level seed! Skipping file creation and loading from disk!");
 
-            return Directory.GetFiles($"{_savePath}/Chunks").Select(x => new HexGroup(JsonUtility.FromJson<SerialisableHexGroup>(File.ReadAllText(x)))).ToList();
+            return Directory.GetFiles($"{_savePath}/Chunks")
+                .Select(x => {
+                    var stream = new FileStream(x, FileMode.Open, FileAccess.Read);
+                    return (HexGroup)_formatter.Deserialize(stream);
+                }).ToList();
         }
 
         private void OnDrawGizmos()

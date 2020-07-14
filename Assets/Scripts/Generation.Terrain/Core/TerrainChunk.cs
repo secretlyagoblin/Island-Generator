@@ -5,44 +5,43 @@ using System.Linq;
 using UnityEngine;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.RecursiveHex;
-using WanderingRoad.IO;
 
 public struct StampData
 {
     public float Height;
 }
 
-public class TerrainChunk:IStreamable
+[Serializable]
+public class TerrainChunk
 {
-    public BoundsInt Bounds;
-    public BoundsInt ScaledBounds { get { return new BoundsInt(Bounds.min.x * Multiplier, Bounds.min.y * Multiplier, 0, Bounds.size.x * Multiplier, Bounds.size.y * Multiplier, 0); } }
+    public RectInt Bounds;
+    public RectInt ScaledBounds { get { return new RectInt(Bounds.min.x * Multiplier, Bounds.min.y * Multiplier, Bounds.size.x * Multiplier, Bounds.size.y * Multiplier); } }
 
     public StampData[,] Map;
 
-    private List<HexGroup> _groups;
+    //private List<HexGroup> _groups;
 
     public int Multiplier { get; private set; }
 
     internal float _minValue = -10;
     internal float _maxValue = 0f;
 
-    public TerrainChunk(BoundsInt bounds, List<HexGroup> groups, int multiplier)
+    public TerrainChunk(RectInt bounds, List<HexGroup> groups, int multiplier)
     {
         Bounds = bounds;
         Multiplier = multiplier;
         Map = new StampData[(bounds.size.x* Multiplier) +1, (bounds.size.y * Multiplier) +1];
-        _groups = groups;
 
     }
 
-    public bool ApplyPixels(Func<float, float, HexPayload, float> func)
+    public static bool ApplyPixels(Func<float, float, HexPayload, float> func, List<HexGroup> groups, int multiplier)
     {
         var hexToPixel = AssociatePixels();
         var hexes = new Dictionary<Vector3Int, Neighbourhood>();
 
-        _groups.ForEach(x => x.GetNeighbourhoods(false).ToList().ForEach(y => hexes.Add(y.Center.Index.Index3d,y)));
+        groups.ForEach(x => x.GetNeighbourhoods(false).ToList().ForEach(y => hexes.Add(y.Center.Index.Index3d,y)));
 
-        var inverseMultiplier = 1f / this.Multiplier;
+        var inverseMultiplier = 1f / multiplier;
 
         foreach (var pixelList in hexToPixel)
         {
@@ -70,17 +69,17 @@ public class TerrainChunk:IStreamable
         return true;
     }
 
-    public Dictionary<HexIndex,List<Vector2Int>> AssociatePixels()
+    public static Dictionary<HexIndex,List<Vector2Int>> AssociatePixels(int multiplier, BoundsInt bounds)
     {
         var map = new Dictionary<HexIndex, List<Vector2Int>>();
 
-        var inverseSize = 1f / Multiplier;
+        var inverseSize = 1f / multiplier;
 
         for (int x = 0; x < Map.GetLength(0); x++)
         {
             for (int y = 0; y < Map.GetLength(1); y++)
             {
-                var pixel = new Vector2Int(Bounds.min.x*Multiplier + (x), Bounds.min.y*Multiplier + (y));
+                var pixel = new Vector2Int(bounds.min.x* multiplier + (x), bounds.min.y*Multiplier + (y));
                 var position = new Vector2(
                     pixel.x * inverseSize,
                     pixel.y * inverseSize);
@@ -184,10 +183,5 @@ public class TerrainChunk:IStreamable
         return result;
 
 
-    }
-
-    public ISerialisable ToSerialisable()
-    {
-        throw new NotImplementedException();
     }
 }

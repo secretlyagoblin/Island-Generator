@@ -27,13 +27,13 @@ public class TerrainChunkCollection
 
         HexGroups = groups;
 
-        var chunkBounds = new BoundsInt(-Size, -Size, 0, Size * 2, Size * 2, 0);
+        var chunkBounds = new RectInt(-Size, -Size, Size * 2, Size * 2);
 
-        var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Intersects(x.Bounds)).ToList(),Multiplier);
+        var chunk = new TerrainChunk(chunkBounds, groups.Where(x => chunkBounds.ToBounds().Overlaps(x.Bounds)).ToList(),Multiplier);
         chunk.ApplyPixels(heightCalculation);
 
-        chunk.Bounds.ToBounds().DrawBounds(Color.blue, 100f);
-        chunk.ScaledBounds.ToBounds().DrawBounds(Color.red, 100f);
+        chunk.Bounds.ToBounds().DrawRect(Color.blue, 100f);
+        chunk.ScaledBounds.ToBounds().DrawRect(Color.red, 100f);
 
         _chunks.Add(chunk);
 

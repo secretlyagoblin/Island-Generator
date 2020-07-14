@@ -28,11 +28,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
         }
 
-        public Bounds Bounds
+        public Rect Bounds
         {
             get {
                 var pos = Position2d;
-                return new Bounds(pos, new Vector3(1f, HalfHex*2, 0));            
+                var size = new Vector2(1f, HalfHex * 2);
+                var halfSize = size * 0.5f;
+                pos -= halfSize;
+                return new Rect(pos, size);            
             }
         }
 

@@ -1,21 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WanderingRoad.Core;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
     public class HexDictionary: IEnumerable<KeyValuePair<Vector3Int,Hex>>
     {
         private Dictionary<Vector3Int, Hex> _wrappedDictionary = new Dictionary<Vector3Int, Hex>();
-        public Bounds Bounds { get; private set; }
-        private Bounds _bufferedBounds;
+        public Rect Bounds { get; private set; }
+        private Rect _bufferedBounds;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HexDictionary{TKey,TValue}"/> class that is empty, has the default initial capacity, and uses the default equality comparer for the key type.
         /// </summary>
         public HexDictionary()
         {
-            Bounds = new Bounds();
+            Bounds = new Rect();
             _wrappedDictionary = new Dictionary<Vector3Int, Hex>();
         }
 
@@ -87,7 +88,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
             
             var size = Bounds.size;
-            _bufferedBounds = new Bounds(Bounds.center, new Vector3(size.x + 2, size.y + 2, size.z + 2));
+            _bufferedBounds = new Rect(Bounds.position - (Vector2.one*2), Bounds.size+(Vector2.one*4));
             _wrappedDictionary.Add(key, value);
         }
 

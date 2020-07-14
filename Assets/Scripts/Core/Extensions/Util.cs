@@ -33,7 +33,7 @@ namespace WanderingRoad.Core
             Selection.activeObject = asset;
         }
 
-        public static void DrawBounds(this Bounds bounds, Color color, float time)
+        public static void DrawRect(this Rect bounds, Color color, float time)
         {
             Debug.DrawLine(
                 new Vector3(
@@ -81,23 +81,29 @@ color,
 time);
         }
 
-        public static BoundsInt ToBoundsInt(this Bounds bounds)
+        public static RectInt ToBoundsInt(this Rect bounds)
         {
-            return new BoundsInt(
+            return new RectInt(
                 Mathf.FloorToInt(bounds.min.x),
                 Mathf.FloorToInt(bounds.min.y),
-                Mathf.FloorToInt(bounds.min.z),
                                 Mathf.CeilToInt(bounds.size.x),
-                Mathf.CeilToInt(bounds.size.y),
-                Mathf.CeilToInt(bounds.size.z));
+                Mathf.CeilToInt(bounds.size.y));
         }
 
-        public static Bounds ToBounds(this BoundsInt bounds)
+        public static Rect ToBounds(this RectInt bounds)
         {
-            return new Bounds(bounds.center, bounds.size);
+            return new Rect(bounds.position, bounds.size);
         }
 
+        public static Rect Encapsulate(this Rect rect, Rect other)
+        {
+            var xMin = rect.xMin < other.xMin ? rect.xMin : other.xMax;
+            var yMin = rect.yMin < other.yMin ? rect.yMin : other.xMax;
+            var xMax = rect.xMax > other.xMax ? rect.xMax : other.xMax;
+            var yMax = rect.yMax > other.yMax ? rect.yMax : other.yMax;
 
+            return new Rect(xMin,xMax,xMax-xMin,yMax-yMin);
+        }
 
         public static float InverseLerpUnclamped(float from, float to, float value)
         {

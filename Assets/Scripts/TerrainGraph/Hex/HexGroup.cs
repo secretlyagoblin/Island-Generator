@@ -5,13 +5,13 @@ using System.Linq;
 using WanderingRoad.Core.Random;
 using WanderingRoad.Procgen.Topology;
 using WanderingRoad.Core;
-using WanderingRoad.IO;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
-    public class HexGroup:IStreamable
+    [Serializable]
+    public class HexGroup
     {
-        public Bounds Bounds { get { return _inside.Bounds; } }
+        public Rect Bounds { get { return _inside.Bounds; } }
         private HexDictionary _inside;
         private Dictionary<Vector3Int, Hex> _border;
 
@@ -37,46 +37,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
         {
             _inside = inside;
             _border = border;
-        }
-
-        public ISerialisable ToSerialisable()
-        {
-            var hexes = new Hex[_inside.Count + _border.Count];
-            var count = 0;
-
-            foreach (var item in _inside)
-            {
-                hexes[count] = item.Value;
-                count++;
-            }
-
-            foreach (var item in _border)
-            {
-                hexes[count] = item.Value;
-                count++;
-            }
-
-            return new SerialisableHexGroup(hexes);
-        }
-
-        public HexGroup(SerialisableHexGroup hexgroup)
-        {
-            _inside = new HexDictionary();
-            _border = new Dictionary<Vector3Int, Hex>();
-
-            var hexes = hexgroup.ToHexes();
-
-            foreach (var hex in hexes)
-            {
-                if (hex.IsBorder)
-                {
-                    _border.Add(hex.Index.Index3d, hex);
-                }
-                else
-                {
-                    _inside.Add(hex.Index.Index3d, hex);
-                }
-            }
         }
 
         /// <summary>
