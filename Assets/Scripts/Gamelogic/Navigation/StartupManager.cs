@@ -11,6 +11,8 @@ public class StartupManager:MonoBehaviour
         WorldSettings = new WorldSettings("TestRegion")
     };
 
+    public GameState State;
+
     public void StartGame()
     {
 

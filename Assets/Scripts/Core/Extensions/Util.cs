@@ -176,6 +176,13 @@ time);
         {
             var path = $"{folderPath}/{subPath}/{name}.{extension}";
 
+            return DeserialiseFile<T>(formatter, path);
+
+            //Debug.Log($"Serialised to {path}");
+        }
+
+        public static T DeserialiseFile<T>(BinaryFormatter formatter, string path)
+        {
             var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 
             var item = formatter.Deserialize(stream);
