@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEditor;
 using UnityEngine;
 
-namespace WanderingRoad.Core
+namespace WanderingRoad
 {
     public static class Util
     {
@@ -153,6 +154,36 @@ time);
                 yield return source.Take(chunksize);
                 source = source.Skip(chunksize);
             }
+        }
+
+        public static void SerialiseFile(this object obj, BinaryFormatter formatter,  string folderPath, string subPath, string name, string extension)
+        {
+            var path = $"{folderPath}/{subPath}/{name}.{extension}";
+            var info = new System.IO.FileInfo(path);
+
+            if (!info.Exists)
+                Directory.CreateDirectory(info.Directory.FullName);
+
+            var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
+
+            formatter.Serialize(stream, obj);
+            stream.Close();
+
+            Debug.Log($"Serialised to {path}");
+        }
+
+        public static T DeserialiseFile<T>(BinaryFormatter formatter, string folderPath, string subPath, string name, string extension)
+        {
+            var path = $"{folderPath}/{subPath}/{name}.{extension}";
+
+            var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+
+            var item = formatter.Deserialize(stream);
+            stream.Close();
+
+            return (T)item;
+
+            //Debug.Log($"Serialised to {path}");
         }
     }
 }

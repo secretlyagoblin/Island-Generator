@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using WanderingRoad.Procgen.RecursiveHex;
-using WanderingRoad.Core;
 using System.Linq;
+using WanderingRoad;
 
 public class HexGroupVisualiser
 {

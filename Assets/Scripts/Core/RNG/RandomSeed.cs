@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace WanderingRoad.Core.Random
+namespace WanderingRoad.Random
 {
     public static class RandomXY
     {

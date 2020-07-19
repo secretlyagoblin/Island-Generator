@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using WanderingRoad.Core.Random;
+using WanderingRoad.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 
 public struct StampData

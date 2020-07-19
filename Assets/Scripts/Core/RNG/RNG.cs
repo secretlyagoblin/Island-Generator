@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System;
 
-namespace WanderingRoad.Core.Random
+namespace WanderingRoad.Random
 {
 
     public static class RNG
@@ -37,11 +37,7 @@ namespace WanderingRoad.Core.Random
             { }
             else
             {
-                Debug.Log($"Current Seed: \"{seed}\"");
-                _seed = seed.GetHashCode();
-                _pseudoRandom = new System.Random(_seed);
-                _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
-                _initialised = true;
+                ForceInit(seed);
             }
         }
 
@@ -57,12 +53,14 @@ namespace WanderingRoad.Core.Random
         //    }
         //}
 
-        //public static void ForceInit(string seed)
-        //{
-        //    _pseudoRandom = new System.Random(seed.GetHashCode());
-        //    _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
-        //    _initialised = true;
-        //}
+        public static void ForceInit(string seed)
+        {
+            Debug.Log($"Current Seed: \"{seed}\"");
+            _seed = seed.GetHashCode();
+            _pseudoRandom = new System.Random(_seed);
+            _derivedXYSeed = (uint)_pseudoRandom.Next(0, int.MaxValue);
+            _initialised = true;
+        }
 
         public static bool CoinToss()
         {

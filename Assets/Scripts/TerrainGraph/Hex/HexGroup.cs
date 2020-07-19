@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using WanderingRoad.Core.Random;
+using WanderingRoad.Random;
 using WanderingRoad.Procgen.Topology;
-using WanderingRoad.Core;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {

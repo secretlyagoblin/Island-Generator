@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using WanderingRoad.Procgen.RecursiveHex;
-using WanderingRoad.Core;
+using WanderingRoad;
 using System;
 
 public class TerrainChunkCollection

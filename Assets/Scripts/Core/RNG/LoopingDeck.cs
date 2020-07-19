@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-namespace WanderingRoad.Core.Random
+namespace WanderingRoad.Random
 {
     public class LoopingDeck<T>
     {

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using WanderingRoad.Core.Random;
+using WanderingRoad.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 
 namespace WanderingRoad.Procgen.Levelgen.Levels

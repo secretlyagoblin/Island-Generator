@@ -2,7 +2,8 @@
     "name": "WanderingRoad.Gamelogic",
     "references": [
         "GUID:b8abd41bed9a2df40b98ff6b7d586570",
-        "GUID:9b95bfb63b502344eb21a32cc069a2e1"
+        "GUID:9b95bfb63b502344eb21a32cc069a2e1",
+        "GUID:4818dee2fa20ea9448d9bb1ecc532058"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

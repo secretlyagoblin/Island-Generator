@@ -43,7 +43,7 @@ public class WorldManager : MonoBehaviour
             CreateRegion(settings);
         }
 
-        _terrainManager.LoadRegion(settings);
+        //_terrainManager.LoadRegion(settings);
     }
 
     private void CreateRegion(WorldSettings settings)
