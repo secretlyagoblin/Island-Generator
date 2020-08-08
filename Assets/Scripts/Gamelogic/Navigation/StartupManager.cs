@@ -13,9 +13,18 @@ public class StartupManager:MonoBehaviour
 
     public GameState State;
 
-    public void StartGame()
+    public void Start()
     {
-
+        if(Paths.TryGetAutosave(out var json))
+        {
+            State.UpdateFromJson(json);
+        }
+        else
+        {
+            var info = WanderingRoad.Procgen.Levelgen.LevelBuilder.BuildLevel(DateTime.Now.ToString());
+            State.UpdateFromLevelInfo(info);
+            State.Save(Paths.Autosave);
+        }
     }
 }
 
