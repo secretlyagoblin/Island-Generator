@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -156,20 +157,31 @@ time);
             }
         }
 
-        public static void SerialiseFile(this object obj, BinaryFormatter formatter,  string folderPath, string subPath, string name, string extension)
+        public static void SerialiseFile(this object obj, string path, JsonConverter converter)
         {
-            var path = $"{folderPath}/{subPath}/{name}.{extension}";
             var info = new System.IO.FileInfo(path);
 
             if (!info.Exists)
                 Directory.CreateDirectory(info.Directory.FullName);
 
-            var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
+            File.WriteAllText(path,JsonConvert.SerializeObject(obj, Formatting.None, converter));
 
-            formatter.Serialize(stream, obj);
-            stream.Close();
 
             Debug.Log($"Serialised to {path}");
+        }
+
+        public static T DeserialiseFile<T>(string path, JsonConverter converter)
+        {
+            var info = new System.IO.FileInfo(path);
+
+            if (!info.Exists)
+                throw new System.Exception("File does not exist");
+
+            var obj = JsonConvert.DeserializeObject<T>(File.ReadAllText(path),converter);
+
+            Debug.Log($"Read {typeof(T).Name} at {path}");
+
+            return obj;
         }
 
         public static T DeserialiseFile<T>(BinaryFormatter formatter, string folderPath, string subPath, string name, string extension)

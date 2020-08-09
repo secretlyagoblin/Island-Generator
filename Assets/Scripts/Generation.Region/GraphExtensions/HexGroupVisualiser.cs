@@ -32,7 +32,7 @@ public class HexGroupVisualiser
         }
     }
 
-    private Hex[] _hexes;
+    private List<Hex> _hexes;
     public Mesh PreviewMesh;
 
     public HexGroupVisualiser(Mesh mesh)
@@ -51,7 +51,7 @@ public class HexGroupVisualiser
         if (this._hexes == null)
             return;
 
-        for (int i = 0; i < _hexes.Length; i++)
+        for (int i = 0; i < _hexes.Count; i++)
         {
             var h = _hexes[i];
 

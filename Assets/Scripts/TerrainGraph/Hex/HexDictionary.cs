@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
-    [System.Serializable]
-    public class HexDictionary: IEnumerable<KeyValuePair<Vector3Int,Hex>>
+    public class HexDictionary : IEnumerable<KeyValuePair<Vector3Int,Hex>>
     {
-        private Dictionary<Vector3Int, Hex> _wrappedDictionary = new Dictionary<Vector3Int, Hex>();
+        private readonly Dictionary<Vector3Int, Hex> _wrappedDictionary = new Dictionary<Vector3Int, Hex>();
+
         public Rect Bounds { get; set; }
         private Rect _bufferedBounds;
 

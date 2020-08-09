@@ -5,13 +5,13 @@ using UnityEngine;
 
 public static class Paths
 {
-    public static string Root { get { return $"{Application.persistentDataPath}"; } }
+    public static string Root => $"{Application.persistentDataPath}"; 
 
-    public static string Saves { get { return $"{Root}/Saves"; } }
+    public static string Saves => $"{Root}/Saves"; 
 
-    public static string Autosave { get { return $"{Saves}/autosave.json"; } }
+    public static string Autosave => $"{Saves}/autosave.json"; 
 
-    public static string Worlds { get { return $"{Root}/Worlds"; } }
+    public static string Worlds => $"{Root}/Worlds"; 
 
     public static bool TryGetAutosave(out string json)
     {
@@ -27,5 +27,9 @@ public static class Paths
 
     }
 
-    public static string GetWorldPath(string world) { return $"{Worlds}/{world}"; }
+    public static string GetWorldPath(string world) => $"{Worlds}/{world}";
+
+    public static string GetHexGroupManifestPath(string world) => $"{GetWorldPath(world)}/hexGroups/manifest.json";
+
+    public static string GetHexGroupPath(string world, string groupName) => $"{GetWorldPath(world)}/hexGroups/{groupName}.hexgroup.json";
 }

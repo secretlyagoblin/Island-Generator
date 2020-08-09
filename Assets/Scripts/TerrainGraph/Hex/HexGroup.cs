@@ -7,7 +7,6 @@ using WanderingRoad.Procgen.Topology;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
-    [Serializable]
     public class HexGroup
     {
         public Rect Bounds { get { return _inside.Bounds; } }
@@ -397,9 +396,14 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return HexGroup.ToMesh(_inside.GetDictionary(),heightCalculator);
         }
 
-        public Hex[] GetHexes()
+        public List<Hex> GetHexes()
         {
-            return _inside.Select(x => x.Value).ToArray();
+            return _inside.Select(x => x.Value).ToList();
+        }
+
+        public List<Hex> GetBorderHexes()
+        {
+            return _border.Select(x => x.Value).ToList();
         }
 
         public (Vector3[] vertices, int[] triangles)  ToNetwork(Func<HexPayload,float> zOffset)

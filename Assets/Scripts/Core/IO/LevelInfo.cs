@@ -4,6 +4,6 @@ using UnityEngine;
 
 public class LevelInfo 
 {
-    public string Path;
+    public string World;
 
 }

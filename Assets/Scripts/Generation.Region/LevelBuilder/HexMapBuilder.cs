@@ -7,6 +7,8 @@ using UnityEngine;
 using WanderingRoad.Random;
 using WanderingRoad.Procgen.RecursiveHex;
 using WanderingRoad.Procgen.Topology;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WanderingRoad.Procgen.Levelgen
 {
@@ -16,7 +18,7 @@ namespace WanderingRoad.Procgen.Levelgen
         {
             RNG.ForceInit(seed);
 
-            var savePath = $"{Application.persistentDataPath}/{RNG.CurrentSeed()}";
+            //var savePath = $"{Application.persistentDataPath}/{RNG.CurrentSeed()}";
 
             Debug.Log("Creating files!");
 
@@ -104,19 +106,21 @@ namespace WanderingRoad.Procgen.Levelgen
             var manifest = new Dictionary<Rect, Guid>();
             var formatter = new BinaryFormatter();
 
+            var world = RNG.CurrentSeed().ToString();
+
             foreach (var item in splayers)
             {
                 var guid = Guid.NewGuid();
                 manifest.Add(item.Bounds, guid);
 
-                item.SerialiseFile(formatter, savePath, "hexGroups", guid.ToString(), "hexGroup");
+                item.SerialiseFile(Paths.GetHexGroupPath(world, guid.ToString()), new RecursiveHex.Json.HexGroupConverter());
             }
 
-            File.WriteAllText(
-                $"{savePath}/hexGroups/manifest.json",
-                JsonUtility.ToJson(manifest, true));
+            //throw new NotImplementedException();
 
-            return new LevelInfo() { Path = savePath };
+            manifest.SerialiseFile(Paths.GetHexGroupManifestPath(world), new ManifestSerialiser());
+
+            return new LevelInfo() { World = world };
         }
 
 
