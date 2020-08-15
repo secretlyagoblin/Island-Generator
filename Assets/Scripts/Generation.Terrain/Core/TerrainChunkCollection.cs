@@ -40,7 +40,7 @@ public class TerrainChunkCollection
 
     public Vector3[][] GetPositions()
     {     
-        return _chunks.Select(x => x.To1DArray()).ToArray();
+        return _chunks.Select(x => x.To1dPositionArray()).ToArray();
     }
 
 

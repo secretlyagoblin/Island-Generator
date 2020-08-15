@@ -27,9 +27,15 @@ public static class Paths
 
     }
 
-    public static string GetWorldPath(string world) => $"{Worlds}/{world}";
+    public static string GetWorldPath(int world) => $"{Worlds}/{world}";
 
-    public static string GetHexGroupManifestPath(string world) => $"{GetWorldPath(world)}/hexGroups/manifest.json";
+    public static string GetHexGroupManifestPath(int world) => $"{GetWorldPath(world)}/hexGroups/manifest.json";
 
-    public static string GetHexGroupPath(string world, string groupName) => $"{GetWorldPath(world)}/hexGroups/{groupName}.hexgroup.json";
+    public static string GetHexGroupPath(int world, string groupName) => $"{GetWorldPath(world)}/hexGroups/{groupName}.hexgroup.json";
+
+    public static string GetTerrainChunkPathManifestPath(int world) => $"{GetWorldPath(world)}/terrainChunks/manifest.json";
+
+    public static string GetTerrainChunkPath(int world, string groupName) => $"{GetWorldPath(world)}/terrainChunks/{groupName}.terrainChunk.json";
+
+
 }

@@ -106,7 +106,7 @@ namespace WanderingRoad.Procgen.Levelgen
             var manifest = new Dictionary<Rect, Guid>();
             var formatter = new BinaryFormatter();
 
-            var world = RNG.CurrentSeed().ToString();
+            var world = RNG.CurrentSeed();
 
             foreach (var item in splayers)
             {

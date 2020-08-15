@@ -166,7 +166,6 @@ time);
 
             File.WriteAllText(path,JsonConvert.SerializeObject(obj, Formatting.None, converter));
 
-
             Debug.Log($"Serialised to {path}");
         }
 
@@ -175,34 +174,13 @@ time);
             var info = new System.IO.FileInfo(path);
 
             if (!info.Exists)
-                throw new System.Exception("File does not exist");
+                throw new System.Exception($"File \"{path}\" does not exist");
 
             var obj = JsonConvert.DeserializeObject<T>(File.ReadAllText(path),converter);
 
             Debug.Log($"Read {typeof(T).Name} at {path}");
 
             return obj;
-        }
-
-        public static T DeserialiseFile<T>(BinaryFormatter formatter, string folderPath, string subPath, string name, string extension)
-        {
-            var path = $"{folderPath}/{subPath}/{name}.{extension}";
-
-            return DeserialiseFile<T>(formatter, path);
-
-            //Debug.Log($"Serialised to {path}");
-        }
-
-        public static T DeserialiseFile<T>(BinaryFormatter formatter, string path)
-        {
-            var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-
-            var item = formatter.Deserialize(stream);
-            stream.Close();
-
-            return (T)item;
-
-            //Debug.Log($"Serialised to {path}");
         }
     }
 }

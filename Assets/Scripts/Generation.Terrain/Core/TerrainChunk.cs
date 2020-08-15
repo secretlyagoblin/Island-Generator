@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using WanderingRoad.Random;
 using WanderingRoad.Procgen.RecursiveHex;
+using System.Data;
 
 public struct StampData
 {
@@ -24,6 +25,20 @@ public class TerrainChunk
 
     public int Multiplier { get; private set; }
 
+    internal static TerrainChunk FromJson(float maxValue, float minValue, int multiplier, RectInt bounds, StampData[,] stampData)
+    {
+        var chunk = new TerrainChunk
+        {
+            Bounds = bounds,
+            Multiplier = multiplier,
+            Map = stampData,
+            MinValue = minValue,
+            MaxValue = maxValue
+        };
+
+        return chunk;
+    }
+
     public float MinValue = float.MaxValue;
     public float MaxValue = float.MinValue;
 
@@ -33,9 +48,20 @@ public class TerrainChunk
         Multiplier = multiplier;
 
         Map = new StampData[(bounds.size.x* Multiplier) +1, (bounds.size.y * Multiplier) +1];
+
+        ApplyPixels(groups, multiplier, bounds, func);
     }
 
-    public bool ApplyPixels(List<HexGroup> groups, int multiplier, RectInt bounds, Func<float, float, HexPayload, float> func)
+    private TerrainChunk()
+    {
+    }
+
+    //public static TerrainChunk FromJson()
+    //{
+    //
+    //}
+
+    private bool ApplyPixels(List<HexGroup> groups, int multiplier, RectInt bounds, Func<float, float, HexPayload, float> func)
     {
         var hexToPixel = AssociatePixels(multiplier,bounds);
         var hexes = new Dictionary<Vector3Int, Neighbourhood>();
@@ -55,6 +81,7 @@ public class TerrainChunk
 
                     var val = func(pt.x, pt.y, payload);//((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f);
                     if (val > MaxValue) MaxValue = val;
+                    if (val < MinValue) MinValue = val;
                     Map[pt.x - (Bounds.min.x * Multiplier), pt.y - (Bounds.min.y * Multiplier)] = new StampData() { Height = val };
 
                 }
@@ -134,7 +161,7 @@ public class TerrainChunk
     //}
 
 
-    public Vector3[] To1DArray()
+    public Vector3[] To1dPositionArray()
     {
         // Step 1: get total size of 2D array, and allocate 1D array.
         int size = Map.Length;
@@ -147,6 +174,25 @@ public class TerrainChunk
             for (int z = 0; z <= Map.GetUpperBound(1); z++)
             {
                 result[write++] =  new Vector3(i+(this.Bounds.min.x*Multiplier), Map[i, z].Height*5,z + (this.Bounds.min.y*Multiplier));
+            }
+        }
+        // Step 3: return the new array.
+        return result;
+    }
+
+    public StampData[] To1dDataArray()
+    {
+        // Step 1: get total size of 2D array, and allocate 1D array.
+        int size = Map.Length;
+        StampData[] result = new StampData[size];
+
+        // Step 2: copy 2D array elements into a 1D array.
+        int write = 0;
+        for (int i = 0; i <= Map.GetUpperBound(0); i++)
+        {
+            for (int z = 0; z <= Map.GetUpperBound(1); z++)
+            {
+                result[write++] = Map[i,z];
             }
         }
         // Step 3: return the new array.

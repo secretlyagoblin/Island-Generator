@@ -11,7 +11,7 @@ internal class TerrainManager : MonoBehaviour
     public GameState State;
 
     private Dictionary<Rect, Guid> _manifest;
-    private Dictionary<Guid, TerrainChunk> _loadedCells;
+    private Dictionary<Guid, Terrain> _loadedCells;
 
 
     BinaryFormatter _formatter = new BinaryFormatter();
@@ -23,7 +23,8 @@ internal class TerrainManager : MonoBehaviour
 
     void BuildTerrain(GameState state)
     {
-        _manifest = JsonUtility.FromJson<Dictionary<Rect, Guid>>(File.ReadAllText(state.TerrainManifestPath));
+        _manifest = Util.DeserialiseFile<Dictionary<Rect, Guid>>(Paths.GetTerrainChunkPathManifestPath(State.Seed), new ManifestSerialiser());
+
         UpdateCells(state);
     }
 
@@ -31,10 +32,16 @@ internal class TerrainManager : MonoBehaviour
     {
         var pos = state.MainCamera.transform.position;
         var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 50, Vector2.one * 100);
-        var cells = _manifest
+        _loadedCells = _manifest
             .Where(x => x.Key.Overlaps(rect))
             .ToDictionary(
                 x => x.Value,
-                x => Util.DeserialiseFile<TerrainChunk>(_formatter, $"{state.TerrainRootPath}{x.Value.ToString()}.chunk"));
+                x => TerrainBuilder.BuildTerrain(
+                    Util.DeserialiseFile<TerrainChunk>(
+                        Paths.GetTerrainChunkPath(state.Seed,x.Value.ToString()),
+                        new TerrainChunkConverter())));
+
+
+
     }
 }

@@ -10,18 +10,18 @@ public class GameState : ScriptableObject
 {
 	public Camera MainCamera;
 
-	public string Seed { 
+	public int Seed { 
 		get => _seed; 
 		set {
-			OnSeedChanged(this);
 			_seed = value;
+			OnSeedChanged(this);			
 		} 
 	}
 
 	public string TerrainRootPath;
 	public string TerrainManifestPath;
 
-	private string _seed;
+	private int _seed;
 
 	public event Action<GameState> OnSeedChanged;
 
@@ -38,6 +38,11 @@ public class GameState : ScriptableObject
 			throw new NotImplementedException();
 		}
 
+		var info = new System.IO.FileInfo(path);
+
+		if (!info.Exists)
+			Directory.CreateDirectory(info.Directory.FullName);
+
 		var json = JsonUtility.ToJson(new SerialisedRep {
 			DateTime = DateTime.Now,
 			Seed = Seed
@@ -47,7 +52,7 @@ public class GameState : ScriptableObject
 
 		Debug.Log($"File saved to {{{path}}}");
 
-		throw new NotImplementedException();
+		//throw new NotImplementedException();
 	}
 
 	public void UpdateFromJson(string json)
@@ -60,12 +65,13 @@ public class GameState : ScriptableObject
 
 	public void UpdateFromLevelInfo(LevelInfo info)
 	{
-		throw new NotImplementedException();
+		this.Seed = info.World;
+		//throw new NotImplementedException();
 	}
 
 	private struct SerialisedRep
 	{
 		public DateTime DateTime;
-		public string Seed;
+		public int Seed;
 	}
 }

@@ -11,7 +11,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
     {
         public Rect Bounds { get { return _inside.Bounds; } }
         private HexDictionary _inside;
-        private Dictionary<Vector3Int, Hex> _border;
+        private HexDictionary _border;
 
         /// <summary>
         /// Creates a single hex cell at 0,0 with 6 border cells
@@ -19,7 +19,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         public HexGroup()
         {
             _inside = new HexDictionary(1);
-            _border = new Dictionary<Vector3Int, Hex>(6);
+            _border = new HexDictionary(6);
 
             AddHex(new Hex(new HexIndex(),new HexPayload(),false));
 
@@ -31,7 +31,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
         }
 
-        private HexGroup(HexDictionary inside, Dictionary<Vector3Int, Hex> border)
+        private HexGroup(HexDictionary inside, HexDictionary border)
         {
             _inside = inside;
             _border = border;
@@ -45,7 +45,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         {
             var hoods = parent.GetNeighbourhoods();
             _inside = new HexDictionary(parent._inside.Count * 19); //magic numbers 
-            _border = new Dictionary<Vector3Int, Hex>(parent._border.Count * 10); //magic numbers
+            _border = new HexDictionary(parent._border.Count * 10); //magic numbers
 
             for (int i = 0; i < hoods.Length; i++)
             {         
@@ -61,6 +61,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
                         this.AddHex(cells[u]);
                 }
             }
+        }
+
+        internal static HexGroup FromJson(HexDictionary inHexDict, HexDictionary outHexDict)
+        {
+            return new HexGroup(inHexDict, outHexDict);
         }
 
         private void AddBorderHex(Hex hex, int indexTrack)
@@ -242,9 +247,9 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 }).ToList();
         }
 
-        private Dictionary<Vector3Int, Hex> GetBorderOfSubgroup(HexDictionary subgroup)
+        private HexDictionary GetBorderOfSubgroup(HexDictionary subgroup)
         {
-            var border = new Dictionary<Vector3Int, Hex>();
+            var border = new HexDictionary();
 
             var subgroupInternalEdgeHexes = new List<Vector2Int>();
 
@@ -278,8 +283,6 @@ namespace WanderingRoad.Procgen.RecursiveHex
                         Debug.LogError("The subregion being generated has invalid neighbours.");
                     }
                 }
-
-
             }
 
             return border;

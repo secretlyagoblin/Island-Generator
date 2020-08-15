@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class StartupManager:MonoBehaviour
 {
+    public Camera MainCamera;
+    public bool WipeAutosave = false;
+
     GameSettings _settings = new GameSettings()
     {
         PlayerPosition = Vector3.zero,
@@ -15,15 +18,23 @@ public class StartupManager:MonoBehaviour
 
     public void Start()
     {
+        State.MainCamera = MainCamera;
+
+        if (WipeAutosave && System.IO.File.Exists(Paths.Autosave))
+        {
+            System.IO.File.Delete(Paths.Autosave);
+        }
+
         if(Paths.TryGetAutosave(out var json))
         {
+            Debug.Log("Autosave exists!");
             State.UpdateFromJson(json);
         }
         else
         {
             var info = WanderingRoad.Procgen.Levelgen.LevelBuilder.BuildLevel(DateTime.Now.ToString());
             State.UpdateFromLevelInfo(info);
-            State.Save(Paths.Autosave);
+            State.Save(Paths.Autosave);                  
         }
     }
 }
