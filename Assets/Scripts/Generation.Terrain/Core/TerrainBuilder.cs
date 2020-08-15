@@ -5,7 +5,8 @@ using UnityEngine;
 public static class TerrainBuilder
 {
     // Start is called before the first frame update
-    public static Terrain BuildTerrain(TerrainChunk chunk)
+
+    public static (TerrainData data, TerrainChunk chunk) BuildTerrainData(TerrainChunk chunk)
     {
         var terrainData = new TerrainData();
 
@@ -13,9 +14,15 @@ public static class TerrainBuilder
         terrainData.heightmapResolution = 1025;
         terrainData.size = new Vector3(chunk.ScaledBounds.size.x, chunk.MaxValue - chunk.MinValue, chunk.ScaledBounds.size.y);
         terrainData.alphamapResolution = 256;
-        terrainData.SetHeights(0, 0, chunk.GetResizedHeightmap(1025));       
+        terrainData.SetHeights(0, 0, chunk.GetResizedHeightmap(1025));
 
-        GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
+        return (terrainData, chunk);
+    }
+
+    public static Terrain BuildTerrain((TerrainData data, TerrainChunk chunk) data)
+    {
+
+        GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(data.data);
         var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
         terrain.drawInstanced = true;
         //terrain.detailObjectDistance = 150f;

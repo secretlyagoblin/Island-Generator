@@ -10,6 +10,7 @@
 /Assets/Plugins*
 /Assets/PostProcessing*
 /Assets/Import*
+/Assets/Arklay*
 .vs/
 .vs/Building Generator/
 

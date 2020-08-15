@@ -28,8 +28,8 @@ public class TerrainChunkConverter : JsonConverter
                 bounds["sizeY"].ToObject<int>()
             ),
             GetStampData(
-                bounds["sizeX"].ToObject<int>(),
-                bounds["sizeY"].ToObject<int>(),
+                obj["sizeX"].ToObject<int>(),
+                obj["sizeY"].ToObject<int>(),
                 obj["heights"] as JArray
                 )
             );        

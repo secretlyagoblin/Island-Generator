@@ -5,6 +5,7 @@ using System.Linq;
 using WanderingRoad;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 
 internal class TerrainManager : MonoBehaviour
 {
@@ -28,19 +29,33 @@ internal class TerrainManager : MonoBehaviour
         UpdateCells(state);
     }
 
+    private List<(TerrainData, TerrainChunk)> _terrainDatas;
+
     void UpdateCells(GameState state)
     {
-        var pos = state.MainCamera.transform.position;
-        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 50, Vector2.one * 100);
-        _loadedCells = _manifest
-            .Where(x => x.Key.Overlaps(rect))
-            .ToDictionary(
-                x => x.Value,
-                x => TerrainBuilder.BuildTerrain(
-                    Util.DeserialiseFile<TerrainChunk>(
-                        Paths.GetTerrainChunkPath(state.Seed,x.Value.ToString()),
-                        new TerrainChunkConverter())));
-
+        throw new NotImplementedException();
+       //var pos = state.MainCamera.transform.position;
+       //var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 50, Vector2.one * 100);
+       //_loadedCells = _manifest
+       //    .Where(x => x.Key.Overlaps(rect))
+       //    .ToDictionary(
+       //        x => x.Value,
+       //        x => TerrainBuilder.BuildTerrain(
+       //            Util.DeserialiseFile<TerrainChunk>(
+       //                Paths.GetTerrainChunkPath(state.Seed,x.Value.ToString()),
+       //                new TerrainChunkConverter())));
+       //
+       //
+       //Task.Run(() => {
+       //    _terrainDatas = _manifest
+       //    .Where(x => x.Key.Overlaps(rect))
+       //    .Select(x =>
+       //    TerrainBuilder.BuildTerrainData(
+       //    Util.DeserialiseFile<TerrainChunk>(
+       //                Paths.GetTerrainChunkPath(state.Seed, x.Value.ToString()),
+       //                new TerrainChunkConverter()))).ToList();
+       //}
+       //).Cont(() =>)
 
 
     }
