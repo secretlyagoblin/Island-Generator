@@ -6,23 +6,24 @@ public static class TerrainBuilder
 {
     // Start is called before the first frame update
 
-    public static (TerrainData data, TerrainChunk chunk) BuildTerrainData(TerrainChunk chunk)
+    public static TerrainData BuildTerrainData(float[,] values, Vector2 size, TerrainManifest manifest)
     {
         var terrainData = new TerrainData();
 
         terrainData.baseMapResolution = 1024;
         terrainData.heightmapResolution = 1025;
-        terrainData.size = new Vector3(chunk.ScaledBounds.size.x, chunk.MaxValue - chunk.MinValue, chunk.ScaledBounds.size.y);
+        terrainData.size = new Vector3(size.x, manifest.MaxHeight - manifest.MinHeight, size.y);
         terrainData.alphamapResolution = 256;
-        terrainData.SetHeights(0, 0, chunk.GetResizedHeightmap(1025));
+        terrainData.SetHeights(0, 0, values);
 
-        return (terrainData, chunk);
+        return terrainData;
     }
 
-    public static Terrain BuildTerrain((TerrainData data, TerrainChunk chunk) data)
+    public static Terrain BuildTerrain(TerrainData data, Vector3 position)
     {
 
-        GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(data.data);
+        GameObject terrainObj = UnityEngine.Terrain.CreateTerrainGameObject(data);
+        terrainObj.transform.position = position;
         var terrain = terrainObj.GetComponent<UnityEngine.Terrain>();
         terrain.drawInstanced = true;
         //terrain.detailObjectDistance = 150f;

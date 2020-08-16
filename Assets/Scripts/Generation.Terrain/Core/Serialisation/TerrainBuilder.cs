@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 using UnityEngine;
 using WanderingRoad;
 using WanderingRoad.Procgen.RecursiveHex;
@@ -16,27 +17,64 @@ public static class TerrainGenerator
 
         var hexManifest = Util.DeserialiseFile<Dictionary<Rect, Guid>>(Paths.GetHexGroupManifestPath(info.World), new ManifestSerialiser());
 
-        var singleChunk = new Rect(-50, -50, 100, 100);
+        hexManifest.Select(x => x.Key).ToList().ForEach(x => x.DrawRect(Color.red, 100f));
 
-        //var formatter = new BinaryFormatter();
+        var hexes = hexManifest.ToDictionary(x => x.Value, x =>Util.DeserialiseFile<HexGroup>(Paths.GetHexGroupPath(info.World, x.Value.ToString()), new HexGroupConverter()));
 
-        var groups = hexManifest
-            .Where(x => x.Key.Overlaps(singleChunk))
-            .Select(x =>
-                Util.DeserialiseFile<HexGroup>(Paths.GetHexGroupPath(info.World,x.Value.ToString()),new HexGroupConverter())
-            ).ToList();
+        var total = hexManifest.First().Key;
 
-        var chunk = new TerrainChunk(singleChunk.ToBoundsInt(), groups, 4, SamplerComplex);
-        var guid = Guid.NewGuid();
+        foreach (var bounds in hexManifest)
+        {
+            total = total.Encapsulate(bounds.Key);
+        }
 
-        //throw new NotImplementedException();
+        total.DrawRect(Color.white, 100f);
 
-        var chunkManifest = new Dictionary<Rect, Guid>();
-        chunkManifest.Add(singleChunk, guid);
+        var size = 50;
+        var oneOverSize = 1f / size;
 
-        Util.SerialiseFile(chunkManifest, Paths.GetTerrainChunkPathManifestPath(info.World), new ManifestSerialiser());
+        var minX = Mathf.FloorToInt(total.xMin * oneOverSize);
+        var maxX = Mathf.CeilToInt(total.xMax * oneOverSize);
+        var minY = Mathf.FloorToInt(total.yMin * oneOverSize);
+        var maxY = Mathf.CeilToInt(total.yMax * oneOverSize);
 
-        chunk.SerialiseFile(Paths.GetTerrainChunkPath(info.World, guid.ToString()), new TerrainChunkConverter());
+        var rects = new List<Rect>();
+
+        for (int x = minX; x < maxX; x++)
+        {
+            for (int y = minY; y < maxY; y++)
+            {
+                rects.Add( new Rect(x * size, y * size, size, size));
+            }
+        }
+
+        rects.ForEach(x => x.DrawRect(Color.blue, 100f));
+
+        
+
+        var terrains = rects.Select(x =>
+            new TerrainChunk(x.ToBoundsInt(),
+            hexManifest.Where(y => y.Key.Overlaps(x)).Select(y => hexes[y.Value]).ToList(),
+            8,
+            SamplerComplex)).ToList();
+
+        var chunkManifest = new TerrainManifest();
+
+        for (int i = 0; i < rects.Count; i++)
+        {
+            var rect = rects[i];
+            var terrain = terrains[i];
+            var guid = Guid.NewGuid();
+
+            terrain.SerialiseFile(Paths.GetTerrainChunkPath(info.World, guid.ToString()), new TerrainChunkConverter());
+            chunkManifest.MaxHeight = chunkManifest.MaxHeight < terrain.MaxValue ? terrain.MaxValue : chunkManifest.MaxHeight;
+            chunkManifest.MinHeight = chunkManifest.MinHeight > terrain.MinValue ? terrain.MinValue : chunkManifest.MinHeight;
+            chunkManifest.Terrains.Add(rect, guid);
+        }
+
+        Util.SerialiseFile(chunkManifest, Paths.GetTerrainChunkPathManifestPath(info.World), new TerrainManifestSerialiser());     
+
+        
 
     }
 
@@ -48,7 +86,12 @@ public static class TerrainGenerator
     private static float SamplerComplex(float x, float y, HexPayload payload)
     {
         return ((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f)
-    }
+    }    
+}
 
-    
+public class TerrainManifest
+{
+    public Dictionary<Rect, Guid> Terrains = new Dictionary<Rect, Guid>();
+    public float MaxHeight = float.MinValue;
+    public float MinHeight = float.MaxValue;
 }

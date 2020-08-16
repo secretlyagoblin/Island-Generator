@@ -5,13 +5,20 @@ using UnityEngine;
 
 public static class Paths
 {
-    public static string Root => $"{Application.persistentDataPath}"; 
+    private static string _root = null;
 
-    public static string Saves => $"{Root}/Saves"; 
+    public static string GetRoot()
+    {
+        if(_root is null)
+            _root = $"{Application.persistentDataPath}";
+        return _root;
+    }
+
+    public static string Saves => $"{GetRoot()}/Saves"; 
 
     public static string Autosave => $"{Saves}/autosave.json"; 
 
-    public static string Worlds => $"{Root}/Worlds"; 
+    public static string Worlds => $"{GetRoot()}/Worlds"; 
 
     public static bool TryGetAutosave(out string json)
     {

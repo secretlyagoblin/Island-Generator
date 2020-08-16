@@ -113,6 +113,8 @@ namespace WanderingRoad.Procgen.Levelgen
                 var guid = Guid.NewGuid();
                 manifest.Add(item.Bounds, guid);
 
+                item.Bounds.DrawRect(Color.red, 100f);
+
                 item.SerialiseFile(Paths.GetHexGroupPath(world, guid.ToString()), new RecursiveHex.Json.HexGroupConverter());
             }
 

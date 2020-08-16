@@ -126,7 +126,7 @@ public class TerrainChunk
         return map;
     }
 
-    public float[,] GetResizedHeightmap(int newSize)
+    public float[,] GetResizedHeightmap(int newSize, float minValue, float maxValue)
     {
         var map = new float[newSize, newSize]; ;
 
@@ -139,7 +139,7 @@ public class TerrainChunk
 
                 var num = BilinearSampleFromNormalisedVector2(new Vector2(normalisedX, normalisedY));
 
-                map[x, y] = Mathf.InverseLerp(MinValue, MaxValue, num);
+                map[y, x] = Mathf.InverseLerp(minValue, maxValue, num);
             }
         }
         return map;

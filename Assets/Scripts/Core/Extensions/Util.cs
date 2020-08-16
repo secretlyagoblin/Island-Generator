@@ -99,12 +99,12 @@ time);
 
         public static Rect Encapsulate(this Rect rect, Rect other)
         {
-            var xMin = rect.xMin < other.xMin ? rect.xMin : other.xMax;
-            var yMin = rect.yMin < other.yMin ? rect.yMin : other.xMax;
+            var xMin = rect.xMin < other.xMin ? rect.xMin : other.xMin;
+            var yMin = rect.yMin < other.yMin ? rect.yMin : other.yMin;
             var xMax = rect.xMax > other.xMax ? rect.xMax : other.xMax;
             var yMax = rect.yMax > other.yMax ? rect.yMax : other.yMax;
 
-            return new Rect(xMin,xMax,xMax-xMin,yMax-yMin);
+            return Rect.MinMaxRect(xMin, yMin, xMax,yMax);
         }
 
         public static float InverseLerpUnclamped(float from, float to, float value)
@@ -178,7 +178,7 @@ time);
 
             var obj = JsonConvert.DeserializeObject<T>(File.ReadAllText(path),converter);
 
-            Debug.Log($"Read {typeof(T).Name} at {path}");
+            //Debug.Log($"Read {typeof(T).Name} at {path}");
 
             return obj;
         }

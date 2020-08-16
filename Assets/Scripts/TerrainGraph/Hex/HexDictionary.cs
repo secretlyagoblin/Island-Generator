@@ -8,7 +8,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
     {
         private readonly Dictionary<Vector3Int, Hex> _wrappedDictionary = new Dictionary<Vector3Int, Hex>();
 
-        public Rect Bounds { get; set; }
+        public Rect Bounds => _bounds;
+        private Rect _bounds;
         private Rect _bufferedBounds;
 
         /// <summary>
@@ -16,7 +17,7 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// </summary>
         public HexDictionary()
         {
-            Bounds = new Rect();
+            _bounds = new Rect();
             _wrappedDictionary = new Dictionary<Vector3Int, Hex>();
         }
 
@@ -76,18 +77,20 @@ namespace WanderingRoad.Procgen.RecursiveHex
         /// <param name="key">The object to use as the key of the element to add.</param><param name="value">The object to use as the value of the element to add.</param><exception cref="T:System.ArgumentNullException"><paramref name="key"/> is null.</exception><exception cref="T:System.ArgumentException">An element with the same key already exists in the <see cref="T:System.Collections.Generic.IDictionary`2"/>.</exception><exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.IDictionary`2"/> is read-only.</exception>
         public void Add(Vector3Int key, Hex value)
         {
-            if(_wrappedDictionary.Count == 0)
+            //value.Index.Bounds.DrawRect(Color.green, 100f);
+
+            if (_wrappedDictionary.Count == 0)
             {
-                Bounds = value.Index.Bounds;
+                _bounds = value.Index.Bounds;
             }
             else
             {
-                var b = Bounds;
-                b.Encapsulate(value.Index.Bounds);
-                Bounds = b;
+                _bounds = _bounds.Encapsulate(value.Index.Bounds);
             }
+
+            //Bounds.DrawRect(Color.yellow,100f);
             
-            var size = Bounds.size;
+            //var size = Bounds.size;
             _bufferedBounds = new Rect(Bounds.position - (Vector2.one*2), Bounds.size+(Vector2.one*4));
             _wrappedDictionary.Add(key, value);
         }

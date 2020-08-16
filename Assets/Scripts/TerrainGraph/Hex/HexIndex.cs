@@ -35,7 +35,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 var size = new Vector2(1f, HalfHex * 2);
                 var halfSize = size * 0.5f;
                 pos -= halfSize;
-                return new Rect(pos, size);            
+
+                var rect = new Rect(pos, size);
+                //rect.DrawRect(Color.green, 100f);
+
+                return rect;            
             }
         }
 
