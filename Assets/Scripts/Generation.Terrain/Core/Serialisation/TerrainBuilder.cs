@@ -30,7 +30,7 @@ public static class TerrainGenerator
 
         total.DrawRect(Color.white, 100f);
 
-        var size = 50;
+        var size = 100;
         var oneOverSize = 1f / size;
 
         var minX = Mathf.FloorToInt(total.xMin * oneOverSize);
@@ -55,7 +55,7 @@ public static class TerrainGenerator
         var terrains = rects.Select(x =>
             new TerrainChunk(x.ToBoundsInt(),
             hexManifest.Where(y => y.Key.Overlaps(x)).Select(y => hexes[y.Value]).ToList(),
-            8,
+            4,
             SamplerComplex)).ToList();
 
         var chunkManifest = new TerrainManifest();

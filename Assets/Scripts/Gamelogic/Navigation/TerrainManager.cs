@@ -41,7 +41,8 @@ internal class TerrainManager : MonoBehaviour
     void UpdateCells(GameState state)
     {
         //throw new NotImplementedException();
-       var pos = state.MainCamera.transform.position;
+        //var pos = state.MainCamera.transform.position;
+        var pos = Vector3.zero;
        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 200, Vector2.one * 400);
        // _loadedCells = _manifest.Terrains
        //     .Where(x => x.Key.Overlaps(rect))
@@ -73,7 +74,7 @@ internal class TerrainManager : MonoBehaviour
 
                     var map = terrainChunk.GetResizedHeightmap(1025, _manifest.MinHeight, _manifest.MaxHeight);
 
-                    { lock (_errors) { _errors.Enqueue("should be loading a fuckin chunk"); } }
+                    //{ lock (_errors) { _errors.Enqueue("should be loading a fuckin chunk"); } }
 
                     { lock (_chunks) {
                             _chunks.Enqueue(new ChunkThreadData()
@@ -116,7 +117,10 @@ internal class TerrainManager : MonoBehaviour
         {
             var chunk = _chunks.Dequeue();
             var data = TerrainBuilder.BuildTerrainData(chunk.Values, chunk.Size, _manifest);
-            var terrain = TerrainBuilder.BuildTerrain(data,chunk.Position);
+            var terrain = TerrainBuilder.BuildTerrain(data, chunk.Position);
+            terrain.name = chunk.Guid.ToString();
+            terrain.gameObject.transform.parent = transform;
+            Terrains.Add(terrain);
         }
             
         
