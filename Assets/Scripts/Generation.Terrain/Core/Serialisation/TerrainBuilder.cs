@@ -55,7 +55,7 @@ public static class TerrainGenerator
         var terrains = rects.Select(x =>
             new TerrainChunk(x.ToBoundsInt(),
             hexManifest.Where(y => y.Key.Overlaps(x)).Select(y => hexes[y.Value]).ToList(),
-            4,
+            8,
             SamplerComplex)).ToList();
 
         var chunkManifest = new TerrainManifest();
@@ -85,7 +85,7 @@ public static class TerrainGenerator
 
     private static float SamplerComplex(float x, float y, HexPayload payload)
     {
-        return ((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 6;// + RNG.NextFloat(-0.1f, 0.1f)
+        return ((payload.Height * 1) + ((Mathf.Max(payload.EdgeDistance - 0.5f, 0)) * 0.5f)) * 14;// + RNG.NextFloat(-0.1f, 0.1f)
     }    
 }
 
