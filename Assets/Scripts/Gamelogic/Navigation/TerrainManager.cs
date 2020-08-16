@@ -36,10 +36,16 @@ internal class TerrainManager : MonoBehaviour
 
     private Queue<ChunkThreadData> _chunks = new Queue<ChunkThreadData>();
 
+    public int JobsRunning = 0;
+    public bool ExpectingJobs = true;
+
 
 
     void UpdateCells(GameState state)
     {
+        ExpectingJobs = true;
+        
+
         //throw new NotImplementedException();
         //var pos = state.MainCamera.transform.position;
         var pos = Vector3.zero;
@@ -56,7 +62,9 @@ internal class TerrainManager : MonoBehaviour
        //             _manifest)));
 
         var cells = _manifest.Terrains
-            .Where(x => x.Key.Overlaps(rect));
+            .Where(x => x.Key.Overlaps(rect)).ToList();
+
+        JobsRunning = cells.Count;
 
         foreach (var cell in cells)
         {
@@ -121,6 +129,13 @@ internal class TerrainManager : MonoBehaviour
             terrain.name = chunk.Guid.ToString();
             terrain.gameObject.transform.parent = transform;
             Terrains.Add(terrain);
+            JobsRunning--;
+        }
+
+        if(ExpectingJobs && JobsRunning == 0)
+        {
+            ExpectingJobs = false;
+            State.TerrainLoaded();
         }
             
         

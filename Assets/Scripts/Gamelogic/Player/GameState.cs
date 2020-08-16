@@ -25,6 +25,8 @@ public class GameState : ScriptableObject
 
 	public event Action<GameState> OnSeedChanged;
 
+	public event Action<GameState> OnTerrainLoaded;
+
 	[MenuItem("Assets/Create/GameState")]
 	public static void CreateAsset()
 	{
@@ -54,6 +56,11 @@ public class GameState : ScriptableObject
 
 		//throw new NotImplementedException();
 	}
+
+	public void TerrainLoaded()
+    {
+		OnTerrainLoaded(this);
+    }
 
 	public void UpdateFromJson(string json)
 	{
