@@ -11,15 +11,8 @@ internal class TerrainManager : MonoBehaviour
     public GameState State;
 
     private TerrainManifest _manifest;
-    private Dictionary<Guid, Terrain> _loadedCells;
-
     public List<Terrain> Terrains =  new List<Terrain>();
-
-    private Queue<string> _errors = new Queue<string>();
-
-    //private Queue<float[,]>)
-
-
+    private readonly Queue<string> _errors = new Queue<string>();
 
     private void Awake()
     {
@@ -27,39 +20,23 @@ internal class TerrainManager : MonoBehaviour
     }
 
     void BuildTerrain(GameState state)
-    {
-       
+    {       
         _manifest = Util.DeserialiseFile<TerrainManifest>(Paths.GetTerrainChunkPathManifestPath(State.Seed), new TerrainManifestSerialiser());
 
         UpdateCells(state);
     }
 
-    private Queue<ChunkThreadData> _chunks = new Queue<ChunkThreadData>();
+    private readonly Queue<ChunkThreadData> _chunks = new Queue<ChunkThreadData>();
 
     public int JobsRunning = 0;
     public bool ExpectingJobs = true;
 
-
-
     void UpdateCells(GameState state)
     {
         ExpectingJobs = true;
-        
 
-        //throw new NotImplementedException();
-        //var pos = state.MainCamera.transform.position;
         var pos = Vector3.zero;
-       var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 200, Vector2.one * 400);
-       // _loadedCells = _manifest.Terrains
-       //     .Where(x => x.Key.Overlaps(rect))
-       //     .ToDictionary(
-       //         x => x.Value,
-       //         x => TerrainBuilder.BuildTerrain(
-       //             TerrainBuilder.BuildTerrainData(
-       //             Util.DeserialiseFile<TerrainChunk>(
-       //                 Paths.GetTerrainChunkPath(state.Seed,x.Value.ToString()),
-       //                 new TerrainChunkConverter()),
-       //             _manifest)));
+        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 200, Vector2.one * 400);
 
         var cells = _manifest.Terrains
             .Where(x => x.Key.Overlaps(rect)).ToList();
@@ -68,9 +45,6 @@ internal class TerrainManager : MonoBehaviour
 
         foreach (var cell in cells)
         {
-            //Task.Run(() => { lock (_messages) { _messages.Enqueue("hi"); } });
-
-
             Task.Delay(100).ContinueWith(x =>
             {
                 try
@@ -84,35 +58,29 @@ internal class TerrainManager : MonoBehaviour
 
                     //{ lock (_errors) { _errors.Enqueue("should be loading a fuckin chunk"); } }
 
-                    { lock (_chunks) {
+                    {
+                        lock (_chunks)
+                        {
                             _chunks.Enqueue(new ChunkThreadData()
                             {
                                 Values = map,
                                 Guid = cell.Value,
                                 Size = terrainChunk.ScaledBounds.size,
                                 Position = new Vector3(
-            terrainChunk.Bounds.x * terrainChunk.Multiplier,
-            0,
-            terrainChunk.Bounds.y * terrainChunk.Multiplier)
-                    }); } 
+                                    terrainChunk.Bounds.x * terrainChunk.Multiplier,
+                                    0,
+                                    terrainChunk.Bounds.y * terrainChunk.Multiplier)
+                            });
+                        }
                     }
 
-                    
+
                 }
                 catch (Exception ex)
                 {
                     { lock (_errors) { _errors.Enqueue(ex.Message); } }
-                }
-
-
-
-
-                //     U);
-                // })
-                //     //.ContinueWith(x => x.Result.GetResizedHeightmap(1025, 0, 1))
-                //     .ContinueWith(x => { lock (_messages) { _messages.Enqueue($"Returned {x.Result} at {Time.realtimeSinceStartup} seconds. {x.Id}"); } });
-            });//.ContinueWith(x => x.Result.GetResizedHeightmap(1025, 0, 1))
-                    //.ContinueWith(x => { lock (_messages) { _messages.Enqueue($"Returned {x.Result} at  seconds. {x.Id}"); } });
+                }  
+            });               
         }
     }
 
@@ -136,9 +104,7 @@ internal class TerrainManager : MonoBehaviour
         {
             ExpectingJobs = false;
             State.TerrainLoaded();
-        }
-            
-        
+        }           
     }
 
     private class ChunkThreadData

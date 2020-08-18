@@ -178,7 +178,7 @@ time);
 
             var obj = JsonConvert.DeserializeObject<T>(File.ReadAllText(path),converter);
 
-            //Debug.Log($"Read {typeof(T).Name} at {path}");
+            Debug.Log($"Read {typeof(T).Name} at {path}");
 
             return obj;
         }
