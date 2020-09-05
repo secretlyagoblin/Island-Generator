@@ -4,8 +4,8 @@ using Unity.Entities;
 using UnityEngine;
 
 [GenerateAuthoringComponent]
-public struct PrefabEntityComponent : IComponentData
+public struct PrefabLibrary : IComponentData
 {
-    public Entity prefabEntity;
+    public Entity Sphere;
 
 }

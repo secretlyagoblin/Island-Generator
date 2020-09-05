@@ -14,7 +14,7 @@ public class WorldManager : MonoBehaviour
     public Rect RenderRect { get { return _renderRect; } set { _renderRect = value; _renderZoneNeedsUpdating = true; } }
     private Rect _renderRect;
 
-    private bool _renderZoneNeedsUpdating = true;
+    private bool _renderZoneNeedsUpdating = true; 
 
     //private PropManager _propManager;
     private TerrainManager _terrainManager;

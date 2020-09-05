@@ -32,19 +32,23 @@ public class PropManager : MonoBehaviour
     {
         State.OnSeedChanged += BuildProps;
         State.OnTerrainLoaded += UpdateCells;
-        //World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(PrefabEntity)).GetSingleton<PrefabEntity>().SpherePrefab;
+        
+    }
+
+    private void Start()
+    {
+        Prefab = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(PrefabLibrary)).GetSingleton<PrefabLibrary>().Sphere;
     }
 
     private void BuildProps(GameState state)
     {
         _manifest = Util.DeserialiseFile<Dictionary<Rect, Guid>>(Paths.GetHexGroupManifestPath(State.Seed), new ManifestSerialiser());
-
     }
 
     void UpdateCells(GameState state)
     {
         var pos = Vector3.zero;
-        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 2, Vector2.one * 4);
+        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 25, Vector2.one * 50);
 
         rect.DrawRect(Color.red, 100f);
 
@@ -68,7 +72,10 @@ public class PropManager : MonoBehaviour
 
                     var subs = hexGroup
                     //.Subdivide(3, x => x.Code)
-                    .GetHexes().Where(x =>x.Payload.EdgeDistance>0.05f).Select(x => x.Index.Position3d).ToArray();
+                    .GetHexes()
+                    .Where(x =>x.Payload.EdgeDistance>0.05f && x.Payload.EdgeDistance < 3)
+                    .Select(x => x.Index.Position3d)
+                    .ToArray();
 
                     //{ lock (_errors) { _errors.Enqueue("should be loading a fuckin chunk"); } }
 
@@ -184,9 +191,9 @@ public class PropManager : MonoBehaviour
                         End = new float3(val.x, 0, val.z)
                     };
 
-                    CollisionWorld.CastRay(ray, out var hit);
+                    //CollisionWorld.CastRay(ray, out var hit);
 
-                    translation.Value = hit.Position;
+                    //translation.Value = hit.Position;
 
                 });
 
