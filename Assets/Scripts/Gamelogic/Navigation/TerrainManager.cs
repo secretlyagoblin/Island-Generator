@@ -147,11 +147,12 @@ internal class TerrainManager : MonoBehaviour
             heights, 
             new Unity.Mathematics.int2(1025, 1025), 
             new Unity.Mathematics.float3(size.x/1025, 1, size.y/1025), 
-            Unity.Physics.TerrainCollider.CollisionMethod.VertexSamples);
+            Unity.Physics.TerrainCollider.CollisionMethod.VertexSamples,
+            CollisionFilter.Default);
 
         heights.Dispose();
 
-        var entity = entityManager.CreateEntity(typeof(Translation), typeof(PhysicsCollider), typeof(PhysicsDebugDisplayData));
+        var entity = entityManager.CreateEntity(typeof(Translation), typeof(PhysicsCollider), typeof(LocalToWorld), typeof(Rotation), typeof(PhysicsDebugDisplayData));
         entityManager.SetName(entity, $"Terrain {chunk.Position}");
 
         entityManager.SetComponentData(entity, new Translation() { Value = chunk.Position });

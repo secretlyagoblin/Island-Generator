@@ -163,16 +163,6 @@ public class PropManager : MonoBehaviour
 
     public class MyComponentSystem : ComponentSystem
     {
-        CollisionWorld CollisionWorld;
-
-        protected override void OnCreate()
-        {
-            base.OnCreate();
-
-            CollisionWorld = World.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld.CollisionWorld;
-        }
-
-
         protected override void OnUpdate()
         {
             var query = EntityManager.CreateEntityQuery(typeof(SharedAttribute));
@@ -181,6 +171,7 @@ public class PropManager : MonoBehaviour
 
             query.SetSharedComponentFilter(unset);
 
+            var collisionWorld = World.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld.CollisionWorld;
 
             this.Entities.With(query)
                 .ForEach((ref Translation translation) =>
@@ -194,7 +185,7 @@ public class PropManager : MonoBehaviour
                         Filter = CollisionFilter.Default
                     };
 
-                    if(CollisionWorld.CastRay(ray, out var hit))
+                    if(collisionWorld.CastRay(ray, out var hit))
                         translation.Value = hit.Position;
                 });
 
