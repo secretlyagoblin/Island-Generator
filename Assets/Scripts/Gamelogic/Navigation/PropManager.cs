@@ -47,8 +47,10 @@ public class PropManager : MonoBehaviour
 
     void UpdateCells(GameState state)
     {
-        var pos = Vector3.zero;
-        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 25, Vector2.one * 50);
+        var pos = Vector3.zero
+            //- new Vector3(12, 0, 12)
+            ;
+        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 1, Vector2.one * 2);
 
         rect.DrawRect(Color.red, 100f);
 
@@ -187,14 +189,13 @@ public class PropManager : MonoBehaviour
 
                     var ray = new RaycastInput
                     {
-                        Start = new float3(val.x, 50, val.z),
-                        End = new float3(val.x, 0, val.z)
+                        Start = new float3(val.x, 200, val.z),
+                        End = new float3(val.x, -10, val.z),
+                        Filter = CollisionFilter.Default
                     };
 
-                    //CollisionWorld.CastRay(ray, out var hit);
-
-                    //translation.Value = hit.Position;
-
+                    if(CollisionWorld.CastRay(ray, out var hit))
+                        translation.Value = hit.Position;
                 });
 
             this.EntityManager.SetSharedComponentData(query, set);

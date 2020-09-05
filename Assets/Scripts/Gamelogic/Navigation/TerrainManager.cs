@@ -5,6 +5,11 @@ using WanderingRoad;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Transforms;
+using Unity.Physics;
+using Unity.Physics.Authoring;
 
 internal class TerrainManager : MonoBehaviour
 {
@@ -35,8 +40,10 @@ internal class TerrainManager : MonoBehaviour
     {
         ExpectingJobs = true;
 
-        var pos = Vector3.zero;
-        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 200, Vector2.one * 400);
+        var pos = Vector3.zero
+            //- new Vector3(12, 0, 12)
+            ;
+        var rect = new Rect(new Vector2(pos.x, pos.z) - Vector2.one * 1, Vector2.one * 2);
 
         var cells = _manifest.Terrains
             .Where(x => x.Key.Overlaps(rect)).ToList();
@@ -97,6 +104,9 @@ internal class TerrainManager : MonoBehaviour
             terrain.name = chunk.Guid.ToString();
             terrain.gameObject.transform.parent = transform;
             Terrains.Add(terrain);
+
+            GetTerrainColliderEntity(chunk, _manifest);
+
             JobsRunning--;
         }
 
@@ -105,6 +115,48 @@ internal class TerrainManager : MonoBehaviour
             ExpectingJobs = false;
             State.TerrainLoaded();
         }           
+    }
+
+    private void GetTerrainColliderEntity(ChunkThreadData chunk, TerrainManifest manifest)
+    {
+        var values = chunk.Values;
+
+        var heights = new NativeArray<float>(values.Length * values.Length, Allocator.Temp);
+
+        var count = 0;
+
+        var size = chunk.Size;
+
+        var height = (manifest.MaxHeight - manifest.MinHeight);
+
+        for (int x = 0; x < values.GetLength(0); x++)
+        {
+            for (int y = 0; y < values.GetLength(1); y++)
+            {
+                heights[count] = values[x, y] * height; //30;
+
+                count++;                
+            }
+        }
+
+        Debug.Log($"Count ended up at {count}, or {Mathf.Sqrt(count)}");
+
+        var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
+        var terrain = Unity.Physics.TerrainCollider.Create(
+            heights, 
+            new Unity.Mathematics.int2(1025, 1025), 
+            new Unity.Mathematics.float3(size.x/1025, 1, size.y/1025), 
+            Unity.Physics.TerrainCollider.CollisionMethod.VertexSamples);
+
+        heights.Dispose();
+
+        var entity = entityManager.CreateEntity(typeof(Translation), typeof(PhysicsCollider), typeof(PhysicsDebugDisplayData));
+        entityManager.SetName(entity, $"Terrain {chunk.Position}");
+
+        entityManager.SetComponentData(entity, new Translation() { Value = chunk.Position });
+        entityManager.SetComponentData(entity, new PhysicsCollider() { Value = terrain });
+        //entityManager.SetComponentData(entity, new PhysicsDebugDisplayData() { DrawColliders = 1 });
     }
 
     private class ChunkThreadData
