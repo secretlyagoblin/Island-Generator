@@ -1,13 +1,22 @@
 ﻿using System;
-using UnityEngine;
 using System.Linq;
-using WanderingRoad;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Net.NetworkInformation;
+
+using WanderingRoad;
 using WanderingRoad.Procgen.RecursiveHex;
 using WanderingRoad.Procgen.RecursiveHex.Json;
 using WanderingRoad.Random;
+
+using UnityEngine;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
+using Unity.Physics;
+using Unity.Physics.Systems;
+using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 
 public class PropManager : MonoBehaviour
 {
@@ -17,10 +26,13 @@ public class PropManager : MonoBehaviour
     private readonly Queue<Vector3[]> _chunks = new Queue<Vector3[]>();
     private readonly Queue<Exception> _errors = new Queue<Exception>();
 
+    Entity Prefab;
+
     private void Awake()
     {
         State.OnSeedChanged += BuildProps;
         State.OnTerrainLoaded += UpdateCells;
+        //World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(PrefabEntity)).GetSingleton<PrefabEntity>().SpherePrefab;
     }
 
     private void BuildProps(GameState state)
@@ -90,18 +102,127 @@ public class PropManager : MonoBehaviour
 
         if (_chunks.Count > 0)
         {
-            var color = RNG.NextColorBright();
+            //var color = RNG.NextColorBright();
             var amount = _chunks.Dequeue();
 
             Debug.Log($"Building {amount.Length} props");
 
-            for (int i = 0; i < amount.Length; i++)
-            {
-                Physics.Raycast(amount[i] * 8 + Vector3.up*50, Vector3.down, out var hit);
+            InstantiateElements(amount);
 
-                Debug.DrawRay(hit.point, Vector3.up * 5, color,100f);
-            }
+
+            //for (int i = 0; i < amount.Length; i++)
+            //{
+            //    Physics.Raycast(amount[i] * 8 + Vector3.up*50, Vector3.down, out var hit);
+            //
+            //    Debug.DrawRay(hit.point, Vector3.up * 5, color,100f);
+            //}
         }
 
     }
+
+    void InstantiateElements(Vector3[] vectors)
+    {
+
+        var world = World.DefaultGameObjectInjectionWorld;
+        var entities = world.EntityManager;
+        //var collision = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld.CollisionWorld;
+
+        var nativeArray = new NativeArray<Entity>(vectors.Length, Allocator.Temp);
+
+        entities.Instantiate(Prefab, nativeArray);
+
+        var shared = new SharedAttribute() { State = SharedAttributeType.Unset };
+
+        for (int i = 0; i < vectors.Length; i++)
+        {
+            entities.SetComponentData(nativeArray[i], new Translation() { Value = vectors[i] });
+            entities.AddSharedComponentData(nativeArray[i], shared);
+        }
+
+        nativeArray.Dispose();
+    }
+
+    public struct SharedAttribute : ISharedComponentData
+    {
+        public SharedAttributeType State;
+    }
+    
+    public enum SharedAttributeType
+    {
+        Unset,Set
+    }
+
+    public class MyComponentSystem : ComponentSystem
+    {
+        CollisionWorld CollisionWorld;
+
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+
+            CollisionWorld = World.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld.CollisionWorld;
+        }
+
+
+        protected override void OnUpdate()
+        {
+            var query = EntityManager.CreateEntityQuery(typeof(SharedAttribute));
+            var unset = new SharedAttribute() { State = SharedAttributeType.Unset };
+            var set = new SharedAttribute() { State = SharedAttributeType.Set };
+
+            query.SetSharedComponentFilter(unset);
+
+
+            this.Entities.With(query)
+                .ForEach((ref Translation translation) =>
+                {
+                    var val = translation.Value;
+
+                    var ray = new RaycastInput
+                    {
+                        Start = new float3(val.x, 50, val.z),
+                        End = new float3(val.x, 0, val.z)
+                    };
+
+                    CollisionWorld.CastRay(ray, out var hit);
+
+                    translation.Value = hit.Position;
+
+                });
+
+            this.EntityManager.SetSharedComponentData(query, set);
+
+            
+        }
+    }
+
+    //private class MyJob : IJobParallelFor
+    //{
+    //    [ReadOnly]
+    //    public NativeArray<float2> Cells;
+    //
+    //    [ReadOnly]
+    //    public CollisionWorld CollisionWorld;
+    //
+    //    public World World;
+    //
+    //    public Entity Prefab;
+    //
+    //    public void Execute(int index)
+    //    {
+    //        var xz = Cells[index];
+    //
+    //        var point = new RaycastInput
+    //        {
+    //            Start = new float3(xz.x, 50, xz.y),
+    //            End = new float3(xz.x, 0, xz.y)
+    //        };
+    //
+    //        CollisionWorld.CastRay(point, out var hit);
+    //
+    //        var entity = World.EntityManager.Instantiate(Prefab);
+    //
+    //        World.EntityManager.SetComponentData<Translation>(entity,new Translation() { Value = hit.Position });
+    //    }
+    //}
 }

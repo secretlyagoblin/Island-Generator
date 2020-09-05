@@ -7,6 +7,7 @@ public class PlayerManager : MonoBehaviour
     public GameObject Player;
     public Camera PlayerCamera;
     public GameState State;
+    public float PlayerTriggerDelay = 4f;
 
     void Awake()
     {
@@ -27,7 +28,7 @@ public class PlayerManager : MonoBehaviour
 
     private void TriggerPlayer(GameState state)
     {
-        Invoke(nameof(InvokePlayer), 2);
+        Invoke(nameof(InvokePlayer), PlayerTriggerDelay);
     }
 
     private void InvokePlayer()
