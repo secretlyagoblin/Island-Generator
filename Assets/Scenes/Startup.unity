@@ -325,7 +325,7 @@ MonoBehaviour:
   Player: {fileID: 1301542703}
   PlayerCamera: {fileID: 1301542702}
   State: {fileID: 11400000, guid: a8eedd8d590c49e42a73ce0ab68f3d71, type: 2}
-  PlayerTriggerDelay: 3
+  PlayerTriggerDelay: 14
 --- !u!114 &861245665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -853,7 +853,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4fc19155f506b8488b64d514fe8cf98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sphere: {fileID: 5760335422507338185, guid: 79701da7b955339468b54909d923ec3d, type: 3}
+  Sphere: {fileID: 8433067374017131790, guid: 76809398059b56d46a68861663fac4da, type: 3}
 --- !u!1 &1934309415
 GameObject:
   m_ObjectHideFlags: 0

@@ -114,7 +114,7 @@ public class PropManager : MonoBehaviour
             //var color = RNG.NextColorBright();
             var amount = _chunks.Dequeue();
 
-            Debug.Log($"Building {amount.Length} props");
+            //Debug.Log($"Building {amount.Length} props");
 
             InstantiateElements(amount);
 
@@ -142,9 +142,14 @@ public class PropManager : MonoBehaviour
 
         var shared = new SharedAttribute() { State = SharedAttributeType.Unset };
 
+        //var scale = new Scale() { Value = 9};
+
+        var scale = new CompositeScale() { Value = Matrix4x4.Scale(new Vector3(1, 1, 1)) };
+
         for (int i = 0; i < vectors.Length; i++)
         {
             entities.SetComponentData(nativeArray[i], new Translation() { Value = vectors[i] });
+            entities.AddComponentData(nativeArray[i], scale);
             entities.AddSharedComponentData(nativeArray[i], shared);
         }
 
@@ -163,6 +168,10 @@ public class PropManager : MonoBehaviour
 
     public class MyComponentSystem : ComponentSystem
     {
+        private int _m = 8;
+
+        public int Multiplier { get => _m; set => _m = value; }
+
         protected override void OnUpdate()
         {
             var query = EntityManager.CreateEntityQuery(typeof(SharedAttribute));
@@ -174,19 +183,51 @@ public class PropManager : MonoBehaviour
             var collisionWorld = World.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld.CollisionWorld;
 
             this.Entities.With(query)
-                .ForEach((ref Translation translation) =>
+                .ForEach((ref Translation translation, ref CompositeScale scale, ref LocalToWorld localToWorld) =>
                 {
                     var val = translation.Value;
 
-                    var ray = new RaycastInput
-                    {
-                        Start = new float3(val.x, 200, val.z),
-                        End = new float3(val.x, -10, val.z),
-                        Filter = CollisionFilter.Default
-                    };
+                    float minY = float.MaxValue;
+                    float maxY = float.MinValue;
 
-                    if(collisionWorld.CastRay(ray, out var hit))
-                        translation.Value = hit.Position;
+                    for (int x = -1; x < 2; x+=1)
+                    {
+
+                        for (int y = -1; y < 2; y += 1)
+                        {
+
+                            var offset = new float3(x, 0, y) * 4;
+
+
+                            var ray = new RaycastInput
+                            {
+                                Start = new float3(val.x, 200, val.z)+ offset,
+                                End = new float3(val.x, -10, val.z)+ offset,
+                                Filter = CollisionFilter.Default
+                            };
+
+                            collisionWorld.CastRay(ray, out var hit);
+
+                            minY = hit.Position.y < minY ? hit.Position.y : minY;
+
+                            maxY = hit.Position.y > maxY ? hit.Position.y : maxY;
+
+                        }
+                    }
+
+                    translation.Value = new float3(val.x, (minY + maxY) * 0.5f, val.z);
+
+                    scale.Value = new float4x4(
+                        _m, 0,          0,  0,
+                        0,  maxY-minY,  0,  0,
+                        0,  0,          _m, 0,
+                        0,  0,          0,  1
+                        );
+
+
+
+
+
                 });
 
             this.EntityManager.SetSharedComponentData(query, set);
