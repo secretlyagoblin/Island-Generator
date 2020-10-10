@@ -72,11 +72,15 @@ public class PropManager : MonoBehaviour
 
                     //var subDivide = hexGroup.Subdivide(3, x => x.Code);
 
+                    var divisions = 3;
+
+                    var inverseMatrix = HexIndex.GetInverseMultiplicationMatrix(divisions); 
+
                     var subs = hexGroup
                     //.Subdivide(3, x => x.Code)
                     .GetHexes()
                     .Where(x =>x.Payload.EdgeDistance>0.05f && x.Payload.EdgeDistance < 3)
-                    .Select(x => x.Index.Position3d)
+                    .Select(x => inverseMatrix.MultiplyPoint(x.Index.Position3d)*8)
                     .ToArray();
 
                     //{ lock (_errors) { _errors.Enqueue("should be loading a fuckin chunk"); } }
@@ -142,8 +146,6 @@ public class PropManager : MonoBehaviour
 
         var shared = new SharedAttribute() { State = SharedAttributeType.Unset };
 
-        //var scale = new Scale() { Value = 9};
-
         var scale = new CompositeScale() { Value = Matrix4x4.Scale(new Vector3(1, 1, 1)) };
 
         for (int i = 0; i < vectors.Length; i++)
@@ -168,7 +170,7 @@ public class PropManager : MonoBehaviour
 
     public class MyComponentSystem : ComponentSystem
     {
-        private int _m = 8;
+        private int _m = 1;
 
         public int Multiplier { get => _m; set => _m = value; }
 

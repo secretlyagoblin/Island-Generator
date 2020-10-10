@@ -116,6 +116,11 @@ namespace WanderingRoad.Procgen.RecursiveHex
             return new HexIndex(newIndex.x, newIndex.y, newIndex.z);
         }
 
+        public static Matrix4x4 GetInverseMultiplicationMatrix(int amount)
+        {
+            return Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(60*amount,Vector3.up), new Vector3(amount + 1, 1, amount + 1)).inverse;
+        }
+
         public HexIndex[] GenerateRosetteLinear(int radius)
         {
             //calculate rosette size without any GC :(
