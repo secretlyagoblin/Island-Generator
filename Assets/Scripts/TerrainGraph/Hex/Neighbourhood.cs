@@ -7,7 +7,6 @@ using WanderingRoad.Random;
 
 namespace WanderingRoad.Procgen.RecursiveHex
 {
-
     public struct Neighbourhood
     {
         public Hex Center;
@@ -280,6 +279,87 @@ namespace WanderingRoad.Procgen.RecursiveHex
         }
 
 
+        public MinMesh GetMinMesh( Func<Hex,float> heightCalc, float threshold)
+        {
+            var hc = heightCalc(Center);
+            var center = this.Center.Index.Position3d + Vector3.up * hc;
+
+            var heights = new float[]
+            {
+                heightCalc(N0),
+                heightCalc(N1),
+                heightCalc(N2),
+                heightCalc(N3),
+                heightCalc(N4),
+                 heightCalc(N5)
+            };
+
+            var blerpedHeights = new float[6];
+
+            var third = 1f / 3f;
+            var weight = new Vector3(third, third, third);
+
+            for (int i = 0; i < 6; i++)
+            {
+                var a = heights[i];
+                var iPlus = i == 5? 0:i+1;
+                var b = heights[iPlus];
+
+                var hca = Mathf.Abs(hc - a) > threshold;
+                var hcb = Mathf.Abs(hc - b) > threshold;
+
+                if(hca && hcb)
+                {
+                    blerpedHeights[i] = hc;
+                }
+                else if (hca)
+                {
+                    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, (hc+b)*0.5f, b, weight);
+                }
+                else if (hcb)
+                {
+                    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, a, (hc + a) * 0.5f, weight);
+                }
+                else
+                {
+                    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, a, b, weight);
+                }
+            }
+
+            var offset = 1;
+
+            return new MinMesh()
+            {
+                C = center,
+                N1 = DoMath(blerpedHeights[0],0+offset),
+                N2 = DoMath(blerpedHeights[1],1+offset),
+                N3 = DoMath(blerpedHeights[2],2+offset),
+                N4 = DoMath(blerpedHeights[3],3+offset),
+                N5 = DoMath(blerpedHeights[4],4+offset),
+                N6 = DoMath(blerpedHeights[5],5+offset)
+            };
+        }
+
+        private Vector3 DoMath(float height, int i)
+        {
+            var point = GetPointyCornerXZ(Center.Index.Position3d, i);
+            point = point.AddNoiseOffset(0.2f);
+            point += Vector3.up * height;
+
+            return point;
+        }
+
+        Vector3 GetPointyCornerXZ(Vector3 vec, int i)
+        {
+            var angle_deg = 60f * i - 30f;
+            var angle_rad = Mathf.PI / 180f * angle_deg;
+            return vec + new Vector3(HexIndex.HalfHex * Mathf.Cos(-angle_rad), 0,
+                         HexIndex.HalfHex * Mathf.Sin(-angle_rad));
+        }
+
+
+
+
         /// <summary>
         /// Goes through the neighbours in a hardcoded way and lerps the correct data
         /// </summary>
@@ -453,4 +533,16 @@ namespace WanderingRoad.Procgen.RecursiveHex
             }
         }
     }
+
+    public struct MinMesh
+    {
+        public Vector3 C;
+        public Vector3 N1;
+        public Vector3 N2;
+        public Vector3 N3;
+        public Vector3 N4;
+        public Vector3 N5;
+        public Vector3 N6;
+    }
+
 }

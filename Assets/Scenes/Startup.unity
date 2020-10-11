@@ -147,7 +147,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 244536036}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8984d171fe3c5b242944dc7ab7a0d500, type: 3}
   m_Name: 
@@ -317,7 +317,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861245661}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72e1f68a6a76c744db4b08ae2641c260, type: 3}
   m_Name: 
@@ -339,6 +339,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   State: {fileID: 11400000, guid: a8eedd8d590c49e42a73ce0ab68f3d71, type: 2}
+  Material: {fileID: 2100000, guid: 3166b51ec8c99d94eb1466a2db09d452, type: 2}
+  Threshold: 0.6
 --- !u!1 &1076613897
 GameObject:
   m_ObjectHideFlags: 0
