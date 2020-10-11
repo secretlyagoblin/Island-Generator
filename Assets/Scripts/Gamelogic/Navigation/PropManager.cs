@@ -33,6 +33,8 @@ public class PropManager : MonoBehaviour
 
     public UnityEngine.Material CliffMaterial;
 
+    public GameObject[] SpawnProps;
+
     public float Threshold;
 
     private void Awake()
@@ -57,7 +59,7 @@ public class PropManager : MonoBehaviour
 
     void UpdateCells(GameState state)
     {
-        var size = 5;
+        var size = 40;
 
         var pos = Vector3.zero
             //- new Vector3(12, 0, 12)
@@ -300,6 +302,8 @@ public class PropManager : MonoBehaviour
 
 
 
+
+
             // mesh.CombineMeshes(combineInstances, true);
 
             //Debug.Log($"Building {amount.Length} props");
@@ -308,6 +312,26 @@ public class PropManager : MonoBehaviour
             obj.name = "Chunk";
             obj.AddComponent<MeshRenderer>().sharedMaterial = Material;
             obj.AddComponent<MeshFilter>().mesh = mesh;
+
+            subset.ToList().ForEach(x =>
+            {
+                var pos = x.C;
+
+                if (RNG.SmallerThan(0.6f)) return;
+
+
+                var prop = RNG.GetRandomItem(SpawnProps);
+
+                var scale = RNG.NextFloat(0.8f, 1.2f);
+
+                var ob = GameObject.Instantiate(prop);
+                ob.transform.position = pos;
+                ob.transform.rotation= Quaternion.Euler(0,RNG.NextFloat(1000f), 0);
+                ob.transform.localScale = new Vector3(scale, scale, scale);
+
+                ob.transform.parent = obj.transform;
+
+            });
 
 
             var edgeMesh = new Mesh()
@@ -328,11 +352,11 @@ public class PropManager : MonoBehaviour
 
             //Debug.Log($"Building {amount.Length} props");
 
-            obj = new GameObject();
-            obj.name = "Edges";
-            obj.AddComponent<MeshRenderer>().sharedMaterial = CliffMaterial;
-            obj.AddComponent<MeshFilter>().mesh = edgeMesh;
-
+            var cobj = new GameObject();
+            cobj.name = "Edges";
+            cobj.AddComponent<MeshRenderer>().sharedMaterial = CliffMaterial;
+            cobj.AddComponent<MeshFilter>().mesh = edgeMesh;
+            cobj.transform.parent = cobj.transform;
             //InstantiateElements(amount);
 
 
