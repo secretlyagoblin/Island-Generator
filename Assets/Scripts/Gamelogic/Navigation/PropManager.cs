@@ -31,6 +31,8 @@ public class PropManager : MonoBehaviour
 
     public UnityEngine.Material Material;
 
+    public UnityEngine.Material CliffMaterial;
+
     public float Threshold;
 
     private void Awake()
@@ -55,7 +57,7 @@ public class PropManager : MonoBehaviour
 
     void UpdateCells(GameState state)
     {
-        var size = 55;
+        var size = 5;
 
         var pos = Vector3.zero
             //- new Vector3(12, 0, 12)
@@ -160,41 +162,139 @@ public class PropManager : MonoBehaviour
                 verts[t+4] = a.N4;
                 verts[t+5] = a.N5;
                 verts[t+6] = a.N6;
-            }
 
-            for (int i = 0; i < amount.Length; i++)
-            {
-                var t = i * 6*3;
+                var tr = i * 6*3;
                 var pos = i * 7;
 
-                tris[t] = 0 + pos;
-                tris[t +1 ] = 1 + pos;
-                tris[t +2] = 2 + pos;
-                tris[t +3] = 0+ pos;
-                tris[t +4] = 2+ pos;
-                tris[t +5] = 3+ pos;
-                tris[t +6] = 0+ pos;
-                tris[t +7] = 3+ pos;
-                tris[t +8] = 4+ pos;
-                tris[t +9] = 0 + pos;
-                tris[t +10] = 4+ pos;
-                tris[t +11] = 5+ pos;
-                tris[t +12] = 0+ pos;
-                tris[t +13] = 5+ pos;
-                tris[t +14] = 6+ pos;
-                tris[t +15] = 0+ pos;
-                tris[t +16] = 6+ pos;
-                tris[t +17] = 1 + pos;
+                tris[tr] = 0 + pos;
+                tris[tr +1 ] = 1 + pos;
+                tris[tr +2] = 2 + pos;
+                tris[tr +3] = 0+ pos;
+                tris[tr +4] = 2+ pos;
+                tris[tr +5] = 3+ pos;
+                tris[tr +6] = 0+ pos;
+                tris[tr +7] = 3+ pos;
+                tris[tr +8] = 4+ pos;
+                tris[tr +9] = 0 + pos;
+                tris[tr +10] = 4+ pos;
+                tris[tr +11] = 5+ pos;
+                tris[tr +12] = 0+ pos;
+                tris[tr +13] = 5+ pos;
+                tris[tr +14] = 6+ pos;
+                tris[tr +15] = 0+ pos;
+                tris[tr +16] = 6+ pos;
+                tris[tr +17] = 1 + pos;
             }
 
+            var subset = amount.Where(x => x.NeedsWalls).ToArray();
+
+            var edgeVerts = new Vector3[subset.Length * 12];
+            var edgeUvs = new Vector2[subset.Length * 12];
+
+            var edgeTris = new int[subset.Length * 12*3];
+
+
+            for (int i = 0; i < subset.Length; i++)
+            {
+                var t = i * 12;
+                var a = subset[i];
+                edgeVerts[t + 0] = a.N1;
+                edgeVerts[t + 1] = a.N2;
+                edgeVerts[t + 2] = a.N3;
+                edgeVerts[t + 3] = a.N4;
+                edgeVerts[t + 4] = a.N5;
+                edgeVerts[t + 5] = a.N6;
+                edgeVerts[t + 6] = a.N1 + (Vector3.down *  10f);
+                edgeVerts[t + 7] = a.N2 + (Vector3.down *  10f);
+                edgeVerts[t + 8] = a.N3 + (Vector3.down *  10f);
+                edgeVerts[t + 9] = a.N4 + (Vector3.down *  10f);
+                edgeVerts[t + 10] = a.N5 + (Vector3.down * 10f);
+                edgeVerts[t + 11] = a.N6 + (Vector3.down * 10f);
+
+                var offset = RNG.NextFloat(0f, 35);
+                offset = 0;
+
+                edgeUvs[t + 0] = new Vector2(0   +offset,  0);
+                edgeUvs[t + 1] = new Vector2(1   +offset,  0);
+                edgeUvs[t + 2] = new Vector2(0   +offset,  0);
+                edgeUvs[t + 3] = new Vector2(1   +offset,  0);
+                edgeUvs[t + 4] = new Vector2(0   +offset,  0);
+                edgeUvs[t + 5] = new Vector2(1   +offset,  0);
+                edgeUvs[t + 6] = new Vector2(0  +offset, 10);
+                edgeUvs[t + 7] = new Vector2(1  +offset, 10);
+                edgeUvs[t + 8] = new Vector2(0  +offset, 10);
+                edgeUvs[t + 9] =new Vector2(1   +offset,  10);
+                edgeUvs[t + 10]= new Vector2(0  +offset, 10);
+                edgeUvs[t + 11]= new Vector2(1  +offset, 10);
+
+
+
+
+
+
+
+                var tr = i * 12 * 3;
+                var pos = i * 12;
+
+                edgeTris[tr + 0] = 6 + pos;
+                edgeTris[tr + 1] = 1 + pos;
+                edgeTris[tr + 2] = 0 + pos;
+
+                edgeTris[tr + 3] = 6 + pos;
+                edgeTris[tr + 4] = 7 + pos;
+                edgeTris[tr + 5] = 1 + pos;
+
+                edgeTris[tr + 6] = 7 + pos;
+                edgeTris[tr + 7] = 2 + pos;
+                edgeTris[tr + 8] = 1 + pos;
+
+                edgeTris[tr + 9] =  7 + pos;
+                edgeTris[tr + 10] = 8 + pos;
+                edgeTris[tr + 11] = 2 + pos;
+
+                edgeTris[tr + 12] = 8 + pos;
+                edgeTris[tr + 13] = 3 + pos;
+                edgeTris[tr + 14] = 2 + pos;
+
+                edgeTris[tr + 15] = 8 + pos;
+                edgeTris[tr + 16] = 9 + pos;
+                edgeTris[tr + 17] = 3 + pos;
+
+                edgeTris[tr + 18] = 9 + pos;
+                edgeTris[tr + 19] = 4 + pos;
+                edgeTris[tr + 20] = 3 + pos;
+                
+                edgeTris[tr + 21] = 9 + pos;
+                edgeTris[tr + 22] = 10 + pos;
+                edgeTris[tr + 23] = 4 + pos;
+                
+                edgeTris[tr + 24] = 10 + pos;
+                edgeTris[tr + 25] = 5 + pos;
+                edgeTris[tr + 26] = 4 + pos;
+                
+                edgeTris[tr + 27] = 10 + pos;
+                edgeTris[tr + 28] = 11 + pos;
+                edgeTris[tr + 29] = 5 + pos;
+                
+                edgeTris[tr + 30] = 11+ pos;
+                edgeTris[tr + 31] = 0 + pos;
+                edgeTris[tr + 32] = 5 + pos;
+                
+                edgeTris[tr + 33] = 11 + pos;
+                edgeTris[tr + 34] = 6 + pos;
+                edgeTris[tr + 35] = 0 + pos;
+            }    
+
             var mesh = new Mesh()
-            {                
+            {
                 vertices = verts,
                 triangles = tris,
-                //normals = verts.Select(x => Vector3.up).ToArray()
+                normals = verts.Select(x => Vector3.up).ToArray(),
+                uv = verts.Select(x => new Vector2(x.x, x.z)).ToArray()
+                
             };
 
-            mesh.RecalculateNormals();
+            //mesh.RecalculateNormals();
 
 
 
@@ -208,6 +308,30 @@ public class PropManager : MonoBehaviour
             obj.name = "Chunk";
             obj.AddComponent<MeshRenderer>().sharedMaterial = Material;
             obj.AddComponent<MeshFilter>().mesh = mesh;
+
+
+            var edgeMesh = new Mesh()
+            {
+                vertices = edgeVerts,
+                triangles = edgeTris,
+                uv = edgeUvs,
+                normals = edgeVerts.Select(x => Vector3.up).ToArray(),
+            };
+
+            //edgeMesh.RecalculateNormals();
+
+
+
+
+
+            // mesh.CombineMeshes(combineInstances, true);
+
+            //Debug.Log($"Building {amount.Length} props");
+
+            obj = new GameObject();
+            obj.name = "Edges";
+            obj.AddComponent<MeshRenderer>().sharedMaterial = CliffMaterial;
+            obj.AddComponent<MeshFilter>().mesh = edgeMesh;
 
             //InstantiateElements(amount);
 

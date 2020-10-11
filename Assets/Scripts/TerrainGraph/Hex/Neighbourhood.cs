@@ -291,8 +291,72 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 heightCalc(N2),
                 heightCalc(N3),
                 heightCalc(N4),
-                 heightCalc(N5)
+                heightCalc(N5)
             };
+
+            var heightBools = heights.Select(x => Mathf.Abs(hc - x) > threshold).ToArray();
+
+            var newHeights = new float[6];
+
+
+            var c = this.Center.Index.Position3d;
+
+            var posses = new Vector3[]
+{
+                 Vector3.Lerp(c, N0.Index.Position3d, 0.4f),
+                 Vector3.Lerp(c, N1.Index.Position3d, 0.4f),
+                 Vector3.Lerp(c, N2.Index.Position3d, 0.4f),
+                 Vector3.Lerp(c, N3.Index.Position3d, 0.4f),
+                 Vector3.Lerp(c, N4.Index.Position3d, 0.4f),
+                 Vector3.Lerp(c, N5.Index.Position3d, 0.4f)
+};
+
+            var needsWalls = false;
+
+            for (int i = 0; i < 6; i++)
+            {
+                var iMinus = i == 0 ? 5 : i - 1;
+                var iPlus = i == 5 ? 0 : i + 1;
+
+                if (!heightBools[i])
+                {
+                    newHeights[i] = heights[i];
+                    continue;
+                }
+
+                needsWalls = true;
+
+
+                var a = heightBools[iMinus];
+                var b = heightBools[iPlus];
+
+                if(a || b)
+                {
+                    newHeights[i] = hc;
+
+                    Debug.DrawLine(c, posses[i], Color.red,100f);
+
+                   
+
+
+
+                }
+                //else if (a)
+                //{
+                //    newHeights[i] = 
+                //}
+                else
+                {
+                    newHeights[i] = heights[i];
+                }
+            }
+
+
+            
+
+
+            heights = newHeights;
+
 
             var blerpedHeights = new float[6];
 
@@ -301,32 +365,48 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
             for (int i = 0; i < 6; i++)
             {
+                //var iMinus = i == 0 ? 5 : i -1;
                 var a = heights[i];
                 var iPlus = i == 5? 0:i+1;
                 var b = heights[iPlus];
 
-                var hca = Mathf.Abs(hc - a) > threshold;
-                var hcb = Mathf.Abs(hc - b) > threshold;
-
-                if(hca && hcb)
-                {
-                    blerpedHeights[i] = hc;
-                }
-                else if (hca)
-                {
-                    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, (hc+b)*0.5f, b, weight);
-                }
-                else if (hcb)
-                {
-                    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, a, (hc + a) * 0.5f, weight);
-                }
-                else
-                {
+                //var hca = Mathf.Abs(hc - a) > threshold;
+                //var hcb = Mathf.Abs(hc - b) > threshold;
+                //
+                //hca = false;
+                //hcb = false;
+                //
+                //if(hca && hcb)
+                //{
+                //    blerpedHeights[i] = hc;
+                //
+                //    Debug.DrawLine(center, DoMath(blerpedHeights[i], i + 1), Color.red, 100f);
+                //}
+                //else if (hca)
+                //{
+                //    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, (hc+b)*0.5f, b, weight);
+                //
+                //    Debug.DrawLine(center, DoMath(blerpedHeights[i], i + 1), Color.blue, 100f);
+                //
+                //}
+                //else if (hcb)
+                //{
+                //    blerpedHeights[i] = InterpolationHelpers.Blerp(hc, a, (hc + a) * 0.5f, weight);
+                //
+                //    Debug.DrawLine(center, DoMath(blerpedHeights[i], i + 1), Color.blue, 100f);
+                //}
+                //else
+                //{
                     blerpedHeights[i] = InterpolationHelpers.Blerp(hc, a, b, weight);
-                }
+
+                    //Debug.DrawLine(center, DoMath(blerpedHeights[i], i + 1), Color.red, 100f);
+
+                //}
             }
 
             var offset = 1;
+
+
 
             return new MinMesh()
             {
@@ -336,14 +416,15 @@ namespace WanderingRoad.Procgen.RecursiveHex
                 N3 = DoMath(blerpedHeights[2],2+offset),
                 N4 = DoMath(blerpedHeights[3],3+offset),
                 N5 = DoMath(blerpedHeights[4],4+offset),
-                N6 = DoMath(blerpedHeights[5],5+offset)
+                N6 = DoMath(blerpedHeights[5],5+offset),
+                NeedsWalls = needsWalls
             };
         }
 
         private Vector3 DoMath(float height, int i)
         {
             var point = GetPointyCornerXZ(Center.Index.Position3d, i);
-            point = point.AddNoiseOffset(0.2f);
+            point = point.AddNoiseOffset(0.3f);
             point += Vector3.up * height;
 
             return point;
@@ -543,6 +624,8 @@ namespace WanderingRoad.Procgen.RecursiveHex
         public Vector3 N4;
         public Vector3 N5;
         public Vector3 N6;
+
+        public bool NeedsWalls;
     }
 
 }

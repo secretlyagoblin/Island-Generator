@@ -205,7 +205,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -340,7 +340,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   State: {fileID: 11400000, guid: a8eedd8d590c49e42a73ce0ab68f3d71, type: 2}
   Material: {fileID: 2100000, guid: 3166b51ec8c99d94eb1466a2db09d452, type: 2}
-  Threshold: 0.6
+  Threshold: 0.4
 --- !u!1 &1076613897
 GameObject:
   m_ObjectHideFlags: 0
