@@ -237,6 +237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   amount: 1
   count: 1
+  addOrSub: 0
   doMatrix: 0
 --- !u!4 &1249839444
 Transform:
@@ -246,7 +247,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1249839442}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -148.68336, y: -390.66357, z: -79.2816}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

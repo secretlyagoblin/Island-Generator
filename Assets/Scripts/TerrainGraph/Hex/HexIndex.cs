@@ -118,7 +118,17 @@ namespace WanderingRoad.Procgen.RecursiveHex
 
         public static Matrix4x4 GetInverseMultiplicationMatrix(int amount)
         {
-            return Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(60*amount,Vector3.up), new Vector3(amount + 1, 1, amount + 1)).inverse;
+            var index = new HexIndex(1, 0, -1);
+            var scaledIndex = index.NestMultiply(amount);
+
+            var pos = index.Position3d;
+            var scaledPos = scaledIndex.Position3d;
+
+            var angle = Vector3.Angle(pos.normalized,scaledPos.normalized);
+            var rotate = Quaternion.AngleAxis(-angle, Vector3.up);
+            var scale = pos.magnitude / scaledPos.magnitude;
+
+            return Matrix4x4.TRS(Vector3.zero, rotate, new Vector3(scale,scale,scale));
         }
 
         public HexIndex[] GenerateRosetteLinear(int radius)
