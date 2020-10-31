@@ -10,6 +10,8 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Physics;
 using Unity.Physics.Authoring;
+using Unity.Jobs;
+using Unity.Mathematics;
 
 internal class TerrainManager : MonoBehaviour
 {
@@ -139,7 +141,7 @@ internal class TerrainManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Count ended up at {count}, or {Mathf.Sqrt(count)}");
+        //Debug.Log($"Count ended up at {count}, or {Mathf.Sqrt(count)}");
 
         var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
@@ -159,6 +161,26 @@ internal class TerrainManager : MonoBehaviour
         entityManager.SetComponentData(entity, new PhysicsCollider() { Value = terrain });
         //entityManager.SetComponentData(entity, new PhysicsDebugDisplayData() { DrawColliders = 1 });
     }
+
+    //private struct TerrainBuildJob : IJob
+    //{
+    //    [ReadOnly]
+    //    public NativeArray<float> heights;
+    //    [ReadOnly]
+    //    public float2 size;
+    //    BlobAssetReference<Unity.Physics.Collider> terrainAssetReference;
+    //
+    //
+    //    public void Execute()
+    //    {
+    //        terrainAssetReference = Unity.Physics.TerrainCollider.Create(
+    //heights,
+    //new Unity.Mathematics.int2(1025, 1025),
+    //new Unity.Mathematics.float3(size.x / 1025, 1, size.y / 1025),
+    //Unity.Physics.TerrainCollider.CollisionMethod.VertexSamples,
+    //CollisionFilter.Default);
+    //    }
+    //}
 
     private class ChunkThreadData
     {
