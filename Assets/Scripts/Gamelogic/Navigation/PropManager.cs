@@ -72,14 +72,15 @@ public class PropManager : MonoBehaviour
 
                     //var subDivide = hexGroup.Subdivide(3, x => x.Code);
 
-                    var divisions = 3;
+                    var divisions = 1;
 
                     var inverseMatrix = HexIndex.GetInverseMultiplicationMatrix(divisions); 
 
                     var subs = hexGroup
-                    //.Subdivide(3, x => x.Code)
+                    .Subdivide(divisions, x => x.Code)
                     .GetHexes()
-                    .Where(x =>x.Payload.EdgeDistance>0.05f && x.Payload.EdgeDistance < 3)
+                    .Where(x =>x.Payload.EdgeDistance>0.5f && x.Payload.EdgeDistance < 3)
+                    //.Select(x=> x.Index.Position3d*8)
                     .Select(x => inverseMatrix.MultiplyPoint(x.Index.Position3d)*8)
                     .ToArray();
 
@@ -148,10 +149,13 @@ public class PropManager : MonoBehaviour
 
         var scale = new CompositeScale() { Value = Matrix4x4.Scale(new Vector3(1, 1, 1)) };
 
+        var up = new float3(0, 1, 0);
+
         for (int i = 0; i < vectors.Length; i++)
         {
             entities.SetComponentData(nativeArray[i], new Translation() { Value = vectors[i] });
             entities.AddComponentData(nativeArray[i], scale);
+            entities.AddComponentData(nativeArray[i], new Rotation() { Value = quaternion.AxisAngle(up, i * 21343.234f) });
             entities.AddSharedComponentData(nativeArray[i], shared);
         }
 
@@ -168,11 +172,17 @@ public class PropManager : MonoBehaviour
         Unset,Set
     }
 
+
+
+
     public class MyComponentSystem : ComponentSystem
     {
-        private int _m = 1;
+        private int _m = 3;
 
         public int Multiplier { get => _m; set => _m = value; }
+
+
+
 
         protected override void OnUpdate()
         {
@@ -221,7 +231,7 @@ public class PropManager : MonoBehaviour
 
                     scale.Value = new float4x4(
                         _m, 0,          0,  0,
-                        0,  maxY-minY,  0,  0,
+                        0,  (maxY-minY)*0.4f,  0,  0,
                         0,  0,          _m, 0,
                         0,  0,          0,  1
                         );
