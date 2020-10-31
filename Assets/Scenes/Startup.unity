@@ -208,7 +208,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 1
+    m_Strength: 0.611
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -853,7 +853,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4fc19155f506b8488b64d514fe8cf98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sphere: {fileID: 8433067374017131790, guid: 76809398059b56d46a68861663fac4da, type: 3}
+  Sphere: {fileID: 100000, guid: 7b5f2f9ea19c74c659ab8ac969280fb2, type: 3}
 --- !u!1 &1934309415
 GameObject:
   m_ObjectHideFlags: 0
