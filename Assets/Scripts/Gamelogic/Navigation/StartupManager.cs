@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WanderingRoad.Random;
 
 public class StartupManager:MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class StartupManager:MonoBehaviour
 
     public void Start()
     {
+        RNG.DateTimeInit();
+
         State.MainCamera = MainCamera;
 
         if (WipeAutosave && System.IO.File.Exists(Paths.Autosave))

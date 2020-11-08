@@ -128,4 +128,9 @@ namespace WanderingRoad.Procgen.Levelgen
 
 
     }
+
+    public class HexMapManifest
+    {
+
+    }
 }
