@@ -15,8 +15,9 @@ using Unity.Entities;
 using Unity.Physics.Systems;
 using WanderingRoad.Random;
 using System.ComponentModel;
+using Unity.Transforms;
 
-public class PropRegion
+public class PropRegion : IDisposable
 {
     private Vector2 _center;
     private Rect _bounds;
@@ -25,6 +26,9 @@ public class PropRegion
     private const int MULTIPLIER = 8;
 
     private NativeArray<Entity> _entities;
+    private World _world = World.DefaultGameObjectInjectionWorld;
+
+    private Entity Prefab = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(PrefabLibrary)).GetSingleton<PrefabLibrary>().Sphere;
 
 
     public PropRegion(GameState state, Rect bounds, Guid id)
@@ -35,63 +39,43 @@ public class PropRegion
 
         _center = bounds.center * MULTIPLIER;
 
+        _world.EntityManager.SetEnabled(Prefab, false);
+
     }
 
     public void Update(Vector2 sample)
     {
-        if (ContinueLoading()) return;
+        //if (ContinueLoading()) return;
+
+        //_entities = _world.EntityManager.Instantiate(Prefab, _raycastJobResult.translations.Length, Allocator.Persistent);
 
 
-        //if (_propState == PropRegionState.Loading)
-        //{
-        //    if (!_runningTask.IsCompleted)
-        //        return;
-        //
-        //    _propState = PropRegionState.Loaded;
-        //}
-        //
-        //var distance = Vector3.Distance(sample, _center);
-        //PropRegionState targetState;
-        //
-        //
-        //if (distance > 50)
-        //{
-        //    switch (_propState)
-        //    {
-        //        case PropRegionState.Unloaded:
-        //            break;
-        //        case PropRegionState.Loaded:
-        //            break;
-        //        case PropRegionState.Displayed:
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //}
-        //else
-        //{
-        //    switch (_propState)
-        //    {
-        //        case PropRegionState.Unloaded:
-        //            targetState = PropRegionState.Loading;
-        //            _runningTask = Task.Run(LoadHexgroupFromFileAndPopulatePositions).;
-        //
-        //
-        //            break;
-        //        case PropRegionState.Loaded:
-        //            break;
-        //        case PropRegionState.Displayed:
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //}
+        var distance = Vector2.Distance(sample, _bounds.position);
+
+        if (distance > 50)
+        {
+            if (_loading == LoadingStep.NotStarted)
+                return;
+
+            if(_loading == LoadingStep.Complete)
+            {
+                Unload();
+                _loading = LoadingStep.NotStarted;
+            }
+
+        }
+
+        if (distance > 30)
+        {
+            if (_loading == LoadingStep.NotStarted)
+                return;
+        }
+
+        ContinueLoading();
+
     }
 
-
-
-
-    #region ENTITIES
+    #region LOADING
 
     private LoadingStep _loading = LoadingStep.NotStarted;
 
@@ -101,7 +85,7 @@ public class PropRegion
         NotStarted = 0,
         LoadingHexgroupFromFile = 1,
         Raycasting = 2,
-        BuildingEntities = 3,
+        UpdatingAndEnablingPrefabs = 3,
         Complete = 10
 
     }
@@ -128,11 +112,13 @@ public class PropRegion
                 return true;
             case LoadingStep.LoadingHexgroupFromFile:
 
+                Debug.Log($"Started Loading Chunk {this._guid}");
+
                 if (!_loadingHexgroupTask.IsCompleted) return true;
 
-                _raycastJobResult = InstantiateElements(_float3s);
+                _raycastJobResult = InstantiateElements(_float2s);
 
-                //_float3s.Clear();
+                _float2s.Clear();
 
                 _loading = LoadingStep.Raycasting;
 
@@ -150,47 +136,52 @@ public class PropRegion
 
                 _raycastJobResult.handle.Complete();
 
-                //_raycastJobResult.positions.ToList().ForEach(x =>
-                //
-                //    Debug.DrawRay(x, Vector3.up * 6, color, 100f)
-                //);
+                _entities = _world.EntityManager.Instantiate(Prefab, _raycastJobResult.positions.Length, Allocator.Persistent);
 
+                _settingPropertiesTask = new SetProperties()
+                {
+                    entities = _entities,
+                    manager = _world.EntityManager,
+                    translations = _raycastJobResult.translations
+                }.Schedule(_latestJob);
 
-                //_entities = new NativeArray<Entity>(_raycastJobResult.positions.Length, Allocator.Persistent);
-                //
-                //var mananger = World.DefaultGameObjectInjectionWorld;
-                //
-                //mananger.EntityManager.Instantiate(
-                //
-                //mananger.EntityManager.SetComponentData()
-                //
-                //
-                //
+                _latestJob = _settingPropertiesTask;
+
                 _raycastJobResult.positions.Dispose();
-                _raycastJobResult.world.Dispose();
 
-                _loading = LoadingStep.BuildingEntities;
+                _loading = LoadingStep.UpdatingAndEnablingPrefabs;
 
                 return true;
 
-            case LoadingStep.BuildingEntities:
+            case LoadingStep.UpdatingAndEnablingPrefabs:
+
+                if (!_settingPropertiesTask.IsCompleted) return true;
+
+                _settingPropertiesTask.Complete();
+
+                _raycastJobResult.translations.Dispose();
 
                 _loading = LoadingStep.Complete;
+
+                Debug.Log($"Loaded Chunk {this._guid}");
 
                 return true;
 
             case LoadingStep.Complete:
+
+                
+
                 return false;
             default:
                 throw new InvalidEnumArgumentException();
         }
     }
 
-    private Task _runningTask;
+    private JobHandle _settingPropertiesTask;
 
     //Getting Entities
 
-    private List<float3> _float3s = new List<float3>();
+    private List<float2> _float2s = new List<float2>();
 
     private void LoadHexgroupFromFileAndPopulatePositions()
     {
@@ -214,13 +205,13 @@ public class PropRegion
             .Where(x => x.Payload.EdgeDistance > 0.5f && x.Payload.EdgeDistance < 3)
             //.Select(x=> x.Index.Position3d*8)
             .Select(x => inverseMatrix.MultiplyPoint(x.Index.Position3d) * MULTIPLIER)
-            .Select(x => new float3(x))
+            .Select(x => new float2(x.x,x.z))
             .ToList();
 
             {
-                lock (_float3s)
+                lock (_float2s)
                 {
-                    _float3s = subs;
+                    _float2s = subs;
                 }
             }
 
@@ -232,14 +223,17 @@ public class PropRegion
 
     }
 
+    private static JobHandle _latestJob = default;
+
     private struct RaycastJobResult
     {
-        public NativeArray<float3> positions;
+        public NativeArray<float2> positions;
+        public NativeArray<Translation> translations;
         public JobHandle handle;
         public CollisionWorld world;
     }
 
-    RaycastJobResult InstantiateElements(List<float3> vectors)
+    RaycastJobResult InstantiateElements(List<float2> vectors)
     {
         if (vectors is null)
         {
@@ -252,10 +246,11 @@ public class PropRegion
 
         //Debug.Log($"Casting many rays ({vectors.Length})");
 
-        var positions = new NativeArray<float3>(vectors.ToArray(), Allocator.Persistent);
+        var positions = new NativeArray<float2>(vectors.ToArray(), Allocator.Persistent);
 
         var physicsWorld = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld;
         var realCollision = physicsWorld.CollisionWorld;
+        var translations = new NativeArray<Translation>(positions.Length, Allocator.Persistent);
 
 
         var collisionWorld = realCollision.Clone();
@@ -265,10 +260,13 @@ public class PropRegion
         var package = new RaycastJobResult()
         {
             positions = positions,
+            translations = translations,
+
             world = collisionWorld,
             handle = new RaycastJob()
             {
-                translations = positions,
+                positions = positions,
+                translations = translations,
                 collisionWorld = collisionWorld
             }.Schedule(positions.Length, 128)
         };
@@ -276,18 +274,21 @@ public class PropRegion
         return package;
     }
 
+    public void Dispose()
+    {
+        _entities.Dispose();
+    }
+
     private struct RaycastJob : IJobParallelFor
     {
         [Unity.Collections.ReadOnly] public CollisionWorld collisionWorld;
-        public NativeArray<float3> translations;
+        [Unity.Collections.ReadOnly] public NativeArray<float2> positions;
+        [Unity.Collections.WriteOnly] public NativeArray<Translation> translations;
 
         public void Execute(int index)
         {
 
-            var translation = translations[index];
-
-
-            var val = translation;
+            var val = positions[index];
 
             float minY = float.MaxValue;
             float maxY = float.MinValue;
@@ -303,8 +304,8 @@ public class PropRegion
 
                     var ray = new RaycastInput
                     {
-                        Start = new float3(val.x, 200, val.z) + offset,
-                        End = new float3(val.x, -10, val.z) + offset,
+                        Start = new float3(val.x, 200, val.y) + offset,
+                        End = new float3(val.x, -10, val.y) + offset,
                         Filter = CollisionFilter.Default
                     };
 
@@ -317,8 +318,44 @@ public class PropRegion
                 }
             }
 
-            translations[index] = new float3(val.x, (minY + maxY) * 0.5f, val.z);
+            var t = new Translation()
+            {
+                Value = new float3(val.x, (minY + maxY) * 0.5f, val.y)
+            };
+
+            translations[index] = t;
         }
+    }
+
+    private struct SetProperties : IJob
+    {
+        public EntityManager manager;
+        public NativeArray<Entity> entities;
+        [Unity.Collections.ReadOnly] public NativeArray<Translation> translations;
+
+        public void Execute()
+        {
+            for (int i = 0; i < entities.Length; i++)
+            {
+                manager.SetComponentData(entities[i], translations[i]);
+                manager.SetEnabled(entities[i], true);
+            }
+                  
+        }
+    }
+
+    #endregion
+
+    #region UNLOADING
+
+    public bool Unload()
+    {
+        Debug.Log($"Unloading Chunk {this._guid}");
+        _world.EntityManager.DestroyEntity(_entities);        
+
+        _entities.Dispose();
+
+        return true;
     }
 
     #endregion
