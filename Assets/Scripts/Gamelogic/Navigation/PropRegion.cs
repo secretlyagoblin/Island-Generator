@@ -17,7 +17,7 @@ using WanderingRoad.Random;
 using System.ComponentModel;
 using Unity.Transforms;
 
-public class PropRegion
+public class PropRegion : IDisposable
 {
     private Vector2 _center;
     private Rect _bounds;
@@ -39,7 +39,7 @@ public class PropRegion
 
         _center = bounds.center * MULTIPLIER;
 
-        _world.EntityManager.SetEnabled(Prefab, false);
+        //_world.EntityManager.SetEnabled(Prefab, false);
 
 
 
@@ -54,7 +54,7 @@ public class PropRegion
         var distance = Vector2.Distance(sample, _center);
 
 
-        if (distance > 70)
+        if (distance > 160)
         {
             //Debug.DrawLine(new Vector3(sample.x, 0, sample.y), new Vector3(_center.x, 0, _center.y), Color.red);
 
@@ -69,7 +69,7 @@ public class PropRegion
 
         }
 
-        if (distance > 30)
+        if (distance > 120)
         {
             Debug.DrawLine(new Vector3(sample.x, 0, sample.y), new Vector3(_center.x, 0, _center.y), Color.blue);
 
@@ -115,7 +115,7 @@ public class PropRegion
             case LoadingStep.NotStarted:
 
 
-                Debug.Log($"Started Loading Chunk {this._guid}");
+                //Debug.Log($"Started Loading Chunk {this._guid}");
 
                 _loadingHexgroupTask = Task.Run(LoadHexgroupFromFileAndPopulatePositions);
                 _loading = LoadingStep.LoadingHexgroupFromFile;
@@ -175,16 +175,16 @@ public class PropRegion
 
                 _raycastJobResult.translations.Dispose();
 
-                var e = _world.EntityManager;
-
-                for (int i = 0; i < _entities.Length; i++)
-                {
-                    e.SetEnabled(_entities[i], true);
-                }
+                //var e = _world.EntityManager;
+                //
+                //for (int i = 0; i < _entities.Length; i++)
+                //{
+                //    e.SetEnabled(_entities[i], true);
+                //}
 
                 _loading = LoadingStep.Complete;
 
-                Debug.Log($"Loaded Chunk {this._guid}");
+                //Debug.Log($"Loaded Chunk {this._guid}");
 
                 return true;
 
@@ -348,9 +348,11 @@ public class PropRegion
                 }
             }
 
+            var diff = (maxY - minY)*0.25f;
+
             translations[index] = new Translation()
             {
-                Value = new float3(val.x, minY, val.y)
+                Value = new float3(val.x, ((minY + maxY)*0.5f)-diff, val.y)
             };
 
             var rotation = (val.x * 12432.2324f) + (val.y * 993232.122f) + minY * 21223.213324f + maxY * 232133f;
@@ -412,12 +414,18 @@ public class PropRegion
 
     public bool Unload()
     {
-        Debug.Log($"Unloading Chunk {this._guid}");
+        //Debug.Log($"Unloading Chunk {this._guid}");
         _world.EntityManager.DestroyEntity(_entities);        
 
         _entities.Dispose();
 
         return true;
+    }
+
+    public void Dispose()
+    {
+        if (_entities.IsCreated)
+            _entities.Dispose();
     }
 
     #endregion

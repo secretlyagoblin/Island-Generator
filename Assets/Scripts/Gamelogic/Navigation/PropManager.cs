@@ -66,10 +66,10 @@ public class PropManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        //foreach (var region in _regions)
-        //{
-        //    region.Dispose();
-        //}
+        foreach (var region in _regions)
+        {
+            region.Dispose();
+        }
     }
 
 
