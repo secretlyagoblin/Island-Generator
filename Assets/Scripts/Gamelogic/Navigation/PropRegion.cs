@@ -17,7 +17,7 @@ using WanderingRoad.Random;
 using System.ComponentModel;
 using Unity.Transforms;
 
-public class PropRegion : IDisposable
+public class PropRegion
 {
     private Vector2 _center;
     private Rect _bounds;
@@ -41,6 +41,8 @@ public class PropRegion : IDisposable
 
         _world.EntityManager.SetEnabled(Prefab, false);
 
+
+
     }
 
     public void Update(Vector2 sample)
@@ -49,11 +51,13 @@ public class PropRegion : IDisposable
 
         //_entities = _world.EntityManager.Instantiate(Prefab, _raycastJobResult.translations.Length, Allocator.Persistent);
 
+        var distance = Vector2.Distance(sample, _center);
 
-        var distance = Vector2.Distance(sample, _bounds.position);
 
-        if (distance > 50)
+        if (distance > 70)
         {
+            //Debug.DrawLine(new Vector3(sample.x, 0, sample.y), new Vector3(_center.x, 0, _center.y), Color.red);
+
             if (_loading == LoadingStep.NotStarted)
                 return;
 
@@ -67,9 +71,13 @@ public class PropRegion : IDisposable
 
         if (distance > 30)
         {
+            Debug.DrawLine(new Vector3(sample.x, 0, sample.y), new Vector3(_center.x, 0, _center.y), Color.blue);
+
             if (_loading == LoadingStep.NotStarted)
                 return;
         }
+
+        Debug.DrawLine(new Vector3(sample.x, 0, sample.y), new Vector3(_center.x, 0, _center.y), Color.white);
 
         ContinueLoading();
 
@@ -106,15 +114,17 @@ public class PropRegion : IDisposable
         {
             case LoadingStep.NotStarted:
 
+
+                Debug.Log($"Started Loading Chunk {this._guid}");
+
                 _loadingHexgroupTask = Task.Run(LoadHexgroupFromFileAndPopulatePositions);
                 _loading = LoadingStep.LoadingHexgroupFromFile;
 
                 return true;
             case LoadingStep.LoadingHexgroupFromFile:
 
-                Debug.Log($"Started Loading Chunk {this._guid}");
-
                 if (!_loadingHexgroupTask.IsCompleted) return true;
+
 
                 _raycastJobResult = InstantiateElements(_float2s);
 
@@ -142,12 +152,16 @@ public class PropRegion : IDisposable
                 {
                     entities = _entities,
                     manager = _world.EntityManager,
-                    translations = _raycastJobResult.translations
-                }.Schedule(_latestJob);
+                    translations = _raycastJobResult.translations,
+                    scale = _raycastJobResult.scales,
+                    rotations = _raycastJobResult.rotations
+                }.Schedule();
 
-                _latestJob = _settingPropertiesTask;
+                _settingPropertiesTask.Complete();
 
                 _raycastJobResult.positions.Dispose();
+                _raycastJobResult.scales.Dispose();
+                _raycastJobResult.rotations.Dispose();
 
                 _loading = LoadingStep.UpdatingAndEnablingPrefabs;
 
@@ -155,11 +169,18 @@ public class PropRegion : IDisposable
 
             case LoadingStep.UpdatingAndEnablingPrefabs:
 
-                if (!_settingPropertiesTask.IsCompleted) return true;
+                //if (!_settingPropertiesTask.IsCompleted) return true;
 
-                _settingPropertiesTask.Complete();
+                //_settingPropertiesTask.Complete();
 
                 _raycastJobResult.translations.Dispose();
+
+                var e = _world.EntityManager;
+
+                for (int i = 0; i < _entities.Length; i++)
+                {
+                    e.SetEnabled(_entities[i], true);
+                }
 
                 _loading = LoadingStep.Complete;
 
@@ -223,12 +244,13 @@ public class PropRegion : IDisposable
 
     }
 
-    private static JobHandle _latestJob = default;
 
     private struct RaycastJobResult
     {
         public NativeArray<float2> positions;
         public NativeArray<Translation> translations;
+        public NativeArray<Rotation> rotations;
+        public NativeArray<NonUniformScale> scales;
         public JobHandle handle;
         public CollisionWorld world;
     }
@@ -251,6 +273,8 @@ public class PropRegion : IDisposable
         var physicsWorld = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld;
         var realCollision = physicsWorld.CollisionWorld;
         var translations = new NativeArray<Translation>(positions.Length, Allocator.Persistent);
+        var rotations = new NativeArray<Rotation>(positions.Length, Allocator.Persistent);
+        var scales = new NativeArray<NonUniformScale>(positions.Length, Allocator.Persistent);
 
 
         var collisionWorld = realCollision.Clone();
@@ -261,29 +285,35 @@ public class PropRegion : IDisposable
         {
             positions = positions,
             translations = translations,
+            rotations = rotations,
+            scales = scales,
 
             world = collisionWorld,
             handle = new RaycastJob()
             {
                 positions = positions,
                 translations = translations,
-                collisionWorld = collisionWorld
+                collisionWorld = collisionWorld,
+                rotations = rotations,
+                scales = scales
             }.Schedule(positions.Length, 128)
         };
 
         return package;
     }
 
-    public void Dispose()
-    {
-        _entities.Dispose();
-    }
+    //public void Dispose()
+    //{
+    //    _entities.Dispose();
+    //}
 
     private struct RaycastJob : IJobParallelFor
     {
         [Unity.Collections.ReadOnly] public CollisionWorld collisionWorld;
         [Unity.Collections.ReadOnly] public NativeArray<float2> positions;
         [Unity.Collections.WriteOnly] public NativeArray<Translation> translations;
+        [Unity.Collections.WriteOnly] public NativeArray<Rotation> rotations;
+        [Unity.Collections.WriteOnly] public NativeArray<NonUniformScale> scales;
 
         public void Execute(int index)
         {
@@ -318,12 +348,24 @@ public class PropRegion : IDisposable
                 }
             }
 
-            var t = new Translation()
+            translations[index] = new Translation()
             {
-                Value = new float3(val.x, (minY + maxY) * 0.5f, val.y)
+                Value = new float3(val.x, minY, val.y)
             };
 
-            translations[index] = t;
+            var rotation = (val.x * 12432.2324f) + (val.y * 993232.122f) + minY * 21223.213324f + maxY * 232133f;
+
+
+
+            rotations[index] = new Rotation()
+            {
+                Value = quaternion.AxisAngle(new float3(0, 1, 0), rotation)
+            };
+
+            scales[index] = new NonUniformScale()
+            {
+                Value =new float3(3, (minY + maxY) * 0.1f,3)
+            };
         }
     }
 
@@ -332,17 +374,37 @@ public class PropRegion : IDisposable
         public EntityManager manager;
         public NativeArray<Entity> entities;
         [Unity.Collections.ReadOnly] public NativeArray<Translation> translations;
+        [Unity.Collections.ReadOnly] public NativeArray<Rotation> rotations;
+        [Unity.Collections.ReadOnly] public NativeArray<NonUniformScale> scale;
 
         public void Execute()
         {
             for (int i = 0; i < entities.Length; i++)
             {
                 manager.SetComponentData(entities[i], translations[i]);
-                manager.SetEnabled(entities[i], true);
+                manager.SetComponentData(entities[i], rotations[i]);
+                manager.SetComponentData(entities[i], scale[i]);
             }
                   
         }
     }
+
+    //private void SetProperties(NativeArray<Entity> entities, NativeArray<Translation> translations)
+    //{
+    //    //public EntityManager manager;
+    //    //public NativeArray<Entity> entities;
+    //    //[Unity.Collections.ReadOnly] public NativeArray<Translation> translations;
+    //
+    //    var e = _world.EntityManager;
+    //
+    //
+    //        for (int i = 0; i < entities.Length; i++)
+    //        {
+    //            e.SetComponentData(entities[i], translations[i]);
+    //            e.SetEnabled(entities[i], true);
+    //        }                
+    //    
+    //}
 
     #endregion
 
